@@ -186,10 +186,16 @@ const airports = [
     { name: "Toronto Pearson", lat: 43.6777, lon: -79.6248 },
     { name: "Mexico City", lat: 19.4363, lon: -99.0721 },
     
+    // Central America & Caribbean
+    { name: "San Jose Costa Rica", lat: 9.9936, lon: -84.2080 },
+    { name: "Port-au-Prince Haiti", lat: 18.5800, lon: -72.2926 },
+    { name: "Havana", lat: 22.9892, lon: -82.4091 },
+    
     // South America
     { name: "São Paulo", lat: -23.4356, lon: -46.4731 },
     { name: "Buenos Aires", lat: -34.8222, lon: -58.5358 },
     { name: "Bogotá", lat: 4.7016, lon: -74.1469 },
+    { name: "Arequipa", lat: -16.3409, lon: -71.5831 },
     
     // Europe
     { name: "London Heathrow", lat: 51.4700, lon: -0.4543 },
@@ -199,6 +205,10 @@ const airports = [
     { name: "Madrid", lat: 40.4983, lon: -3.5676 },
     { name: "Istanbul", lat: 40.9769, lon: 28.8146 },
     { name: "Moscow Sheremetyevo", lat: 55.9726, lon: 37.4146 },
+    { name: "Reykjavik Iceland", lat: 64.1300, lon: -21.9406 },
+    
+    // Atlantic
+    { name: "Atlantic Arcology", lat: 37.7412, lon: -25.6756 },
     
     // Middle East
     { name: "Dubai", lat: 25.2532, lon: 55.3657 },
@@ -208,6 +218,7 @@ const airports = [
     { name: "Johannesburg", lat: -26.1392, lon: 28.2460 },
     { name: "Cairo", lat: 30.1219, lon: 31.4056 },
     { name: "Lagos", lat: 6.5774, lon: 3.3213 },
+    { name: "Numbani", lat: 12.0022, lon: 8.5919 },
     
     // Asia
     { name: "Beijing", lat: 40.0799, lon: 116.6031 },
@@ -222,66 +233,28 @@ const airports = [
     
     // Oceania
     { name: "Sydney", lat: -33.9461, lon: 151.1772 },
-    { name: "Melbourne", lat: -37.6690, lon: 144.8410 }
+    { name: "Melbourne", lat: -37.6690, lon: 144.8410 },
+    { name: "Apia Samoa", lat: -13.8300, lon: -171.9993 }
 ];
 
-// Major seaports for maritime travel (busiest worldwide, spread across continents)
-const seaports = [
-    // Asia-Pacific (busiest region)
-    { name: "Shanghai Port", lat: 31.2304, lon: 121.4737 },
-    { name: "Singapore Port", lat: 1.2644, lon: 103.8220 },
-    { name: "Shenzhen Port", lat: 22.5431, lon: 114.0579 },
-    { name: "Ningbo Port", lat: 29.8683, lon: 121.5440 },
-    { name: "Hong Kong Port", lat: 22.2855, lon: 114.1577 },
-    { name: "Busan Port", lat: 35.1028, lon: 129.0403 },
-    { name: "Guangzhou Port", lat: 23.1167, lon: 113.2500 },
-    { name: "Tokyo Port", lat: 35.6528, lon: 139.7694 },
-    { name: "Port Klang", lat: 3.0048, lon: 101.3932 },
-    { name: "Kaohsiung Port", lat: 22.6167, lon: 120.2833 },
-    
-    // Middle East (Suez Canal region)
-    { name: "Dubai Port", lat: 25.2817, lon: 55.3300 },
-    { name: "Port Said", lat: 31.2653, lon: 32.3019 }, // Suez Canal north entrance
-    { name: "Suez Port", lat: 29.9668, lon: 32.5498 }, // Suez Canal south entrance
-    
-    // Europe
-    { name: "Rotterdam Port", lat: 51.9244, lon: 4.4777 },
-    { name: "Antwerp Port", lat: 51.2667, lon: 4.4000 },
-    { name: "Hamburg Port", lat: 53.5392, lon: 9.9681 },
-    { name: "Valencia Port", lat: 39.4561, lon: -0.3545 },
-    { name: "Piraeus Port", lat: 37.9386, lon: 23.6450 },
-    
-    // North America (Panama Canal region)
-    { name: "Los Angeles Port", lat: 33.7405, lon: -118.2720 },
-    { name: "Long Beach Port", lat: 33.7546, lon: -118.2260 },
-    { name: "New York Port", lat: 40.6655, lon: -74.0793 },
-    { name: "Colón Port", lat: 9.3592, lon: -79.9000 }, // Panama Canal Atlantic entrance
-    { name: "Balboa Port", lat: 8.9500, lon: -79.5667 }, // Panama Canal Pacific entrance
-    { name: "Houston Port", lat: 29.7350, lon: -95.2700 },
-    { name: "Vancouver Port", lat: 49.2827, lon: -123.1207 },
-    
-    // South America
-    { name: "Santos Port", lat: -23.9608, lon: -46.3339 },
-    { name: "Buenos Aires Port", lat: -34.6037, lon: -58.3816 },
-    { name: "Callao Port", lat: -12.0500, lon: -77.1500 },
-    
-    // Africa
-    { name: "Durban Port", lat: -29.8579, lon: 31.0292 },
-    { name: "Lagos Port", lat: 6.4474, lon: 3.3903 },
-    { name: "Mombasa Port", lat: -4.0435, lon: 39.6682 },
-    
-    // Oceania
-    { name: "Melbourne Port", lat: -37.8289, lon: 144.9332 },
-    { name: "Sydney Port", lat: -33.8548, lon: 151.2211 }
-];
 
-// Plane and boat arrays
+// Plane arrays
 let planes = [];
+let planeTrails = []; // Independent trail segments that fade over time
+
+// Boat arrays
 let boats = [];
 
 // GLTF Loader for 3D models
 let gltfLoader = null;
 let planeModelCache = null; // Cache the loaded plane model
+let boatModelCache = null; // Cache the loaded boat model
+
+// Ocean mask for boat placement (black = ocean, transparent = land)
+let oceanMaskCanvas = null;
+let oceanMaskContext = null;
+let oceanMaskLoaded = false;
+let maskOverlay = null; // Reference to mask overlay mesh
 
 function initGlobe() {
     const container = document.getElementById('globe-container');
@@ -345,9 +318,41 @@ function initGlobe() {
         shininess: 10,
         flatShading: false
     });
-
+    
     globe = new THREE.Mesh(geometry, material);
     scene.add(globe);
+
+    // Load ocean mask for boat placement
+    const maskImg = new Image();
+    maskImg.onload = function() {
+        oceanMaskCanvas = document.createElement('canvas');
+        oceanMaskCanvas.width = maskImg.width;
+        oceanMaskCanvas.height = maskImg.height;
+        oceanMaskContext = oceanMaskCanvas.getContext('2d', { willReadFrequently: true });
+        oceanMaskContext.drawImage(maskImg, 0, 0);
+        oceanMaskLoaded = true;
+        console.log('✅ Ocean mask loaded for boat placement', maskImg.width, 'x', maskImg.height);
+        
+        // Spawn boats once mask is loaded
+        spawnTestBoats();
+    };
+    maskImg.src = 'MAP Ocean.png';
+    
+    // Create ocean mask overlay (visible for testing)
+    const maskTextureLoader = new THREE.TextureLoader();
+    const maskTexture = maskTextureLoader.load('MAP Ocean.png', function(texture) {
+        console.log('✅ Ocean mask overlay loaded');
+    });
+    
+    const maskGeometry = new THREE.SphereGeometry(1.01, 64, 64); // Slightly larger than globe
+    const maskMaterial = new THREE.MeshBasicMaterial({
+        map: maskTexture,
+        transparent: true,
+        opacity: 0.7,
+        side: THREE.DoubleSide
+    });
+    maskOverlay = new THREE.Mesh(maskGeometry, maskMaterial);
+    scene.add(maskOverlay); // Add to scene
 
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -381,7 +386,6 @@ function initGlobe() {
     // Start spawning transport systems
     spawnTrainsRandomly();
     spawnPlanesRandomly();
-    spawnBoatsRandomly();
 }
 
 // Calculate route distance (approximate arc length)
@@ -684,24 +688,117 @@ function releaseRoute(from, to, trainId) {
     }
 }
 
+// Create a trail segment that fades over time
+function createTrailSegment(position) {
+    const segmentGeometry = new THREE.SphereGeometry(0.004, 6, 6);
+    const segmentMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.8
+    });
+    const segment = new THREE.Mesh(segmentGeometry, segmentMaterial);
+    segment.position.copy(position);
+    
+    segment.userData = {
+        age: 0, // How long this segment has existed
+        maxAge: 180 // Frames before fully faded (3 seconds at 60fps)
+    };
+    
+    globe.add(segment);
+    planeTrails.push(segment);
+}
+
+// Update all trail segments (fade and remove old ones)
+function updateTrailSegments() {
+    for (let i = planeTrails.length - 1; i >= 0; i--) {
+        const trail = planeTrails[i];
+        trail.userData.age += 1;
+        
+        // Fade out over time
+        const fadeProgress = trail.userData.age / trail.userData.maxAge;
+        trail.material.opacity = 0.8 * (1 - fadeProgress);
+        
+        // Remove when fully faded
+        if (trail.userData.age >= trail.userData.maxAge) {
+            globe.remove(trail);
+            planeTrails.splice(i, 1);
+        }
+        
+        // Hide if transport toggle is off
+        trail.visible = hyperloopVisible;
+    }
+}
+
 // Create a plane model (single unit) - loads from GLB
 function createPlane(fromCity, toCity) {
-    const from = latLonToVector3(fromCity.lat, fromCity.lon, 1.15); // Higher altitude
-    const to = latLonToVector3(toCity.lat, toCity.lon, 1.15);
+    // Create flight path with takeoff and landing
+    const groundStart = latLonToVector3(fromCity.lat, fromCity.lon, 1.005); // Start on ground
+    const groundEnd = latLonToVector3(toCity.lat, toCity.lon, 1.005); // End on ground
     
-    // Create curved path for plane (gentle arc at high altitude)
-    const curvePoints = createArcBetweenPoints(
-        fromCity.lat, fromCity.lon,
-        toCity.lat, toCity.lon,
-        1.15, // High altitude
-        50,
-        true
-    );
-    const curve = new THREE.CatmullRomCurve3(curvePoints);
-    const distance = calculateRouteDistance(curve);
+    // Calculate distance for appropriate cruise altitude
+    const distance = groundStart.distanceTo(groundEnd);
+    
+    // Scale cruise altitude based on distance (shorter flights = lower altitude, but always above trains)
+    // MUCH FLATTER paths - barely above the trains
+    // Short flights (~0.3 units): 1.04 altitude
+    // Medium flights (~0.8 units): 1.06 altitude  
+    // Long flights (1.5+ units): 1.08 altitude
+    const minAltitude = 1.04; // Minimum cruise altitude (barely above hyperloop's 1.03)
+    const maxAltitude = 1.08; // Maximum cruise altitude for long flights (much lower)
+    const normalizedDistance = Math.min(distance / 1.5, 1.0); // Normalize distance (1.5 = very long)
+    const cruiseAltitude = minAltitude + (maxAltitude - minAltitude) * normalizedDistance;
+    
+    // Scale takeoff/landing phases based on distance (longer flights = shorter relative phases)
+    // Short flights: 25% takeoff, 50% landing
+    // Long flights: 20% takeoff, 40% landing
+    const takeoffPhase = 0.25 - (normalizedDistance * 0.05); // 0.25 to 0.20
+    const landingPhase = 0.50 - (normalizedDistance * 0.10); // 0.50 to 0.40
+    const cruiseStart = takeoffPhase;
+    const cruiseEnd = 1.0 - landingPhase;
+    
+    // Create flight path points with takeoff and landing phases
+    const flightPoints = [];
+    const totalSegments = 60;
+    
+    for (let i = 0; i <= totalSegments; i++) {
+        const t = i / totalSegments;
+        
+        // Get base position along great circle
+        const basePoint = createArcBetweenPoints(
+            fromCity.lat, fromCity.lon,
+            toCity.lat, toCity.lon,
+            1.005, // Ground level
+            totalSegments,
+            true
+        )[i];
+        
+        // Calculate altitude based on flight phase
+        let altitude;
+        if (t < cruiseStart) {
+            // Takeoff phase: very gradual curve from ground to cruise for parallel takeoff
+            const takeoffProgress = t / cruiseStart;
+            const easeOut = Math.sin(takeoffProgress * Math.PI / 2); // Gentle sine ease-out
+            altitude = 1.005 + (cruiseAltitude - 1.005) * easeOut;
+        } else if (t > cruiseEnd) {
+            // Landing phase: extended gradual curve from cruise to ground for very parallel landing
+            const landingProgress = (t - cruiseEnd) / (1.0 - cruiseEnd);
+            // Use a custom curve that's very gentle (quadratic ease)
+            const easeIn = landingProgress * landingProgress;
+            altitude = cruiseAltitude - (cruiseAltitude - 1.005) * easeIn;
+        } else {
+            // Cruise phase: maintain altitude
+            altitude = cruiseAltitude;
+        }
+        
+        // Scale position to new altitude
+        const normalizedPos = basePoint.clone().normalize();
+        flightPoints.push(normalizedPos.multiplyScalar(altitude));
+    }
+    
+    const curve = new THREE.CatmullRomCurve3(flightPoints);
     
     // Planes move faster than trains
-    const speed = distance > 1.5 ? 0.0008 : 0.0012;
+    const speed = distance > 1.5 ? 0.0015 : 0.0020; // Faster for planes
     
     const planeGroup = new THREE.Group();
     
@@ -787,7 +884,14 @@ function createPlane(fromCity, toCity) {
         speed: speed,
         from: fromCity.name,
         to: toCity.name,
-        isPlane: true
+        isPlane: true,
+        lastTrailSpawn: 0, // Timer for spawning trail segments
+        trailSpawnInterval: 2, // Spawn every 2 frames for more continuous trail
+        landingTimer: 0, // Timer for how long plane stays on ground
+        hasLanded: false, // Whether plane has landed
+        bankAngle: 0, // Current bank/roll angle
+        targetBankAngle: 0, // Target bank angle for smooth transitions
+        bankChangeTimer: 0 // Timer for changing bank angle
     };
     
     planeGroup.visible = false; // Start invisible
@@ -795,121 +899,6 @@ function createPlane(fromCity, toCity) {
     planes.push(planeGroup);
     
     return planeGroup;
-}
-
-// Create a boat model (single unit)
-function createBoat(fromPort, toPort) {
-    const from = latLonToVector3(fromPort.lat, fromPort.lon, 1.005); // Just above surface
-    const to = latLonToVector3(toPort.lat, toPort.lon, 1.005);
-    
-    // Create curved path for boat (follows globe surface closely)
-    const curvePoints = createArcBetweenPoints(
-        fromPort.lat, fromPort.lon,
-        toPort.lat, toPort.lon,
-        1.005, // Just above surface
-        50,
-        false
-    );
-    const curve = new THREE.CatmullRomCurve3(curvePoints);
-    const distance = calculateRouteDistance(curve);
-    
-    // Boats move slower than trains
-    const speed = distance > 1.0 ? 0.0003 : 0.0005;
-    
-    const boatGroup = new THREE.Group();
-    
-    // Hull (wider and flatter)
-    const hullGeometry = new THREE.BoxGeometry(0.025, 0.012, 0.035); // Wide and flat
-    hullGeometry.computeBoundingBox();
-    hullGeometry.computeBoundingSphere();
-    
-    const hullMaterial = new THREE.MeshPhongMaterial({
-        color: 0xeeeeee, // White
-        emissive: 0x4444ff,
-        emissiveIntensity: 0.2,
-        transparent: true,
-        opacity: 0.85,
-        shininess: 30
-    });
-    
-    const hull = new THREE.Mesh(hullGeometry, hullMaterial);
-    boatGroup.add(hull);
-    
-    // Superstructure (bridge/deck at back)
-    const bridgeGeometry = new THREE.BoxGeometry(0.015, 0.010, 0.012);
-    bridgeGeometry.computeBoundingBox();
-    bridgeGeometry.computeBoundingSphere();
-    
-    const bridgeMaterial = new THREE.MeshPhongMaterial({
-        color: 0xaaddff, // Light blue
-        emissive: 0x2222ff,
-        emissiveIntensity: 0.2,
-        transparent: true,
-        opacity: 0.85,
-        shininess: 30
-    });
-    
-    const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
-    bridge.position.set(0, 0.011, -0.008); // Raised and at back
-    boatGroup.add(bridge);
-    
-    // Windows on bridge
-    const boatWindowGeometry = new THREE.BoxGeometry(0.012, 0.003, 0.003);
-    boatWindowGeometry.computeBoundingBox();
-    boatWindowGeometry.computeBoundingSphere();
-    
-    const boatWindowMaterial = new THREE.MeshPhongMaterial({
-        color: 0x222244,
-        transparent: true,
-        opacity: 0.9
-    });
-    
-    const bridgeWindow = new THREE.Mesh(boatWindowGeometry, boatWindowMaterial);
-    bridgeWindow.position.set(0, 0.015, -0.003);
-    bridgeWindow.renderOrder = 1000;
-    boatGroup.add(bridgeWindow);
-    
-    // Bow marker (pointed front)
-    const bowGeometry = new THREE.BoxGeometry(0.008, 0.008, 0.008);
-    bowGeometry.computeBoundingBox();
-    bowGeometry.computeBoundingSphere();
-    
-    const bow = new THREE.Mesh(bowGeometry, hullMaterial);
-    bow.position.z = 0.020;
-    boatGroup.add(bow);
-    
-    // Glow layer
-    const boatGlowGeometry = new THREE.BoxGeometry(0.029, 0.016, 0.040);
-    boatGlowGeometry.computeBoundingBox();
-    boatGlowGeometry.computeBoundingSphere();
-    
-    const boatGlowMaterial = new THREE.MeshPhongMaterial({
-        color: 0x8888ff,
-        emissive: 0x4444ff,
-        emissiveIntensity: 0.3,
-        transparent: true,
-        opacity: 0.15,
-        shininess: 30
-    });
-    
-    const glow = new THREE.Mesh(boatGlowGeometry, boatGlowMaterial);
-    boatGroup.add(glow);
-    
-    // Store metadata
-    boatGroup.userData = {
-        curve: curve,
-        progress: 0,
-        speed: speed,
-        from: fromPort.name,
-        to: toPort.name,
-        isBoat: true
-    };
-    
-    boatGroup.visible = false; // Start invisible
-    globe.add(boatGroup);
-    boats.push(boatGroup);
-    
-    return boatGroup;
 }
 
 // Build route graph for multi-stop pathfinding
@@ -1060,7 +1049,7 @@ function spawnTrainsRandomly() {
     // Build route graph for multi-stop routes
     buildRouteGraph();
     
-    console.log(`🚂 TRAIN SYSTEM INITIALIZED`);
+    // Train system initialized
     console.log(`📊 Total routes: ${routeCurves.length}`);
     console.log(`📊 Cities in graph: ${Object.keys(routeGraph).length}`);
     
@@ -1129,7 +1118,7 @@ function spawnTrainsRandomly() {
 
 // Spawn planes randomly (long-distance routes only)
 function spawnPlanesRandomly() {
-    console.log(`✈️ PLANE SYSTEM INITIALIZED`);
+    // Plane system initialized
     console.log(`📊 Total airports: ${airports.length}`);
     
     // Calculate minimum distance (Seattle to LA as reference ~1500km = ~0.4 units)
@@ -1157,47 +1146,6 @@ function spawnPlanesRandomly() {
     }, 3000);
 }
 
-// Spawn boats randomly (ocean routes with canal shortcuts)
-function spawnBoatsRandomly() {
-    console.log(`🚢 BOAT SYSTEM INITIALIZED`);
-    console.log(`📊 Total seaports: ${seaports.length}`);
-    
-    // Define canal shortcuts
-    const canalRoutes = [
-        // Panama Canal shortcuts
-        { from: "Balboa Port", to: "Colón Port", isPanama: true },
-        { from: "Colón Port", to: "Balboa Port", isPanama: true },
-        
-        // Suez Canal shortcuts
-        { from: "Port Said", to: "Suez Port", isSuez: true },
-        { from: "Suez Port", to: "Port Said", isSuez: true }
-    ];
-    
-    // Spawn boats every 2.5 seconds
-    setInterval(() => {
-        if (!isPageVisible || !hyperloopVisible) return;
-        
-        // 30% chance to use canal route
-        if (Math.random() < 0.30 && canalRoutes.length > 0) {
-            const canalRoute = canalRoutes[Math.floor(Math.random() * canalRoutes.length)];
-            const from = seaports.find(p => p.name === canalRoute.from);
-            const to = seaports.find(p => p.name === canalRoute.to);
-            
-            if (from && to) {
-                createBoat(from, to);
-                return;
-            }
-        }
-        
-        // Regular random ocean route
-        const from = seaports[Math.floor(Math.random() * seaports.length)];
-        const to = seaports[Math.floor(Math.random() * seaports.length)];
-        
-        if (from !== to) {
-            createBoat(from, to);
-        }
-    }, 2500);
-}
 
 // Update plane positions
 function updatePlanes() {
@@ -1205,13 +1153,27 @@ function updatePlanes() {
         const plane = planes[i];
         const data = plane.userData;
         
+        // If plane has landed, handle landing timer
+        if (data.hasLanded) {
+            data.landingTimer += 1;
+            
+            // Remove after 1 second on ground (60 frames at 60fps)
+            if (data.landingTimer > 60) {
+                globe.remove(plane);
+                planes.splice(i, 1);
+            }
+            continue;
+        }
+        
         // Update progress
         data.progress += data.speed;
         
-        // Remove when complete
+        // Check if plane has reached destination
         if (data.progress >= 1.0) {
-            globe.remove(plane);
-            planes.splice(i, 1);
+            data.progress = 1.0;
+            data.hasLanded = true;
+            data.landingTimer = 0;
+            // Keep plane visible on ground for a moment
             continue;
         }
         
@@ -1219,6 +1181,30 @@ function updatePlanes() {
         if (data.progress > 0 && data.progress <= 1) {
             const position = data.curve.getPointAt(data.progress);
             plane.position.copy(position);
+            
+            // Spawn trail segments periodically with occasional gaps
+            data.lastTrailSpawn += 1;
+            if (data.lastTrailSpawn >= data.trailSpawnInterval) {
+                // Spawn trails throughout entire flight
+                createTrailSegment(position);
+                data.lastTrailSpawn = 0;
+                // Occasionally create gaps (10% chance)
+                if (Math.random() < 0.1) {
+                    data.trailSpawnInterval = Math.random() * 10 + 5; // 5-15 frame gap
+                } else {
+                    data.trailSpawnInterval = 2; // Normal continuous trail
+                }
+            }
+            
+            // Update banking motion
+            data.bankChangeTimer += 1;
+            if (data.bankChangeTimer > 60) { // Change bank angle every ~1 second
+                data.targetBankAngle = (Math.random() - 0.5) * 0.3; // Random bank between -0.15 and +0.15 radians (~8 degrees)
+                data.bankChangeTimer = 0;
+            }
+            
+            // Smoothly interpolate to target bank angle
+            data.bankAngle += (data.targetBankAngle - data.bankAngle) * 0.05; // Smooth interpolation
             
             // Orient plane along path (same method as trains)
             const tangent = data.curve.getTangentAt(data.progress).normalize();
@@ -1230,8 +1216,13 @@ function updatePlanes() {
             const rotationMatrix = new THREE.Matrix4();
             rotationMatrix.makeBasis(right, correctedUp, tangent.negate());
             
-            // Apply rotation to plane
+            // Apply base rotation to plane
             plane.quaternion.setFromRotationMatrix(rotationMatrix);
+            
+            // Apply banking (roll) around the forward axis
+            const bankQuaternion = new THREE.Quaternion();
+            bankQuaternion.setFromAxisAngle(tangent, data.bankAngle);
+            plane.quaternion.multiply(bankQuaternion);
             
             // Show plane when it's moving
             plane.visible = hyperloopVisible;
@@ -1239,44 +1230,163 @@ function updatePlanes() {
     }
 }
 
-// Update boat positions
-function updateBoats() {
-    for (let i = boats.length - 1; i >= 0; i--) {
-        const boat = boats[i];
-        const data = boat.userData;
+// Check if a point is over ocean using the mask (black = ocean, transparent = land)
+function isOverOcean(lat, lon) {
+    if (!oceanMaskLoaded || !oceanMaskContext) return false; // Default to land if mask not loaded
+    
+    // Convert lat/lon to texture coordinates (equirectangular projection)
+    // Longitude: -180 to 180 maps to 0 to width
+    // Latitude: 90 to -90 maps to 0 to height
+    const x = Math.floor(((lon + 180) / 360) * oceanMaskCanvas.width);
+    const y = Math.floor(((90 - lat) / 180) * oceanMaskCanvas.height);
+    
+    // Clamp to valid texture bounds
+    const clampedX = Math.max(0, Math.min(oceanMaskCanvas.width - 1, x));
+    const clampedY = Math.max(0, Math.min(oceanMaskCanvas.height - 1, y));
+    
+    // Sample pixel from mask
+    const pixelData = oceanMaskContext.getImageData(clampedX, clampedY, 1, 1).data;
+    const r = pixelData[0];
+    const g = pixelData[1];
+    const b = pixelData[2];
+    const a = pixelData[3]; // Alpha channel
+    
+    // Black pixel (r=0, g=0, b=0) with alpha = ocean
+    // Transparent or non-black = land
+    const isOcean = (r < 50 && g < 50 && b < 50 && a > 128);
+    
+    return isOcean;
+}
+
+// Find a random ocean location
+function findRandomOceanLocation() {
+    let attempts = 0;
+    const maxAttempts = 1000;
+    
+    while (attempts < maxAttempts) {
+        // Random lat/lon
+        const lat = (Math.random() * 180) - 90; // -90 to 90
+        const lon = (Math.random() * 360) - 180; // -180 to 180
         
-        // Update progress
-        data.progress += data.speed;
-        
-        // Remove when complete
-        if (data.progress >= 1.0) {
-            globe.remove(boat);
-            boats.splice(i, 1);
-            continue;
+        if (isOverOcean(lat, lon)) {
+            return { lat, lon };
         }
         
-        // Update position and orientation
-        if (data.progress > 0 && data.progress <= 1) {
-            const position = data.curve.getPointAt(data.progress);
-            boat.position.copy(position);
-            
-            // Orient boat along path (same method as trains)
-            const tangent = data.curve.getTangentAt(data.progress).normalize();
-            const up = position.clone().normalize(); // Perpendicular to globe surface
-            const right = new THREE.Vector3().crossVectors(tangent, up).normalize();
-            const correctedUp = new THREE.Vector3().crossVectors(right, tangent).normalize();
-            
-            // Create rotation matrix from these vectors
-            const rotationMatrix = new THREE.Matrix4();
-            rotationMatrix.makeBasis(right, correctedUp, tangent.negate());
-            
-            // Apply rotation to boat
-            boat.quaternion.setFromRotationMatrix(rotationMatrix);
-            
-            // Show boat when it's moving
-            boat.visible = hyperloopVisible;
-        }
+        attempts++;
     }
+    
+    // Fallback: return a known ocean location (middle of Pacific)
+    console.warn('⚠️ Could not find random ocean location, using fallback');
+    return { lat: 0, lon: -150 };
+}
+
+// Create a boat at a specific location
+function createBoat(lat, lon) {
+    const boatGroup = new THREE.Group();
+    
+    // Load or clone the boat model
+    if (boatModelCache) {
+        // Clone the cached model for better performance
+        const boatModel = boatModelCache.clone();
+        boatModel.scale.set(0.02, 0.02, 0.02);
+        boatModel.visible = true;
+        
+        // Apply blue color
+        boatModel.traverse((child) => {
+            if (child.isMesh) {
+                child.material = new THREE.MeshPhongMaterial({
+                    color: 0x0088cc,
+                    emissive: 0x004488,
+                    emissiveIntensity: 0.3,
+                    transparent: true,
+                    opacity: 0.85,
+                    shininess: 30
+                });
+                child.visible = true;
+            }
+        });
+        
+        boatGroup.add(boatModel);
+    } else {
+        // Load the model for the first time
+        console.log('📦 Loading Boat.glb for first time...');
+        gltfLoader.load('Boat.glb', (gltf) => {
+            console.log('✅ Boat.glb loaded successfully!', gltf);
+            const model = gltf.scene;
+            
+            // Cache for future boats
+            boatModelCache = model.clone();
+            
+            // Adjust scale
+            model.scale.set(0.02, 0.02, 0.02);
+            model.visible = true;
+            
+            // Apply blue color
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshPhongMaterial({
+                        color: 0x0088cc,
+                        emissive: 0x004488,
+                        emissiveIntensity: 0.3,
+                        transparent: true,
+                        opacity: 0.85,
+                        shininess: 30
+                    });
+                    child.visible = true;
+                    // Compute bounding boxes
+                    if (child.geometry) {
+                        child.geometry.computeBoundingBox();
+                        child.geometry.computeBoundingSphere();
+                    }
+                }
+            });
+            
+            boatGroup.add(model);
+        }, 
+        (xhr) => {
+            console.log('Loading boat: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        (error) => {
+            console.error('❌ Error loading boat model:', error);
+        });
+    }
+    
+    // Position boat on globe surface
+    const position = latLonToVector3(lat, lon, 1.002); // Slightly above surface
+    boatGroup.position.copy(position);
+    
+    // Orient boat to face outward from globe
+    const up = position.clone().normalize();
+    const forward = new THREE.Vector3(0, 0, 1);
+    const right = new THREE.Vector3().crossVectors(up, forward).normalize();
+    const correctedForward = new THREE.Vector3().crossVectors(right, up).normalize();
+    
+    const rotationMatrix = new THREE.Matrix4();
+    rotationMatrix.makeBasis(right, up, correctedForward);
+    boatGroup.quaternion.setFromRotationMatrix(rotationMatrix);
+    
+    globe.add(boatGroup);
+    boats.push(boatGroup);
+    
+    return boatGroup;
+}
+
+// Spawn 20 test boats at random ocean locations
+function spawnTestBoats() {
+    if (!oceanMaskLoaded) {
+        console.warn('⚠️ Ocean mask not loaded yet, cannot spawn boats');
+        return;
+    }
+    
+    console.log('🚢 Spawning 20 test boats at random ocean locations...');
+    
+    for (let i = 0; i < 20; i++) {
+        const location = findRandomOceanLocation();
+        createBoat(location.lat, location.lon);
+        console.log(`🚢 Boat ${i + 1}/20 created at: ${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`);
+    }
+    
+    console.log('✅ All 20 boats spawned!');
 }
 
 // Update train color based on journey progress
@@ -2298,6 +2408,7 @@ function animate() {
         rotationVelocity.x *= 0.95;
         rotationVelocity.y *= 0.95;
     }
+    
 
     // Make markers pulse
     const time = Date.now() * 0.003;
@@ -2325,10 +2436,15 @@ function animate() {
         stars.rotation.x += 0.00005;
     }
     
+    // Sync mask overlay rotation with globe
+    if (maskOverlay) {
+        maskOverlay.rotation.copy(globe.rotation);
+    }
+    
     // Update all transport systems
     updateTrains();
     updatePlanes();
-    updateBoats();
+    updateTrailSegments(); // Update independent trail segments
 
     // Update label position if active (DISABLED)
     // updateLabelPosition();
@@ -2449,7 +2565,7 @@ function setupHyperloopToggle() {
         
         if (hyperloopVisible) {
             toggleBtn.classList.add('active');
-            console.log('🚄 Transport systems ENABLED (Trains, Planes, Boats)');
+            console.log('🚄 Transport systems ENABLED (Trains, Planes)');
         } else {
             toggleBtn.classList.remove('active');
             console.log('⏸️ Transport systems DISABLED - all vehicles will finish invisibly, no new spawns');
@@ -2500,17 +2616,6 @@ function updateHyperloopVisibility() {
         }
     });
     
-    // Toggle boat visibility
-    boats.forEach(boat => {
-        if (hyperloopVisible) {
-            const data = boat.userData;
-            if (data && data.progress > 0 && data.progress <= 1) {
-                boat.visible = true;
-            }
-        } else {
-            boat.visible = false;
-        }
-    });
 }
 
 // Initialize when DOM is ready
