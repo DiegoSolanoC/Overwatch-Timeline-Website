@@ -78,12 +78,51 @@ function handleSubmit(event) {
     }, 5000);
 }
 
-// Add smooth scrolling for better UX
+// Sidebar toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Website loaded successfully!');
     
-    // Add any initialization code here
-    // For example, you could add animations, fetch data, etc.
+    const sidebar = document.getElementById('sidebar');
+    const indicator = document.getElementById('sidebarIndicator');
+    const closeButton = document.getElementById('sidebarClose');
+    
+    // Check if sidebar should be open from localStorage
+    if (localStorage.getItem('sidebarOpen') === 'true') {
+        sidebar.classList.add('visible');
+    }
+    
+    // Toggle sidebar when clicking the indicator
+    if (indicator) {
+        indicator.addEventListener('click', function() {
+            sidebar.classList.toggle('visible');
+            localStorage.setItem('sidebarOpen', sidebar.classList.contains('visible'));
+        });
+    }
+    
+    // Close sidebar when clicking the X button
+    if (closeButton) {
+        closeButton.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent event from bubbling
+            sidebar.classList.remove('visible');
+            localStorage.setItem('sidebarOpen', 'false');
+        });
+    }
+    
+    // Close sidebar when clicking outside of it
+    document.addEventListener('click', function(e) {
+        if (!sidebar.contains(e.target) && !indicator.contains(e.target)) {
+            sidebar.classList.remove('visible');
+            localStorage.setItem('sidebarOpen', 'false');
+        }
+    });
+    
+    // Keep sidebar open when clicking navigation buttons
+    const navButtons = sidebar.querySelectorAll('button');
+    navButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            localStorage.setItem('sidebarOpen', 'true');
+        });
+    });
 });
 
 // Optional: Add keyboard shortcut to close modal (ESC key)

@@ -3,58 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
+    <title>Map - My Website</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>Welcome to My Website</h1>
-        <nav>
-            <button onclick="showHome()">Home</button>
-            <button onclick="window.location.href='about.html'">About</button>
-            <button onclick="window.location.href='contact.html'">Contact</button>
-        </nav>
+        <h1>Timeline Overwatch</h1>
     </header>
 
-    <main id="content">
-        <section class="hero">
-            <h2>Hello! 👋</h2>
-            <p>This is your new website. Click the buttons above to explore different pages.</p>
-        </section>
+    <div class="layout-container">
+        <main id="content">
+            <div id="globe-container">
+                <button id="autoRotateToggle" class="globe-control-btn" title="Toggle Auto-Rotation">
+                    <span id="rotateIcon">On</span>
+                </button>
+                <button id="hyperloopToggle" class="globe-control-btn hyperloop-btn active" title="Toggle Transport Systems">
+                    <span id="hyperloopIcon"></span>
+                </button>
+            </div>
+        </main>
 
-        <section class="features">
-            <div class="card">
-                <h3>Feature 1</h3>
-                <p>Add your content here</p>
-                <button onclick="showDetails('feature1')">Learn More</button>
-            </div>
-            <div class="card">
-                <h3>Feature 2</h3>
-                <p>Add your content here</p>
-                <button onclick="showDetails('feature2')">Learn More</button>
-            </div>
-            <div class="card">
-                <h3>Feature 3</h3>
-                <p>Add your content here</p>
-                <button onclick="showDetails('feature3')">Learn More</button>
-            </div>
-        </section>
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-close" id="sidebarClose">&times;</div>
+            <button onclick="window.location.href='index.html'" class="active">Map</button>
+            <button onclick="window.location.href='about.html'">Filters</button>
+            <button onclick="window.location.href='contact.html'">Options</button>
+        </nav>
 
-        <!-- Modal for details -->
-        <div id="modal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <h2 id="modal-title">Details</h2>
-                <p id="modal-text">More information will appear here.</p>
-            </div>
-        </div>
-    </main>
+        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
+    </div>
 
     <footer>
-        <p>&copy; 2025 My Website. All rights reserved.</p>
+        <p>&copy; 2025 Timeline Overwatch</p>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="globe.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
 

@@ -9,59 +9,229 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: white;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header Styles */
 header {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 1.5rem 2rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
+    background: #0D47A1;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     z-index: 100;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 header h1 {
-    color: #667eea;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-nav {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-nav button {
-    padding: 0.7rem 1.5rem;
-    background: #667eea;
     color: white;
+    margin: 0;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+/* Layout Container */
+.layout-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+    position: fixed;
+    right: -200px;
+    top: 60px;
+    bottom: 52px;
+    width: 200px;
+    background: #0D47A1;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+    transition: right 0.3s ease;
+    z-index: 50;
+    overflow-y: auto;
+}
+
+.sidebar.visible {
+    right: 0;
+}
+
+/* Sidebar Trigger Area - invisible hover zone */
+.sidebar-trigger {
+    position: fixed;
+    right: 0;
+    top: 60px;
+    bottom: 48px;
+    width: 20px;
+    z-index: 40;
+    cursor: pointer;
+}
+
+/* Visual indicator for sidebar */
+.sidebar-indicator {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 80px;
+    background: rgba(13, 71, 161, 0.6);
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    z-index: 30;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.sidebar-indicator:hover {
+    background: rgba(13, 71, 161, 0.9);
+    width: 35px;
+}
+
+/* Keep indicator visible when sidebar is open, just move it */
+.sidebar.visible ~ .sidebar-indicator {
+    right: 200px;
+}
+
+/* Sidebar Close Button */
+.sidebar-close {
+    padding: 1rem;
+    text-align: right;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ff4444;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
     border: none;
-    border-radius: 5px;
+    border-right: 3px solid transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     cursor: pointer;
     font-size: 1rem;
+    text-align: left;
     transition: all 0.3s ease;
 }
 
-nav button:hover {
-    background: #764ba2;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.sidebar button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
-nav button:active {
-    transform: translateY(0);
+.sidebar button.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-right-color: #64B5F6;
+    font-weight: bold;
 }
 
 /* Main Content */
 main {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 2rem;
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+    background: #0a1929;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Globe Container */
+#globe-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: grab;
+}
+
+/* Globe Control Button */
+.globe-control-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 60px;
+    height: 50px;
+    background: rgba(13, 71, 161, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.globe-control-btn:hover {
+    background: rgba(13, 71, 161, 1);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.globe-control-btn:active {
+    transform: scale(0.95);
+}
+
+.globe-control-btn.active {
+    background: rgba(76, 175, 80, 0.9);
+    border-color: rgba(139, 195, 74, 0.8);
+}
+
+.globe-control-btn.active:hover {
+    background: rgba(76, 175, 80, 1);
+}
+
+#rotateIcon {
+    display: inline-block;
+    animation: none !important;
+    transform: none !important;
+}
+
+/* Hyperloop Toggle Button - positioned next to rotation button */
+.hyperloop-btn {
+    left: 90px !important; /* Position next to rotation button */
+}
+
+#hyperloopIcon {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+}
+
+#globe-container:active {
+    cursor: grabbing;
+}
+
+#globe-container canvas {
+    display: block;
 }
 
 /* Hero Section */
@@ -75,7 +245,7 @@ main {
 }
 
 .hero h2 {
-    color: #667eea;
+    color: #0D47A1;
     font-size: 2.5rem;
     margin-bottom: 1rem;
 }
@@ -108,7 +278,7 @@ main {
 }
 
 .card h3 {
-    color: #667eea;
+    color: #0D47A1;
     margin-bottom: 1rem;
 }
 
@@ -119,7 +289,7 @@ main {
 
 .card button {
     padding: 0.7rem 1.5rem;
-    background: #764ba2;
+    background: #0D47A1;
     color: white;
     border: none;
     border-radius: 5px;
@@ -128,7 +298,7 @@ main {
 }
 
 .card button:hover {
-    background: #667eea;
+    background: #1565C0;
 }
 
 /* Modal Styles */
@@ -175,7 +345,7 @@ main {
 
 .close:hover,
 .close:focus {
-    color: #667eea;
+    color: #0D47A1;
 }
 
 /* Info Section */
@@ -187,7 +357,7 @@ main {
 }
 
 .info-section h3 {
-    color: #667eea;
+    color: #0D47A1;
     margin-top: 1.5rem;
     margin-bottom: 1rem;
 }
@@ -214,7 +384,7 @@ main {
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #667eea;
+    color: #0D47A1;
     font-weight: bold;
 }
 
@@ -231,12 +401,12 @@ main {
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #0D47A1;
 }
 
 .cta-button {
     padding: 0.8rem 2rem;
-    background: #667eea;
+    background: #0D47A1;
     color: white;
     border: none;
     border-radius: 5px;
@@ -248,7 +418,7 @@ main {
 }
 
 .cta-button:hover {
-    background: #764ba2;
+    background: #1565C0;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -275,32 +445,69 @@ main {
 
 /* Footer */
 footer {
-    background: rgba(255, 255, 255, 0.95);
+    background: #0D47A1;
     text-align: center;
-    padding: 1.5rem;
-    margin-top: 3rem;
+    padding: 1rem;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 footer p {
-    color: #666;
+    color: white;
+    margin: 0;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     header h1 {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .sidebar {
+        position: fixed;
+        right: -100%;
+        top: 60px;
+        bottom: 52px;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+        padding: 0;
+        overflow-y: auto;
+        justify-content: flex-start;
+    }
+    
+    .sidebar.visible {
+        right: auto;
+        left: 0;
+    }
+    
+    .sidebar button {
+        padding: 1rem 1.5rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: left;
+        white-space: nowrap;
+    }
+    
+    .sidebar button.active {
+        border-right: none;
+        border-left: 3px solid #64B5F6;
+    }
+    
+    .sidebar-indicator {
+        top: auto;
+        bottom: 48px;
+        right: 10px;
+        transform: none;
+        width: 60px;
+        height: 40px;
+        border-radius: 5px 5px 0 0;
     }
     
     .hero h2 {
         font-size: 2rem;
-    }
-    
-    nav {
-        flex-direction: column;
-    }
-    
-    nav button {
-        width: 100%;
     }
     
     .features {

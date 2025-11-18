@@ -3,39 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - My Website</title>
+    <title>Filters - My Website</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>About Us</h1>
-        <nav>
-            <button onclick="window.location.href='index.html'">Home</button>
-            <button onclick="showAbout()">About</button>
-            <button onclick="window.location.href='contact.html'">Contact</button>
-        </nav>
+        <h1>Timeline Overwatch</h1>
     </header>
 
-    <main id="content">
-        <section class="hero">
-            <h2>About This Website</h2>
-            <p>This is the about page. Tell your visitors about yourself or your project!</p>
-        </section>
+    <div class="layout-container">
+        <main id="content">
+            <!-- Content will go here -->
+        </main>
 
-        <section class="info-section">
-            <h3>Our Mission</h3>
-            <p>Add your mission statement here.</p>
-            
-            <h3>What We Do</h3>
-            <p>Describe what your website is about.</p>
-            
-            <h3>Get In Touch</h3>
-            <button onclick="window.location.href='contact.html'" class="cta-button">Contact Us</button>
-        </section>
-    </main>
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-close" id="sidebarClose">&times;</div>
+            <button onclick="window.location.href='index.html'">Map</button>
+            <button onclick="window.location.href='about.html'" class="active">Filters</button>
+            <button onclick="window.location.href='contact.html'">Options</button>
+        </nav>
+
+        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
+    </div>
 
     <footer>
-        <p>&copy; 2025 My Website. All rights reserved.</p>
+        <p>&copy; Origianl Work by Blizzard Entertainment.</p>
     </footer>
 
     <script src="script.js"></script>
