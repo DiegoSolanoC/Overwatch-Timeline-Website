@@ -237,6 +237,378 @@ const airports = [
     { name: "Apia Samoa", lat: -13.8300, lon: -171.9993 }
 ];
 
+// Seaports for maritime travel
+const seaports = [
+    // Original ports
+    { name: "Houston", lat: 29.7350, lon: -95.2700 },
+    { name: "Panama", lat: 9.1000, lon: -79.7000 },
+    { name: "Suez", lat: 30.5000, lon: 32.3500 },
+    { name: "Port Said", lat: 31.2653, lon: 32.3019 }, // Lower side of Suez entry
+    { name: "Singapore", lat: 1.2644, lon: 103.8220 },
+    { name: "Cape Town", lat: -33.9249, lon: 18.4241 },
+    
+    // Florida & Caribbean
+    { name: "Miami", lat: 25.7617, lon: -80.1918 },
+    { name: "San Juan", lat: 18.4655, lon: -66.1057 }, // Puerto Rico
+    { name: "Havana", lat: 23.1136, lon: -82.3666 }, // Cuba
+    { name: "Port-au-Prince", lat: 18.5944, lon: -72.3074 }, // Haiti
+    
+    // Mexico
+    { name: "Veracruz", lat: 19.1738, lon: -96.1342 },
+    { name: "Manzanillo", lat: 19.0519, lon: -104.3153 }, // Pacific coast
+    { name: "Acapulco", lat: 16.8531, lon: -99.8237 }, // Pacific coast
+    
+    // East Coast USA & Canada
+    { name: "New York", lat: 40.6892, lon: -74.0445 },
+    { name: "Halifax", lat: 44.6488, lon: -63.5752 }, // Canada
+    { name: "Charleston", lat: 32.7765, lon: -79.9311 },
+    
+    // Colombia & Venezuela
+    { name: "Cartagena", lat: 10.3910, lon: -75.5136 },
+    { name: "La Guaira", lat: 10.6010, lon: -66.9344 }, // Caracas port
+    
+    // Guyana
+    { name: "Georgetown", lat: 6.8013, lon: -58.1551 }, // Guyana
+    
+    // South America (between Caracas and Rio)
+    { name: "Salvador", lat: -12.9714, lon: -38.5014 }, // Brazil
+    { name: "Rio de Janeiro", lat: -22.9068, lon: -43.1729 },
+    { name: "Buenos Aires", lat: -34.6037, lon: -58.3816 },
+    
+    // Kerguelen Islands
+    { name: "Kerguelen", lat: -49.3500, lon: 70.2167 }, // Kerguelen Islands
+    
+    // Pacific Coast Americas
+    { name: "Los Angeles", lat: 33.7405, lon: -118.2720 }, // USA Pacific
+    { name: "San Francisco", lat: 37.7749, lon: -122.4194 }, // USA Pacific
+    { name: "Seattle", lat: 47.6062, lon: -122.3321 }, // USA Pacific
+    { name: "Vancouver", lat: 49.2827, lon: -123.1207 }, // Canada Pacific
+    { name: "Guayaquil", lat: -2.1709, lon: -79.9224 }, // Ecuador Pacific
+    { name: "Callao", lat: -12.0500, lon: -77.1500 }, // Peru Pacific
+    { name: "Ilo", lat: -17.6394, lon: -71.3375 }, // Peru Pacific (lower/south Peru)
+    { name: "Valparaiso", lat: -33.0472, lon: -71.6127 }, // Chile Pacific
+    
+    // Africa
+    { name: "Casablanca", lat: 33.5731, lon: -7.5898 }, // Morocco
+    { name: "Algiers", lat: 36.7538, lon: 3.0588 }, // Algeria
+    { name: "Benghazi", lat: 32.1167, lon: 20.0667 }, // Libya
+    { name: "Alexandria", lat: 31.2001, lon: 29.9187 }, // Egypt
+    { name: "Jeddah", lat: 21.4858, lon: 39.1925 }, // Saudi Arabia
+    { name: "Assab", lat: 13.0092, lon: 42.7394 }, // Eritrea
+    { name: "Berbera", lat: 10.4340, lon: 45.0143 }, // Somalia
+    { name: "Dakar", lat: 14.7167, lon: -17.4677 }, // Senegal
+    { name: "Lagos", lat: 6.4474, lon: 3.3903 }, // Nigeria
+    { name: "Durban", lat: -29.8579, lon: 31.0292 }, // South Africa
+    { name: "Mombasa", lat: -4.0435, lon: 39.6682 }, // Kenya
+    
+    // Europe
+    { name: "Barcelona", lat: 41.3851, lon: 2.1734 }, // Spain
+    { name: "Genoa", lat: 44.4056, lon: 8.9463 }, // Italy
+    { name: "Salerno", lat: 40.6824, lon: 14.7681 }, // Italy
+    { name: "Catania", lat: 37.5079, lon: 15.0830 }, // Italy (Sicily)
+    { name: "Gapolli", lat: 36.7606, lon: 22.5644 }, // Greece (Gythio/Gapolli area)
+    { name: "Cyprus", lat: 35.1264, lon: 33.4299 }, // Cyprus (Nicosia area)
+    { name: "Esperança", lat: 38.7223, lon: -9.1393 }, // Portugal (Lisbon area)
+    { name: "La Rochelle", lat: 46.1603, lon: -1.1511 }, // France
+    { name: "Cardiff", lat: 51.4816, lon: -3.1791 }, // Wales, UK
+    { name: "Aberdeen", lat: 57.1497, lon: -2.0943 }, // Scotland, UK (north/east)
+    { name: "Rotterdam", lat: 51.9244, lon: 4.4777 }, // Netherlands
+    { name: "Bergen", lat: 60.3913, lon: 5.3221 }, // Norway (west coast)
+    { name: "Novaya Zemlya", lat: 73.5000, lon: 56.0000 }, // Russia (Novaya Zemlya)
+    { name: "Murmansk", lat: 68.9585, lon: 33.0827 }, // Russia (polar side)
+    { name: "Hofn", lat: 64.2539, lon: -15.2083 }, // Iceland
+    { name: "Atlantic Arcology", lat: 37.7412, lon: -25.6756 }, // Atlantic Arcology
+    { name: "Gibraltar", lat: 36.1408, lon: -5.3536 }, // Gibraltar Strait
+    
+    // Asia
+    { name: "Mumbai", lat: 19.0760, lon: 72.8777 }, // India
+    { name: "Chennai", lat: 13.0827, lon: 80.2707 }, // India
+    { name: "Kolkata", lat: 22.5726, lon: 88.3639 }, // India
+    { name: "Colombo", lat: 6.9271, lon: 79.8612 }, // Sri Lanka
+    { name: "Socotra", lat: 12.4634, lon: 53.8237 }, // Yemen (Socotra Island)
+    { name: "Muscat", lat: 23.5859, lon: 58.4059 }, // Oman
+    { name: "Karachi", lat: 24.8607, lon: 67.0011 }, // Pakistan
+    { name: "Shanghai", lat: 31.2304, lon: 121.4737 }, // China
+    { name: "Hong Kong", lat: 22.3193, lon: 114.1694 }, // China
+    { name: "Guangzhou", lat: 23.1291, lon: 113.2644 }, // China
+    { name: "Qingdao", lat: 36.0671, lon: 120.3826 }, // China
+    { name: "Busan", lat: 35.1028, lon: 129.0403 }, // South Korea
+    { name: "Incheon", lat: 37.4563, lon: 126.7052 }, // South Korea
+    { name: "Tokyo", lat: 35.6762, lon: 139.6503 }, // Japan
+    { name: "Yokohama", lat: 35.4437, lon: 139.6380 }, // Japan
+    { name: "Osaka", lat: 34.6937, lon: 135.5023 }, // Japan
+    { name: "Hokkaido", lat: 43.0642, lon: 141.3469 }, // Japan (Sapporo area)
+    { name: "Jakarta", lat: -6.2088, lon: 106.8456 }, // Indonesia
+    { name: "Surabaya", lat: -7.2575, lon: 112.7521 }, // Indonesia
+    { name: "Manila", lat: 14.5995, lon: 120.9842 }, // Philippines
+    { name: "Bangkok", lat: 13.7563, lon: 100.5018 }, // Thailand
+    { name: "Ho Chi Minh City", lat: 10.8231, lon: 106.6297 }, // Vietnam
+    
+    // Oceania
+    { name: "Sydney", lat: -33.8688, lon: 151.2093 }, // Australia
+    { name: "Melbourne", lat: -37.8136, lon: 144.9631 }, // Australia
+    { name: "Perth", lat: -31.9505, lon: 115.8605 }, // Australia
+    { name: "Brisbane", lat: -27.4698, lon: 153.0251 }, // Australia
+    { name: "Darwin", lat: -12.4634, lon: 130.8456 }, // Australia (north)
+    { name: "Honolulu", lat: 21.3099, lon: -157.8581 }, // Hawaii, USA
+    { name: "Hilo", lat: 19.7297, lon: -155.0900 }, // Hawaii, USA (Big Island)
+    { name: "Auckland", lat: -36.8485, lon: 174.7633 }, // New Zealand
+    { name: "Wellington", lat: -41.2865, lon: 174.7762 }, // New Zealand
+    { name: "Suva", lat: -18.1248, lon: 178.4501 }, // Fiji
+    { name: "Port Moresby", lat: -9.4438, lon: 147.1803 }, // Papua New Guinea
+    { name: "Jayapura", lat: -2.5489, lon: 140.7181 }, // Indonesia (Papua, near PNG border)
+    { name: "Noumea", lat: -22.2551, lon: 166.4508 }, // New Caledonia
+    { name: "Port Vila", lat: -17.7333, lon: 168.3167 }, // Vanuatu
+    { name: "Nadi", lat: -17.7533, lon: 177.4231 }, // Fiji (second port)
+    { name: "Apia", lat: -13.8300, lon: -171.7667 }, // Samoa
+    { name: "Nuku'alofa", lat: -21.1394, lon: -175.2018 }, // Tonga
+    { name: "Pago Pago", lat: -14.2756, lon: -170.7020 }, // American Samoa
+    { name: "Honiara", lat: -9.4281, lon: 159.9497 }, // Solomon Islands
+    { name: "Madang", lat: -5.2217, lon: 145.7875 }, // Papua New Guinea (north)
+    
+    // Indo-Pacific Island Hopping
+    { name: "Medan", lat: 3.5952, lon: 98.6722 }, // Indonesia (Sumatra)
+    { name: "Padang", lat: -0.9492, lon: 100.3543 }, // Indonesia (Sumatra)
+    { name: "Palembang", lat: -2.9761, lon: 104.7754 }, // Indonesia (Sumatra)
+    { name: "Makassar", lat: -5.1477, lon: 119.4327 }, // Indonesia (Sulawesi)
+    { name: "Balikpapan", lat: -1.2379, lon: 116.8529 }, // Indonesia (Borneo)
+    { name: "Pontianak", lat: -0.0263, lon: 109.3425 }, // Indonesia (Borneo)
+    { name: "Banda Aceh", lat: 5.5483, lon: 95.3238 }, // Indonesia (Sumatra)
+    { name: "Cebu", lat: 10.3157, lon: 123.8854 }, // Philippines
+    { name: "Davao", lat: 7.1907, lon: 125.4553 }, // Philippines
+    { name: "Zamboanga", lat: 6.9214, lon: 122.0780 }, // Philippines
+    { name: "Iloilo", lat: 10.7202, lon: 122.5621 }, // Philippines
+    { name: "Penang", lat: 5.4164, lon: 100.3327 }, // Malaysia
+    { name: "Phuket", lat: 7.8804, lon: 98.3923 }, // Thailand
+    { name: "Yangon", lat: 16.8661, lon: 96.1951 }, // Myanmar
+    { name: "Chittagong", lat: 22.3569, lon: 91.7832 }, // Bangladesh
+    { name: "Vishakhapatnam", lat: 17.6868, lon: 83.2185 }, // India (east coast)
+    
+    // Alaska
+    { name: "Anchorage", lat: 61.2181, lon: -149.9003 } // Alaska, USA
+];
+
+// Seaport connections (red lines)
+const seaportConnections = [
+    { from: "Houston", to: "Veracruz" },
+    { from: "Houston", to: "Havana" },
+    { from: "Houston", to: "Cartagena"}, // Houston to Cartagena
+    { from: "Panama", to: "Cartagena" },
+    { from: "Panama", to: "Port-au-Prince" },
+    { from: "La Guaira", to: "San Juan" },
+    { from: "Miami", to: "San Juan" },
+    { from: "Charleston", to: "Miami" }, // Charleston to Miami
+    { from: "San Juan", to: "New York" }, // San Juan to New York
+    { from: "San Juan", to: "Halifax" }, // San Juan to Halifax
+    { from: "San Juan", to: "Dakar" }, // San Juan to Dakar
+    { from: "Rio de Janeiro", to: "Lagos" }, // Rio to Lagos
+    
+    // New York to Europe/Africa
+    { from: "New York", to: "Cardiff" }, // New York to Wales (Cardiff)
+    { from: "New York", to: "La Rochelle" }, // New York to France
+    { from: "New York", to: "Casablanca" }, // New York to Morocco
+    { from: "New York", to: "Esperança" }, // New York to Portugal
+    
+    // Gibraltar connections
+    { from: "Gibraltar", to: "New York" },
+    { from: "Gibraltar", to: "San Juan" },
+    { from: "Gibraltar", to: "Miami" },
+    
+    // Guyana connections
+    { from: "Georgetown", to: "San Juan" }, // Guyana to San Juan
+    { from: "Georgetown", to: "Dakar" }, // Guyana to Senegal
+    { from: "Georgetown", to: "Gibraltar" }, // Guyana to Gibraltar
+    
+    // Charleston connections
+    { from: "Charleston", to: "Gibraltar" }, // Charleston to Gibraltar
+    { from: "Charleston", to: "Dakar" }, // Charleston to Senegal
+    
+    // Cape Town connections
+    { from: "Cape Town", to: "Salvador" }, // Cape Town to Salvador, Brazil
+    { from: "Cape Town", to: "Rio de Janeiro" }, // Cape Town to Rio de Janeiro
+    
+    // Algiers connections
+    { from: "Algiers", to: "Gibraltar" }, // Algiers to Gibraltar
+    { from: "Algiers", to: "Genoa" }, // Algiers to Genoa
+    { from: "Algiers", to: "Barcelona" }, // Algiers to Barcelona
+    { from: "Algiers", to: "Salerno" }, // Algiers to Salerno
+    
+    // Benghazi connections
+    { from: "Benghazi", to: "Barcelona" }, // Benghazi to Barcelona
+    { from: "Benghazi", to: "Gapolli" }, // Benghazi to Gapolli
+    { from: "Benghazi", to: "Catania" }, // Benghazi to Catania
+    
+    // Catania connections
+    { from: "Catania", to: "Alexandria" }, // Catania to Alexandria
+    
+    // Alexandria connections
+    { from: "Alexandria", to: "Cyprus" }, // Alexandria to Cyprus
+    
+    // Cyprus connections
+    { from: "Cyprus", to: "Suez" }, // Cyprus to Suez
+    
+    // Jeddah connections
+    { from: "Jeddah", to: "Suez" }, // Jeddah to Suez
+    { from: "Jeddah", to: "Assab" }, // Jeddah to Assab (Eritrea)
+    
+    // Assab connections
+    { from: "Assab", to: "Berbera" }, // Assab to Berbera (Somalia)
+    
+    // Berbera connections
+    { from: "Berbera", to: "Socotra" }, // Berbera to Socotra
+    
+    // Socotra connections
+    { from: "Socotra", to: "Mumbai" }, // Socotra to Mumbai
+    
+    // Mumbai connections
+    { from: "Mumbai", to: "Muscat" }, // Mumbai to Oman
+    { from: "Mumbai", to: "Karachi" }, // Mumbai to Pakistan
+    
+    // Sri Lanka and Kenya connection
+    { from: "Colombo", to: "Mombasa" }, // Colombo (Sri Lanka) to Mombasa (Kenya)
+    
+    // Novaya Zemlya connections
+    { from: "Novaya Zemlya", to: "Hofn" }, // Novaya Zemlya to Hofn
+    { from: "Novaya Zemlya", to: "Murmansk" }, // Novaya Zemlya to Murmansk
+    
+    // Norway connections
+    { from: "Bergen", to: "Hofn" }, // Bergen to Hofn
+    { from: "Bergen", to: "Aberdeen" }, // Bergen to Scotland (north/east UK)
+    { from: "Bergen", to: "Rotterdam" }, // Bergen to Netherlands
+    
+    // Hofn connections
+    { from: "Hofn", to: "Dakar" }, // Hofn to Senegal
+    { from: "Hofn", to: "Atlantic Arcology" }, // Hofn to Atlantic Arcology
+    
+    // Atlantic Arcology connections
+    { from: "Atlantic Arcology", to: "Esperança" }, // Atlantic Arcology to Esperança
+    { from: "Atlantic Arcology", to: "Georgetown" }, // Atlantic Arcology to Guyana
+    { from: "Atlantic Arcology", to: "Miami" }, // Atlantic Arcology to Miami (American port to Gibraltar)
+    { from: "Atlantic Arcology", to: "San Juan" }, // Atlantic Arcology to San Juan (American port to Gibraltar)
+    { from: "Atlantic Arcology", to: "New York" }, // Atlantic Arcology to New York (American port to Gibraltar)
+    
+    // Durban and Perth connections
+    { from: "Durban", to: "Perth" }, // Durban to Perth
+    { from: "Perth", to: "Jakarta" }, // Perth to Jakarta
+    
+    // India to Southeast Asia
+    { from: "Vishakhapatnam", to: "Phuket" }, // Vishakhapatnam to Phuket
+    { from: "Vishakhapatnam", to: "Yangon" }, // Vishakhapatnam to Yangon
+    
+    // Southeast Asia island hopping
+    { from: "Ho Chi Minh City", to: "Pontianak" }, // Ho Chi Minh City to Pontianak
+    { from: "Pontianak", to: "Surabaya" }, // Pontianak to Surabaya
+    { from: "Surabaya", to: "Makassar" }, // Surabaya to Makassar
+    { from: "Pontianak", to: "Singapore" }, // Pontianak to Singapore
+    
+    // Philippines connections
+    { from: "Manila", to: "Hong Kong" }, // Manila to Hong Kong
+    { from: "Manila", to: "Zamboanga" }, // Manila to Zamboanga
+    { from: "Zamboanga", to: "Makassar" }, // Zamboanga to Makassar
+    
+    // East Asia connections
+    { from: "Shanghai", to: "Busan" }, // Shanghai to Busan
+    { from: "Busan", to: "Osaka" }, // Busan to Osaka
+    
+    // Pacific island connections
+    { from: "Apia", to: "Tokyo" }, // Apia to Tokyo
+    { from: "Apia", to: "Honiara" }, // Apia to Honiara
+    { from: "Port Vila", to: "Honiara" }, // Port Vila to Honiara
+    
+    // Oceania connections
+    { from: "Noumea", to: "Sydney" }, // Noumea to Sydney
+    { from: "Sydney", to: "Auckland" }, // Sydney to Auckland
+    
+    // Pacific routes
+    { from: "Tokyo", to: "Honolulu" }, // Tokyo to Hawaii
+    { from: "Apia", to: "Honolulu" }, // Apia to Hawaii
+    { from: "Honolulu", to: "San Francisco" }, // Hawaii to San Francisco
+    { from: "Honolulu", to: "Vancouver" }, // Hawaii to Vancouver
+    { from: "Honolulu", to: "Anchorage" }, // Hawaii to Alaska
+    
+    // Buenos Aires to Kerguelen
+    { from: "Buenos Aires", to: "Kerguelen" }, // Buenos Aires to Kerguelen
+    
+    // Kerguelen connections
+    { from: "Kerguelen", to: "Perth" }, // Kerguelen to Perth
+    { from: "Kerguelen", to: "Cape Town" }, // Kerguelen to Cape Town
+    { from: "Kerguelen", to: "Durban" }, // Kerguelen to Durban
+    
+    // Oceania/Pacific connections
+    { from: "Auckland", to: "Nuku'alofa" }, // Auckland to Nuku'alofa
+    { from: "Nuku'alofa", to: "Apia" }, // Nuku'alofa to Apia
+    { from: "Auckland", to: "Port Vila" }, // Auckland to Port Vila
+    { from: "Auckland", to: "Noumea" }, // Auckland to Noumea
+    
+    // Pacific Americas routes
+    { from: "Honolulu", to: "Acapulco" }, // Hawaii to Acapulco
+    { from: "Acapulco", to: "Guayaquil" }, // Acapulco to Guayaquil
+    { from: "Valparaiso", to: "Auckland" }, // Valparaiso to Auckland
+    { from: "Valparaiso", to: "Apia" }, // Valparaiso to Apia
+    
+    // Additional Pacific connections
+    { from: "Guayaquil", to: "Panama" }, // Guayaquil to Panama
+    { from: "Zamboanga", to: "Darwin" }, // Zamboanga to Darwin
+    { from: "Darwin", to: "Port Moresby" }, // Darwin to Port Moresby
+    { from: "Port Moresby", to: "Noumea" }, // Port Moresby to Noumea
+    
+    // Sri Lanka and Africa connections
+    { from: "Colombo", to: "Kerguelen" }, // Sri Lanka to Kerguelen
+    { from: "Mombasa", to: "Perth" }, // Mombasa to Perth
+    
+    // Jayapura connections
+    { from: "Jayapura", to: "Tokyo" }, // Jayapura to Tokyo
+    { from: "Jayapura", to: "Shanghai" }, // Jayapura to Shanghai
+    
+    // Lower Peru to Hawaii
+    { from: "Ilo", to: "Honolulu" } // Lower Peru to Hawaii
+];
+
+// Filter out ports with 0 connections
+(function() {
+    // Count connections for each port
+    const connectionCounts = {};
+    seaports.forEach(port => {
+        connectionCounts[port.name] = 0;
+    });
+    
+    // Count connections (both from and to)
+    seaportConnections.forEach(conn => {
+        if (connectionCounts.hasOwnProperty(conn.from)) {
+            connectionCounts[conn.from]++;
+        }
+        if (connectionCounts.hasOwnProperty(conn.to)) {
+            connectionCounts[conn.to]++;
+        }
+    });
+    
+    // Find ports with 0 connections
+    const portsToRemove = new Set();
+    Object.keys(connectionCounts).forEach(portName => {
+        if (connectionCounts[portName] === 0) {
+            portsToRemove.add(portName);
+            console.log(`Removing port with 0 connections: ${portName}`);
+        }
+    });
+    
+    // Filter seaports array (create new array since const can't be reassigned)
+    const filteredSeaports = seaports.filter(port => !portsToRemove.has(port.name));
+    
+    // Filter seaportConnections to remove any connections referencing deleted ports
+    const filteredConnections = seaportConnections.filter(conn => 
+        !portsToRemove.has(conn.from) && !portsToRemove.has(conn.to)
+    );
+    
+    // Replace the arrays (we'll need to modify the code to use these filtered arrays)
+    // Since we can't reassign const, we'll clear and repopulate
+    seaports.length = 0;
+    seaports.push(...filteredSeaports);
+    
+    seaportConnections.length = 0;
+    seaportConnections.push(...filteredConnections);
+    
+    console.log(`Filtered seaports: ${seaports.length} ports remaining (removed ${portsToRemove.size})`);
+})();
 
 // Plane arrays
 let planes = [];
@@ -244,17 +616,14 @@ let planeTrails = []; // Independent trail segments that fade over time
 
 // Boat arrays
 let boats = [];
+let boatTrails = []; // Boat trail segments (delta/triangle shape)
+let boatRouteCurves = []; // Store all boat route curves
+let boatRouteGraph = {}; // Graph of port connections for multi-stop routes
+let boatRouteReservations = {}; // Track which routes are currently in use
 
 // GLTF Loader for 3D models
 let gltfLoader = null;
 let planeModelCache = null; // Cache the loaded plane model
-let boatModelCache = null; // Cache the loaded boat model
-
-// Ocean mask for boat placement (black = ocean, transparent = land)
-let oceanMaskCanvas = null;
-let oceanMaskContext = null;
-let oceanMaskLoaded = false;
-let maskOverlay = null; // Reference to mask overlay mesh
 
 function initGlobe() {
     const container = document.getElementById('globe-container');
@@ -288,9 +657,9 @@ function initGlobe() {
     // Load Earth texture
     const textureLoader = new THREE.TextureLoader();
     
-    // Using custom Earth texture from Imgur
+    // Using local Earth texture
     const earthTexture = textureLoader.load(
-        'https://i.imgur.com/7eqm8YY.png',
+        'MAP.png',
         function(texture) {
             console.log('Earth texture loaded successfully');
             
@@ -322,38 +691,6 @@ function initGlobe() {
     globe = new THREE.Mesh(geometry, material);
     scene.add(globe);
 
-    // Load ocean mask for boat placement
-    const maskImg = new Image();
-    maskImg.onload = function() {
-        oceanMaskCanvas = document.createElement('canvas');
-        oceanMaskCanvas.width = maskImg.width;
-        oceanMaskCanvas.height = maskImg.height;
-        oceanMaskContext = oceanMaskCanvas.getContext('2d', { willReadFrequently: true });
-        oceanMaskContext.drawImage(maskImg, 0, 0);
-        oceanMaskLoaded = true;
-        console.log('✅ Ocean mask loaded for boat placement', maskImg.width, 'x', maskImg.height);
-        
-        // Spawn boats once mask is loaded
-        spawnTestBoats();
-    };
-    maskImg.src = 'MAP Ocean.png';
-    
-    // Create ocean mask overlay (visible for testing)
-    const maskTextureLoader = new THREE.TextureLoader();
-    const maskTexture = maskTextureLoader.load('MAP Ocean.png', function(texture) {
-        console.log('✅ Ocean mask overlay loaded');
-    });
-    
-    const maskGeometry = new THREE.SphereGeometry(1.01, 64, 64); // Slightly larger than globe
-    const maskMaterial = new THREE.MeshBasicMaterial({
-        map: maskTexture,
-        transparent: true,
-        opacity: 0.7,
-        side: THREE.DoubleSide
-    });
-    maskOverlay = new THREE.Mesh(maskGeometry, maskMaterial);
-    scene.add(maskOverlay); // Add to scene
-
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
@@ -367,6 +704,12 @@ function initGlobe() {
 
     // Add city markers
     addCityMarkers();
+    
+    // Add seaport markers
+    addSeaportMarkers();
+    
+    // Add seaport connection lines (red)
+    addSeaportConnectionLines();
     
     // Add connection lines
     addConnectionLines();
@@ -386,6 +729,7 @@ function initGlobe() {
     // Start spawning transport systems
     spawnTrainsRandomly();
     spawnPlanesRandomly();
+    spawnBoatsRandomly();
 }
 
 // Calculate route distance (approximate arc length)
@@ -689,7 +1033,11 @@ function releaseRoute(from, to, trainId) {
 }
 
 // Create a trail segment that fades over time
-function createTrailSegment(position) {
+function createTrailSegment(position, direction) {
+    // Calculate position behind the plane (back of the plane)
+    const trailOffset = 0.015; // Distance behind plane
+    const backPosition = position.clone().add(direction.clone().multiplyScalar(trailOffset));
+    
     const segmentGeometry = new THREE.SphereGeometry(0.004, 6, 6);
     const segmentMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
@@ -697,7 +1045,7 @@ function createTrailSegment(position) {
         opacity: 0.8
     });
     const segment = new THREE.Mesh(segmentGeometry, segmentMaterial);
-    segment.position.copy(position);
+    segment.position.copy(backPosition);
     
     segment.userData = {
         age: 0, // How long this segment has existed
@@ -722,6 +1070,75 @@ function updateTrailSegments() {
         if (trail.userData.age >= trail.userData.maxAge) {
             globe.remove(trail);
             planeTrails.splice(i, 1);
+        }
+        
+        // Hide if transport toggle is off
+        trail.visible = hyperloopVisible;
+    }
+}
+
+// Create a delta/triangle trail segment for boats
+function createBoatTrailSegment(position, forward, right, up) {
+    // Create a triangle shape pointing forward (delta shape)
+    const triangleSize = 0.006; // Triangle size (reverted to original)
+    const triangleGeometry = new THREE.BufferGeometry();
+    
+    // Triangle vertices: point forward, two points behind forming a V
+    const vertices = new Float32Array([
+        // Front point (tip of delta)
+        position.x + forward.x * triangleSize * 1.5,
+        position.y + forward.y * triangleSize * 1.5,
+        position.z + forward.z * triangleSize * 1.5,
+        // Left back point
+        position.x - forward.x * triangleSize * 0.5 + right.x * triangleSize,
+        position.y - forward.y * triangleSize * 0.5 + right.y * triangleSize,
+        position.z - forward.z * triangleSize * 0.5 + right.z * triangleSize,
+        // Right back point
+        position.x - forward.x * triangleSize * 0.5 - right.x * triangleSize,
+        position.y - forward.y * triangleSize * 0.5 - right.y * triangleSize,
+        position.z - forward.z * triangleSize * 0.5 - right.z * triangleSize
+    ]);
+    
+    triangleGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    triangleGeometry.setIndex([0, 1, 2]); // Triangle indices
+    
+    const triangleMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff, // White color for boat trails
+        transparent: true,
+        opacity: 0.6,
+        side: THREE.DoubleSide
+    });
+    
+    const triangle = new THREE.Mesh(triangleGeometry, triangleMaterial);
+    
+    triangle.userData = {
+        age: 0,
+        maxAge: 45 // Frames before fully faded (0.75 seconds at 60fps - much faster fade)
+    };
+    
+    // Set initial visibility based on toggle state
+    triangle.visible = hyperloopVisible;
+    
+    globe.add(triangle);
+    boatTrails.push(triangle);
+}
+
+// Update all boat trail segments (fade and remove old ones)
+function updateBoatTrailSegments() {
+    for (let i = boatTrails.length - 1; i >= 0; i--) {
+        const trail = boatTrails[i];
+        trail.userData.age += 1;
+        
+        // Fade out over time (faster fade, especially for longer trails)
+        const fadeProgress = trail.userData.age / trail.userData.maxAge;
+        // Use exponential fade for faster disappearance
+        const fadeFactor = Math.pow(fadeProgress, 1.5); // Exponential fade curve
+        trail.material.opacity = 0.6 * (1 - fadeFactor);
+        
+        // Remove when fully faded
+        if (trail.userData.age >= trail.userData.maxAge) {
+            globe.remove(trail);
+            boatTrails.splice(i, 1);
         }
         
         // Hide if transport toggle is off
@@ -1185,8 +1602,12 @@ function updatePlanes() {
             // Spawn trail segments periodically with occasional gaps
             data.lastTrailSpawn += 1;
             if (data.lastTrailSpawn >= data.trailSpawnInterval) {
-                // Spawn trails throughout entire flight
-                createTrailSegment(position);
+                // Calculate direction for trail (behind the plane)
+                const tangent = data.curve.getTangentAt(data.progress).normalize();
+                const forwardDirection = tangent.clone().negate(); // Plane moves in negative tangent direction
+                
+                // Spawn trails throughout entire flight from the back of the plane
+                createTrailSegment(position, forwardDirection);
                 data.lastTrailSpawn = 0;
                 // Occasionally create gaps (10% chance)
                 if (Math.random() < 0.1) {
@@ -1230,164 +1651,396 @@ function updatePlanes() {
     }
 }
 
-// Check if a point is over ocean using the mask (black = ocean, transparent = land)
-function isOverOcean(lat, lon) {
-    if (!oceanMaskLoaded || !oceanMaskContext) return false; // Default to land if mask not loaded
+// Build boat route graph for multi-stop routes
+function buildBoatRouteGraph() {
+    boatRouteGraph = {};
     
-    // Convert lat/lon to texture coordinates (equirectangular projection)
-    // Longitude: -180 to 180 maps to 0 to width
-    // Latitude: 90 to -90 maps to 0 to height
-    const x = Math.floor(((lon + 180) / 360) * oceanMaskCanvas.width);
-    const y = Math.floor(((90 - lat) / 180) * oceanMaskCanvas.height);
-    
-    // Clamp to valid texture bounds
-    const clampedX = Math.max(0, Math.min(oceanMaskCanvas.width - 1, x));
-    const clampedY = Math.max(0, Math.min(oceanMaskCanvas.height - 1, y));
-    
-    // Sample pixel from mask
-    const pixelData = oceanMaskContext.getImageData(clampedX, clampedY, 1, 1).data;
-    const r = pixelData[0];
-    const g = pixelData[1];
-    const b = pixelData[2];
-    const a = pixelData[3]; // Alpha channel
-    
-    // Black pixel (r=0, g=0, b=0) with alpha = ocean
-    // Transparent or non-black = land
-    const isOcean = (r < 50 && g < 50 && b < 50 && a > 128);
-    
-    return isOcean;
+    // Build graph from all boat connections
+    boatRouteCurves.forEach(routeData => {
+        // Add bidirectional connections
+        if (!boatRouteGraph[routeData.from]) boatRouteGraph[routeData.from] = [];
+        if (!boatRouteGraph[routeData.to]) boatRouteGraph[routeData.to] = [];
+        
+        boatRouteGraph[routeData.from].push({ port: routeData.to, routeData: routeData });
+        boatRouteGraph[routeData.to].push({ port: routeData.from, routeData: routeData });
+    });
 }
 
-// Find a random ocean location
-function findRandomOceanLocation() {
-    let attempts = 0;
-    const maxAttempts = 1000;
+// Check if a boat route is available
+function isBoatRouteAvailable(fromPort, toPort) {
+    const key = `${fromPort}-${toPort}`;
+    const reverseKey = `${toPort}-${fromPort}`;
+    return !boatRouteReservations[key] && !boatRouteReservations[reverseKey];
+}
+
+// Reserve a boat route
+function reserveBoatRoute(fromPort, toPort, boatId) {
+    const key = `${fromPort}-${toPort}`;
+    boatRouteReservations[key] = boatId;
+}
+
+// Release a boat route
+function releaseBoatRoute(fromPort, toPort, boatId) {
+    const key = `${fromPort}-${toPort}`;
+    if (boatRouteReservations[key] === boatId) {
+        delete boatRouteReservations[key];
+    }
+}
+
+// Find a multi-stop boat route (BFS with max depth)
+function findMultiStopBoatRoute(maxStops) {
+    const allPorts = Object.keys(boatRouteGraph);
+    if (allPorts.length < 2) return null;
     
-    while (attempts < maxAttempts) {
-        // Random lat/lon
-        const lat = (Math.random() * 180) - 90; // -90 to 90
-        const lon = (Math.random() * 360) - 180; // -180 to 180
+    // Pick random start port
+    const startPort = allPorts[Math.floor(Math.random() * allPorts.length)];
+    
+    // BFS to find paths
+    const queue = [{ port: startPort, path: [startPort], routes: [] }];
+    const validPaths = [];
+    const visited = new Set();
+    
+    while (queue.length > 0 && validPaths.length < 30) {
+        const current = queue.shift();
         
-        if (isOverOcean(lat, lon)) {
-            return { lat, lon };
+        // Only save paths with at least 2 routes (3 ports minimum)
+        if (current.routes.length >= 2 && current.path.length <= maxStops + 1) {
+            validPaths.push(current);
         }
         
-        attempts++;
+        // Don't go deeper than maxStops + 1 ports
+        if (current.path.length > maxStops + 1) continue;
+        
+        // Explore neighbors
+        const neighbors = boatRouteGraph[current.port] || [];
+        for (const neighbor of neighbors) {
+            // Don't revisit ports
+            if (current.path.includes(neighbor.port)) continue;
+            
+            const pathKey = [...current.path, neighbor.port].join('-');
+            if (visited.has(pathKey)) continue;
+            visited.add(pathKey);
+            
+            // Check if route is available
+            if (!isBoatRouteAvailable(current.port, neighbor.port)) continue;
+            
+            // Create a properly oriented route segment
+            const orientedRoute = {
+                curve: neighbor.routeData.curve,
+                from: current.port,
+                to: neighbor.port,
+                needsReverse: neighbor.routeData.from !== current.port
+            };
+            
+            queue.push({
+                port: neighbor.port,
+                path: [...current.path, neighbor.port],
+                routes: [...current.routes, orientedRoute]
+            });
+        }
     }
     
-    // Fallback: return a known ocean location (middle of Pacific)
-    console.warn('⚠️ Could not find random ocean location, using fallback');
-    return { lat: 0, lon: -150 };
+    // Return random valid path
+    if (validPaths.length === 0) return null;
+    return validPaths[Math.floor(Math.random() * validPaths.length)];
 }
 
-// Create a boat at a specific location
-function createBoat(lat, lon) {
+// Create a boat (single unit) - loads from GLB
+function createBoat(routeData, isMultiStop = false) {
+    const curve = routeData.curve;
+    const distance = calculateRouteDistance(curve);
+    
+    // Boats move at similar speed to trains
+    const speed = distance > 1.0 ? 0.004 : 0.005;
+    
     const boatGroup = new THREE.Group();
     
-    // Load or clone the boat model
-    if (boatModelCache) {
-        // Clone the cached model for better performance
-        const boatModel = boatModelCache.clone();
-        boatModel.scale.set(0.02, 0.02, 0.02);
-        boatModel.visible = true;
-        
-        // Apply blue color
-        boatModel.traverse((child) => {
-            if (child.isMesh) {
-                child.material = new THREE.MeshPhongMaterial({
+    // Create a simple boat geometry if model fails to load
+    // Try to load boat model, but create fallback geometry
+    if (gltfLoader) {
+        gltfLoader.load('Boat.glb', 
+            (gltf) => {
+                const model = gltf.scene;
+                
+                // Adjust scale
+                model.scale.set(0.02, 0.02, 0.02);
+                model.visible = true;
+                
+                // Apply blue color
+                const boatColor = 0x0088cc;
+                const boatEmissive = 0x004488;
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshPhongMaterial({
+                            color: boatColor,
+                            emissive: boatEmissive,
+                            emissiveIntensity: 0.3,
+                            transparent: true,
+                            opacity: 0.85,
+                            shininess: 30
+                        });
+                        child.visible = true;
+                        if (child.geometry) {
+                            child.geometry.computeBoundingBox();
+                            child.geometry.computeBoundingSphere();
+                        }
+                    }
+                });
+                
+                boatGroup.add(model);
+            }, 
+            undefined, // Progress callback (optional)
+            (error) => {
+                // Fallback: create simple boat geometry
+                console.warn('⚠️ Boat model not found, using fallback geometry');
+                const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
+                const boatMaterial = new THREE.MeshPhongMaterial({
                     color: 0x0088cc,
                     emissive: 0x004488,
                     emissiveIntensity: 0.3,
                     transparent: true,
-                    opacity: 0.85,
-                    shininess: 30
+                    opacity: 0.85
                 });
-                child.visible = true;
+                const boatMesh = new THREE.Mesh(boatGeometry, boatMaterial);
+                boatMesh.rotation.x = Math.PI / 2; // Rotate to align with path
+                boatGroup.add(boatMesh);
             }
-        });
-        
-        boatGroup.add(boatModel);
+        );
     } else {
-        // Load the model for the first time
-        console.log('📦 Loading Boat.glb for first time...');
-        gltfLoader.load('Boat.glb', (gltf) => {
-            console.log('✅ Boat.glb loaded successfully!', gltf);
-            const model = gltf.scene;
-            
-            // Cache for future boats
-            boatModelCache = model.clone();
-            
-            // Adjust scale
-            model.scale.set(0.02, 0.02, 0.02);
-            model.visible = true;
-            
-            // Apply blue color
-            model.traverse((child) => {
-                if (child.isMesh) {
-                    child.material = new THREE.MeshPhongMaterial({
-                        color: 0x0088cc,
-                        emissive: 0x004488,
-                        emissiveIntensity: 0.3,
-                        transparent: true,
-                        opacity: 0.85,
-                        shininess: 30
-                    });
-                    child.visible = true;
-                    // Compute bounding boxes
-                    if (child.geometry) {
-                        child.geometry.computeBoundingBox();
-                        child.geometry.computeBoundingSphere();
-                    }
-                }
-            });
-            
-            boatGroup.add(model);
-        }, 
-        (xhr) => {
-            console.log('Loading boat: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-        },
-        (error) => {
-            console.error('❌ Error loading boat model:', error);
+        // Fallback if loader not available
+        const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
+        const boatMaterial = new THREE.MeshPhongMaterial({
+            color: 0x0088cc,
+            emissive: 0x004488,
+            emissiveIntensity: 0.3,
+            transparent: true,
+            opacity: 0.85
         });
+        const boatMesh = new THREE.Mesh(boatGeometry, boatMaterial);
+        boatMesh.rotation.x = Math.PI / 2;
+        boatGroup.add(boatMesh);
     }
     
-    // Position boat on globe surface
-    const position = latLonToVector3(lat, lon, 1.002); // Slightly above surface
-    boatGroup.position.copy(position);
+    // Store metadata
+    boatGroup.userData = {
+        curve: curve,
+        progress: 0,
+        speed: speed,
+        from: routeData.from,
+        to: routeData.to,
+        isBoat: true,
+        isMultiStop: isMultiStop,
+        isNewlySpawned: true,
+        boatId: Math.random().toString(36).substr(2, 9) // Always give boats an ID
+    };
     
-    // Orient boat to face outward from globe
-    const up = position.clone().normalize();
-    const forward = new THREE.Vector3(0, 0, 1);
-    const right = new THREE.Vector3().crossVectors(up, forward).normalize();
-    const correctedForward = new THREE.Vector3().crossVectors(right, up).normalize();
+    // Reserve route for single-stop boats too
+    if (!isMultiStop) {
+        reserveBoatRoute(routeData.from, routeData.to, boatGroup.userData.boatId);
+    }
     
-    const rotationMatrix = new THREE.Matrix4();
-    rotationMatrix.makeBasis(right, up, correctedForward);
-    boatGroup.quaternion.setFromRotationMatrix(rotationMatrix);
-    
+    boatGroup.visible = false; // Start invisible
+    boatGroup.position.set(0, 0, 0); // Start at center
     globe.add(boatGroup);
     boats.push(boatGroup);
     
     return boatGroup;
 }
 
-// Spawn 20 test boats at random ocean locations
-function spawnTestBoats() {
-    if (!oceanMaskLoaded) {
-        console.warn('⚠️ Ocean mask not loaded yet, cannot spawn boats');
-        return;
-    }
+// Create a multi-stop boat
+function createMultiStopBoat(routes) {
+    // Use the first route to create the boat
+    const firstRoute = routes[0];
+    const boat = createBoat(firstRoute, true);
     
-    console.log('🚢 Spawning 20 test boats at random ocean locations...');
+    // Override with multi-stop data
+    boat.userData.isMultiStop = true;
+    boat.userData.routes = routes;
+    boat.userData.currentRouteIndex = 0;
+    boat.userData.totalRoutes = routes.length;
+    boat.userData.boatId = Math.random().toString(36).substr(2, 9);
+    boat.userData.finalDestination = routes[routes.length - 1].to;
+    boat.userData.previousPort = null;
+    boat.userData.isWaiting = false;
+    boat.userData.isTransitioning = false;
     
-    for (let i = 0; i < 20; i++) {
-        const location = findRandomOceanLocation();
-        createBoat(location.lat, location.lon);
-        console.log(`🚢 Boat ${i + 1}/20 created at: ${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`);
-    }
+    // Reserve the first route
+    reserveBoatRoute(firstRoute.from, firstRoute.to, boat.userData.boatId);
     
-    console.log('✅ All 20 boats spawned!');
+    // Log the full journey
+    const journey = routes.map(r => `${r.from}->${r.to}`).join(' | ');
+    console.log(`🚢 NEW MULTI-STOP BOAT [${boat.userData.boatId}]: ${journey}`);
+    
+    return boat;
 }
+
+// Update boat positions
+function updateBoats() {
+    for (let i = boats.length - 1; i >= 0; i--) {
+        const boat = boats[i];
+        const data = boat.userData;
+        
+        // Skip rendering newly spawned boats on first frame
+        if (data.isNewlySpawned) {
+            data.isNewlySpawned = false;
+            continue;
+        }
+        
+        // Update progress (but not if waiting at port)
+        if (!data.isWaiting) {
+            data.progress += data.speed;
+        }
+        
+        // Handle multi-stop boats - check WHEN progress exceeds 1 (reached port)
+        if (data.isMultiStop && data.progress >= 1.0 && !data.isTransitioning) {
+            // Check if we're at the end and need to transition
+            if (data.currentRouteIndex < data.routes.length - 1) {
+                const currentFrom = data.from;
+                const currentTo = data.to;
+                
+                // Release current route
+                releaseBoatRoute(currentFrom, currentTo, data.boatId);
+                
+                // Get next planned route
+                let nextRoute = data.routes[data.currentRouteIndex + 1];
+                let canDepart = false;
+                
+                // Check if next route is available
+                if (!isBoatRouteAvailable(nextRoute.from, nextRoute.to)) {
+                    // Route blocked, wait at port
+                    if (!data.isWaiting) {
+                        console.log(`⏸️ BOAT [${data.boatId}] waiting at port ${currentTo}...`);
+                        data.isWaiting = true;
+                        data.progress = 1.0;
+                    }
+                    canDepart = false;
+                } else {
+                    canDepart = true;
+                }
+                
+                // Only transition if we can depart
+                if (canDepart) {
+                    data.isTransitioning = true;
+                    
+                    if (data.isWaiting) {
+                        data.isWaiting = false;
+                    }
+                    
+                    // Reserve next route
+                    reserveBoatRoute(nextRoute.from, nextRoute.to, data.boatId);
+                    
+                    // Move to next route
+                    data.currentRouteIndex++;
+                    
+                    console.log(`🚢 BOAT [${data.boatId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length})`);
+                    
+                    // Switch to next route
+                    data.curve = nextRoute.curve;
+                    data.from = nextRoute.from;
+                    data.to = nextRoute.to;
+                    data.previousPort = currentFrom;
+                    data.needsReverse = nextRoute.needsReverse;
+                    data.progress = 0;
+                    
+                    // Recalculate speed for new route
+                    const routeDistance = calculateRouteDistance(nextRoute.curve);
+                    data.speed = routeDistance > 1.0 ? 0.004 : 0.005;
+                }
+            } else {
+                // Reached final destination, remove boat
+                releaseBoatRoute(data.from, data.to, data.boatId);
+                globe.remove(boat);
+                boats.splice(i, 1);
+                continue;
+            }
+        } else if (!data.isMultiStop && data.progress >= 1.0) {
+            // Single-stop boat reached destination, remove
+            if (data.boatId) {
+                releaseBoatRoute(data.from, data.to, data.boatId);
+            }
+            globe.remove(boat);
+            boats.splice(i, 1);
+            continue;
+        }
+        
+        // Reset transition flag once we're past the transition point
+        if (data.isMultiStop && data.progress > 0.1 && data.progress < 0.9 && data.isTransitioning) {
+            data.isTransitioning = false;
+        }
+        
+        // Update position and orientation
+        if (data.progress > 0 && data.progress <= 1) {
+            const position = data.curve.getPointAt(data.progress);
+            boat.position.copy(position);
+            
+            // Orient boat along path (same method as trains)
+            const tangent = data.curve.getTangentAt(data.progress).normalize();
+            const up = position.clone().normalize();
+            const right = new THREE.Vector3().crossVectors(tangent, up).normalize();
+            const correctedUp = new THREE.Vector3().crossVectors(right, tangent).normalize();
+            
+            // Create rotation matrix
+            const rotationMatrix = new THREE.Matrix4();
+            rotationMatrix.makeBasis(right, correctedUp, tangent.negate());
+            boat.quaternion.setFromRotationMatrix(rotationMatrix);
+            
+            // Spawn delta trail segments periodically (more frequent for closer spacing)
+            if (!data.lastTrailSpawn) data.lastTrailSpawn = 0;
+            if (!data.trailSpawnInterval) data.trailSpawnInterval = 1; // Spawn every frame for tight spacing
+            
+            data.lastTrailSpawn += 1;
+            if (data.lastTrailSpawn >= data.trailSpawnInterval) {
+                // Create delta trail segment pointing forward
+                const forward = tangent.clone().negate(); // Boat moves in negative tangent direction
+                createBoatTrailSegment(position, forward, right, correctedUp);
+                data.lastTrailSpawn = 0;
+            }
+            
+            // Show boat when it's moving
+            boat.visible = hyperloopVisible;
+        }
+    }
+}
+
+// Spawn boats randomly (one at a time, exactly like planes)
+function spawnBoatsRandomly() {
+    // Build route graph for multi-stop routes
+    buildBoatRouteGraph();
+    
+    // Boat system initialized
+    console.log(`📊 Total boat routes: ${boatRouteCurves.length}`);
+    console.log(`📊 Ports in graph: ${Object.keys(boatRouteGraph).length}`);
+    
+    // Spawn boats every 1.5 seconds (more common than before)
+    setInterval(() => {
+        if (!isPageVisible || !hyperloopVisible) return;
+        
+        if (boatRouteCurves.length === 0) return;
+        
+        // Pick a random route (like planes pick random airports)
+        const randomRoute = boatRouteCurves[Math.floor(Math.random() * boatRouteCurves.length)];
+        
+        // 75% chance for multi-stop boat (much more common than trains)
+        const isMultiStop = Math.random() < 0.75;
+        
+        if (isMultiStop && Object.keys(boatRouteGraph).length > 0) {
+            // Create multi-stop boat (2-6 stops - more stops than trains)
+            const numStops = Math.floor(Math.random() * 5) + 2; // 2-6 stops
+            const multiRoute = findMultiStopBoatRoute(numStops);
+            
+            if (multiRoute && multiRoute.routes.length >= 2) {
+                createMultiStopBoat(multiRoute.routes);
+            } else {
+                // Fallback to single route
+                createBoat(randomRoute);
+            }
+        } else {
+            // Single route boat (most common)
+            createBoat(randomRoute);
+        }
+    }, 800); // Spawn a new boat every 0.8 seconds (very common)
+}
+
 
 // Update train color based on journey progress
 function updateTrainColor(train) {
@@ -1855,6 +2508,91 @@ function addCityMarkers() {
     });
 }
 
+// Add seaport markers (blue)
+function addSeaportMarkers() {
+    seaports.forEach(seaport => {
+        const position = latLonToVector3(seaport.lat, seaport.lon, 1.02);
+        
+        // Create marker sphere (blue for seaports)
+        const markerGeometry = new THREE.SphereGeometry(0.010, 16, 16);
+        const markerMaterial = new THREE.MeshBasicMaterial({
+            color: 0x0088ff,
+            emissive: 0x0088ff,
+            emissiveIntensity: 0.5
+        });
+        
+        const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+        marker.position.copy(position);
+        marker.userData = { 
+            seaport: seaport.name,
+            lat: seaport.lat,
+            lon: seaport.lon,
+            isSeaportMarker: true
+        };
+        
+        marker.visible = false; // Hide port markers
+        globe.add(marker);
+        
+        // Add a pin line from marker to surface
+        const linePoints = [
+            latLonToVector3(seaport.lat, seaport.lon, 1.0),
+            position
+        ];
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x0088ff });
+        const line = new THREE.Line(lineGeometry, lineMaterial);
+        line.userData.isSeaportMarkerPin = true;
+        line.visible = false; // Hide port marker pins
+        globe.add(line);
+    });
+}
+
+// Add seaport connection lines (red)
+function addSeaportConnectionLines() {
+    seaportConnections.forEach(connection => {
+        // Find the port coordinates
+        const fromPort = seaports.find(p => p.name === connection.from);
+        const toPort = seaports.find(p => p.name === connection.to);
+        
+        if (!fromPort || !toPort) {
+            console.warn(`Seaport connection not found: ${connection.from} to ${connection.to}`);
+            return;
+        }
+        
+        // Create curved line between ports
+        const curvePoints = createArcBetweenPoints(
+            fromPort.lat, fromPort.lon,
+            toPort.lat, toPort.lon,
+            1.0, // On globe surface (boats sit on the sea)
+            50,    // Number of segments for smooth curve
+            false  // Flat curve (boats stay close to water)
+        );
+        
+        // Use TubeGeometry for visible lines (thin red)
+        const curve = new THREE.CatmullRomCurve3(curvePoints);
+        
+        // Store curve for boat animation
+        boatRouteCurves.push({
+            curve: curve,
+            from: connection.from,
+            to: connection.to
+        });
+        
+        // Red line for seaport connections
+        const tubeGeometry = new THREE.TubeGeometry(curve, 50, 0.002, 8, false);
+        const tubeMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff0000,  // Red color
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+        tube.userData.isSeaportConnectionLine = true; // Mark for visibility toggle
+        tube.visible = false; // Hide red lines
+        globe.add(tube);
+    });
+}
+
 // Add glowing connection lines between cities
 function addConnectionLines() {
     connections.forEach(connection => {
@@ -2147,7 +2885,7 @@ function setupControls(container) {
     container.addEventListener('mouseup', onMouseUp);
     container.addEventListener('mouseleave', onMouseUp);
     container.addEventListener('wheel', onWheel);
-    // Click event removed - labels disabled
+    container.addEventListener('click', onMarkerClick); // Re-enabled for port name display
 
     // Touch events for mobile
     container.addEventListener('touchstart', onTouchStart);
@@ -2214,8 +2952,7 @@ function onMouseUp() {
     }
 }
 
-/* DISABLED - Label system removed, city names stored for future use
-// Handle marker clicks
+// Handle marker clicks (enabled for port name display)
 function onMarkerClick(event) {
     // Don't register click if mouse was dragged
     if (window.mouseMoved) return;
@@ -2232,13 +2969,21 @@ function onMarkerClick(event) {
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
     
+    // Collect all clickable objects (city markers and seaport markers)
+    const clickableObjects = [...markers];
+    globe.traverse((child) => {
+        if (child.userData && child.userData.isSeaportMarker) {
+            clickableObjects.push(child);
+        }
+    });
+    
     // Check for intersections with markers
-    const intersects = raycaster.intersectObjects(markers);
+    const intersects = raycaster.intersectObjects(clickableObjects);
     
     if (intersects.length > 0) {
         const clickedMarker = intersects[0].object;
         if (clickedMarker.userData.isMarker) {
-            // If clicking the same marker, hide label
+            // City marker clicked
             if (activeMarker === clickedMarker && labelElement) {
                 hideCityLabel();
                 activeMarker = null;
@@ -2246,6 +2991,16 @@ function onMarkerClick(event) {
                 // Show label for new marker
                 activeMarker = clickedMarker;
                 showCityLabel(clickedMarker.userData.city, event.clientX, event.clientY);
+            }
+        } else if (clickedMarker.userData.isSeaportMarker) {
+            // Seaport marker clicked - show port name
+            const portName = clickedMarker.userData.seaport;
+            if (activeMarker === clickedMarker && labelElement) {
+                hideCityLabel();
+                activeMarker = null;
+            } else {
+                activeMarker = clickedMarker;
+                showCityLabel(portName, event.clientX, event.clientY);
             }
         }
     } else {
@@ -2337,8 +3092,6 @@ function updateLabelPosition() {
         labelElement.style.opacity = '0';
     }
 }
-*/ // END DISABLED LABEL FUNCTIONS
-
 function onTouchStart(event) {
     if (event.touches.length === 1) {
         isDragging = true;
@@ -2436,15 +3189,12 @@ function animate() {
         stars.rotation.x += 0.00005;
     }
     
-    // Sync mask overlay rotation with globe
-    if (maskOverlay) {
-        maskOverlay.rotation.copy(globe.rotation);
-    }
-    
     // Update all transport systems
     updateTrains();
     updatePlanes();
     updateTrailSegments(); // Update independent trail segments
+    updateBoatTrailSegments(); // Update boat trail segments
+    updateBoats();
 
     // Update label position if active (DISABLED)
     // updateLabelPosition();
@@ -2585,8 +3335,13 @@ function updateHyperloopVisibility() {
     
     // Toggle connection lines and marker pins visibility
     scene.traverse((object) => {
-        if (object.userData && (object.userData.isConnectionLine || object.userData.isSecondaryLine || object.userData.isMarkerPin)) {
-            object.visible = hyperloopVisible;
+        if (object.userData) {
+            // Keep seaport markers and connection lines always hidden (debug only)
+            if (object.userData.isSeaportMarker || object.userData.isSeaportMarkerPin || object.userData.isSeaportConnectionLine) {
+                object.visible = false; // Always hidden
+            } else if (object.userData.isConnectionLine || object.userData.isSecondaryLine || object.userData.isMarkerPin) {
+                object.visible = hyperloopVisible;
+            }
         }
     });
     
@@ -2616,6 +3371,22 @@ function updateHyperloopVisibility() {
         }
     });
     
+    // Toggle boat visibility
+    boats.forEach(boat => {
+        if (hyperloopVisible) {
+            const data = boat.userData;
+            if (data && data.progress > 0 && data.progress <= 1 && !data.isWaiting) {
+                boat.visible = true;
+            }
+        } else {
+            boat.visible = false;
+        }
+    });
+    
+    // Toggle boat trail visibility (ensure all trails respect toggle)
+    boatTrails.forEach(trail => {
+        trail.visible = hyperloopVisible;
+    });
 }
 
 // Initialize when DOM is ready
