@@ -6,6 +6,18 @@
     <title>Map - Timeline Overwatch</title>
     <link rel="icon" type="image/png" href="Icon.png">
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Auto-generate manifest before page loads
+        // Note: Browsers can't run Node.js directly, so this is a reminder
+        // For automatic generation, use: npm run generate (or node generate-manifest.js)
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('Tip: Run "node generate-manifest.js" after adding/removing files');
+            // Try to load manifest with cache busting
+            fetch('manifest.json?' + Date.now(), { cache: 'no-store' })
+                .then(() => console.log('Manifest loaded with cache busting'))
+                .catch(() => console.log('Manifest not found - run generate-manifest.js'));
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -31,6 +43,10 @@
             
             <button id="filtersToggle" class="globe-control-btn filters-btn" title="Open Filters">
                 <span id="filtersIcon">⚙</span>
+            </button>
+            
+            <button id="musicToggle" class="globe-control-btn" title="Music Options">
+                <span id="musicIcon">🎵</span>
             </button>
             
             <!-- Event Pagination Controls -->
@@ -99,6 +115,56 @@
             </div>
         </div>
 
+        <!-- Music Options Panel (right side, below filters) -->
+        <div class="music-panel" id="musicPanel">
+            <div class="music-panel-close" id="musicPanelClose">&times;</div>
+            <div class="music-panel-content">
+                <div class="music-actions">
+                    <h2 class="music-title">Music Options</h2>
+                    <div class="music-actions-buttons">
+                        <!-- Buttons moved to under progress bar -->
+                    </div>
+                </div>
+                <div class="music-now-playing" id="musicNowPlaying">
+                    <div class="music-current-song" id="musicCurrentSong">Loading...</div>
+                    <div class="music-progress-container">
+                        <input type="range" id="musicProgressBar" class="music-progress-bar" min="0" max="100" value="0">
+                        <div class="music-time-display">
+                            <span id="musicCurrentTime">0:00</span> / <span id="musicTotalTime">0:00</span>
+                        </div>
+                        <div class="music-control-buttons">
+                            <button id="pauseBtn" class="music-control-btn">
+                                <img id="pauseBtnIcon" src="Pause Icon.png" alt="Pause" class="control-icon">
+                            </button>
+                            <button id="skipBtn" class="music-control-btn">
+                                <img id="skipBtnIcon" src="Skip Icon.png" alt="Skip" class="control-icon">
+                            </button>
+                            <button id="muteBtn" class="music-control-btn">
+                                <img id="muteBtnIcon" src="Unmuted Icon.png" alt="Mute" class="control-icon">
+                            </button>
+                            <button id="shuffleBtn" class="music-control-btn">
+                                <img id="shuffleBtnIcon" src="Shuffle Icon.png" alt="Shuffle" class="control-icon">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="music-control-row">
+                    <label for="volumeSlider">Volume:</label>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="20">
+                    <span id="volumeValue" class="volume-value">20%</span>
+                </div>
+                <div class="music-grid" id="musicGrid">
+                    <!-- Music buttons will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Background Music -->
+        <audio id="backgroundMusic" loop>
+            <source src="" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+
         <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
     </div>
 
@@ -106,6 +172,7 @@
         <p>&copy; Original Work by Blizzard Entertainment.</p>
     </footer>
 
+    
     <!-- Three.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     
@@ -119,6 +186,10 @@
     <script src="script.js"></script>
 </body>
 </html>
+
+
+
+
 
 
 

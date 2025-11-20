@@ -127,8 +127,714 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Filters Panel - wait a bit to ensure all elements are loaded
     setTimeout(() => {
         initFiltersPanel();
+        initMusicPanel();
     }, 100);
 });
+
+// Music Panel functionality - SIMPLIFIED VERSION
+function initMusicPanel() {
+    const musicButton = document.getElementById('musicToggle');
+    const musicPanel = document.getElementById('musicPanel');
+    const musicPanelClose = document.getElementById('musicPanelClose');
+    const backgroundMusic = document.getElementById('backgroundMusic');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeValue = document.getElementById('volumeValue');
+    const muteBtn = document.getElementById('muteBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const musicGrid = document.getElementById('musicGrid');
+    
+    if (!musicButton || !musicPanel || !backgroundMusic || !musicGrid) return;
+    
+    let currentSong = null;
+    let musicFiles = [];
+    let isShuffling = false;
+    let shuffleQueue = [];
+    let currentSongIndex = 0;
+    let isDragging = false;
+    
+    // Set initial volume to 20%
+    const initialVolume = 0.2;
+    backgroundMusic.volume = initialVolume;
+    if (volumeSlider) volumeSlider.value = 20;
+    if (volumeValue) volumeValue.textContent = '20%';
+    
+    // Fade in/out variables
+    let fadeInInterval = null;
+    let fadeOutInterval = null;
+    const fadeDuration = 2000; // 2 seconds fade
+    const fadeSteps = 20;
+    const fadeStepTime = fadeDuration / fadeSteps;
+    let currentTargetVolume = initialVolume;
+    
+    // Fade in function
+    const fadeIn = () => {
+        if (fadeInInterval) clearInterval(fadeInInterval);
+        if (fadeOutInterval) clearInterval(fadeOutInterval);
+        
+        backgroundMusic.volume = 0;
+        let currentStep = 0;
+        const targetVolume = backgroundMusic.muted ? 0 : currentTargetVolume;
+        
+        fadeInInterval = setInterval(() => {
+            if (backgroundMusic.muted) {
+                clearInterval(fadeInInterval);
+                fadeInInterval = null;
+                return;
+            }
+            
+            currentStep++;
+            const progress = currentStep / fadeSteps;
+            backgroundMusic.volume = targetVolume * progress;
+            
+            if (currentStep >= fadeSteps) {
+                clearInterval(fadeInInterval);
+                fadeInInterval = null;
+                backgroundMusic.volume = targetVolume;
+            }
+        }, fadeStepTime);
+    };
+    
+    // Fade out function
+    const fadeOut = () => {
+        if (fadeOutInterval) return;
+        if (fadeInInterval) clearInterval(fadeInInterval);
+        
+        // Don't fade out if user is seeking
+        if (isSeeking || isDragging) return;
+        
+        const startVolume = backgroundMusic.volume;
+        let currentStep = 0;
+        
+        fadeOutInterval = setInterval(() => {
+            // Check again during fade - user might start seeking
+            if (isSeeking || isDragging) {
+                clearInterval(fadeOutInterval);
+                fadeOutInterval = null;
+                // Restore volume if fade was interrupted
+                backgroundMusic.volume = startVolume;
+                return;
+            }
+            
+            currentStep++;
+            const progress = currentStep / fadeSteps;
+            backgroundMusic.volume = startVolume * (1 - progress);
+            
+            if (currentStep >= fadeSteps) {
+                clearInterval(fadeOutInterval);
+                fadeOutInterval = null;
+                backgroundMusic.volume = 0;
+                
+                // Only reset currentTime if we're looping (not shuffling) and not seeking
+                if (!isShuffling && backgroundMusic.loop && !isSeeking && !isDragging) {
+                    backgroundMusic.currentTime = 0;
+                    setTimeout(() => {
+                        if (!backgroundMusic.paused && !isSeeking && !isDragging) {
+                            fadeIn();
+                        }
+                    }, 50);
+                }
+            }
+        }, fadeStepTime);
+    };
+    
+    // Check when music is about to end and fade out
+    backgroundMusic.addEventListener('timeupdate', () => {
+        // Don't trigger fade out if user is seeking or dragging
+        if (isSeeking || isDragging) return;
+        
+        const timeRemaining = backgroundMusic.duration - backgroundMusic.currentTime;
+        if (timeRemaining <= (fadeDuration / 1000) && timeRemaining > 0.1 && !fadeOutInterval) {
+            fadeOut();
+        }
+    });
+    
+    // Play music function
+    const playMusic = (songPath = null) => {
+        if (songPath) {
+            // Set loop based on shuffle state
+            backgroundMusic.loop = !isShuffling;
+            
+            backgroundMusic.src = songPath;
+            currentSong = songPath;
+            updateNowPlaying();
+            
+            // Update selected button
+            document.querySelectorAll('.music-grid-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.songPath === songPath) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+        
+        if (!backgroundMusic.paused && backgroundMusic.src === songPath) return;
+        
+        backgroundMusic.volume = 0;
+        const playPromise = backgroundMusic.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                fadeIn();
+                updateProgressBar();
+            }).catch(error => {
+                console.log('Autoplay prevented:', error);
+            });
+        } else {
+            fadeIn();
+            updateProgressBar();
+        }
+    };
+    
+    // Shuffle function
+    function shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+    
+    // Play next song (for shuffle)
+    function playNextSong() {
+        if (isShuffling && shuffleQueue.length > 0) {
+            // Play next in shuffle queue
+            currentSongIndex = (currentSongIndex + 1) % shuffleQueue.length;
+            playMusic(`Music/${shuffleQueue[currentSongIndex].filename}`);
+        } else {
+            // If not shuffling, play default music (Winston's Desk)
+            if (musicFiles.length === 0) return;
+            const winstonsDesk = musicFiles.find(s => s.name.toLowerCase().includes('winston') || s.name.toLowerCase().includes('desk'));
+            if (winstonsDesk) {
+                playMusic(`Music/${winstonsDesk.filename}`);
+            } else {
+                // Fallback to first song
+                playMusic(`Music/${musicFiles[0].filename}`);
+            }
+        }
+    }
+    
+    // Handle song end (for shuffle)
+    backgroundMusic.addEventListener('ended', () => {
+        if (isShuffling && shuffleQueue.length > 0) {
+            playNextSong();
+        } else if (!isShuffling) {
+            // Loop current song
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play();
+        }
+    });
+    
+    // Shuffle button
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    if (shuffleBtn) {
+        shuffleBtn.addEventListener('click', function() {
+            isShuffling = !isShuffling;
+            
+            if (isShuffling) {
+                // Create shuffle queue
+                shuffleQueue = shuffleArray(musicFiles);
+                currentSongIndex = shuffleQueue.findIndex(s => `Music/${s.filename}` === currentSong);
+                if (currentSongIndex === -1) currentSongIndex = 0;
+                this.classList.add('active');
+                // Update icon to show shuffle is on (if you have a Shuffle On icon, otherwise keep same)
+                if (shuffleBtnIcon) {
+                    shuffleBtnIcon.src = 'Shuffle Icon.png'; // Or 'Shuffle On Icon.png' if you have it
+                }
+            } else {
+                shuffleQueue = [];
+                this.classList.remove('active');
+                if (shuffleBtnIcon) {
+                    shuffleBtnIcon.src = 'Shuffle Icon.png';
+                }
+            }
+        });
+    }
+    
+    // Update pause button state when music plays/pauses
+    backgroundMusic.addEventListener('play', () => {
+        if (pauseBtn) {
+            pauseBtn.classList.remove('active');
+            updatePauseIcon(false);
+        }
+    });
+    
+    backgroundMusic.addEventListener('pause', () => {
+        if (pauseBtn) {
+            pauseBtn.classList.add('active');
+            updatePauseIcon(true);
+        }
+    });
+    
+    // Get current song name
+    function getCurrentSongName() {
+        if (!currentSong) return 'No song playing';
+        const song = musicFiles.find(s => `Music/${s.filename}` === currentSong);
+        return song ? song.name : 'Unknown';
+    }
+    
+    // Update now playing display
+    function updateNowPlaying() {
+        const nowPlayingEl = document.getElementById('musicNowPlaying');
+        const currentSongEl = document.getElementById('musicCurrentSong');
+        if (currentSongEl) {
+            currentSongEl.textContent = getCurrentSongName();
+        }
+    }
+    
+    // Update progress bar
+    function updateProgressBar() {
+        const progressBar = document.getElementById('musicProgressBar');
+        const currentTimeEl = document.getElementById('musicCurrentTime');
+        const totalTimeEl = document.getElementById('musicTotalTime');
+        
+        if (!backgroundMusic || !backgroundMusic.duration) return;
+        
+        const current = backgroundMusic.currentTime;
+        const total = backgroundMusic.duration;
+        const percent = (current / total) * 100;
+        
+        if (progressBar) {
+            progressBar.value = percent;
+        }
+        
+        if (currentTimeEl) {
+            currentTimeEl.textContent = formatTime(current);
+        }
+        
+        if (totalTimeEl) {
+            totalTimeEl.textContent = formatTime(total);
+        }
+    }
+    
+    // Format time as MM:SS
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // Progress bar interaction
+    const progressBar = document.getElementById('musicProgressBar');
+    let isSeeking = false; // Declare outside so it's accessible in timeupdate listener
+    
+    if (progressBar) {
+        // Set seeking flag on any interaction
+        progressBar.addEventListener('mousedown', () => {
+            isSeeking = true;
+            isDragging = true;
+        });
+        
+        progressBar.addEventListener('click', (e) => {
+            // Handle direct clicks on the slider
+            if (backgroundMusic && backgroundMusic.duration) {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = ((e.clientX - rect.left) / rect.width) * 100;
+                const newTime = (Math.max(0, Math.min(100, percent)) / 100) * backgroundMusic.duration;
+                backgroundMusic.currentTime = newTime;
+                updateProgressBar();
+            }
+        });
+        
+        progressBar.addEventListener('mouseup', () => {
+            isSeeking = false;
+            isDragging = false;
+        });
+        
+        progressBar.addEventListener('mouseleave', () => {
+            // Reset if mouse leaves while dragging
+            if (isDragging) {
+                isSeeking = false;
+                isDragging = false;
+            }
+        });
+        
+        progressBar.addEventListener('input', function() {
+            if (backgroundMusic && backgroundMusic.duration) {
+                const percent = this.value;
+                const newTime = (percent / 100) * backgroundMusic.duration;
+                backgroundMusic.currentTime = newTime;
+                // Update display immediately
+                updateProgressBar();
+            }
+        });
+        
+        progressBar.addEventListener('change', function() {
+            // Final update when user releases
+            if (backgroundMusic && backgroundMusic.duration) {
+                const percent = this.value;
+                const newTime = (percent / 100) * backgroundMusic.duration;
+                backgroundMusic.currentTime = newTime;
+                updateProgressBar();
+            }
+            isSeeking = false;
+            isDragging = false;
+        });
+        
+        // Also handle touch events for mobile
+        progressBar.addEventListener('touchstart', () => {
+            isSeeking = true;
+            isDragging = true;
+        });
+        
+        progressBar.addEventListener('touchend', () => {
+            isSeeking = false;
+            isDragging = false;
+        });
+    }
+    
+    // Update progress on timeupdate
+    backgroundMusic.addEventListener('timeupdate', () => {
+        // Don't update progress bar if user is seeking/dragging
+        if (!isDragging && !isSeeking) {
+            updateProgressBar();
+        }
+    });
+    
+    // Prevent fadeOut from interfering with seeking
+    // Reset seeking flags when user finishes interacting
+    if (progressBar) {
+        progressBar.addEventListener('mouseleave', () => {
+            // Small delay to ensure seeking is complete
+            setTimeout(() => {
+                if (!isDragging) {
+                    isSeeking = false;
+                }
+            }, 100);
+        });
+    }
+    
+    // Load music files from manifest
+    async function loadMusicFiles() {
+        try {
+            // Add cache busting to ensure we get the latest manifest
+            // Use both timestamp and random number for better cache busting
+            const cacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const response = await fetch(`manifest.json?v=${cacheBuster}`, {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
+            const manifest = await response.json();
+            
+            if (manifest.music && manifest.music.length > 0) {
+                musicFiles = manifest.music;
+                console.log(`Loaded ${musicFiles.length} music files from manifest:`, musicFiles.map(s => s.name));
+                createMusicButtons();
+                
+                // Preload all music files for faster switching
+                musicFiles.forEach(song => {
+                    const audio = new Audio(`Music/${song.filename}`);
+                    audio.preload = 'auto';
+                    // Also preload the icon images
+                    const iconName = song.filename.replace(/\.(mp3|wav|ogg)$/i, '');
+                    const iconImg = new Image();
+                    const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    iconImg.src = `Music Icons/${iconName}.png?v=${imageCacheBuster}`;
+                });
+                
+                // Play first song (should be Winston's Desk) by default if no song is playing
+                if (!currentSong && musicFiles.length > 0) {
+                    const firstSong = `Music/${musicFiles[0].filename}`;
+                    playMusic(firstSong);
+                    updateNowPlaying();
+                }
+            } else {
+                console.warn('No music files found in manifest.json');
+                console.log('To add music files:');
+                console.log('1. Add .mp3, .wav, or .ogg files to the Music folder');
+                console.log('2. Add matching .png images to the Music Icons folder (same name as music file)');
+                console.log('3. Run: node generate-manifest.js');
+                console.log('4. Refresh this page');
+                musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">No music files found.<br><br>1. Add files to Music folder<br>2. Add icons to Music Icons folder<br>3. Run: node generate-manifest.js<br>4. Refresh page</div>';
+            }
+        } catch (error) {
+            console.error('Error loading manifest.json:', error);
+            musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">Error loading music. Run generate-manifest.js</div>';
+        }
+    }
+    
+    // Create music buttons - EXACT COPY of createFilterButtons structure
+    function createMusicButtons() {
+        musicGrid.innerHTML = '';
+        
+        musicFiles.forEach(song => {
+            const musicBtn = document.createElement('div');
+            musicBtn.className = 'music-grid-btn';
+            musicBtn.dataset.songPath = `Music/${song.filename}`;
+            musicBtn.dataset.songName = song.name;
+            
+            // Image container (EXACT COPY of filter-image-container)
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'music-icon-container';
+            
+            const img = document.createElement('img');
+            // Use image from Music Icons folder with same name as music file
+            const iconName = song.filename.replace(/\.(mp3|wav|ogg)$/i, '');
+            // Add cache busting to ensure latest images load
+            const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            img.src = `Music Icons/${iconName}.png?v=${imageCacheBuster}`;
+            img.alt = song.name;
+            img.onerror = function() {
+                // If image fails to load, hide the button or show placeholder
+                this.style.display = 'none';
+            };
+            
+            imageContainer.appendChild(img);
+            
+            // Label (EXACT COPY of filter-label)
+            const label = document.createElement('div');
+            label.className = 'music-label';
+            label.textContent = song.name;
+            
+            musicBtn.appendChild(imageContainer);
+            musicBtn.appendChild(label);
+            
+            // Check if this is the current song
+            if (currentSong === `Music/${song.filename}`) {
+                musicBtn.classList.add('selected');
+            }
+            
+            // Click handler
+            musicBtn.addEventListener('click', function() {
+                const songPath = this.dataset.songPath;
+                
+                // Remove selected from all buttons
+                document.querySelectorAll('.music-grid-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // Add selected to clicked button
+                this.classList.add('selected');
+                
+                // Play the song
+                playMusic(songPath);
+                updateNowPlaying();
+            });
+            
+            musicGrid.appendChild(musicBtn);
+        });
+    }
+    
+    // Preload audio
+    backgroundMusic.load();
+    
+    // Try to play immediately (will be set when music loads)
+    let hasStartedPlaying = false;
+    const playOnInteraction = () => {
+        if (!hasStartedPlaying && backgroundMusic.paused && currentSong) {
+            playMusic();
+            hasStartedPlaying = true;
+            interactionEvents.forEach(eventType => {
+                document.removeEventListener(eventType, playOnInteraction);
+            });
+        }
+    };
+    
+    const interactionEvents = ['click', 'touchstart', 'keydown', 'mousedown', 'pointerdown', 'wheel'];
+    interactionEvents.forEach(eventType => {
+        document.addEventListener(eventType, playOnInteraction, { passive: true, once: false });
+    });
+    
+    backgroundMusic.addEventListener('playing', () => {
+        hasStartedPlaying = true;
+        interactionEvents.forEach(eventType => {
+            document.removeEventListener(eventType, playOnInteraction);
+        });
+    });
+    
+    // Open/close music panel
+    if (musicButton) {
+        musicButton.addEventListener('mousedown', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+        });
+        
+        musicButton.addEventListener('mouseup', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+        });
+        
+        musicButton.addEventListener('touchstart', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+        });
+        
+        musicButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Close filters panel if open
+            const filtersPanel = document.getElementById('filtersPanel');
+            const filtersButton = document.getElementById('filtersToggle');
+            if (filtersPanel && filtersPanel.classList.contains('open')) {
+                filtersPanel.classList.remove('open');
+                if (filtersButton) {
+                    filtersButton.classList.remove('active');
+                }
+            }
+            
+            // Toggle music panel
+            musicPanel.classList.toggle('open');
+            if (musicPanel.classList.contains('open')) {
+                musicButton.classList.add('active');
+            } else {
+                musicButton.classList.remove('active');
+            }
+        });
+    }
+    
+    // Close music panel
+    if (musicPanelClose) {
+        musicPanelClose.addEventListener('click', function() {
+            musicPanel.classList.remove('open');
+            if (musicButton) {
+                musicButton.classList.remove('active');
+            }
+        });
+    }
+    
+    // Volume slider
+    if (volumeSlider) {
+        volumeSlider.addEventListener('input', function() {
+            const volume = this.value / 100;
+            currentTargetVolume = volume;
+            
+            if (!backgroundMusic.muted && !fadeInInterval && !fadeOutInterval) {
+                backgroundMusic.volume = volume;
+            }
+            
+            if (volumeValue) {
+                volumeValue.textContent = Math.round(volume * 100) + '%';
+            }
+            
+            if (volume === 0 && muteBtn) {
+                muteBtn.classList.add('active');
+                updateMuteIcon(true);
+            } else if (muteBtn) {
+                if (!backgroundMusic.muted) {
+                    muteBtn.classList.remove('active');
+                    updateMuteIcon(false);
+                }
+            }
+        });
+    }
+    
+    // Get icon elements
+    const pauseBtnIcon = document.getElementById('pauseBtnIcon');
+    const muteBtnIcon = document.getElementById('muteBtnIcon');
+    const skipBtnIcon = document.getElementById('skipBtnIcon');
+    const shuffleBtnIcon = document.getElementById('shuffleBtnIcon');
+    
+    // Function to update pause/play icon
+    function updatePauseIcon(isPaused) {
+        if (pauseBtnIcon) {
+            pauseBtnIcon.src = isPaused ? 'Play Icon.png' : 'Pause Icon.png';
+            pauseBtnIcon.alt = isPaused ? 'Play' : 'Pause';
+        }
+    }
+    
+    // Function to update mute/unmute icon
+    function updateMuteIcon(isMuted) {
+        if (muteBtnIcon) {
+            muteBtnIcon.src = isMuted ? 'Muted Icon.png' : 'Unmuted Icon.png';
+            muteBtnIcon.alt = isMuted ? 'Unmute' : 'Mute';
+        }
+    }
+    
+    // Mute button
+    if (muteBtn) {
+        muteBtn.addEventListener('click', function() {
+            if (backgroundMusic.muted) {
+                backgroundMusic.muted = false;
+                this.classList.remove('active');
+                updateMuteIcon(false);
+                if (!fadeInInterval && !fadeOutInterval) {
+                    backgroundMusic.volume = currentTargetVolume;
+                }
+            } else {
+                backgroundMusic.muted = true;
+                this.classList.add('active');
+                updateMuteIcon(true);
+            }
+        });
+    }
+    
+    // Pause button
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', function() {
+            if (backgroundMusic.paused) {
+                backgroundMusic.play();
+                this.classList.remove('active');
+                updatePauseIcon(false);
+            } else {
+                backgroundMusic.pause();
+                this.classList.add('active');
+                updatePauseIcon(true);
+            }
+        });
+    }
+    
+    // Skip button
+    if (skipBtn) {
+        skipBtn.addEventListener('click', function() {
+            playNextSong();
+        });
+    }
+    
+    // Update pause button state when music plays/pauses
+    backgroundMusic.addEventListener('play', () => {
+        if (pauseBtn) {
+            pauseBtn.classList.remove('active');
+            updatePauseIcon(false);
+        }
+    });
+    
+    backgroundMusic.addEventListener('pause', () => {
+        if (pauseBtn) {
+            pauseBtn.classList.add('active');
+            updatePauseIcon(true);
+        }
+    });
+    
+    // Initialize icons based on current state
+    if (backgroundMusic.paused) {
+        updatePauseIcon(true);
+        if (pauseBtn) pauseBtn.classList.add('active');
+    } else {
+        updatePauseIcon(false);
+        if (pauseBtn) pauseBtn.classList.remove('active');
+    }
+    
+    if (backgroundMusic.muted) {
+        updateMuteIcon(true);
+        if (muteBtn) muteBtn.classList.add('active');
+    } else {
+        updateMuteIcon(false);
+        if (muteBtn) muteBtn.classList.remove('active');
+    }
+    
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+        if (musicPanel && musicPanel.classList.contains('open')) {
+            if (!musicPanel.contains(e.target) && 
+                !musicButton.contains(e.target) && 
+                e.target !== musicButton) {
+                musicPanel.classList.remove('open');
+                if (musicButton) {
+                    musicButton.classList.remove('active');
+                }
+            }
+        }
+    });
+    
+    // Load music files
+    loadMusicFiles();
+}
 
 // Filters Panel functionality
 function initFiltersPanel() {
@@ -149,46 +855,63 @@ function initFiltersPanel() {
         return;
     }
     
-    // List of heroes (alphabetically sorted)
-    const heroes = [
-        'Ana', 'Aqua', 'Ashe', 'Baptiste', 'Bastion', 'Brigitte', 'Cassidy', 'D.va',
-        'Doomfist', 'Echo', 'Freja', 'Genji', 'Hanzo', 'Hazard', 'Illari', 'Junker Queen',
-        'Junkrat', 'Juno', 'Kiriko', 'Lifeweaver', 'Lucio', 'Mauga', 'Mei', 'Mercy',
-        'Moira', 'Orisa', 'Pharah', 'Ramattra', 'Reaper', 'Reinhardt', 'Roadhog',
-        'Sigma', 'Sojourn', 'Soldier 76', 'Sombra', 'Symmetra', 'Torbjorn', 'Tracer',
-        'Vendetta', 'Venture', 'Widowmaker', 'Winston', 'Wrecking Ball', 'Zarya', 'Zenyatta'
-    ].sort(); // Sort alphabetically
-    
-    // List of factions (with number prefix for sorting)
-    const factionsWithNumbers = [
-        '00Overwatch', '01Overwatch 2', '02Blackwatch', '03Ecopoints', '04Talon', '05Omnica',
-        '06Crisis', '07Null Sector', '08Junkers', '09Lucheng', '10Ironclad', '11Deadlock',
-        '12Vishkar', '13Shambali', '14Wayfinders', '15MEKA', '16Los Muertos', '17Inti',
-        '18Helix', '19Volskaya', '20Collective', '21Phreaks', '22Shimada', '23Yokai',
-        '24Numbani', '25Conspiracy'
-    ];
-    
-    // Sort factions by number prefix and extract display names
-    const factions = factionsWithNumbers.map(faction => {
-        // Extract number and name
-        const match = faction.match(/^(\d+)(.+)$/);
-        if (match) {
-            return {
-                filename: faction,
-                number: parseInt(match[1], 10),
-                displayName: match[2].trim()
-            };
-        }
-        return {
-            filename: faction,
-            number: 999,
-            displayName: faction
-        };
-    }).sort((a, b) => a.number - b.number); // Sort by number
+    // Load heroes and factions from manifest.json (dynamically generated from folders)
+    let heroes = [];
+    let factions = [];
     
     // Track selected filters (stores both heroes and factions)
     const selectedFilters = new Set();
     let currentFilterType = 'heroes'; // 'heroes' or 'factions'
+    
+    // Load manifest
+    async function loadManifest() {
+        try {
+            // Add cache busting to ensure we get the latest manifest
+            // Use both timestamp and random number for better cache busting
+            const cacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const response = await fetch(`manifest.json?v=${cacheBuster}`, {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
+            const manifest = await response.json();
+            
+            if (manifest.heroes) {
+                heroes = manifest.heroes.sort(); // Sort alphabetically
+            }
+            
+            if (manifest.factions) {
+                factions = manifest.factions.map(f => ({
+                    filename: f.filename,
+                    number: f.number,
+                    displayName: f.displayName
+                })).sort((a, b) => a.number - b.number); // Sort by number
+            }
+            
+            // Initialize with loaded data
+            createFilterButtons(heroes, 'heroes', 'Heroes');
+            updateFilterCounts();
+            
+            // Preload faction images in background
+            if (factions.length > 0) {
+                setTimeout(() => {
+                    preloadImages(factions, 'factions', 'Factions');
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Error loading manifest.json:', error);
+            console.log('Falling back to empty lists. Run generate-manifest.js to create manifest.json');
+            // Fallback to empty arrays if manifest doesn't exist
+            heroes = [];
+            factions = [];
+            createFilterButtons(heroes, 'heroes', 'Heroes');
+        }
+    }
+    
+    // Load manifest on page load
+    loadManifest();
     
     // Function to update filter counts
     function updateFilterCounts() {
@@ -226,9 +949,57 @@ function initFiltersPanel() {
         }
     }
     
-    // Function to create filter buttons
+    // Cache for button containers to avoid recreating them
+    const buttonCache = {
+        heroes: null,
+        factions: null,
+        music: null
+    };
+    
+    // Preload all images for faster tab switching
+    function preloadImages(items, type, folder) {
+        items.forEach(item => {
+            let imagePath;
+            if (type === 'factions') {
+                imagePath = `${folder}/${item.filename}.png`;
+            } else if (type === 'music') {
+                const iconName = item.filename.replace(/\.(mp3|wav|ogg)$/i, '');
+                imagePath = `${folder}/${iconName}.png`;
+            } else {
+                // heroes
+                imagePath = `${folder}/${item}.png`;
+            }
+            
+            const img = new Image();
+            // Add cache busting to ensure latest images load
+            const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            img.src = `${imagePath}?v=${imageCacheBuster}`;
+        });
+    }
+    
+    // Function to create filter buttons (with caching)
     function createFilterButtons(items, type, folder) {
-        filtersGrid.innerHTML = ''; // Clear existing buttons
+        // Check if we have cached buttons
+        if (buttonCache[type]) {
+            filtersGrid.innerHTML = '';
+            // Reuse cached buttons
+            buttonCache[type].forEach(cachedBtn => {
+                const filterKey = cachedBtn.dataset.filterKey;
+                // Update selection state
+                if (selectedFilters.has(filterKey)) {
+                    cachedBtn.classList.add('selected');
+                } else {
+                    cachedBtn.classList.remove('selected');
+                }
+                filtersGrid.appendChild(cachedBtn);
+            });
+            updateFilterCounts();
+            return;
+        }
+        
+        // Create new buttons and cache them
+        filtersGrid.innerHTML = '';
+        const cachedButtons = [];
         
         items.forEach(item => {
             const filterBtn = document.createElement('div');
@@ -246,7 +1017,9 @@ function initFiltersPanel() {
             imageContainer.className = 'filter-image-container';
             
             const img = document.createElement('img');
-            img.src = `${folder}/${filterKey}.png`;
+            // Add cache busting to ensure latest images load
+            const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            img.src = `${folder}/${filterKey}.png?v=${imageCacheBuster}`;
             img.alt = displayName;
             img.onerror = function() {
                 // If image fails to load, hide the button or show placeholder
@@ -281,13 +1054,23 @@ function initFiltersPanel() {
             });
             
             filtersGrid.appendChild(filterBtn);
+            cachedButtons.push(filterBtn);
         });
+        
+        // Cache the buttons
+        buttonCache[type] = cachedButtons;
+        
+        // Preload images for the other type in background
+        if (type === 'heroes' && factions.length > 0) {
+            setTimeout(() => preloadImages(factions, 'factions', 'Factions'), 100);
+        } else if (type === 'factions' && heroes.length > 0) {
+            setTimeout(() => preloadImages(heroes, 'heroes', 'Heroes'), 100);
+        }
         
         updateFilterCounts(); // Update counts when buttons are created
     }
     
-    // Initialize with heroes
-    createFilterButtons(heroes, 'heroes', 'Heroes');
+    // Initialize will happen after manifest loads
     
     // Tab switching
     const heroesTab = document.getElementById('heroesTab');
@@ -335,6 +1118,17 @@ function initFiltersPanel() {
             e.preventDefault();
             e.stopPropagation();
             console.log('Filters button clicked!');
+            
+            // Close music panel if open
+            const musicPanel = document.getElementById('musicPanel');
+            const musicButton = document.getElementById('musicToggle');
+            if (musicPanel && musicPanel.classList.contains('open')) {
+                musicPanel.classList.remove('open');
+                if (musicButton) {
+                    musicButton.classList.remove('active');
+                }
+            }
+            
             // Toggle panel (open if closed, close if open)
             filtersPanel.classList.toggle('open');
             console.log('Panel open state:', filtersPanel.classList.contains('open'));
@@ -381,9 +1175,9 @@ function initFiltersPanel() {
             }
             
             // Refresh current view to update button states
-            if (currentFilterType === 'heroes') {
+            if (currentFilterType === 'heroes' && heroes.length > 0) {
                 createFilterButtons(heroes, 'heroes', 'Heroes');
-            } else {
+            } else if (currentFilterType === 'factions' && factions.length > 0) {
                 createFilterButtons(factions, 'factions', 'Factions');
             }
         });
@@ -435,4 +1229,5 @@ document.addEventListener('keydown', function(event) {
         closeModal();
     }
 });
+
 
