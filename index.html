@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map - Timeline Overwatch</title>
+    <link rel="icon" type="image/png" href="Icon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Timeline Overwatch</h1>
+    </header>
+
+    <div class="layout-container">
+        <main id="content">
+            <div id="globe-container"></div>
+            
+            <!-- Globe Control Buttons -->
+            <button id="autoRotateToggle" class="globe-control-btn" title="Toggle Auto-Rotation">
+                <span id="rotateIcon">
+                    <img src="Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            </button>
+            
+            <button id="hyperloopToggle" class="globe-control-btn hyperloop-btn active" title="Toggle Transport Systems">
+                <span id="hyperloopIcon">
+                    <img src="Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            </button>
+            
+            <button id="filtersToggle" class="globe-control-btn filters-btn" title="Open Filters">
+                <span id="filtersIcon">⚙</span>
+            </button>
+            
+            <!-- Event Pagination Controls -->
+            <div class="event-pagination" id="eventPagination">
+                <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
+                <div class="page-input-container">
+                    <span class="page-label">Page</span>
+                    <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
+                    <span class="page-total" id="pageTotal">/ 1</span>
+                </div>
+                <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
+            </div>
+        </main>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-close" id="sidebarClose">&times;</div>
+            <button onclick="window.location.href='index.html'" class="active">Map</button>
+            <button onclick="window.location.href='about.html'">Glossary</button>
+            <button onclick="window.location.href='contact.html'">Options</button>
+        </nav>
+
+        <!-- Event Slide Panel (left side) -->
+        <div class="event-slide" id="eventSlide">
+            <div class="event-slide-close" id="eventSlideClose">&times;</div>
+            <div class="event-slide-content" id="eventSlideContent">
+                <h2 id="eventSlideTitle">Event</h2>
+                <p id="eventSlideText">Placeholder text for event information.</p>
+                <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
+                    <div class="event-filters-list" id="eventFiltersList"></div>
+                </div>
+                <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+            </div>
+        </div>
+
+        <!-- Event Image Overlay (over globe) -->
+        <div class="event-image-overlay" id="eventImageOverlay">
+            <div class="event-image-container" id="eventImageContainer">
+                <img id="eventImage" src="" alt="Event Image" style="display: none;">
+            </div>
+        </div>
+
+        <!-- Filters Panel (right side) -->
+        <div class="filters-panel" id="filtersPanel">
+            <div class="filters-panel-close" id="filtersPanelClose">&times;</div>
+            <div class="filters-panel-content">
+                <div class="filters-actions">
+                    <h2 class="filters-title">Filters</h2>
+                    <div class="filters-actions-buttons">
+                        <button id="clearFiltersBtn" class="filters-action-btn">Clear</button>
+                        <button id="confirmFiltersBtn" class="filters-action-btn filters-confirm-btn">Confirm</button>
+                    </div>
+                </div>
+                <div class="filters-tabs">
+                    <button id="heroesTab" class="filter-tab active">
+                        Heroes
+                        <span class="filter-count" id="heroesCount">0</span>
+                    </button>
+                    <button id="factionsTab" class="filter-tab">
+                        Factions
+                        <span class="filter-count" id="factionsCount">0</span>
+                    </button>
+                </div>
+                <div class="filters-grid" id="filtersGrid">
+                    <!-- Filter buttons will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
+    </div>
+
+    <footer>
+        <p>&copy; Original Work by Blizzard Entertainment.</p>
+    </footer>
+
+    <!-- Three.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    
+    <!-- GLTF Loader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- Main Globe Script (ES6 Modules) -->
+    <script type="module" src="globe-new.js"></script>
+    
+    <!-- Sidebar Script -->
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+
+
