@@ -402,8 +402,10 @@ export class UIView {
             toggleBtn.classList.add('active');
         }
         
-        // Replace text with rotation icon image (original implementation)
-        rotateIcon.innerHTML = '<img src="https://i.imgur.com/EIiYust.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
+        // Ensure rotation icon always uses local image file
+        if (rotateIcon) {
+            rotateIcon.innerHTML = '<img src="Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
+        }
         
         // Prevent button from interfering with globe controls
         toggleBtn.addEventListener('mousedown', (event) => {
@@ -447,6 +449,11 @@ export class UIView {
                     sceneModel.autoRotateTimeout = null;
                 }
             }
+            
+            // Always keep the icon as an image, never change to emoji
+            if (rotateIcon) {
+                rotateIcon.innerHTML = '<img src="Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
+            }
         });
     }
 
@@ -466,8 +473,10 @@ export class UIView {
             toggleBtn.classList.add('active');
         }
         
-        // Replace with train icon image (original implementation)
-        hyperloopIcon.innerHTML = '<img src="https://i.imgur.com/l1TDZwh.png" alt="Hyperloop" style="width: 100%; height: 100%; object-fit: contain;">';
+        // Ensure hyperloop icon always uses local image file
+        if (hyperloopIcon) {
+            hyperloopIcon.innerHTML = '<img src="Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
+        }
         
         // Prevent button from interfering with globe controls
         toggleBtn.addEventListener('mousedown', (event) => {
@@ -494,12 +503,15 @@ export class UIView {
             
             if (visible) {
                 toggleBtn.classList.add('active');
-                hyperloopIcon.textContent = '🚄';
                 console.log('🚄 Transport systems ENABLED (Trains, Planes)');
             } else {
                 toggleBtn.classList.remove('active');
-                hyperloopIcon.textContent = '⏸️';
                 console.log('⏸️ Transport systems DISABLED - all vehicles will finish invisibly, no new spawns');
+            }
+            
+            // Always keep the icon as an image, never change to emoji
+            if (hyperloopIcon) {
+                hyperloopIcon.innerHTML = '<img src="Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
             }
             
             if (onToggle) {

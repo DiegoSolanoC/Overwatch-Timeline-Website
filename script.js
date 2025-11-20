@@ -86,13 +86,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const indicator = document.getElementById('sidebarIndicator');
     const closeButton = document.getElementById('sidebarClose');
     
-    // Check if sidebar should be open from localStorage (only on desktop)
-    if (window.innerWidth > 768 && localStorage.getItem('sidebarOpen') === 'true') {
+    // Check if sidebar should be open from localStorage
+    if (localStorage.getItem('sidebarOpen') === 'true') {
         sidebar.classList.add('visible');
-    } else if (window.innerWidth <= 768) {
-        // Always start closed on mobile
-        sidebar.classList.remove('visible');
-        localStorage.setItem('sidebarOpen', 'false');
     }
     
     // Toggle sidebar when clicking the indicator
@@ -112,64 +108,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Close sidebar when clicking outside of it (mobile-friendly)
-    const sidebarBackdrop = document.createElement('div');
-    sidebarBackdrop.className = 'sidebar-backdrop';
-    document.body.appendChild(sidebarBackdrop);
-    
-    // Close sidebar when clicking backdrop (mobile)
-    sidebarBackdrop.addEventListener('click', function() {
-        sidebar.classList.remove('visible');
-        localStorage.setItem('sidebarOpen', 'false');
-    });
-    
-    // Close sidebar when clicking outside of it (desktop)
+    // Close sidebar when clicking outside of it
     document.addEventListener('click', function(e) {
-        // Only auto-close on mobile, desktop keeps it open
-        if (window.innerWidth <= 768) {
-            if (!sidebar.contains(e.target) && !indicator.contains(e.target) && !sidebarBackdrop.contains(e.target)) {
-                sidebar.classList.remove('visible');
-                localStorage.setItem('sidebarOpen', 'false');
-            }
-        }
-    });
-    
-    // Auto-close sidebar on mobile when navigating
-    if (window.innerWidth <= 768) {
-        const navButtons = sidebar.querySelectorAll('button');
-        navButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Small delay to allow navigation, then close
-                setTimeout(() => {
-                    sidebar.classList.remove('visible');
-                    localStorage.setItem('sidebarOpen', 'false');
-                }, 100);
-            });
-        });
-    }
-    
-    // Keep sidebar open when clicking navigation buttons (desktop only)
-    const navButtons = sidebar.querySelectorAll('button');
-    navButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            if (window.innerWidth > 768) {
-                localStorage.setItem('sidebarOpen', 'true');
-            } else {
-                // Auto-close on mobile after navigation
-                setTimeout(() => {
-                    sidebar.classList.remove('visible');
-                    localStorage.setItem('sidebarOpen', 'false');
-                }, 100);
-            }
-        });
-    });
-    
-    // Handle window resize - close sidebar on mobile when resizing
-    window.addEventListener('resize', function() {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('visible')) {
+        if (!sidebar.contains(e.target) && !indicator.contains(e.target)) {
             sidebar.classList.remove('visible');
             localStorage.setItem('sidebarOpen', 'false');
         }
+    });
+    
+    // Keep sidebar open when clicking navigation buttons
+    const navButtons = sidebar.querySelectorAll('button');
+    navButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            localStorage.setItem('sidebarOpen', 'true');
+        });
     });
 });
 

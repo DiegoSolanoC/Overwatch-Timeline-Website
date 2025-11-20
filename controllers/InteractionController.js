@@ -378,7 +378,7 @@ export class InteractionController {
     }
     
     /**
-     * Update marker pulse animation (dilation effect)
+     * Update marker pulse animation (dilation effect) - happens all the time for all event markers
      */
     updateMarkerPulse() {
         if (!this.sceneModel) return;
