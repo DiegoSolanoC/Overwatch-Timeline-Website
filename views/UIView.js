@@ -525,10 +525,19 @@ export class UIView {
             const visible = !sceneModel.getHyperloopVisible();
             sceneModel.setHyperloopVisible(visible);
             
-            // Always keep the image icon, never change to emoji
-            if (!hyperloopIcon.querySelector('img')) {
+            // ALWAYS keep the image icon, never change to emoji or text
+            // Force the image to stay, even if something tries to change it
+            const currentContent = hyperloopIcon.innerHTML;
+            if (!currentContent.includes('<img')) {
                 hyperloopIcon.innerHTML = '<img src="https://i.imgur.com/l1TDZwh.png" alt="Hyperloop" style="width: 100%; height: 100%; object-fit: contain;">';
             }
+            
+            // Double-check after a brief moment to ensure it stays
+            setTimeout(() => {
+                if (!hyperloopIcon.querySelector('img')) {
+                    hyperloopIcon.innerHTML = '<img src="https://i.imgur.com/l1TDZwh.png" alt="Hyperloop" style="width: 100%; height: 100%; object-fit: contain;">';
+                }
+            }, 10);
             
             if (visible) {
                 toggleBtn.classList.add('active');

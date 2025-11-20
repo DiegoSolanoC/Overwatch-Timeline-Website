@@ -324,6 +324,11 @@ main {
     -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
+/* Ensure zoom buttons don't inherit bottom positioning */
+.globe-control-btn.zoom-btn {
+    bottom: auto !important;
+}
+
 .globe-control-btn:hover {
     background: rgba(13, 71, 161, 1);
     border-color: rgba(255, 255, 255, 0.6);
@@ -348,6 +353,14 @@ main {
     display: inline-block;
     animation: none !important;
     transform: none !important;
+    font-size: 1.5em;
+}
+
+/* Ensure zoom button spans don't interfere with other buttons */
+.zoom-btn span {
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
 }
 
 /* Hyperloop Toggle Button - positioned next to rotation button */
@@ -357,9 +370,9 @@ main {
 
 /* Zoom Control Buttons - visible on desktop, top left */
 .zoom-btn {
-    position: absolute;
-    top: 20px;
-    bottom: auto;
+    position: absolute !important;
+    top: 20px !important;
+    bottom: auto !important;
     width: 60px;
     height: 50px;
     background: rgba(13, 71, 161, 0.9);
@@ -369,7 +382,7 @@ main {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
@@ -393,11 +406,11 @@ main {
 }
 
 .zoom-in-btn {
-    left: 20px;
+    left: 20px !important;
 }
 
 .zoom-out-btn {
-    left: 90px;
+    left: 90px !important;
 }
 
 #hyperloopIcon {
@@ -746,6 +759,29 @@ footer p {
         z-index: 100; /* Higher z-index on mobile */
         pointer-events: auto;
         touch-action: manipulation;
+    }
+    
+    /* Zoom buttons on mobile - top left */
+    .zoom-btn {
+        top: 20px !important;
+        bottom: auto !important;
+        width: 55px;
+        height: 55px;
+        font-size: 32px;
+        z-index: 100;
+    }
+    
+    .zoom-in-btn {
+        left: 20px !important;
+    }
+    
+    .zoom-out-btn {
+        left: 85px !important;
+    }
+    
+    /* More spacing between toggle buttons on mobile */
+    .hyperloop-btn {
+        left: 85px !important; /* More space from rotation button */
     }
     
     .hyperloop-btn {
