@@ -564,14 +564,24 @@ export class InteractionController {
                     return;
                 }
                 
-                // Zoom in and center on the marker
-                this.zoomToMarker(clickedMarker);
-                // Open slide panel with event info
+                // Get event data
                 const eventData = clickedMarker.userData.event;
-                const eventName = eventData.name || clickedMarker.userData.eventName;
+                if (!eventData) {
+                    console.error('Event data not found in marker:', clickedMarker);
+                    return;
+                }
+                
+                const eventName = eventData.name || clickedMarker.userData.eventName || 'Event';
                 const eventDescription = eventData.description || 'Placeholder text for event information.';
                 const eventImage = eventData.image || null;
-                this.uiView.showEventSlide(eventName, eventImage, eventDescription, clickedMarker);
+                
+                // Zoom in and center on the marker
+                this.zoomToMarker(clickedMarker);
+                
+                // Small delay to ensure zoom starts, then open slide
+                setTimeout(() => {
+                    this.uiView.showEventSlide(eventName, eventImage, eventDescription, clickedMarker);
+                }, 50);
             }
             // Marker clicking disabled - labels no longer shown for cities/seaports
         } else {
@@ -637,6 +647,69 @@ export class InteractionController {
         const delta = event.deltaY * 0.001; // Original sensitivity
         camera.position.z += delta;
         camera.position.z = Math.max(1.5, Math.min(5, camera.position.z)); // Original limits
+    }
+    
+    /**
+     * Zoom camera in or out
+     * @param {number} direction - 1 for zoom in, -1 for zoom out
+     */
+    zoomCamera(direction) {
+        const camera = this.sceneModel.getCamera();
+        if (!camera) return;
+        
+        const zoomSpeed = 0.2;
+        const newZ = camera.position.z - (direction * zoomSpeed);
+        camera.position.z = Math.max(1.5, Math.min(5, newZ));
+    }
+    
+    /**
+     * Setup zoom control buttons
+     */
+    setupZoomControls() {
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        
+        const handleZoom = (direction, event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            this.zoomCamera(direction);
+            // Reset mouseMoved flag so marker clicks work after zoom
+            window.mouseMoved = false;
+        };
+        
+        if (zoomInBtn) {
+            // Handle click
+            zoomInBtn.addEventListener('click', (event) => {
+                handleZoom(1, event);
+            });
+            
+            // Handle touch
+            zoomInBtn.addEventListener('touchend', (event) => {
+                handleZoom(1, event);
+            });
+            
+            // Prevent mousedown from interfering
+            zoomInBtn.addEventListener('mousedown', (event) => {
+                event.stopPropagation();
+            });
+        }
+        
+        if (zoomOutBtn) {
+            // Handle click
+            zoomOutBtn.addEventListener('click', (event) => {
+                handleZoom(-1, event);
+            });
+            
+            // Handle touch
+            zoomOutBtn.addEventListener('touchend', (event) => {
+                handleZoom(-1, event);
+            });
+            
+            // Prevent mousedown from interfering
+            zoomOutBtn.addEventListener('mousedown', (event) => {
+                event.stopPropagation();
+            });
+        }
     }
 
     /**

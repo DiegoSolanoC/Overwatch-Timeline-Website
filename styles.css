@@ -355,6 +355,51 @@ main {
     left: 90px !important; /* Position next to rotation button */
 }
 
+/* Zoom Control Buttons - visible on desktop, top left */
+.zoom-btn {
+    position: absolute;
+    top: 20px;
+    bottom: auto;
+    width: 60px;
+    height: 50px;
+    background: rgba(13, 71, 161, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1;
+}
+
+.zoom-btn:hover {
+    background: rgba(13, 71, 161, 1);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.zoom-btn:active {
+    transform: scale(0.95);
+}
+
+.zoom-in-btn {
+    left: 20px;
+}
+
+.zoom-out-btn {
+    left: 90px;
+}
+
 #hyperloopIcon {
     display: inline-block;
     width: 100%;
@@ -705,6 +750,29 @@ footer p {
     
     .hyperloop-btn {
         left: 75px !important; /* Adjust position for mobile */
+    }
+    
+    /* Zoom buttons - show on mobile, hide on desktop */
+    .zoom-btn {
+        display: block !important;
+        top: 70px !important;
+        bottom: auto !important;
+        width: 50px;
+        height: 50px;
+        font-size: 32px;
+        font-weight: bold;
+        z-index: 100;
+        pointer-events: auto;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .zoom-in-btn {
+        left: 20px !important;
+    }
+    
+    .zoom-out-btn {
+        left: 80px !important;
     }
     
     /* Header - smaller on mobile */

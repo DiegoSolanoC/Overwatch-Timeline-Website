@@ -98,6 +98,9 @@ export class GlobeController {
         this.uiView.setupHyperloopToggle(() => {
             this.transportView.updateHyperloopVisibility();
         });
+        
+        // Setup zoom controls
+        this.interactionController.setupZoomControls();
 
         // Handle window resize
         window.addEventListener('resize', () => {

@@ -458,17 +458,37 @@ export class UIView {
         
         // Handle touch events for mobile
         let touchStartTime = 0;
+        let touchStartPos = { x: 0, y: 0 };
+        
         toggleBtn.addEventListener('touchstart', (event) => {
             event.stopPropagation();
             touchStartTime = Date.now();
+            if (event.touches && event.touches[0]) {
+                touchStartPos.x = event.touches[0].clientX;
+                touchStartPos.y = event.touches[0].clientY;
+            }
         }, { passive: true });
         
         toggleBtn.addEventListener('touchend', (event) => {
             event.stopPropagation();
             event.preventDefault();
-            // Only trigger if it was a quick tap (not a drag)
+            
+            // Check if it was a tap (not a drag)
+            let wasTap = true;
+            if (event.changedTouches && event.changedTouches[0]) {
+                const touchEndPos = {
+                    x: event.changedTouches[0].clientX,
+                    y: event.changedTouches[0].clientY
+                };
+                const distance = Math.sqrt(
+                    Math.pow(touchEndPos.x - touchStartPos.x, 2) + 
+                    Math.pow(touchEndPos.y - touchStartPos.y, 2)
+                );
+                wasTap = distance < 10; // Less than 10px movement
+            }
+            
             const touchDuration = Date.now() - touchStartTime;
-            if (touchDuration < 300) {
+            if (wasTap && touchDuration < 500) {
                 toggleAutoRotate();
             }
         });
@@ -505,13 +525,16 @@ export class UIView {
             const visible = !sceneModel.getHyperloopVisible();
             sceneModel.setHyperloopVisible(visible);
             
+            // Always keep the image icon, never change to emoji
+            if (!hyperloopIcon.querySelector('img')) {
+                hyperloopIcon.innerHTML = '<img src="https://i.imgur.com/l1TDZwh.png" alt="Hyperloop" style="width: 100%; height: 100%; object-fit: contain;">';
+            }
+            
             if (visible) {
                 toggleBtn.classList.add('active');
-                hyperloopIcon.textContent = '🚄';
                 console.log('🚄 Transport systems ENABLED (Trains, Planes)');
             } else {
                 toggleBtn.classList.remove('active');
-                hyperloopIcon.textContent = '⏸️';
                 console.log('⏸️ Transport systems DISABLED - all vehicles will finish invisibly, no new spawns');
             }
             
@@ -531,17 +554,37 @@ export class UIView {
         
         // Handle touch events for mobile
         let touchStartTime = 0;
+        let touchStartPos = { x: 0, y: 0 };
+        
         toggleBtn.addEventListener('touchstart', (event) => {
             event.stopPropagation();
             touchStartTime = Date.now();
+            if (event.touches && event.touches[0]) {
+                touchStartPos.x = event.touches[0].clientX;
+                touchStartPos.y = event.touches[0].clientY;
+            }
         }, { passive: true });
         
         toggleBtn.addEventListener('touchend', (event) => {
             event.stopPropagation();
             event.preventDefault();
-            // Only trigger if it was a quick tap (not a drag)
+            
+            // Check if it was a tap (not a drag)
+            let wasTap = true;
+            if (event.changedTouches && event.changedTouches[0]) {
+                const touchEndPos = {
+                    x: event.changedTouches[0].clientX,
+                    y: event.changedTouches[0].clientY
+                };
+                const distance = Math.sqrt(
+                    Math.pow(touchEndPos.x - touchStartPos.x, 2) + 
+                    Math.pow(touchEndPos.y - touchStartPos.y, 2)
+                );
+                wasTap = distance < 10; // Less than 10px movement
+            }
+            
             const touchDuration = Date.now() - touchStartTime;
-            if (touchDuration < 300) {
+            if (wasTap && touchDuration < 500) {
                 toggleHyperloop();
             }
         });
