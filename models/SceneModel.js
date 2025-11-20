@@ -26,6 +26,7 @@ export class SceneModel {
         // User preferences
         this.autoRotateEnabled = true;
         this.hyperloopVisible = true;
+        this.eventMarker = null; // Current event marker for recentering
 
         // Page visibility
         this.isPageVisible = true;

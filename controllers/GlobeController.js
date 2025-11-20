@@ -73,6 +73,7 @@ export class GlobeController {
         // Add markers
         this.globeView.addCityMarkers();
         this.globeView.addSeaportMarkers();
+        this.globeView.addEventMarkers();
 
         // Add connection lines (with callbacks to store route curves)
         this.globeView.addConnectionLines((routeData) => {
@@ -153,9 +154,50 @@ export class GlobeController {
 
         if (!scene || !camera || !renderer || !globe) return;
 
-        // Auto-rotate
+        // Auto-rotate - if viewing event, recenter to it; otherwise normal rotation
         if (this.sceneModel.getAutoRotate() && this.sceneModel.getAutoRotateEnabled()) {
-            globe.rotation.y += 0.002;
+            const eventMarker = this.sceneModel.eventMarker;
+            if (eventMarker) {
+                // Recenter to event marker
+                const markerWorldPos = new THREE.Vector3();
+                eventMarker.getWorldPosition(markerWorldPos);
+                const targetDirection = markerWorldPos.clone().normalize();
+                
+                // Calculate current direction the camera is looking at (from globe center)
+                const cameraDirection = camera.position.clone().normalize();
+                
+                // Calculate rotation needed to face the marker
+                const currentLat = Math.asin(cameraDirection.y);
+                const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);
+                const targetLat = Math.asin(targetDirection.y);
+                const targetLon = Math.atan2(targetDirection.z, targetDirection.x);
+                
+                // Smoothly rotate globe to face marker
+                const latDiff = targetLat - currentLat;
+                const lonDiff = targetLon - currentLon;
+                
+                // Normalize lon difference to shortest path
+                let normalizedLonDiff = lonDiff;
+                if (normalizedLonDiff > Math.PI) normalizedLonDiff -= 2 * Math.PI;
+                if (normalizedLonDiff < -Math.PI) normalizedLonDiff += 2 * Math.PI;
+                
+                // Apply smooth rotation towards target
+                const rotationSpeed = 0.01;
+                globe.rotation.x += latDiff * rotationSpeed;
+                globe.rotation.y += normalizedLonDiff * rotationSpeed;
+                
+                // Limit vertical rotation
+                globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
+                
+                // Stop auto-rotate when close enough (within small threshold)
+                const angleDiff = Math.abs(latDiff) + Math.abs(normalizedLonDiff);
+                if (angleDiff < 0.01) {
+                    this.sceneModel.setAutoRotate(false);
+                }
+            } else {
+                // Normal auto-rotate
+                globe.rotation.y += 0.002;
+            }
         }
 
         // Apply rotation momentum
@@ -185,6 +227,12 @@ export class GlobeController {
 
         // Update label position
         this.uiView.updateLabelPosition();
+        
+        // Update pulse rings for event markers
+        if (this.interactionController) {
+            this.interactionController.updatePulseRings();
+            this.interactionController.updateMarkerPulse();
+        }
 
         // Render
         renderer.render(scene, camera);

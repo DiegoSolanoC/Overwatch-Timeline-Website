@@ -1,4 +1,8 @@
 {
+  "events": [
+    { "name": "Austin Event", "lat": 30.2672, "lon": -97.7431 },
+    { "name": "Galapagos Event", "lat": -0.7893, "lon": -91.0544, "description": "A test event in the Galapagos Islands." }
+  ],
   "cities": [
     { "name": "Houston", "lat": 29.7604, "lon": -95.3698 },
     { "name": "Midtown", "lat": 40.7527, "lon": -73.9772 },

@@ -4,6 +4,11 @@
 export class UIView {
     constructor(sceneModel) {
         this.sceneModel = sceneModel;
+        this.previousAutoRotateState = null; // Store previous auto-rotate state
+        this.imageOverlayVisible = false; // Track image overlay visibility
+        this.currentEventMarker = null; // Track currently active event marker
+        this.originalCameraPosition = null; // Store original camera position before zoom
+        this.originalGlobeRotation = null; // Store original globe rotation before zoom
     }
 
     /**
@@ -48,6 +53,315 @@ export class UIView {
             this.sceneModel.setLabelElement(null);
         }
         this.sceneModel.setActiveMarker(null);
+    }
+
+    /**
+     * Show event slide panel
+     * @param {string} eventName - Event name
+     * @param {string} imagePath - Optional image path
+     * @param {string} description - Event description
+     * @param {THREE.Object3D} marker - Event marker object
+     */
+    showEventSlide(eventName, imagePath = null, description = null, marker = null) {
+        const eventSlide = document.getElementById('eventSlide');
+        const eventSlideTitle = document.getElementById('eventSlideTitle');
+        const eventSlideText = document.getElementById('eventSlideText');
+        const eventImageOverlay = document.getElementById('eventImageOverlay');
+        const eventImage = document.getElementById('eventImage');
+        const imageToggleBtn = document.getElementById('eventImageToggle');
+        
+        // Store current event marker
+        this.currentEventMarker = marker;
+        
+        // Store current auto-rotate state but don't disable it completely
+        // We'll use a special event-centered auto-rotate instead
+        this.previousAutoRotateState = this.sceneModel.getAutoRotateEnabled();
+        this.sceneModel.setAutoRotateEnabled(true); // Keep enabled for event recentering
+        this.sceneModel.setAutoRotate(false); // But don't start rotating yet
+        this.sceneModel.eventMarker = marker; // Store marker for recentering
+        
+        if (eventSlide) {
+            eventSlideTitle.textContent = eventName;
+            eventSlideText.textContent = description || 'Placeholder text for event information. This will be replaced with actual event details.';
+            eventSlide.classList.add('open');
+        }
+        
+        // Initialize image overlay state - show by default with fade sequence
+        if (eventImageOverlay && eventImage) {
+            // Reset states
+            eventImageOverlay.classList.remove('fade-in', 'fade-out');
+            eventImage.classList.remove('fade-in', 'fade-out');
+            
+            if (imagePath) {
+                eventImage.src = imagePath;
+                eventImage.style.display = 'block';
+            } else {
+                eventImage.style.display = 'none';
+            }
+            
+            // Show overlay immediately but invisible
+            this.imageOverlayVisible = true;
+            eventImageOverlay.classList.add('open');
+            
+            // Start fade sequence after a moment (wait for centering animation)
+            setTimeout(() => {
+                // Fade to black
+                eventImageOverlay.classList.add('fade-in');
+                
+                // Then fade in image after black is fully visible
+                if (imagePath) {
+                    setTimeout(() => {
+                        eventImage.classList.add('fade-in');
+                    }, 600); // Wait for black fade to complete
+                }
+            }, 1200); // Wait 1.2 seconds after opening
+        } else {
+            this.imageOverlayVisible = false;
+        }
+        
+        // Update toggle button text
+        if (imageToggleBtn) {
+            imageToggleBtn.textContent = 'Hide Image';
+            imageToggleBtn.onclick = () => this.toggleEventImage();
+        }
+        
+        // Add close button handler
+        const closeBtn = document.getElementById('eventSlideClose');
+        if (closeBtn) {
+            closeBtn.onclick = () => this.hideEventSlide();
+        }
+        
+        // Close overlay when clicking on it
+        if (eventImageOverlay) {
+            eventImageOverlay.onclick = (e) => {
+                if (e.target === eventImageOverlay) {
+                    this.toggleEventImage();
+                }
+            };
+        }
+    }
+    
+    /**
+     * Toggle event image overlay visibility
+     */
+    toggleEventImage() {
+        const eventImageOverlay = document.getElementById('eventImageOverlay');
+        const eventImage = document.getElementById('eventImage');
+        const imageToggleBtn = document.getElementById('eventImageToggle');
+        
+        if (!eventImageOverlay) return;
+        
+        if (this.imageOverlayVisible) {
+            // Hide: fade out image, then fade to black, then hide overlay
+            if (eventImage && eventImage.style.display !== 'none') {
+                eventImage.classList.remove('fade-in');
+                eventImage.classList.add('fade-out');
+            }
+            
+            // After image fades out, fade overlay to black
+            setTimeout(() => {
+                eventImageOverlay.classList.remove('fade-in');
+                eventImageOverlay.classList.add('fade-out');
+                
+                // After black fade, hide overlay
+                setTimeout(() => {
+                    eventImageOverlay.classList.remove('open', 'fade-out');
+                    eventImage.classList.remove('fade-out');
+                    this.imageOverlayVisible = false;
+                    if (imageToggleBtn) {
+                        imageToggleBtn.textContent = 'Show Image';
+                    }
+                }, 600); // Wait for fade-out to complete
+            }, 800); // Wait for image fade-out
+        } else {
+            // Show: show overlay, fade to black, then fade in image
+            eventImageOverlay.classList.remove('fade-out');
+            eventImageOverlay.classList.add('open');
+            
+            setTimeout(() => {
+                eventImageOverlay.classList.add('fade-in');
+                
+                if (eventImage && eventImage.style.display !== 'none') {
+                    setTimeout(() => {
+                        eventImage.classList.remove('fade-out');
+                        eventImage.classList.add('fade-in');
+                    }, 600);
+                }
+                
+                this.imageOverlayVisible = true;
+                if (imageToggleBtn) {
+                    imageToggleBtn.textContent = 'Hide Image';
+                }
+            }, 50);
+        }
+    }
+
+    /**
+     * Hide event slide panel
+     */
+    hideEventSlide() {
+        const eventSlide = document.getElementById('eventSlide');
+        const eventImageOverlay = document.getElementById('eventImageOverlay');
+        const eventImage = document.getElementById('eventImage');
+        
+        // If overlay is visible, fade out first
+        if (eventImageOverlay && eventImageOverlay.classList.contains('open')) {
+            // Fade out image first
+            if (eventImage && eventImage.style.display !== 'none') {
+                eventImage.classList.remove('fade-in');
+                eventImage.classList.add('fade-out');
+            }
+            
+            // Then fade to black
+            setTimeout(() => {
+                eventImageOverlay.classList.remove('fade-in');
+                eventImageOverlay.classList.add('fade-out');
+                
+                // After fade to black, hide everything
+                setTimeout(() => {
+                    if (eventSlide) {
+                        eventSlide.classList.remove('open');
+                    }
+                    
+                    if (eventImageOverlay) {
+                        eventImageOverlay.classList.remove('open', 'fade-out');
+                    }
+                    
+                    if (eventImage) {
+                        eventImage.classList.remove('fade-in', 'fade-out');
+                    }
+                    
+                    // Zoom out and restore camera position
+                    this.zoomOutFromEvent();
+                    
+                    // Clear event marker and restore previous auto-rotate state
+                    this.sceneModel.eventMarker = null;
+                    this.currentEventMarker = null;
+                    
+                    if (this.previousAutoRotateState !== null) {
+                        this.sceneModel.setAutoRotateEnabled(this.previousAutoRotateState);
+                        if (this.previousAutoRotateState) {
+                            this.sceneModel.setAutoRotate(true);
+                        }
+                        this.previousAutoRotateState = null;
+                    }
+                    
+                    this.imageOverlayVisible = false;
+                }, 600); // Wait for fade-out to complete
+            }, 800); // Wait for image fade-out
+        } else {
+            // No overlay, just close slide
+            if (eventSlide) {
+                eventSlide.classList.remove('open');
+            }
+            
+            // Zoom out and restore camera position
+            this.zoomOutFromEvent();
+            
+            // Clear event marker and restore previous auto-rotate state
+            this.sceneModel.eventMarker = null;
+            this.currentEventMarker = null;
+            
+            if (this.previousAutoRotateState !== null) {
+                this.sceneModel.setAutoRotateEnabled(this.previousAutoRotateState);
+                if (this.previousAutoRotateState) {
+                    this.sceneModel.setAutoRotate(true);
+                }
+                this.previousAutoRotateState = null;
+            }
+            
+            this.imageOverlayVisible = false;
+        }
+    }
+    
+    /**
+     * Zoom out from event and restore original camera position and globe rotation
+     */
+    zoomOutFromEvent() {
+        if (!this.originalCameraPosition || !this.originalGlobeRotation) {
+            // No original state stored, use default
+            const camera = this.sceneModel.getCamera();
+            const globe = this.sceneModel.getGlobe();
+            
+            if (camera) {
+                const defaultPosition = new THREE.Vector3(0, 0, 3.5);
+                this.animateCameraToPosition(camera, defaultPosition, globe);
+            }
+            return;
+        }
+        
+        const camera = this.sceneModel.getCamera();
+        const globe = this.sceneModel.getGlobe();
+        
+        if (!camera || !globe) return;
+        
+        // Animate camera back to original position
+        const startPosition = camera.position.clone();
+        const targetPosition = this.originalCameraPosition.clone();
+        const startRotation = {
+            x: globe.rotation.x,
+            y: globe.rotation.y,
+            z: globe.rotation.z
+        };
+        const targetRotation = this.originalGlobeRotation;
+        
+        const duration = 1000; // 1 second animation
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (ease out)
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            
+            // Interpolate camera position
+            const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
+            camera.position.copy(currentPosition);
+            
+            // Interpolate globe rotation
+            globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+            globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+            globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
+            
+            // Look at origin
+            camera.lookAt(0, 0, 0);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Clear stored original state
+                this.originalCameraPosition = null;
+                this.originalGlobeRotation = null;
+            }
+        };
+        
+        animate();
+    }
+    
+    /**
+     * Animate camera to a specific position
+     */
+    animateCameraToPosition(camera, targetPosition, globe) {
+        const startPosition = camera.position.clone();
+        const duration = 1000;
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            
+            const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
+            camera.position.copy(currentPosition);
+            camera.lookAt(0, 0, 0);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        animate();
     }
 
     /**

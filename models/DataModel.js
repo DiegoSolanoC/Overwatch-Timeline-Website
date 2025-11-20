@@ -4,6 +4,7 @@
  */
 export class DataModel {
     constructor() {
+        this.events = [];
         this.cities = [];
         this.airports = [];
         this.seaports = [];
@@ -22,6 +23,7 @@ export class DataModel {
             // Load locations
             const locationsResponse = await fetch('data/locations.json');
             const locationsData = await locationsResponse.json();
+            this.events = locationsData.events || [];
             this.cities = locationsData.cities || [];
             this.airports = locationsData.airports || [];
             this.seaports = locationsData.seaports || [];
@@ -132,6 +134,14 @@ export class DataModel {
      */
     getAllSeaports() {
         return this.seaports;
+    }
+
+    /**
+     * Get all events
+     * @returns {Array}
+     */
+    getAllEvents() {
+        return this.events;
     }
 
     /**

@@ -33,6 +33,23 @@
             <button onclick="window.location.href='contact.html'">Options</button>
         </nav>
 
+        <!-- Event Slide Panel (left side) -->
+        <div class="event-slide" id="eventSlide">
+            <div class="event-slide-close" id="eventSlideClose">&times;</div>
+            <div class="event-slide-content" id="eventSlideContent">
+                <h2 id="eventSlideTitle">Event</h2>
+                <p id="eventSlideText">Placeholder text for event information.</p>
+                <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+            </div>
+        </div>
+
+        <!-- Event Image Overlay (over globe) -->
+        <div class="event-image-overlay" id="eventImageOverlay">
+            <div class="event-image-container" id="eventImageContainer">
+                <img id="eventImage" src="" alt="Event Image" style="display: none;">
+            </div>
+        </div>
+
         <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
     </div>
 
