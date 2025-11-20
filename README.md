@@ -124,3 +124,6 @@ Feel free to use this template for any project!
 - [Netlify Documentation](https://docs.netlify.com)
 - [W3Schools HTML Tutorial](https://www.w3schools.com/html/)
 
+
+
+
