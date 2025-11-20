@@ -277,9 +277,20 @@ function initMusicPanel() {
             backgroundMusic.load();
             
             // Handler for when metadata is loaded (multiple events for compatibility)
-            const handleMetadataLoaded = () => {
+            const handleMetadataLoaded = (eventType) => {
+                const duration = backgroundMusic.duration;
+                const readyState = backgroundMusic.readyState;
+                const songName = songPath.split('/').pop();
+                
+                console.log(`[DEBUG] ${eventType} event for ${songName}:`, {
+                    duration: duration,
+                    readyState: readyState,
+                    isValid: duration && !isNaN(duration) && isFinite(duration) && duration > 0
+                });
+                
                 // Check if duration is valid
-                if (backgroundMusic.duration && !isNaN(backgroundMusic.duration) && isFinite(backgroundMusic.duration) && backgroundMusic.duration > 0) {
+                if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
+                    console.log(`[DEBUG] Valid metadata loaded for ${songName}, duration: ${duration}s`);
                     // Update progress bar with correct duration
                     updateProgressBar();
                     
@@ -292,20 +303,30 @@ function initMusicPanel() {
                     backgroundMusic.removeEventListener('loadedmetadata', handleMetadataLoaded);
                     backgroundMusic.removeEventListener('canplay', handleMetadataLoaded);
                     backgroundMusic.removeEventListener('loadeddata', handleMetadataLoaded);
+                    backgroundMusic.removeEventListener('canplaythrough', handleMetadataLoaded);
                 }
             };
             
             // Listen for multiple events to catch metadata loading (some files trigger different events)
-            backgroundMusic.addEventListener('loadedmetadata', handleMetadataLoaded);
-            backgroundMusic.addEventListener('canplay', handleMetadataLoaded);
-            backgroundMusic.addEventListener('loadeddata', handleMetadataLoaded);
+            backgroundMusic.addEventListener('loadedmetadata', () => handleMetadataLoaded('loadedmetadata'));
+            backgroundMusic.addEventListener('canplay', () => handleMetadataLoaded('canplay'));
+            backgroundMusic.addEventListener('loadeddata', () => handleMetadataLoaded('loadeddata'));
+            backgroundMusic.addEventListener('canplaythrough', () => handleMetadataLoaded('canplaythrough'));
             
             // Fallback: Check periodically if metadata loaded (in case events don't fire)
             let metadataCheckCount = 0;
-            const maxMetadataChecks = 50; // Check for up to 5 seconds (50 * 100ms)
+            const maxMetadataChecks = 100; // Check for up to 10 seconds (100 * 100ms)
             const metadataCheckInterval = setInterval(() => {
                 metadataCheckCount++;
-                if (backgroundMusic.duration && !isNaN(backgroundMusic.duration) && isFinite(backgroundMusic.duration) && backgroundMusic.duration > 0) {
+                const duration = backgroundMusic.duration;
+                const readyState = backgroundMusic.readyState;
+                
+                if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
+                    const songName = songPath.split('/').pop();
+                    console.log(`[DEBUG] Metadata loaded via polling for ${songName} after ${metadataCheckCount * 100}ms:`, {
+                        duration: duration,
+                        readyState: readyState
+                    });
                     updateProgressBar();
                     if (progressBar) {
                         progressBar.value = 0;
@@ -314,7 +335,13 @@ function initMusicPanel() {
                 } else if (metadataCheckCount >= maxMetadataChecks) {
                     // Give up after max checks
                     clearInterval(metadataCheckInterval);
-                    console.warn('Metadata not loaded for:', songPath);
+                    const songName = songPath.split('/').pop();
+                    console.warn(`[DEBUG] Metadata not loaded for ${songName} after ${maxMetadataChecks * 100}ms:`, {
+                        duration: backgroundMusic.duration,
+                        readyState: backgroundMusic.readyState,
+                        networkState: backgroundMusic.networkState,
+                        src: backgroundMusic.src
+                    });
                 }
             }, 100);
         }
@@ -501,14 +528,24 @@ function initMusicPanel() {
         
         progressBar.addEventListener('click', (e) => {
             // Handle direct clicks on the slider - re-check duration validity
-            if (backgroundMusic && backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+            if (backgroundMusic) {
                 const duration = backgroundMusic.duration;
+                const readyState = backgroundMusic.readyState;
+                const songName = backgroundMusic.src ? backgroundMusic.src.split('/').pop() : 'unknown';
+                
                 if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
                     const rect = progressBar.getBoundingClientRect();
                     const percent = ((e.clientX - rect.left) / rect.width) * 100;
                     const newTime = (Math.max(0, Math.min(100, percent)) / 100) * duration;
                     backgroundMusic.currentTime = newTime;
                     updateProgressBar();
+                    console.log(`[DEBUG] Successfully clicked to seek ${songName} to ${newTime.toFixed(2)}s`);
+                } else {
+                    console.warn(`[DEBUG] Cannot seek ${songName} on click - duration invalid:`, {
+                        duration: duration,
+                        readyState: readyState,
+                        networkState: backgroundMusic.networkState
+                    });
                 }
             }
         });
@@ -528,9 +565,22 @@ function initMusicPanel() {
         
         progressBar.addEventListener('input', function() {
             // Re-check duration validity at the time of seeking (in case it loaded after initial check)
-            if (backgroundMusic && backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
-                // Try to get duration, even if it wasn't available before
+            if (backgroundMusic) {
                 const duration = backgroundMusic.duration;
+                const readyState = backgroundMusic.readyState;
+                
+                // Debug logging
+                if (isSeeking || isDragging) {
+                    const songName = backgroundMusic.src ? backgroundMusic.src.split('/').pop() : 'unknown';
+                    console.log(`[DEBUG] Seeking ${songName}:`, {
+                        duration: duration,
+                        readyState: readyState,
+                        isValid: duration && !isNaN(duration) && isFinite(duration) && duration > 0,
+                        value: this.value
+                    });
+                }
+                
+                // Try to get duration, even if it wasn't available before
                 if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
                     const percent = this.value;
                     const newTime = (percent / 100) * duration;
@@ -540,19 +590,38 @@ function initMusicPanel() {
                         // Update display immediately
                         updateProgressBar();
                     }
+                } else if (isSeeking || isDragging) {
+                    // Debug: log why seeking failed
+                    const songName = backgroundMusic.src ? backgroundMusic.src.split('/').pop() : 'unknown';
+                    console.warn(`[DEBUG] Cannot seek ${songName} - duration invalid:`, {
+                        duration: duration,
+                        readyState: readyState,
+                        networkState: backgroundMusic.networkState
+                    });
                 }
             }
         });
         
         progressBar.addEventListener('change', function() {
             // Final update when user releases - re-check duration validity
-            if (backgroundMusic && backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+            if (backgroundMusic) {
                 const duration = backgroundMusic.duration;
+                const readyState = backgroundMusic.readyState;
+                
                 if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
                     const percent = this.value;
                     const newTime = (percent / 100) * duration;
                     backgroundMusic.currentTime = newTime;
                     updateProgressBar();
+                    const songName = backgroundMusic.src ? backgroundMusic.src.split('/').pop() : 'unknown';
+                    console.log(`[DEBUG] Successfully seeked ${songName} to ${newTime.toFixed(2)}s`);
+                } else {
+                    const songName = backgroundMusic.src ? backgroundMusic.src.split('/').pop() : 'unknown';
+                    console.warn(`[DEBUG] Cannot seek ${songName} on change - duration invalid:`, {
+                        duration: duration,
+                        readyState: readyState,
+                        networkState: backgroundMusic.networkState
+                    });
                 }
             }
             isSeeking = false;
