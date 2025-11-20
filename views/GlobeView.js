@@ -165,43 +165,60 @@ export class GlobeView {
      */
     addEventMarkers() {
         const globe = this.sceneModel.getGlobe();
+        if (!globe) {
+            console.error('Globe not initialized when adding event markers');
+            return;
+        }
+        
         const events = this.dataModel.getAllEvents();
+        if (!events || events.length === 0) {
+            console.warn('No events found in data');
+            return;
+        }
 
         events.forEach(event => {
-            const position = latLonToVector3(event.lat, event.lon, 1.02);
-            
-            // Event markers are orange and bigger than hyperloop markers (0.015 vs 0.010 for seaports)
-            const markerGeometry = new THREE.SphereGeometry(0.015, 16, 16);
-            const markerMaterial = new THREE.MeshBasicMaterial({
-                color: 0xff6600 // Orange color
-            });
-            
-            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-            marker.position.copy(position);
-            marker.userData = { 
-                event: event, // Store full event object
-                eventName: event.name,
-                lat: event.lat,
-                lon: event.lon,
-                isEventMarker: true,
-                pulseRings: [] // Store pulse rings for this marker
-            };
-            
-            globe.add(marker);
-            const markers = this.sceneModel.getMarkers();
-            markers.push(marker);
+            try {
+                const position = latLonToVector3(event.lat, event.lon, 1.02);
+                
+                // Event markers are orange and bigger than hyperloop markers (0.015 vs 0.010 for seaports)
+                const markerGeometry = new THREE.SphereGeometry(0.015, 16, 16);
+                const markerMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff6600 // Orange color
+                });
+                
+                const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+                marker.position.copy(position);
+                marker.visible = true; // Ensure marker is visible
+                marker.userData = { 
+                    event: event, // Store full event object
+                    eventName: event.name,
+                    lat: event.lat,
+                    lon: event.lon,
+                    isEventMarker: true,
+                    pulseRings: [] // Store pulse rings for this marker
+                };
+                
+                globe.add(marker);
+                const markers = this.sceneModel.getMarkers();
+                markers.push(marker);
 
-            // Add pin line
-            const linePoints = [
-                latLonToVector3(event.lat, event.lon, 1.0),
-                position
-            ];
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 }); // Orange color
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            line.userData.isEventMarkerPin = true;
-            globe.add(line);
+                // Add pin line
+                const linePoints = [
+                    latLonToVector3(event.lat, event.lon, 1.0),
+                    position
+                ];
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 }); // Orange color
+                const line = new THREE.Line(lineGeometry, lineMaterial);
+                line.userData.isEventMarkerPin = true;
+                line.visible = true; // Ensure line is visible
+                globe.add(line);
+            } catch (error) {
+                console.error('Error adding event marker:', error, event);
+            }
         });
+        
+        console.log(`Added ${events.length} event markers`);
     }
 
     /**

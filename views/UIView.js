@@ -84,6 +84,7 @@ export class UIView {
             eventSlideTitle.textContent = eventName;
             eventSlideText.textContent = description || 'Placeholder text for event information. This will be replaced with actual event details.';
             eventSlide.classList.add('open');
+            eventSlide.style.display = 'block'; // Ensure it's visible when opened
         }
         
         // Initialize image overlay state - show by default with fade sequence
@@ -148,6 +149,8 @@ export class UIView {
         const eventImageOverlay = document.getElementById('eventImageOverlay');
         const eventImage = document.getElementById('eventImage');
         const imageToggleBtn = document.getElementById('eventImageToggle');
+        const eventSlide = document.getElementById('eventSlide');
+        const isMobile = window.innerWidth <= 768;
         
         if (!eventImageOverlay) return;
         
@@ -168,12 +171,23 @@ export class UIView {
                     eventImageOverlay.classList.remove('open', 'fade-out');
                     eventImage.classList.remove('fade-out');
                     this.imageOverlayVisible = false;
+                    
+                    // On mobile, show text panel when hiding image
+                    if (isMobile && eventSlide) {
+                        eventSlide.style.display = 'block';
+                    }
+                    
                     if (imageToggleBtn) {
                         imageToggleBtn.textContent = 'Show Image';
                     }
                 }, 600); // Wait for fade-out to complete
             }, 800); // Wait for image fade-out
         } else {
+            // On mobile, hide text panel when showing image
+            if (isMobile && eventSlide) {
+                eventSlide.style.display = 'none';
+            }
+            
             // Show: show overlay, fade to black, then fade in image
             eventImageOverlay.classList.remove('fade-out');
             eventImageOverlay.classList.add('open');
@@ -190,7 +204,7 @@ export class UIView {
                 
                 this.imageOverlayVisible = true;
                 if (imageToggleBtn) {
-                    imageToggleBtn.textContent = 'Hide Image';
+                    imageToggleBtn.textContent = 'Show Text';
                 }
             }, 50);
         }
@@ -221,6 +235,7 @@ export class UIView {
                 setTimeout(() => {
                     if (eventSlide) {
                         eventSlide.classList.remove('open');
+                        eventSlide.style.display = 'none'; // Hide when closed
                     }
                     
                     if (eventImageOverlay) {
@@ -253,6 +268,7 @@ export class UIView {
             // No overlay, just close slide
             if (eventSlide) {
                 eventSlide.classList.remove('open');
+                eventSlide.style.display = 'none'; // Hide when closed
             }
             
             // Zoom out and restore camera position
@@ -405,26 +421,8 @@ export class UIView {
         // Replace text with rotation icon image (original implementation)
         rotateIcon.innerHTML = '<img src="https://i.imgur.com/EIiYust.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
         
-        // Prevent button from interfering with globe controls
-        toggleBtn.addEventListener('mousedown', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-        });
-        
-        toggleBtn.addEventListener('mouseup', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-        });
-        
-        toggleBtn.addEventListener('touchstart', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-        });
-        
-        toggleBtn.addEventListener('click', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-            
+        // Toggle function
+        const toggleAutoRotate = () => {
             const enabled = !sceneModel.getAutoRotateEnabled();
             sceneModel.setAutoRotateEnabled(enabled);
             
@@ -447,6 +445,39 @@ export class UIView {
                     sceneModel.autoRotateTimeout = null;
                 }
             }
+        };
+        
+        // Prevent button from interfering with globe controls (mouse)
+        toggleBtn.addEventListener('mousedown', (event) => {
+            event.stopPropagation();
+        });
+        
+        toggleBtn.addEventListener('mouseup', (event) => {
+            event.stopPropagation();
+        });
+        
+        // Handle touch events for mobile
+        let touchStartTime = 0;
+        toggleBtn.addEventListener('touchstart', (event) => {
+            event.stopPropagation();
+            touchStartTime = Date.now();
+        }, { passive: true });
+        
+        toggleBtn.addEventListener('touchend', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            // Only trigger if it was a quick tap (not a drag)
+            const touchDuration = Date.now() - touchStartTime;
+            if (touchDuration < 300) {
+                toggleAutoRotate();
+            }
+        });
+        
+        // Handle click events (desktop)
+        toggleBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            toggleAutoRotate();
         });
     }
 
@@ -469,26 +500,8 @@ export class UIView {
         // Replace with train icon image (original implementation)
         hyperloopIcon.innerHTML = '<img src="https://i.imgur.com/l1TDZwh.png" alt="Hyperloop" style="width: 100%; height: 100%; object-fit: contain;">';
         
-        // Prevent button from interfering with globe controls
-        toggleBtn.addEventListener('mousedown', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-        });
-        
-        toggleBtn.addEventListener('mouseup', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-        });
-        
-        toggleBtn.addEventListener('touchstart', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-        });
-        
-        toggleBtn.addEventListener('click', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-            
+        // Toggle function
+        const toggleHyperloop = () => {
             const visible = !sceneModel.getHyperloopVisible();
             sceneModel.setHyperloopVisible(visible);
             
@@ -505,6 +518,39 @@ export class UIView {
             if (onToggle) {
                 onToggle();
             }
+        };
+        
+        // Prevent button from interfering with globe controls (mouse)
+        toggleBtn.addEventListener('mousedown', (event) => {
+            event.stopPropagation();
+        });
+        
+        toggleBtn.addEventListener('mouseup', (event) => {
+            event.stopPropagation();
+        });
+        
+        // Handle touch events for mobile
+        let touchStartTime = 0;
+        toggleBtn.addEventListener('touchstart', (event) => {
+            event.stopPropagation();
+            touchStartTime = Date.now();
+        }, { passive: true });
+        
+        toggleBtn.addEventListener('touchend', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            // Only trigger if it was a quick tap (not a drag)
+            const touchDuration = Date.now() - touchStartTime;
+            if (touchDuration < 300) {
+                toggleHyperloop();
+            }
+        });
+        
+        // Handle click events (desktop)
+        toggleBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            toggleHyperloop();
         });
     }
 }

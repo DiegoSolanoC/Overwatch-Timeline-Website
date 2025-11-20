@@ -55,10 +55,12 @@ header h1 {
     z-index: 200;
     overflow-y: auto;
     color: white;
+    display: none; /* Hidden by default */
 }
 
 .event-slide.open {
     left: 0;
+    display: block; /* Show when open */
 }
 
 .event-slide-close {
@@ -317,6 +319,9 @@ main {
     transition: all 0.3s ease;
     z-index: 10;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: auto;
+    touch-action: manipulation; /* Better touch handling on mobile */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .globe-control-btn:hover {
@@ -663,11 +668,19 @@ footer p {
     /* Event slide panel - full width on mobile */
     .event-slide {
         width: 100%;
-        left: -100%;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 250; /* Above image overlay */
     }
     
     .event-slide.open {
         left: 0;
+    }
+    
+    /* On mobile, event slide and image overlay are mutually exclusive */
+    .event-image-overlay.open ~ .event-slide.open {
+        display: none !important;
     }
     
     /* Event image overlay - adjust for mobile */
@@ -681,9 +694,17 @@ footer p {
     
     /* Globe control buttons - larger on mobile */
     .globe-control-btn {
-        width: 50px;
-        height: 50px;
+        width: 55px;
+        height: 55px;
         font-size: 1.5rem;
+        bottom: 70px; /* Higher up to avoid footer */
+        z-index: 100; /* Higher z-index on mobile */
+        pointer-events: auto;
+        touch-action: manipulation;
+    }
+    
+    .hyperloop-btn {
+        left: 75px !important; /* Adjust position for mobile */
     }
     
     /* Header - smaller on mobile */
