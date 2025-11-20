@@ -220,7 +220,7 @@ header h1 {
 .music-title {
     color: #ff6600;
     margin: 0; /* Match filters-title */
-    font-size: 20px;
+    font-size: 20px; /* Explicit size for scaling */
     font-weight: 600;
     flex: 1; /* Match filters-title */
     line-height: 1.2;
@@ -235,14 +235,15 @@ header h1 {
 .music-control-row {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 15px; /* Explicit gap for scaling */
     flex-shrink: 0; /* Don't shrink - fixed size */
-    margin-bottom: 15px; /* Match filters spacing */
+    margin-bottom: 15px; /* Explicit margin for scaling - Match filters spacing */
+    box-sizing: border-box; /* Ensure consistent sizing */
 }
 
 .music-control-row label {
     color: #e0e0e0;
-    font-size: 14px;
+    font-size: 14px; /* Explicit size for scaling */
     font-weight: 500;
     min-width: 60px;
 }
@@ -1456,9 +1457,9 @@ footer p {
     width: 100%;
     background: #707070; /* Light gray background */
     color: white; /* White text for contrast */
-    font-size: 14px; /* Larger font for better visibility */
+    font-size: 14px; /* Explicit size for scaling - match filter-label */
     font-weight: 600; /* Bolder font */
-    padding: 8px 4px;
+    padding: 8px 4px; /* Explicit padding for scaling */
     margin-top: 0; /* No spacing between label and button */
     border-radius: 0; /* Sharp edges */
     text-align: center;
@@ -1468,6 +1469,7 @@ footer p {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    line-height: 1.2; /* Explicit line-height for scaling */
 }
 
 .music-grid-btn.selected .music-label {
@@ -1495,22 +1497,24 @@ footer p {
 
 /* Now Playing Section - matching filter tab styling */
 .music-now-playing {
-    margin-bottom: 15px;
-    padding: 15px;
+    margin-bottom: 15px; /* Explicit margin for scaling */
+    padding: 15px; /* Explicit padding for scaling */
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
+    border-radius: 6px; /* Explicit border-radius for scaling */
     flex-shrink: 0; /* Don't shrink - fixed size */
+    box-sizing: border-box; /* Ensure padding is included in size */
 }
 
 .music-current-song {
     color: #ff6600;
-    font-size: 16px;
+    font-size: 16px; /* Explicit size for scaling */
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 10px; /* Explicit margin for scaling */
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 1px;
+    line-height: 1.2; /* Explicit line-height for scaling */
 }
 
 .music-progress-container {
@@ -1555,8 +1559,9 @@ footer p {
     display: flex;
     justify-content: space-between;
     color: white;
-    font-size: 14px;
+    font-size: 14px; /* Explicit size for scaling */
     font-weight: 500;
+    line-height: 1.2; /* Explicit line-height for scaling */
 }
 
 .music-control-buttons {
@@ -1574,12 +1579,12 @@ footer p {
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     color: white;
-    padding: 14px 28px; /* Bigger padding - matching filters-action-btn */
-    font-size: 16px; /* Larger font - matching filters-action-btn */
+    padding: 14px 28px; /* Explicit padding for scaling - matching filters-action-btn */
+    font-size: 16px; /* Explicit size for scaling - matching filters-action-btn */
     font-weight: 600; /* Bolder - matching filters-action-btn */
     cursor: pointer;
     transition: all 0.3s ease;
-    min-width: 120px; /* Minimum width for consistency - matching filters-action-btn */
+    min-width: 120px; /* Explicit min-width for scaling - matching filters-action-btn */
     text-transform: uppercase;
     letter-spacing: 1px; /* Matching filters-action-btn */
     box-sizing: border-box;

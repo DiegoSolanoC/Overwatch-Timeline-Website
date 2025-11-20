@@ -255,6 +255,12 @@ function initMusicPanel() {
             // Set loop based on shuffle state
             backgroundMusic.loop = !isShuffling;
             
+            // Reset progress bar when loading new song
+            const progressBar = document.getElementById('musicProgressBar');
+            if (progressBar) {
+                progressBar.value = 0;
+            }
+            
             backgroundMusic.src = songPath;
             currentSong = songPath;
             updateNowPlaying();
@@ -266,6 +272,51 @@ function initMusicPanel() {
                     btn.classList.add('selected');
                 }
             });
+            
+            // Force load metadata
+            backgroundMusic.load();
+            
+            // Handler for when metadata is loaded (multiple events for compatibility)
+            const handleMetadataLoaded = () => {
+                // Check if duration is valid
+                if (backgroundMusic.duration && !isNaN(backgroundMusic.duration) && isFinite(backgroundMusic.duration) && backgroundMusic.duration > 0) {
+                    // Update progress bar with correct duration
+                    updateProgressBar();
+                    
+                    // Reset progress bar to start
+                    if (progressBar) {
+                        progressBar.value = 0;
+                    }
+                    
+                    // Remove all listeners once we have valid metadata
+                    backgroundMusic.removeEventListener('loadedmetadata', handleMetadataLoaded);
+                    backgroundMusic.removeEventListener('canplay', handleMetadataLoaded);
+                    backgroundMusic.removeEventListener('loadeddata', handleMetadataLoaded);
+                }
+            };
+            
+            // Listen for multiple events to catch metadata loading (some files trigger different events)
+            backgroundMusic.addEventListener('loadedmetadata', handleMetadataLoaded);
+            backgroundMusic.addEventListener('canplay', handleMetadataLoaded);
+            backgroundMusic.addEventListener('loadeddata', handleMetadataLoaded);
+            
+            // Fallback: Check periodically if metadata loaded (in case events don't fire)
+            let metadataCheckCount = 0;
+            const maxMetadataChecks = 50; // Check for up to 5 seconds (50 * 100ms)
+            const metadataCheckInterval = setInterval(() => {
+                metadataCheckCount++;
+                if (backgroundMusic.duration && !isNaN(backgroundMusic.duration) && isFinite(backgroundMusic.duration) && backgroundMusic.duration > 0) {
+                    updateProgressBar();
+                    if (progressBar) {
+                        progressBar.value = 0;
+                    }
+                    clearInterval(metadataCheckInterval);
+                } else if (metadataCheckCount >= maxMetadataChecks) {
+                    // Give up after max checks
+                    clearInterval(metadataCheckInterval);
+                    console.warn('Metadata not loaded for:', songPath);
+                }
+            }, 100);
         }
         
         if (!backgroundMusic.paused && backgroundMusic.src === songPath) return;
@@ -389,13 +440,34 @@ function initMusicPanel() {
         const currentTimeEl = document.getElementById('musicCurrentTime');
         const totalTimeEl = document.getElementById('musicTotalTime');
         
-        if (!backgroundMusic || !backgroundMusic.duration) return;
+        // Check for valid duration (not NaN, not Infinity, and greater than 0)
+        if (!backgroundMusic || !backgroundMusic.duration || isNaN(backgroundMusic.duration) || !isFinite(backgroundMusic.duration) || backgroundMusic.duration <= 0) {
+            // Still update current time display even if duration isn't ready
+            if (currentTimeEl && backgroundMusic && !isNaN(backgroundMusic.currentTime)) {
+                currentTimeEl.textContent = formatTime(backgroundMusic.currentTime);
+            }
+            if (totalTimeEl) {
+                totalTimeEl.textContent = '0:00';
+            }
+            // Debug logging
+            if (backgroundMusic && backgroundMusic.src) {
+                const songName = backgroundMusic.src.split('/').pop();
+                console.log(`[DEBUG] Duration not ready for ${songName}:`, {
+                    duration: backgroundMusic.duration,
+                    readyState: backgroundMusic.readyState,
+                    networkState: backgroundMusic.networkState,
+                    paused: backgroundMusic.paused
+                });
+            }
+            return;
+        }
         
         const current = backgroundMusic.currentTime;
         const total = backgroundMusic.duration;
         const percent = (current / total) * 100;
         
-        if (progressBar) {
+        // Only update progress bar if not currently seeking/dragging
+        if (progressBar && !isSeeking && !isDragging) {
             progressBar.value = percent;
         }
         
@@ -428,13 +500,16 @@ function initMusicPanel() {
         });
         
         progressBar.addEventListener('click', (e) => {
-            // Handle direct clicks on the slider
-            if (backgroundMusic && backgroundMusic.duration) {
-                const rect = progressBar.getBoundingClientRect();
-                const percent = ((e.clientX - rect.left) / rect.width) * 100;
-                const newTime = (Math.max(0, Math.min(100, percent)) / 100) * backgroundMusic.duration;
-                backgroundMusic.currentTime = newTime;
-                updateProgressBar();
+            // Handle direct clicks on the slider - re-check duration validity
+            if (backgroundMusic && backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+                const duration = backgroundMusic.duration;
+                if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
+                    const rect = progressBar.getBoundingClientRect();
+                    const percent = ((e.clientX - rect.left) / rect.width) * 100;
+                    const newTime = (Math.max(0, Math.min(100, percent)) / 100) * duration;
+                    backgroundMusic.currentTime = newTime;
+                    updateProgressBar();
+                }
             }
         });
         
@@ -452,22 +527,33 @@ function initMusicPanel() {
         });
         
         progressBar.addEventListener('input', function() {
-            if (backgroundMusic && backgroundMusic.duration) {
-                const percent = this.value;
-                const newTime = (percent / 100) * backgroundMusic.duration;
-                backgroundMusic.currentTime = newTime;
-                // Update display immediately
-                updateProgressBar();
+            // Re-check duration validity at the time of seeking (in case it loaded after initial check)
+            if (backgroundMusic && backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+                // Try to get duration, even if it wasn't available before
+                const duration = backgroundMusic.duration;
+                if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
+                    const percent = this.value;
+                    const newTime = (percent / 100) * duration;
+                    // Only update if we're actually seeking (not just hovering)
+                    if (isSeeking || isDragging) {
+                        backgroundMusic.currentTime = newTime;
+                        // Update display immediately
+                        updateProgressBar();
+                    }
+                }
             }
         });
         
         progressBar.addEventListener('change', function() {
-            // Final update when user releases
-            if (backgroundMusic && backgroundMusic.duration) {
-                const percent = this.value;
-                const newTime = (percent / 100) * backgroundMusic.duration;
-                backgroundMusic.currentTime = newTime;
-                updateProgressBar();
+            // Final update when user releases - re-check duration validity
+            if (backgroundMusic && backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+                const duration = backgroundMusic.duration;
+                if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
+                    const percent = this.value;
+                    const newTime = (percent / 100) * duration;
+                    backgroundMusic.currentTime = newTime;
+                    updateProgressBar();
+                }
             }
             isSeeking = false;
             isDragging = false;
