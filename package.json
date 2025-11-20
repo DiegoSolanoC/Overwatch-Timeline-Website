@@ -1,0 +1,12 @@
+{
+  "name": "timeline-overwatch",
+  "version": "1.0.0",
+  "description": "Timeline Overwatch Interactive Map",
+  "scripts": {
+    "start": "node generate-manifest.js && python -m http.server 8000",
+    "generate": "node generate-manifest.js",
+    "dev": "node generate-manifest.js && python -m http.server 8000"
+  },
+  "dependencies": {}
+}
+
