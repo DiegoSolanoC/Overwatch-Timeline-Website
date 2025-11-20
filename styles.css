@@ -212,12 +212,15 @@ header h1 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 12px; /* Reduced spacing between buttons */
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     margin-top: 20px;
     flex: 1;
     overflow-y: auto;
     padding-right: 10px;
     min-height: 0; /* Allow flex child to shrink */
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* Custom scrollbar styling for filters grid */
@@ -258,6 +261,9 @@ header h1 {
     align-items: center;
     gap: 0;
     text-align: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
 }
 
 .filter-btn:hover {
