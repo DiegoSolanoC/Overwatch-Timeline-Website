@@ -689,7 +689,9 @@ function initMusicPanel() {
                     const iconName = song.filename.replace(/\.(mp3|wav|ogg)$/i, '');
                     const iconImg = new Image();
                     const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    iconImg.src = `Music Icons/${iconName}.png?v=${imageCacheBuster}`;
+                    // Encode the path properly for URLs (handles spaces and special characters)
+                    const encodedIconName = encodeURIComponent(iconName);
+                    iconImg.src = `Music Icons/${encodedIconName}.png?v=${imageCacheBuster}`;
                 });
                 
                 // Play first song (should be Winston's Desk) by default if no song is playing
@@ -732,7 +734,9 @@ function initMusicPanel() {
             const iconName = song.filename.replace(/\.(mp3|wav|ogg)$/i, '');
             // Add cache busting to ensure latest images load
             const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            img.src = `Music Icons/${iconName}.png?v=${imageCacheBuster}`;
+            // Encode the path properly for URLs (handles spaces and special characters)
+            const encodedIconName = encodeURIComponent(iconName);
+            img.src = `Music Icons/${encodedIconName}.png?v=${imageCacheBuster}`;
             img.alt = song.name;
             img.onerror = function() {
                 // If image fails to load, hide the button or show placeholder
@@ -1119,7 +1123,9 @@ function initFiltersPanel() {
                 imagePath = `${folder}/${item.filename}.png`;
             } else if (type === 'music') {
                 const iconName = item.filename.replace(/\.(mp3|wav|ogg)$/i, '');
-                imagePath = `${folder}/${iconName}.png`;
+                // Encode the path properly for URLs (handles spaces and special characters)
+                const encodedIconName = encodeURIComponent(iconName);
+                imagePath = `${folder}/${encodedIconName}.png`;
             } else {
                 // heroes
                 imagePath = `${folder}/${item}.png`;
@@ -1160,9 +1166,19 @@ function initFiltersPanel() {
             const filterBtn = document.createElement('div');
             filterBtn.className = 'filter-btn';
             
-            // Get the filter key (filename for factions, name for heroes)
-            const filterKey = type === 'factions' ? item.filename : item;
-            const displayName = type === 'factions' ? item.displayName : item;
+            // Get the filter key and display name based on type
+            let filterKey, displayName;
+            if (type === 'factions') {
+                filterKey = item.filename;
+                displayName = item.displayName;
+            } else if (type === 'music') {
+                filterKey = `Music/${item.filename}`;
+                displayName = item.name;
+            } else {
+                // heroes
+                filterKey = item;
+                displayName = item;
+            }
             
             filterBtn.dataset.filterType = type;
             filterBtn.dataset.filterKey = filterKey;
@@ -1174,7 +1190,16 @@ function initFiltersPanel() {
             const img = document.createElement('img');
             // Add cache busting to ensure latest images load
             const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            img.src = `${folder}/${filterKey}.png?v=${imageCacheBuster}`;
+            
+            // For music, use Music Icons folder with the filename (without extension), encoded for URLs
+            if (type === 'music') {
+                const iconName = item.filename.replace(/\.(mp3|wav|ogg)$/i, '');
+                const encodedIconName = encodeURIComponent(iconName);
+                img.src = `Music Icons/${encodedIconName}.png?v=${imageCacheBuster}`;
+            } else {
+                img.src = `${folder}/${filterKey}.png?v=${imageCacheBuster}`;
+            }
+            
             img.alt = displayName;
             img.onerror = function() {
                 // If image fails to load, hide the button or show placeholder
