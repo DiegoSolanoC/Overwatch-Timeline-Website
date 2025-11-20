@@ -22,6 +22,11 @@ html {
     margin: 0;
     padding: 0;
     height: 100%;
+    font-size: 16px; /* Force base font size */
+    -webkit-text-size-adjust: 100%; /* Prevent iOS text size adjustment */
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 /* Header Styles */
@@ -46,7 +51,9 @@ header h1 {
     color: white;
     margin: 0;
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 500;
 }
 
 /* Layout Container */
@@ -149,7 +156,7 @@ header h1 {
 }
 
 .filters-panel-content {
-    padding: 50px 30px 30px 30px;
+    padding: 20px 20px 20px 20px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -160,9 +167,10 @@ header h1 {
 .filters-title {
     color: #ff6600;
     margin: 0;
-    font-size: 1.8rem;
+    font-size: 20px;
     font-weight: 600;
     flex: 1;
+    line-height: 1.2;
 }
 
 .filters-tabs {
@@ -187,13 +195,15 @@ header h1 {
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
     color: white;
-    padding: 10px 20px;
-    font-size: 16px;
+    padding: 8px 16px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     flex: 1;
     text-align: center;
+    line-height: 1.2;
+    box-sizing: border-box;
 }
 
 .filter-tab:hover {
@@ -211,12 +221,12 @@ header h1 {
 .filters-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 12px; /* Reduced spacing between buttons */
-    margin-bottom: 20px;
-    margin-top: 20px;
+    gap: 10px; /* Reduced spacing between buttons */
+    margin-bottom: 15px;
+    margin-top: 15px;
     flex: 1;
     overflow-y: auto;
-    padding-right: 10px;
+    padding-right: 8px;
     min-height: 0; /* Allow flex child to shrink */
     box-sizing: border-box;
     width: 100%;
@@ -320,9 +330,9 @@ header h1 {
 .filters-actions {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding: 15px 20px;
+    gap: 12px;
+    margin-bottom: 15px;
+    padding: 12px 15px;
     border-bottom: 2px solid rgba(255, 102, 0, 0.3);
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px 8px 0 0;
@@ -387,7 +397,7 @@ header h1 {
 }
 
 .event-slide-content {
-    padding: 50px 30px 30px 30px;
+    padding: 20px 20px 20px 20px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -401,10 +411,10 @@ header h1 {
 }
 
 .event-slide-content p {
-    line-height: 1.8;
+    line-height: 1.6;
     color: #e0e0e0;
-    font-size: 1rem;
-    margin-bottom: 20px;
+    font-size: 14px;
+    margin-bottom: 15px;
 }
 
 .event-filters-section {
@@ -463,13 +473,15 @@ header h1 {
     background: #ff6600;
     color: white;
     border: none;
-    padding: 12px 24px;
-    font-size: 1rem;
+    padding: 10px 20px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 4px;
     transition: background 0.3s ease;
     margin-top: 10px; /* Small gap above button */
     align-self: flex-start;
+    line-height: 1.2;
+    box-sizing: border-box;
 }
 
 .event-image-toggle-btn:hover {
@@ -1070,7 +1082,7 @@ main {
 footer {
     background: #0D47A1;
     text-align: center;
-    padding: 1rem;
+    padding: 0.5rem 1rem;
     height: 52px;
     min-height: 52px;
     max-height: 52px;
@@ -1086,6 +1098,8 @@ footer {
 footer p {
     color: white;
     margin: 0;
+    font-size: 14px;
+    line-height: 1.2;
 }
 
 /* Responsive Design */
