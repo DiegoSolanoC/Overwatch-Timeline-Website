@@ -12,6 +12,8 @@ export class DataModel {
         this.secondaryConnections = [];
         this.seaportConnections = [];
         this.loaded = false;
+        this.currentEventPage = 1; // Current page (1-indexed)
+        this.eventsPerPage = 10; // Number of events per page
     }
 
     /**
@@ -142,6 +144,68 @@ export class DataModel {
      */
     getAllEvents() {
         return this.events;
+    }
+    
+    /**
+     * Get events for the current page
+     * @returns {Array}
+     */
+    getEventsForCurrentPage() {
+        const startIndex = (this.currentEventPage - 1) * this.eventsPerPage;
+        const endIndex = startIndex + this.eventsPerPage;
+        return this.events.slice(startIndex, endIndex);
+    }
+    
+    /**
+     * Get total number of event pages
+     * @returns {number}
+     */
+    getTotalEventPages() {
+        return Math.ceil(this.events.length / this.eventsPerPage);
+    }
+    
+    /**
+     * Get current event page number
+     * @returns {number}
+     */
+    getCurrentEventPage() {
+        return this.currentEventPage;
+    }
+    
+    /**
+     * Set current event page
+     * @param {number} page - Page number (1-indexed)
+     */
+    setCurrentEventPage(page) {
+        const totalPages = this.getTotalEventPages();
+        if (page >= 1 && page <= totalPages) {
+            this.currentEventPage = page;
+        }
+    }
+    
+    /**
+     * Go to next event page
+     * @returns {boolean} - True if page changed, false if already on last page
+     */
+    nextEventPage() {
+        const totalPages = this.getTotalEventPages();
+        if (this.currentEventPage < totalPages) {
+            this.currentEventPage++;
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Go to previous event page
+     * @returns {boolean} - True if page changed, false if already on first page
+     */
+    previousEventPage() {
+        if (this.currentEventPage > 1) {
+            this.currentEventPage--;
+            return true;
+        }
+        return false;
     }
 
     /**

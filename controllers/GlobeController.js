@@ -21,7 +21,7 @@ export class GlobeController {
         // Initialize views
         this.globeView = new GlobeView(this.sceneModel, this.dataModel);
         this.transportView = new TransportView(this.sceneModel, this.transportModel);
-        this.uiView = new UIView(this.sceneModel);
+        this.uiView = new UIView(this.sceneModel, this.dataModel, this.globeView);
         
         // Initialize controllers
         this.routeController = new RouteController(this.transportModel);
@@ -97,6 +97,12 @@ export class GlobeController {
         this.uiView.setupAutoRotateToggle();
         this.uiView.setupHyperloopToggle(() => {
             this.transportView.updateHyperloopVisibility();
+        });
+        
+        // Setup event pagination
+        this.uiView.setupEventPagination(() => {
+            // Refresh event markers when page changes
+            this.globeView.refreshEventMarkers();
         });
 
         // Handle window resize
@@ -233,6 +239,9 @@ export class GlobeController {
             this.interactionController.updatePulseRings();
             this.interactionController.updateMarkerPulse();
         }
+        
+        // Check and auto-show image if conditions are met
+        this.uiView.checkAndAutoShowImage();
 
         // Render
         renderer.render(scene, camera);

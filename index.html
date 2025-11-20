@@ -28,6 +28,17 @@
                     <img src="Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             </button>
+            
+            <!-- Event Pagination Controls -->
+            <div class="event-pagination" id="eventPagination">
+                <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
+                <div class="page-input-container">
+                    <span class="page-label">Page</span>
+                    <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
+                    <span class="page-total" id="pageTotal">/ 1</span>
+                </div>
+                <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
+            </div>
         </main>
 
         <nav class="sidebar" id="sidebar">
@@ -74,5 +85,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
+
 
 

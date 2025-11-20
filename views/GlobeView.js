@@ -165,7 +165,7 @@ export class GlobeView {
      */
     addEventMarkers() {
         const globe = this.sceneModel.getGlobe();
-        const events = this.dataModel.getAllEvents();
+        const events = this.dataModel.getEventsForCurrentPage(); // Use paginated events
 
         events.forEach(event => {
             const position = latLonToVector3(event.lat, event.lon, 1.02);
@@ -202,6 +202,52 @@ export class GlobeView {
             line.userData.isEventMarkerPin = true;
             globe.add(line);
         });
+    }
+    
+    /**
+     * Remove all event markers and their pin lines
+     */
+    removeEventMarkers() {
+        const globe = this.sceneModel.getGlobe();
+        const markers = this.sceneModel.getMarkers();
+        
+        // Remove event markers and their pin lines
+        const toRemove = [];
+        globe.traverse((child) => {
+            if (child.userData && child.userData.isEventMarker) {
+                toRemove.push(child);
+            }
+            if (child.userData && child.userData.isEventMarkerPin) {
+                toRemove.push(child);
+            }
+        });
+        
+        toRemove.forEach(obj => {
+            globe.remove(obj);
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) obj.material.dispose();
+        });
+        
+        // Remove from markers array
+        const eventMarkerIndices = [];
+        markers.forEach((marker, index) => {
+            if (marker.userData && marker.userData.isEventMarker) {
+                eventMarkerIndices.push(index);
+            }
+        });
+        
+        // Remove in reverse order to maintain indices
+        eventMarkerIndices.reverse().forEach(index => {
+            markers.splice(index, 1);
+        });
+    }
+    
+    /**
+     * Refresh event markers (remove old, add new for current page)
+     */
+    refreshEventMarkers() {
+        this.removeEventMarkers();
+        this.addEventMarkers();
     }
 
     /**

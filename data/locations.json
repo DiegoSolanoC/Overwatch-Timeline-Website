@@ -1,7 +1,16 @@
 {
   "events": [
-    { "name": "Austin Event", "lat": 30.2672, "lon": -97.7431 },
-    { "name": "Galapagos Event", "lat": -0.7893, "lon": -91.0544, "description": "A test event in the Galapagos Islands." }
+    { "name": "Austin Event", "lat": 30.2672, "lon": -97.7431, "description": "A major event in Austin, Texas.", "image": "" },
+    { "name": "Galapagos Event", "lat": -0.7893, "lon": -91.0544, "description": "A test event in the Galapagos Islands.", "image": "" },
+    { "name": "Tokyo Summit", "lat": 35.6762, "lon": 139.6503, "description": "International technology summit in Tokyo, Japan.", "image": "" },
+    { "name": "London Conference", "lat": 51.5074, "lon": -0.1278, "description": "Global conference in London, United Kingdom.", "image": "" },
+    { "name": "Sydney Festival", "lat": -33.8688, "lon": 151.2093, "description": "Cultural festival in Sydney, Australia.", "image": "" },
+    { "name": "Cairo Symposium", "lat": 30.0444, "lon": 31.2357, "description": "Historical symposium in Cairo, Egypt.", "image": "" },
+    { "name": "Mumbai Expo", "lat": 19.0760, "lon": 72.8777, "description": "Technology expo in Mumbai, India.", "image": "" },
+    { "name": "Moscow Summit", "lat": 55.7558, "lon": 37.6173, "description": "Diplomatic summit in Moscow, Russia.", "image": "" },
+    { "name": "São Paulo Convention", "lat": -23.5505, "lon": -46.6333, "description": "Business convention in São Paulo, Brazil.", "image": "" },
+    { "name": "Cape Town Forum", "lat": -33.9249, "lon": 18.4241, "description": "Environmental forum in Cape Town, South Africa.", "image": "" },
+    { "name": "Reykjavik Gathering", "lat": 64.1466, "lon": -21.9426, "description": "Arctic gathering in Reykjavik, Iceland.", "image": "" }
   ],
   "cities": [
     { "name": "Houston", "lat": 29.7604, "lon": -95.3698 },

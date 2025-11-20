@@ -46,6 +46,11 @@ export class InteractionController {
         
         // Track if mouse moved (to differentiate click from drag)
         window.mouseMoved = false;
+        
+        // Notify UI that dragging started (to hide image overlay if visible)
+        if (this.uiView) {
+            this.uiView.onGlobeDragStart();
+        }
     }
 
     /**
@@ -596,6 +601,11 @@ export class InteractionController {
                 x: touch.clientX,
                 y: touch.clientY
             });
+            
+            // Notify UI that dragging started (to hide image overlay if visible)
+            if (this.uiView) {
+                this.uiView.onGlobeDragStart();
+            }
         }
     }
 
