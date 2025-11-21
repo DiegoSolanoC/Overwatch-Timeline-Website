@@ -38,6 +38,8 @@ export class GlobeController {
         // Animation state
         this.animationId = null;
         this.trainSpawnInterval = null;
+        this.lastFrameTime = performance.now();
+        this.isTabVisible = true;
     }
 
     /**
@@ -115,6 +117,7 @@ export class GlobeController {
 
         // Start spawning transport systems
         this.transportController.spawnTrainsRandomly();
+        this.trainSpawnInterval = this.transportController.trainSpawnInterval;
         this.transportController.spawnPlanesRandomly();
         this.transportController.spawnBoatsRandomly();
         
@@ -136,12 +139,38 @@ export class GlobeController {
         document.addEventListener('visibilitychange', () => {
             const isVisible = !document.hidden;
             this.sceneModel.setPageVisible(isVisible);
+            this.isTabVisible = isVisible;
             
             if (!isVisible) {
-                // Pause spawning when tab is hidden
+                // Pause ALL spawning when tab is hidden to prevent accumulation
                 if (this.trainSpawnInterval) {
                     clearInterval(this.trainSpawnInterval);
                     this.trainSpawnInterval = null;
+                }
+                // Clear plane and boat intervals from TransportController
+                if (this.transportController.planeSpawnInterval) {
+                    clearInterval(this.transportController.planeSpawnInterval);
+                    this.transportController.planeSpawnInterval = null;
+                }
+                if (this.transportController.boatSpawnInterval) {
+                    clearInterval(this.transportController.boatSpawnInterval);
+                    this.transportController.boatSpawnInterval = null;
+                }
+            } else {
+                // Tab became visible - restart spawning with fresh intervals
+                // Reset last frame time to prevent catch-up animation
+                this.lastFrameTime = performance.now();
+                
+                // Restart spawning (they check isPageVisible internally, so safe to restart)
+                if (!this.trainSpawnInterval) {
+                    this.transportController.spawnTrainsRandomly();
+                    this.trainSpawnInterval = this.transportController.trainSpawnInterval;
+                }
+                if (!this.transportController.planeSpawnInterval) {
+                    this.transportController.spawnPlanesRandomly();
+                }
+                if (!this.transportController.boatSpawnInterval) {
+                    this.transportController.spawnBoatsRandomly();
                 }
             }
         });
@@ -159,6 +188,20 @@ export class GlobeController {
         const globe = this.sceneModel.getGlobe();
 
         if (!scene || !camera || !renderer || !globe) return;
+        
+        // Delta time tracking to prevent catch-up when tab regains focus
+        const currentTime = performance.now();
+        const deltaTime = currentTime - this.lastFrameTime;
+        
+        // If tab was hidden for more than 1 second, reset to prevent catch-up
+        // This prevents vehicles from spawning all at once when tab regains focus
+        if (deltaTime > 1000) {
+            this.lastFrameTime = currentTime;
+            // Skip this frame to prevent massive catch-up
+            return;
+        }
+        
+        this.lastFrameTime = currentTime;
 
         // Auto-rotate - if viewing event, recenter to it; otherwise normal rotation
         if (this.sceneModel.getAutoRotate() && this.sceneModel.getAutoRotateEnabled()) {

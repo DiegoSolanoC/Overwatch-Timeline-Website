@@ -888,8 +888,8 @@ main {
     position: absolute;
     bottom: 20px;
     left: 20px;
-    width: 60px;
-    height: 50px;
+    width: 80px;
+    height: 65px;
     background: rgba(13, 71, 161, 0.9);
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
@@ -1029,34 +1029,54 @@ main {
     transform: none !important;
 }
 
-/* Hyperloop Toggle Button - positioned next to rotation button */
+/* Hyperloop Toggle Button - positioned next to rotation button (stays at bottom) */
 .hyperloop-btn {
-    left: 90px !important; /* Position next to rotation button */
+    left: 110px !important; /* Position next to rotation button */
 }
 
-/* Filters Toggle Button - positioned next to hyperloop button */
+/* Top-left buttons (music and filters) - positioned at top left */
+.top-left-btn {
+    bottom: auto !important;
+    top: 20px !important;
+    left: 20px !important;
+}
+
+/* Filters Toggle Button - positioned next to music button at top left */
 .filters-btn {
-    left: 160px !important; /* Position next to hyperloop button */
+    left: 110px !important; /* Position next to music button */
 }
 
 #filtersIcon {
-    font-size: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    height: 100%;
 }
 
-/* Music Toggle Button - positioned next to filters button */
+#filtersIcon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Music Toggle Button - positioned at top left */
 #musicToggle {
-    left: 230px !important; /* Position next to filters button */
+    left: 20px !important; /* First button at top left */
 }
-
 
 #musicIcon {
-    font-size: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+#musicIcon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 #hyperloopIcon {
