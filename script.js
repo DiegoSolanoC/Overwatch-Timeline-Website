@@ -739,8 +739,20 @@ function initMusicPanel() {
             img.src = `Music Icons/${encodedIconName}.png?v=${imageCacheBuster}`;
             img.alt = song.name;
             img.onerror = function() {
-                // If image fails to load, hide the button or show placeholder
+                // If image fails to load, try alternative encodings/cases for GitHub Pages compatibility
+                const originalSrc = this.src;
+                console.warn(`[DEBUG] Image failed to load: ${originalSrc}`);
+                
+                // Try with different encoding (some servers handle spaces differently)
+                const altEncoded = iconName.replace(/\s+/g, '%20');
+                if (this.src !== `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`) {
+                    this.src = `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`;
+                    return; // Let it try again with this encoding
+                }
+                
+                // If still fails, hide the button or show placeholder
                 this.style.display = 'none';
+                console.error(`[DEBUG] Image failed to load after retry: ${iconName}`);
             };
             
             imageContainer.appendChild(img);
@@ -1202,7 +1214,21 @@ function initFiltersPanel() {
             
             img.alt = displayName;
             img.onerror = function() {
-                // If image fails to load, hide the button or show placeholder
+                // If image fails to load, try alternative encodings for GitHub Pages compatibility
+                if (type === 'music') {
+                    const iconName = item.filename.replace(/\.(mp3|wav|ogg)$/i, '');
+                    const originalSrc = this.src;
+                    console.warn(`[DEBUG] Filter image failed to load: ${originalSrc}`);
+                    
+                    // Try with different encoding (some servers handle spaces differently)
+                    const altEncoded = iconName.replace(/\s+/g, '%20');
+                    if (this.src !== `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`) {
+                        this.src = `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`;
+                        return; // Let it try again with this encoding
+                    }
+                }
+                
+                // If still fails, hide the button or show placeholder
                 this.style.display = 'none';
             };
             
