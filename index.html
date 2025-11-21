@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Map - Timeline Overwatch</title>
+    <link rel="icon" type="image/png" href="Icon.png">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // Auto-generate manifest before page loads
+        // Note: Browsers can't run Node.js directly, so this is a reminder
+        // For automatic generation, use: npm run generate (or node generate-manifest.js)
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('Tip: Run "node generate-manifest.js" after adding/removing files');
+            // Try to load manifest with cache busting
+            fetch('manifest.json?' + Date.now(), { cache: 'no-store' })
+                .then(() => console.log('Manifest loaded with cache busting'))
+                .catch(() => console.log('Manifest not found - run generate-manifest.js'));
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Timeline Overwatch</h1>
+    </header>
+
+    <div class="layout-container">
+        <main id="content">
+            <div id="globe-container"></div>
+            
+            <!-- Globe Control Buttons -->
+            <button id="autoRotateToggle" class="globe-control-btn" title="Toggle Auto-Rotation">
+                <span id="rotateIcon">
+                    <img src="Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            </button>
+            
+            <button id="hyperloopToggle" class="globe-control-btn hyperloop-btn active" title="Toggle Transport Systems">
+                <span id="hyperloopIcon">
+                    <img src="Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            </button>
+            
+            <button id="filtersToggle" class="globe-control-btn filters-btn top-left-btn" title="Open Filters">
+                <span id="filtersIcon">
+                    <img src="Filter Icon.png" alt="Filters" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            </button>
+            
+            <button id="musicToggle" class="globe-control-btn top-left-btn" title="Music Options">
+                <span id="musicIcon">
+                    <img src="Music Icon.png" alt="Music" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            </button>
+            
+            <!-- Event Pagination Controls -->
+            <div class="event-pagination" id="eventPagination">
+                <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
+                <div class="page-input-container">
+                    <span class="page-label">Page</span>
+                    <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
+                    <span class="page-total" id="pageTotal">/ 1</span>
+                </div>
+                <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
+            </div>
+        </main>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-close" id="sidebarClose">&times;</div>
+            <button onclick="window.location.href='index.html'" class="active">Map</button>
+            <button onclick="window.location.href='about.html'">Glossary</button>
+            <button onclick="window.location.href='contact.html'">Options</button>
+        </nav>
+
+        <!-- Event Slide Panel (left side) -->
+        <div class="event-slide" id="eventSlide">
+            <div class="event-slide-close" id="eventSlideClose">&times;</div>
+            <div class="event-slide-content" id="eventSlideContent">
+                <h2 id="eventSlideTitle">Event</h2>
+                <p id="eventSlideText">Placeholder text for event information.</p>
+                <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
+                    <div class="event-filters-list" id="eventFiltersList"></div>
+                </div>
+                <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+            </div>
+        </div>
+
+        <!-- Event Image Overlay (over globe) -->
+        <div class="event-image-overlay" id="eventImageOverlay">
+            <div class="event-image-container" id="eventImageContainer">
+                <img id="eventImage" src="" alt="Event Image" style="display: none;">
+            </div>
+        </div>
+
+        <!-- Filters Panel (right side) -->
+        <div class="filters-panel" id="filtersPanel">
+            <div class="filters-panel-close" id="filtersPanelClose">&times;</div>
+            <div class="filters-panel-content">
+                <div class="filters-actions">
+                    <h2 class="filters-title">Filters</h2>
+                    <div class="filters-actions-buttons">
+                        <button id="clearFiltersBtn" class="filters-action-btn">Clear</button>
+                        <button id="confirmFiltersBtn" class="filters-action-btn filters-confirm-btn">Confirm</button>
+                    </div>
+                </div>
+                <div class="filters-tabs">
+                    <button id="heroesTab" class="filter-tab active">
+                        Heroes
+                        <span class="filter-count" id="heroesCount">0</span>
+                    </button>
+                    <button id="factionsTab" class="filter-tab">
+                        Factions
+                        <span class="filter-count" id="factionsCount">0</span>
+                    </button>
+                </div>
+                <div class="filters-grid" id="filtersGrid">
+                    <!-- Filter buttons will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Music Options Panel (right side, below filters) -->
+        <div class="music-panel" id="musicPanel">
+            <div class="music-panel-close" id="musicPanelClose">&times;</div>
+            <div class="music-panel-content">
+                <div class="music-actions">
+                    <h2 class="music-title">Music Options</h2>
+                    <div class="music-actions-buttons">
+                        <!-- Buttons moved to under progress bar -->
+                    </div>
+                </div>
+                <div class="music-now-playing" id="musicNowPlaying">
+                    <div class="music-current-song" id="musicCurrentSong">Loading...</div>
+                    <div class="music-progress-container">
+                        <input type="range" id="musicProgressBar" class="music-progress-bar" min="0" max="100" value="0">
+                        <div class="music-time-display">
+                            <span id="musicCurrentTime">0:00</span> / <span id="musicTotalTime">0:00</span>
+                        </div>
+                        <div class="music-control-buttons">
+                            <button id="pauseBtn" class="music-control-btn">
+                                <img id="pauseBtnIcon" src="Pause Icon.png" alt="Pause" class="control-icon">
+                            </button>
+                            <button id="skipBtn" class="music-control-btn">
+                                <img id="skipBtnIcon" src="Skip Icon.png" alt="Skip" class="control-icon">
+                            </button>
+                            <button id="muteBtn" class="music-control-btn">
+                                <img id="muteBtnIcon" src="Unmuted Icon.png" alt="Mute" class="control-icon">
+                            </button>
+                            <button id="shuffleBtn" class="music-control-btn">
+                                <img id="shuffleBtnIcon" src="Shuffle Icon.png" alt="Shuffle" class="control-icon">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="music-control-row">
+                    <label for="volumeSlider">Volume:</label>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="20">
+                    <span id="volumeValue" class="volume-value">20%</span>
+                </div>
+                <div class="music-grid" id="musicGrid">
+                    <!-- Music buttons will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Background Music -->
+        <audio id="backgroundMusic" loop>
+            <source src="" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+
+        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
+    </div>
+
+    <footer>
+        <p>&copy; Original Work by Blizzard Entertainment.</p>
+    </footer>
+
+    
+    <!-- Three.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    
+    <!-- GLTF Loader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- Main Globe Script (ES6 Modules) -->
+    <script type="module" src="globe-new.js"></script>
+    
+    <!-- Sidebar Script -->
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
