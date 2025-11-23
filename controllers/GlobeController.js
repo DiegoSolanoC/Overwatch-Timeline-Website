@@ -57,6 +57,13 @@ export class GlobeController {
         // Load data
         try {
             await this.dataModel.loadData();
+            
+            // If EventManager is available and has events, use those instead
+            // (EventManager is the source of truth for user-created events)
+            if (window.eventManager && window.eventManager.events && window.eventManager.events.length > 0) {
+                this.dataModel.events = [...window.eventManager.events];
+                console.log('GlobeController: Using events from EventManager');
+            }
         } catch (error) {
             console.error('Failed to load data:', error);
             return;
@@ -78,6 +85,14 @@ export class GlobeController {
         this.globeView.addCityMarkers();
         this.globeView.addSeaportMarkers();
         this.globeView.addEventMarkers();
+        
+        // Sync with EventManager if available (in case EventManager loaded after GlobeController)
+        // This ensures events from EventManager are always used
+        if (window.eventManager && window.eventManager.events && window.eventManager.events.length > 0) {
+            this.dataModel.events = [...window.eventManager.events];
+            this.globeView.refreshEventMarkers();
+            console.log('GlobeController: Synced events from EventManager after markers added');
+        }
 
         // Add connection lines (with callbacks to store route curves)
         this.globeView.addConnectionLines((routeData) => {

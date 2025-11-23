@@ -304,23 +304,35 @@
             if (window.EventManager) {
                 const eventManager = new EventManager();
                 eventManager.init().then(() => {
-                    // After EventManager loads events, sync with DataModel if GlobeController is ready
-                    if (window.globeController && window.globeController.dataModel) {
-                        window.globeController.dataModel.events = [...eventManager.events];
-                        // Refresh event markers on globe
-                        if (window.globeController.globeView) {
-                            window.globeController.globeView.refreshEventMarkers();
+                    // Function to sync events with GlobeController
+                    const syncEvents = () => {
+                        if (window.globeController && window.globeController.dataModel) {
+                            // Always use EventManager's events (they're the source of truth)
+                            window.globeController.dataModel.events = [...eventManager.events];
+                            // Refresh event markers on globe
+                            if (window.globeController.globeView) {
+                                window.globeController.globeView.refreshEventMarkers();
+                            }
+                            // Refresh pagination
+                            if (window.globeController.uiView) {
+                                window.globeController.uiView.setupEventPagination(() => {
+                                    if (window.globeController.globeView) {
+                                        window.globeController.globeView.refreshEventMarkers();
+                                    }
+                                });
+                            }
+                            console.log('EventManager: Synced events with GlobeController after initialization');
                         }
-                        // Refresh pagination
-                        if (window.globeController.uiView) {
-                            window.globeController.uiView.setupEventPagination(() => {
-                                if (window.globeController.globeView) {
-                                    window.globeController.globeView.refreshEventMarkers();
-                                }
-                            });
-                        }
-                        console.log('EventManager: Synced events with GlobeController after initialization');
-                    }
+                    };
+                    
+                    // Try to sync immediately
+                    syncEvents();
+                    
+                    // Also set up a delayed sync in case GlobeController loads after EventManager
+                    // This ensures events are synced even if load order varies
+                    setTimeout(() => {
+                        syncEvents();
+                    }, 500);
                 });
                 window.eventManager = eventManager; // Make it globally accessible
             }
