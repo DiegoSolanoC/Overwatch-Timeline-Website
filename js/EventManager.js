@@ -266,12 +266,6 @@ class EventManager {
         const panel = document.getElementById('eventsManagePanel');
         const closeBtn = document.getElementById('eventsManageClose');
 
-        // Hide button on GitHub Pages (but still load events)
-        const isGitHubPages = this.isGitHubPages();
-        if (toggleBtn && isGitHubPages) {
-            toggleBtn.style.display = 'none';
-        }
-
         if (toggleBtn && panel) {
             toggleBtn.addEventListener('click', (e) => {
                 e.preventDefault();
