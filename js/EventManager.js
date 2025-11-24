@@ -389,15 +389,7 @@ class EventManager {
                     }
                 }
                 
-                // On GitHub Pages, clicking the button opens the first event (like clicking a marker)
-                const isGitHubPages = this.isGitHubPages();
-                if (isGitHubPages && this.events.length > 0) {
-                    const firstEvent = this.events[0];
-                    this.openEventFromList(firstEvent, 0);
-                    return; // Don't open the management panel
-                }
-                
-                // Toggle event management panel
+                // Toggle event management panel (works normally on both localhost and GitHub Pages)
                 panel.classList.toggle('open');
                 if (panel.classList.contains('open')) {
                     toggleBtn.classList.add('active');
