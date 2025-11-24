@@ -58,11 +58,23 @@ export class GlobeController {
         try {
             await this.dataModel.loadData();
             
-            // If EventManager is available and has events, use those instead
-            // (EventManager is the source of truth for user-created events)
-            if (window.eventManager && window.eventManager.events && window.eventManager.events.length > 0) {
+            // ALWAYS check for EventManager events (source of truth for user-created events)
+            // Check immediately and also wait a bit in case EventManager is still loading
+            if (window.eventManager && window.eventManager.events) {
                 this.dataModel.events = [...window.eventManager.events];
-                console.log('GlobeController: Using events from EventManager');
+                console.log('GlobeController: Using', window.eventManager.events.length, 'events from EventManager');
+            } else {
+                // If EventManager not ready yet, wait a bit and check again
+                setTimeout(() => {
+                    if (window.eventManager && window.eventManager.events) {
+                        this.dataModel.events = [...window.eventManager.events];
+                        console.log('GlobeController: Synced', window.eventManager.events.length, 'events from EventManager (delayed)');
+                        // Refresh markers if already added
+                        if (this.globeView) {
+                            this.globeView.refreshEventMarkers();
+                        }
+                    }
+                }, 200);
             }
         } catch (error) {
             console.error('Failed to load data:', error);
@@ -86,13 +98,18 @@ export class GlobeController {
         this.globeView.addSeaportMarkers();
         this.globeView.addEventMarkers();
         
-        // Sync with EventManager if available (in case EventManager loaded after GlobeController)
-        // This ensures events from EventManager are always used
-        if (window.eventManager && window.eventManager.events && window.eventManager.events.length > 0) {
-            this.dataModel.events = [...window.eventManager.events];
-            this.globeView.refreshEventMarkers();
-            console.log('GlobeController: Synced events from EventManager after markers added');
-        }
+        // ALWAYS sync with EventManager after markers are added (final check)
+        // This ensures events from EventManager are always used, even if EventManager loaded after
+        const finalSync = () => {
+            if (window.eventManager && window.eventManager.events) {
+                this.dataModel.events = [...window.eventManager.events];
+                this.globeView.refreshEventMarkers();
+                console.log('GlobeController: Final sync -', window.eventManager.events.length, 'events from EventManager');
+            }
+        };
+        finalSync(); // Try immediately
+        setTimeout(finalSync, 300); // Try again after a short delay
+        setTimeout(finalSync, 1000); // One more time after 1 second
 
         // Add connection lines (with callbacks to store route curves)
         this.globeView.addConnectionLines((routeData) => {

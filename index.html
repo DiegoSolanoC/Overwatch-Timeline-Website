@@ -298,43 +298,52 @@
     <!-- Sidebar Script -->
     <script src="script.js"></script>
     
-    <!-- Initialize Event Manager -->
+    <!-- Initialize Event Manager FIRST, then GlobeController -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize EventManager first and wait for it to load events
             if (window.EventManager) {
                 const eventManager = new EventManager();
-                eventManager.init().then(() => {
-                    // Function to sync events with GlobeController
-                    const syncEvents = () => {
-                        if (window.globeController && window.globeController.dataModel) {
-                            // Always use EventManager's events (they're the source of truth)
-                            window.globeController.dataModel.events = [...eventManager.events];
-                            // Refresh event markers on globe
-                            if (window.globeController.globeView) {
-                                window.globeController.globeView.refreshEventMarkers();
-                            }
-                            // Refresh pagination
-                            if (window.globeController.uiView) {
-                                window.globeController.uiView.setupEventPagination(() => {
-                                    if (window.globeController.globeView) {
-                                        window.globeController.globeView.refreshEventMarkers();
-                                    }
-                                });
-                            }
-                            console.log('EventManager: Synced events with GlobeController after initialization');
-                        }
-                    };
-                    
-                    // Try to sync immediately
-                    syncEvents();
-                    
-                    // Also set up a delayed sync in case GlobeController loads after EventManager
-                    // This ensures events are synced even if load order varies
-                    setTimeout(() => {
-                        syncEvents();
-                    }, 500);
-                });
+                await eventManager.init(); // Wait for events to load from localStorage
                 window.eventManager = eventManager; // Make it globally accessible
+                console.log('EventManager initialized with', eventManager.events.length, 'events');
+                
+                // Function to sync events with GlobeController
+                const syncEvents = () => {
+                    if (window.globeController && window.globeController.dataModel) {
+                        // Always use EventManager's events (they're the source of truth)
+                        window.globeController.dataModel.events = [...eventManager.events];
+                        // Refresh event markers on globe
+                        if (window.globeController.globeView) {
+                            window.globeController.globeView.refreshEventMarkers();
+                        }
+                        // Refresh pagination
+                        if (window.globeController.uiView) {
+                            window.globeController.uiView.setupEventPagination(() => {
+                                if (window.globeController.globeView) {
+                                    window.globeController.globeView.refreshEventMarkers();
+                                }
+                            });
+                        }
+                        console.log('EventManager: Synced', eventManager.events.length, 'events with GlobeController');
+                    }
+                };
+                
+                // If GlobeController already exists, sync immediately
+                if (window.globeController) {
+                    syncEvents();
+                } else {
+                    // Otherwise, wait for GlobeController to initialize
+                    const checkGlobeController = setInterval(() => {
+                        if (window.globeController) {
+                            clearInterval(checkGlobeController);
+                            syncEvents();
+                        }
+                    }, 100);
+                    
+                    // Stop checking after 5 seconds
+                    setTimeout(() => clearInterval(checkGlobeController), 5000);
+                }
             }
         });
     </script>

@@ -55,6 +55,17 @@ class EventManager {
         this.setupEventListeners();
         await this.loadEvents();
         this.renderEvents();
+        
+        // Ensure button is visible after initialization
+        const toggleBtn = document.getElementById('eventsManageToggle');
+        if (toggleBtn) {
+            toggleBtn.style.display = '';
+            toggleBtn.style.visibility = 'visible';
+            toggleBtn.style.opacity = '1';
+            console.log('EventManager: Button visibility ensured');
+        }
+        
+        console.log('EventManager: Initialized with', this.events.length, 'events');
         return Promise.resolve(); // Return promise for chaining
     }
 
@@ -114,13 +125,10 @@ class EventManager {
         if (savedEvents) {
             try {
                 this.events = JSON.parse(savedEvents);
-                console.log('EventManager: Loaded events from localStorage');
+                console.log('EventManager: Loaded', this.events.length, 'events from localStorage');
                 
-                // Sync with DataModel immediately if available
-                if (window.globeController && window.globeController.dataModel) {
-                    window.globeController.dataModel.events = [...this.events];
-                    console.log('EventManager: Synced events with DataModel');
-                }
+                // Sync with DataModel and refresh markers
+                this.syncEventsToGlobe();
                 return;
             } catch (error) {
                 console.error('Error parsing saved events:', error);
@@ -132,9 +140,22 @@ class EventManager {
         console.log('EventManager: No saved events, using empty array');
         
         // Sync empty array with DataModel
+        this.syncEventsToGlobe();
+    }
+    
+    /**
+     * Sync events to GlobeController and refresh markers
+     */
+    syncEventsToGlobe() {
         if (window.globeController && window.globeController.dataModel) {
-            window.globeController.dataModel.events = [];
-            console.log('EventManager: Synced empty events array with DataModel');
+            window.globeController.dataModel.events = [...this.events];
+            console.log('EventManager: Synced', this.events.length, 'events with DataModel');
+            
+            // Refresh event markers if globe is already initialized
+            if (window.globeController.globeView) {
+                window.globeController.globeView.refreshEventMarkers();
+                console.log('EventManager: Refreshed event markers on globe');
+            }
         }
     }
 
@@ -265,6 +286,13 @@ class EventManager {
         const toggleBtn = document.getElementById('eventsManageToggle');
         const panel = document.getElementById('eventsManagePanel');
         const closeBtn = document.getElementById('eventsManageClose');
+
+        // Ensure button is always visible (never hide it)
+        if (toggleBtn) {
+            toggleBtn.style.display = '';
+            toggleBtn.style.visibility = 'visible';
+            toggleBtn.style.opacity = '1';
+        }
 
         if (toggleBtn && panel) {
             toggleBtn.addEventListener('click', (e) => {
