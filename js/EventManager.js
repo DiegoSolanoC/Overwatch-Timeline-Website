@@ -389,6 +389,14 @@ class EventManager {
                     }
                 }
                 
+                // On GitHub Pages, clicking the button opens the first event (like clicking a marker)
+                const isGitHubPages = this.isGitHubPages();
+                if (isGitHubPages && this.events.length > 0) {
+                    const firstEvent = this.events[0];
+                    this.openEventFromList(firstEvent, 0);
+                    return; // Don't open the management panel
+                }
+                
                 // Toggle event management panel
                 panel.classList.toggle('open');
                 if (panel.classList.contains('open')) {
@@ -429,45 +437,65 @@ class EventManager {
             }
         });
 
+        // Hide/lock management buttons on GitHub Pages
+        const isGitHubPages = this.isGitHubPages();
+        
         // Add event button
         const addBtn = document.getElementById('addEventBtn');
         if (addBtn) {
-            addBtn.addEventListener('click', () => {
-                this.openEditModal(null);
-            });
+            if (isGitHubPages) {
+                addBtn.style.display = 'none';
+            } else {
+                addBtn.addEventListener('click', () => {
+                    this.openEditModal(null);
+                });
+            }
         }
 
         // Save events button
         const saveBtn = document.getElementById('saveEventsBtn');
         if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                this.saveEvents();
-            });
+            if (isGitHubPages) {
+                saveBtn.style.display = 'none';
+            } else {
+                saveBtn.addEventListener('click', () => {
+                    this.saveEvents();
+                });
+            }
         }
 
         // Export events button
         const exportBtn = document.getElementById('exportEventsBtn');
         if (exportBtn) {
-            exportBtn.addEventListener('click', () => {
-                this.exportEvents();
-            });
+            if (isGitHubPages) {
+                exportBtn.style.display = 'none';
+            } else {
+                exportBtn.addEventListener('click', () => {
+                    this.exportEvents();
+                });
+            }
         }
 
         // Import events button
         const importBtn = document.getElementById('importEventsBtn');
         const importFileInput = document.getElementById('importEventsFile');
         if (importBtn && importFileInput) {
-            importBtn.addEventListener('click', () => {
-                importFileInput.click();
-            });
-            importFileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    this.importEvents(file);
-                    // Reset input so same file can be imported again
-                    e.target.value = '';
-                }
-            });
+            if (isGitHubPages) {
+                importBtn.style.display = 'none';
+                importFileInput.style.display = 'none';
+            } else {
+                importBtn.addEventListener('click', () => {
+                    importFileInput.click();
+                });
+                importFileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        this.importEvents(file);
+                        // Reset input so same file can be imported again
+                        e.target.value = '';
+                    }
+                });
+            }
         }
 
         // Edit modal
@@ -568,7 +596,12 @@ class EventManager {
     createEventItem(event, index) {
         const item = document.createElement('div');
         item.className = 'event-item';
-        item.draggable = true;
+        const isGitHubPages = this.isGitHubPages();
+        
+        // Disable drag and drop on GitHub Pages
+        if (!isGitHubPages) {
+            item.draggable = true;
+        }
         item.dataset.index = index;
 
         // Check if this event has unsaved changes
@@ -600,39 +633,107 @@ class EventManager {
             ? `<div class="multi-event-badge" title="Multi-Event: ${event.variants.length} variants">${event.variants.length}×</div>`
             : '';
 
-        item.innerHTML = `
-            <div class="event-item-drag-handle">☰</div>
-            ${imageHtml}
-            ${multiEventBadge}
-            <div class="event-item-info">
-                <h3 class="event-item-title">${getDisplayEventName(displayEvent.name)}</h3>
-                <p class="event-item-location">📍 ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
-            </div>
+        // On GitHub Pages, hide drag handle and action buttons, make entire item clickable
+        const dragHandle = isGitHubPages ? '' : '<div class="event-item-drag-handle">☰</div>';
+        const actionButtons = isGitHubPages ? '' : `
             <div class="event-item-actions">
                 <button class="event-item-btn edit-btn" data-index="${index}">Edit</button>
                 <button class="event-item-btn delete-btn" data-index="${index}">Delete</button>
             </div>
         `;
 
-        // Add event listeners
-        const editBtn = item.querySelector('.edit-btn');
-        const deleteBtn = item.querySelector('.delete-btn');
+        item.innerHTML = `
+            ${dragHandle}
+            ${imageHtml}
+            ${multiEventBadge}
+            <div class="event-item-info">
+                <h3 class="event-item-title">${getDisplayEventName(displayEvent.name)}</h3>
+                <p class="event-item-location">📍 ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
+            </div>
+            ${actionButtons}
+        `;
 
-        if (editBtn) {
-            editBtn.addEventListener('click', (e) => {
+        // On GitHub Pages, make entire item clickable to open event info
+        if (isGitHubPages) {
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.openEditModal(index);
+                this.openEventFromList(event, index);
             });
-        }
+        } else {
+            // Add event listeners for edit/delete buttons
+            const editBtn = item.querySelector('.edit-btn');
+            const deleteBtn = item.querySelector('.delete-btn');
 
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.deleteEvent(index);
-            });
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openEditModal(index);
+                });
+            }
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteEvent(index);
+                });
+            }
         }
 
         return item;
+    }
+    
+    /**
+     * Open event info from list (like clicking a marker) - for GitHub Pages
+     */
+    openEventFromList(event, index) {
+        // Close the event manager panel
+        const panel = document.getElementById('eventsManagePanel');
+        if (panel) {
+            panel.classList.remove('open');
+        }
+        const toggleBtn = document.getElementById('eventsManageToggle');
+        if (toggleBtn) {
+            toggleBtn.classList.remove('active');
+        }
+        
+        // Find the corresponding marker on the globe
+        if (window.globeController && window.globeController.globeView) {
+            const markers = window.globeController.sceneModel.getMarkers();
+            const eventMarker = markers.find(m => {
+                if (m.userData && m.userData.isEventMarker) {
+                    const markerEvent = m.userData.event;
+                    // Match by index or by lat/lon
+                    return (markerEvent === event) || 
+                           (Math.abs(markerEvent.lat - event.lat) < 0.0001 && 
+                            Math.abs(markerEvent.lon - event.lon) < 0.0001);
+                }
+                return false;
+            });
+            
+            if (eventMarker && window.globeController.uiView) {
+                // Check if this is a multi-event
+                const isMultiEvent = event.variants && event.variants.length > 0;
+                const displayEvent = isMultiEvent ? event.variants[0] : event;
+                
+                const eventName = displayEvent.name || eventMarker.userData.eventName;
+                const eventDescription = displayEvent.description;
+                const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
+                
+                // Zoom to marker and show event slide
+                if (window.globeController.interactionController) {
+                    window.globeController.interactionController.zoomToMarker(eventMarker);
+                }
+                
+                window.globeController.uiView.showEventSlide(
+                    eventName,
+                    imagePath,
+                    eventDescription,
+                    eventMarker,
+                    event
+                );
+            }
+        }
     }
 
     /**
@@ -778,6 +879,10 @@ class EventManager {
      * Setup drag and drop functionality
      */
     setupDragAndDrop() {
+        // Disable drag and drop on GitHub Pages
+        if (this.isGitHubPages()) {
+            return;
+        }
         const items = document.querySelectorAll('.event-item');
         
         items.forEach(item => {
