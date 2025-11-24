@@ -54,7 +54,24 @@ class EventManager {
         await this.loadLocationsData();
         this.setupEventListeners();
         await this.loadEvents();
-        this.renderEvents();
+        
+        // Ensure DOM is ready before rendering
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.renderEvents();
+            });
+        } else {
+            this.renderEvents();
+        }
+        
+        // Also try rendering after a short delay to ensure DOM is fully ready
+        setTimeout(() => {
+            const eventsList = document.getElementById('eventsList');
+            if (eventsList && this.events.length > 0 && eventsList.children.length === 0) {
+                console.log('EventManager: Retrying render after delay (DOM might not have been ready)');
+                this.renderEvents();
+            }
+        }, 100);
         
         // Ensure button is visible after initialization
         const toggleBtn = document.getElementById('eventsManageToggle');
@@ -122,22 +139,49 @@ class EventManager {
     async loadEvents() {
         // Try to load from localStorage first (user's saved changes)
         const savedEvents = localStorage.getItem('timelineEvents');
+        console.log('EventManager: Checking localStorage for events...');
+        console.log('EventManager: localStorage.getItem("timelineEvents") =', savedEvents ? 'Found data (' + savedEvents.length + ' chars)' : 'null');
+        
         if (savedEvents) {
             try {
                 this.events = JSON.parse(savedEvents);
-                console.log('EventManager: Loaded', this.events.length, 'events from localStorage');
+                console.log('EventManager: Successfully parsed', this.events.length, 'events from localStorage');
+                console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                 
                 // Sync with DataModel and refresh markers
                 this.syncEventsToGlobe();
                 return;
             } catch (error) {
-                console.error('Error parsing saved events:', error);
+                console.error('EventManager: Error parsing saved events:', error);
+                console.error('EventManager: Raw data:', savedEvents.substring(0, 200));
             }
         }
 
-        // No saved events - use empty array (test events removed)
+        // If no localStorage, try to load from data/events.json (for GitHub Pages or initial setup)
+        try {
+            const response = await fetch('data/events.json');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+                    this.events = data.events;
+                    console.log('EventManager: Loaded', this.events.length, 'events from data/events.json');
+                    console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
+                    
+                    // Save to localStorage for future use
+                    this.saveEvents();
+                    
+                    // Sync with DataModel and refresh markers
+                    this.syncEventsToGlobe();
+                    return;
+                }
+            }
+        } catch (error) {
+            console.log('EventManager: Could not load from data/events.json (file may not exist):', error.message);
+        }
+
+        // No saved events - use empty array
         this.events = [];
-        console.log('EventManager: No saved events, using empty array');
+        console.log('EventManager: No saved events found, using empty array');
         
         // Sync empty array with DataModel
         this.syncEventsToGlobe();
@@ -231,6 +275,32 @@ class EventManager {
         link.click();
         URL.revokeObjectURL(url);
         console.log('Events exported');
+    }
+
+    /**
+     * Import events from JSON file
+     */
+    importEvents(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.events && Array.isArray(data.events)) {
+                    this.events = data.events;
+                    this.saveEvents();
+                    this.renderEvents();
+                    this.syncEventsToGlobe();
+                    console.log('Events imported:', this.events.length);
+                    alert(`Successfully imported ${this.events.length} events!`);
+                } else {
+                    throw new Error('Invalid file format: expected { events: [...] }');
+                }
+            } catch (error) {
+                console.error('Error importing events:', error);
+                alert('Error importing events: ' + error.message);
+            }
+        };
+        reader.readAsText(file);
     }
 
     /**
@@ -383,6 +453,23 @@ class EventManager {
             });
         }
 
+        // Import events button
+        const importBtn = document.getElementById('importEventsBtn');
+        const importFileInput = document.getElementById('importEventsFile');
+        if (importBtn && importFileInput) {
+            importBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+            importFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    this.importEvents(file);
+                    // Reset input so same file can be imported again
+                    e.target.value = '';
+                }
+            });
+        }
+
         // Edit modal
         const modal = document.getElementById('eventEditModal');
         const modalClose = document.getElementById('eventEditModalClose');
@@ -447,15 +534,29 @@ class EventManager {
      */
     renderEvents() {
         const eventsList = document.getElementById('eventsList');
-        if (!eventsList) return;
+        if (!eventsList) {
+            console.error('EventManager: eventsList element not found!');
+            return;
+        }
+
+        console.log('EventManager: Rendering', this.events.length, 'events');
+        console.log('EventManager: Events data:', this.events);
 
         eventsList.innerHTML = '';
+
+        if (this.events.length === 0) {
+            eventsList.innerHTML = '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No events yet. Click "Add Event" to create one.</div>';
+            console.log('EventManager: No events to render');
+            return;
+        }
 
         // Create all event items synchronously (fast)
         this.events.forEach((event, index) => {
             const eventItem = this.createEventItem(event, index);
             eventsList.appendChild(eventItem);
         });
+
+        console.log('EventManager: Rendered', this.events.length, 'event items');
 
         // Setup drag and drop
         this.setupDragAndDrop();
