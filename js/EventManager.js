@@ -504,53 +504,98 @@ class EventManager {
         const modalCancel = document.getElementById('eventEditCancel');
         const modalSave = document.getElementById('eventEditSave');
         const lookupBtn = document.getElementById('lookupCityBtn');
-
-        if (modalClose) {
-            modalClose.addEventListener('click', () => {
-                this.closeEditModal();
-            });
-        }
-
-        if (modalCancel) {
-            modalCancel.addEventListener('click', () => {
-                this.closeEditModal();
-            });
-        }
-
-        if (modalSave) {
-            modalSave.addEventListener('click', () => {
-                this.saveEventFromModal();
-            });
-        }
-
-        if (lookupBtn) {
-            lookupBtn.addEventListener('click', () => {
-                this.lookupCity();
-            });
-        }
-
-        // Delete variant button
         const deleteVariantBtn = document.getElementById('eventEditDeleteVariant');
-        if (deleteVariantBtn) {
-            deleteVariantBtn.addEventListener('click', () => {
-                this.handleDeleteCurrentVariant();
-            });
+
+        // Hide/lock modal controls on GitHub Pages
+        if (isGitHubPages) {
+            if (modalSave) {
+                modalSave.style.display = 'none';
+                modalSave.style.visibility = 'hidden';
+                modalSave.style.pointerEvents = 'none';
+            }
+            if (lookupBtn) {
+                lookupBtn.style.display = 'none';
+                lookupBtn.style.visibility = 'hidden';
+                lookupBtn.style.pointerEvents = 'none';
+            }
+            if (deleteVariantBtn) {
+                deleteVariantBtn.style.display = 'none';
+                deleteVariantBtn.style.visibility = 'hidden';
+                deleteVariantBtn.style.pointerEvents = 'none';
+            }
+            // Make all form inputs read-only and disabled
+            const formInputs = modal?.querySelectorAll('input, textarea, select, button');
+            if (formInputs) {
+                formInputs.forEach(input => {
+                    if (input.id !== 'eventEditModalClose' && input.id !== 'eventEditCancel') {
+                        input.setAttribute('readonly', 'readonly');
+                        input.setAttribute('disabled', 'disabled');
+                        input.style.pointerEvents = 'none';
+                    }
+                });
+            }
+        } else {
+            if (modalClose) {
+                modalClose.addEventListener('click', () => {
+                    this.closeEditModal();
+                });
+            }
+
+            if (modalCancel) {
+                modalCancel.addEventListener('click', () => {
+                    this.closeEditModal();
+                });
+            }
+
+            if (modalSave) {
+                modalSave.addEventListener('click', () => {
+                    this.saveEventFromModal();
+                });
+            }
+
+            if (lookupBtn) {
+                lookupBtn.addEventListener('click', () => {
+                    this.lookupCity();
+                });
+            }
+        }
+
+        // Delete variant button (only on localhost)
+        if (!isGitHubPages) {
+            const deleteVariantBtn = document.getElementById('eventEditDeleteVariant');
+            if (deleteVariantBtn) {
+                deleteVariantBtn.addEventListener('click', () => {
+                    this.handleDeleteCurrentVariant();
+                });
+            }
         }
         
-        // Add source pair button
+        // Add source pair button (only on localhost)
         const addSourcePairBtn = document.getElementById('addSourcePairBtn');
         if (addSourcePairBtn) {
-            addSourcePairBtn.addEventListener('click', () => {
-                this.addSourcePair();
-            });
+            if (isGitHubPages) {
+                addSourcePairBtn.style.display = 'none';
+                addSourcePairBtn.style.visibility = 'hidden';
+                addSourcePairBtn.style.pointerEvents = 'none';
+            } else {
+                addSourcePairBtn.addEventListener('click', () => {
+                    this.addSourcePair();
+                });
+            }
         }
         
-        // Remove source pair button
+        // Remove source pair button (only on localhost)
         const removeSourcePairBtn = document.getElementById('removeSourcePairBtn');
         if (removeSourcePairBtn) {
-            removeSourcePairBtn.addEventListener('click', () => {
-                this.removeLastSourcePair();
-            });
+            if (isGitHubPages) {
+                removeSourcePairBtn.style.display = 'none';
+                removeSourcePairBtn.style.visibility = 'hidden';
+                removeSourcePairBtn.style.pointerEvents = 'none';
+            } else {
+                removeSourcePairBtn.addEventListener('click', () => {
+                    this.removeLastSourcePair();
+                });
+            }
         }
         
         // Don't close modal on outside click - only buttons can close it
@@ -989,6 +1034,12 @@ class EventManager {
      * Delete event
      */
     deleteEvent(index) {
+        // Prevent deletion on GitHub Pages
+        if (this.isGitHubPages()) {
+            console.log('Event deletion is disabled on GitHub Pages');
+            return;
+        }
+        
         if (confirm(`Are you sure you want to delete "${this.events[index].name}"?`)) {
             this.events.splice(index, 1);
             
@@ -1014,6 +1065,12 @@ class EventManager {
      * Open edit modal
      */
     openEditModal(index) {
+        // Prevent opening edit modal on GitHub Pages
+        if (this.isGitHubPages()) {
+            console.log('Event editing is disabled on GitHub Pages');
+            return;
+        }
+        
         const modal = document.getElementById('eventEditModal');
         const modalTitle = document.getElementById('eventEditModalTitle');
         
@@ -1939,6 +1996,12 @@ class EventManager {
      * Save event from modal
      */
     saveEventFromModal() {
+        // Prevent saving on GitHub Pages
+        if (this.isGitHubPages()) {
+            console.log('Event saving is disabled on GitHub Pages');
+            return;
+        }
+        
         const lat = parseFloat(document.getElementById('eventEditLat').value);
         const lon = parseFloat(document.getElementById('eventEditLon').value);
         // Save current variant before processing
