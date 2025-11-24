@@ -670,12 +670,23 @@ class EventManager {
             ? `<div class="multi-event-badge" title="Multi-Event: ${event.variants.length} variants">${event.variants.length}×</div>`
             : '';
 
-        // On GitHub Pages, hide drag handle and action buttons, make entire item clickable
+        // On GitHub Pages, hide drag handle and edit/delete buttons, but show View button
         const dragHandle = isGitHubPages ? '' : '<div class="event-item-drag-handle">☰</div>';
-        const actionButtons = isGitHubPages ? '' : `
+        const actionButtons = isGitHubPages ? `
             <div class="event-item-actions">
-                <button class="event-item-btn edit-btn" data-index="${index}">Edit</button>
-                <button class="event-item-btn delete-btn" data-index="${index}">Delete</button>
+                <div class="event-item-actions-row">
+                    <button class="event-item-btn view-btn" data-index="${index}">View</button>
+                </div>
+            </div>
+        ` : `
+            <div class="event-item-actions">
+                <div class="event-item-actions-row">
+                    <button class="event-item-btn view-btn" data-index="${index}">View</button>
+                </div>
+                <div class="event-item-actions-row">
+                    <button class="event-item-btn edit-btn" data-index="${index}">Edit</button>
+                    <button class="event-item-btn delete-btn" data-index="${index}">Delete</button>
+                </div>
             </div>
         `;
 
@@ -690,31 +701,30 @@ class EventManager {
             ${actionButtons}
         `;
 
-        // On GitHub Pages, make entire item clickable to open event info
-        if (isGitHubPages) {
-            item.style.cursor = 'pointer';
-            item.addEventListener('click', (e) => {
+        // Add event listeners for buttons (View works on both, Edit/Delete only on localhost)
+        const viewBtn = item.querySelector('.view-btn');
+        const editBtn = item.querySelector('.edit-btn');
+        const deleteBtn = item.querySelector('.delete-btn');
+
+        if (viewBtn) {
+            viewBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.openEventFromList(event, index);
             });
-        } else {
-            // Add event listeners for edit/delete buttons
-            const editBtn = item.querySelector('.edit-btn');
-            const deleteBtn = item.querySelector('.delete-btn');
+        }
 
-            if (editBtn) {
-                editBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.openEditModal(index);
-                });
-            }
+        if (editBtn && !isGitHubPages) {
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openEditModal(index);
+            });
+        }
 
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.deleteEvent(index);
-                });
-            }
+        if (deleteBtn && !isGitHubPages) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteEvent(index);
+            });
         }
 
         return item;

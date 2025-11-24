@@ -2157,10 +2157,18 @@ footer p {
 
 .event-item-actions {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 8px;
     flex-shrink: 0;
     margin-top: auto;
+    width: 100%;
+}
+
+.event-item-actions-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    width: 100%;
 }
 
 .event-item-btn {
@@ -2178,6 +2186,16 @@ footer p {
 
 .event-item-btn:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+.event-item-btn.view-btn {
+    background: rgba(76, 175, 80, 0.3);
+    border-color: rgba(76, 175, 80, 0.6);
+    width: 100%;
+}
+
+.event-item-btn.view-btn:hover {
+    background: rgba(76, 175, 80, 0.5);
 }
 
 .event-item-btn.edit-btn {
