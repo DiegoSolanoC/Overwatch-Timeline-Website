@@ -38,9 +38,27 @@ export class DataModel {
                     this.events = locationsData.events || [];
                 }
             } else {
-                // No saved events, use empty array (test events removed)
-                this.events = [];
-                console.log('DataModel: No saved events in localStorage, using empty array');
+                // No saved events, try to load from data/events.json (for GitHub Pages or initial setup)
+                try {
+                    const eventsResponse = await fetch('data/events.json');
+                    if (eventsResponse.ok) {
+                        const eventsData = await eventsResponse.json();
+                        if (eventsData.events && Array.isArray(eventsData.events) && eventsData.events.length > 0) {
+                            this.events = eventsData.events;
+                            console.log('DataModel: Loaded', this.events.length, 'events from data/events.json');
+                        } else {
+                            this.events = [];
+                            console.log('DataModel: data/events.json is empty, using empty array');
+                        }
+                    } else {
+                        this.events = [];
+                        console.log('DataModel: Could not load data/events.json, using empty array');
+                    }
+                } catch (error) {
+                    // Fallback to locations.json if events.json doesn't exist
+                    this.events = locationsData.events || [];
+                    console.log('DataModel: Could not load data/events.json, falling back to locations.json events:', this.events.length);
+                }
             }
             
             this.cities = locationsData.cities || [];
