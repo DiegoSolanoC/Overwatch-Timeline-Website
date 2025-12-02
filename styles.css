@@ -2119,16 +2119,23 @@ footer p {
     }
     
     /* Mobile: Ensure no body/html margins causing spacing */
+    /* Remove transform scale on mobile to prevent blue background showing */
     body {
         margin: 0 !important;
         padding: 0 !important;
         overflow-x: hidden !important;
+        transform: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100vh !important;
     }
     
     html {
         margin: 0 !important;
         padding: 0 !important;
         overflow-x: hidden !important;
+        height: 100% !important;
+        overflow-y: auto !important;
     }
     
     /* Increase grid columns for mobile - try 5, fallback to 4 if needed */

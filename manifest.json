@@ -231,6 +231,14 @@
       "name": "Mauga's Theme"
     },
     {
+      "filename": "Mei's Theme.mp3",
+      "name": "Mei's Theme"
+    },
+    {
+      "filename": "Midtown.mp3",
+      "name": "Midtown"
+    },
+    {
       "filename": "Paraiso.mp3",
       "name": "Paraiso"
     },
@@ -241,6 +249,10 @@
     {
       "filename": "The Wastelander.mp3",
       "name": "The Wastelander"
+    },
+    {
+      "filename": "Wrecking Ball's Theme.mp3",
+      "name": "Wrecking Ball's Theme"
     }
   ]
 }
