@@ -291,7 +291,10 @@ export class GlobeView {
             const position = latLonToVector3(event.lat, event.lon, 1.02);
             
             // Event markers are orange and bigger than hyperloop markers (0.015 vs 0.010 for seaports)
-            const markerGeometry = new THREE.SphereGeometry(0.015, 16, 16);
+            // Make markers bigger on small mobile screens only (not tablets or desktop)
+            const isSmallMobile = window.innerWidth <= 480;
+            const markerRadius = isSmallMobile ? 0.030 : 0.015; // 2x larger on small mobile only
+            const markerGeometry = new THREE.SphereGeometry(markerRadius, 16, 16);
             const markerMaterial = new THREE.MeshBasicMaterial({
                 color: 0xff6600 // Orange color
             });

@@ -1472,6 +1472,7 @@ body.color-palette-gray main {
     z-index: 10;
 }
 
+
 .page-btn {
     width: 50px;
     height: 50px;
@@ -2084,8 +2085,8 @@ footer p {
         visibility: visible !important;
         opacity: 1 !important;
         height: auto !important;
-        min-height: 50px !important;
-        max-height: none !important;
+        min-height: 250px !important; /* Show ~8-10 lines (16px * 1.6 * 10 ≈ 256px) */
+        max-height: 400px !important; /* Allow scrolling if content is longer */
         overflow-y: auto !important;
         overflow-x: hidden !important;
         color: #e0e0e0 !important;
@@ -2118,6 +2119,23 @@ footer p {
         width: 100vw !important;
     }
     
+    /* Mobile: Move pagination to top center to avoid overlapping with bottom buttons */
+    .event-pagination {
+        top: 70px !important;
+        bottom: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+    
+    /* Mobile: Move pagination to top right, fixed position like other buttons */
+    .event-pagination {
+        top: 70px !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: 20px !important;
+        transform: none !important;
+    }
+    
     /* Mobile: Ensure no body/html margins causing spacing */
     /* Remove transform scale on mobile to prevent blue background showing */
     body {
@@ -2146,7 +2164,7 @@ footer p {
     
     /* Events list grid - try 5 columns, fallback to 4 */
     .events-list {
-        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     }
     
     /* If screen is too narrow, use 4 columns instead */
@@ -2157,7 +2175,7 @@ footer p {
         }
         
         .events-list {
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         }
     }
     
@@ -2577,7 +2595,7 @@ body.color-palette-gray .events-manage-close:hover {
 }
 
 .events-manage-content {
-    padding: 20px 80px 20px 20px; /* Extra right padding to avoid X button overlap */
+    padding: 20px 20px 20px 20px; /* Match filters and music panels - equal padding */
     height: 100%;
     display: flex;
     flex-direction: column;
