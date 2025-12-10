@@ -45,6 +45,10 @@ class EventManager {
         this.displayNames = {}; // Mapping of location names to display names
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
+        this.reverseGeocodeQueue = []; // Queue for reverse geocoding requests
+        this.reverseGeocodeInProgress = false; // Track if a request is in progress
+        this.lastReverseGeocodeTime = 0; // Track last API call time for rate limiting
+        this.reverseGeocodeMinDelay = 1000; // Minimum 1 second between Nominatim API calls
     }
 
     /**
@@ -617,6 +621,13 @@ class EventManager {
         console.log('EventManager: Rendering', this.events.length, 'events');
         console.log('EventManager: Events data:', this.events);
 
+        // Update event count display
+        const eventsCountElement = document.getElementById('eventsCount');
+        if (eventsCountElement) {
+            const count = this.events.length;
+            eventsCountElement.textContent = `${count} ${count === 1 ? 'Event' : 'Events'}`;
+        }
+
         eventsList.innerHTML = '';
 
         if (this.events.length === 0) {
@@ -672,10 +683,14 @@ class EventManager {
         const displayEvent = isMultiEvent ? event.variants[0] : event;
         const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
         
+        // Add cache busting to ensure latest images load
+        const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const imagePathWithCache = imagePath ? `${imagePath}${cacheBuster}` : null;
+        
         // Always use the same container structure to maintain consistent sizing
         // Use a wrapper div to ensure the square space is always shown
-        const imageHtml = imagePath
-            ? `<div class="event-item-preview-image" style="background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img src="${imagePath}" alt="${displayEvent.name}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
+        const imageHtml = imagePathWithCache
+            ? `<div class="event-item-preview-image" style="background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img src="${imagePathWithCache}" alt="${displayEvent.name}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="console.error('Failed to load image:', '${imagePath}'); this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload="console.log('Image loaded successfully:', '${imagePath}');" loading="lazy"></div>`
             : `<div class="event-item-preview-image" style="display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">No Image</div>`;
 
         // Multi-event indicator badge
@@ -934,19 +949,47 @@ class EventManager {
 
     /**
      * Reverse geocode coordinates to get city and country
+     * Uses rate limiting and queuing to avoid hitting Nominatim API limits
      */
     async reverseGeocode(lat, lon) {
+        // Check cache first
+        const cacheKey = `${lat.toFixed(4)}_${lon.toFixed(4)}`;
+        if (this.locationCache.has(cacheKey)) {
+            const cached = this.locationCache.get(cacheKey);
+            if (cached && cached.country) {
+                return { city: cached.city || '', country: cached.country };
+            }
+        }
+
+        // Rate limiting: ensure minimum delay between API calls
+        const now = Date.now();
+        const timeSinceLastCall = now - this.lastReverseGeocodeTime;
+        if (timeSinceLastCall < this.reverseGeocodeMinDelay) {
+            // Wait before making the request
+            await new Promise(resolve => setTimeout(resolve, this.reverseGeocodeMinDelay - timeSinceLastCall));
+        }
+
         try {
             const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
+            
+            this.lastReverseGeocodeTime = Date.now();
             
             const response = await fetch(url, {
                 headers: {
                     'User-Agent': 'Timeline Overwatch Event Manager'
+                },
+                // Add timeout to prevent hanging requests
+                signal: AbortSignal.timeout(5000) // 5 second timeout
+            }).catch(err => {
+                // Suppress network errors (rate limiting, connection issues)
+                if (err.name === 'AbortError' || err.name === 'TypeError' || err.message?.includes('fetch') || err.message?.includes('ERR_HTTP2')) {
+                    return null; // Return null to indicate failure without logging
                 }
+                throw err; // Re-throw unexpected errors
             });
 
-            if (!response.ok) {
-                // Don't log HTTP errors - they're common with rate limiting
+            if (!response || !response.ok) {
+                // Silently fail - rate limiting is common with Nominatim
                 return null;
             }
 
@@ -964,9 +1007,13 @@ class EventManager {
             
             return null;
         } catch (error) {
-            // Silently fail - don't spam console with network errors
-            // Only log if it's not a network/fetch error
-            if (error.name !== 'TypeError' && !error.message.includes('fetch')) {
+            // Suppress all network/API errors - they're expected with rate limiting
+            // Only log unexpected errors that aren't network-related
+            if (error.name !== 'AbortError' && 
+                error.name !== 'TypeError' && 
+                !error.message?.includes('fetch') && 
+                !error.message?.includes('ERR_HTTP2') &&
+                !error.message?.includes('network')) {
                 console.error('Reverse geocoding error:', error);
             }
             return null;

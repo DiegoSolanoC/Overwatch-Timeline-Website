@@ -92,13 +92,27 @@
             
             <!-- Event Pagination Controls -->
             <div class="event-pagination" id="eventPagination">
-                <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
-                <div class="page-input-container">
-                    <span class="page-label">Page</span>
-                    <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
-                    <span class="page-total" id="pageTotal">/ 1</span>
+                <div class="page-controls-row">
+                    <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
+                    <div class="page-input-container">
+                        <span class="page-label">Page</span>
+                        <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
+                        <span class="page-total" id="pageTotal">/ 1</span>
+                    </div>
+                    <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
                 </div>
-                <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
+                <div class="event-number-buttons" id="eventNumberButtons">
+                    <button class="event-number-btn" data-position="1" title="Event 1">1</button>
+                    <button class="event-number-btn" data-position="2" title="Event 2">2</button>
+                    <button class="event-number-btn" data-position="3" title="Event 3">3</button>
+                    <button class="event-number-btn" data-position="4" title="Event 4">4</button>
+                    <button class="event-number-btn" data-position="5" title="Event 5">5</button>
+                    <button class="event-number-btn" data-position="6" title="Event 6">6</button>
+                    <button class="event-number-btn" data-position="7" title="Event 7">7</button>
+                    <button class="event-number-btn" data-position="8" title="Event 8">8</button>
+                    <button class="event-number-btn" data-position="9" title="Event 9">9</button>
+                    <button class="event-number-btn" data-position="10" title="Event 10">10</button>
+                </div>
             </div>
         </main>
 
@@ -113,20 +127,29 @@
         <div class="event-slide" id="eventSlide">
             <div class="event-slide-close" id="eventSlideClose">&times;</div>
             <div class="event-slide-content" id="eventSlideContent">
-                <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
-                <h2 id="eventSlideTitle">Event</h2>
-                <p id="eventSlideLocation" class="event-slide-location" style="display: none;"></p>
-                <p id="eventSlideText">Placeholder text for event information.</p>
-                <div class="event-sources-section" id="eventSourcesSection" style="display: none;">
-                    <h4 class="event-filter-header">Sources:</h4>
-                    <div class="event-sources-list" id="eventSourcesList"></div>
+                <div class="event-slide-scrollable" id="eventSlideScrollable">
+                    <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                    <h2 id="eventSlideTitle">Event</h2>
+                    <p id="eventSlideLocation" class="event-slide-location" style="display: none;"></p>
+                    <p id="eventSlideText">Placeholder text for event information.</p>
                 </div>
-                <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
-                    <div class="event-filters-list" id="eventFiltersList"></div>
-                </div>
-                <div class="event-control-buttons">
-                    <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
-                    <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
+                <div class="event-slide-bottom" id="eventSlideBottom">
+                    <div class="event-sources-section" id="eventSourcesSection" style="display: none;">
+                        <h4 class="event-filter-header">Sources:</h4>
+                        <div class="event-sources-list" id="eventSourcesList"></div>
+                    </div>
+                    <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
+                        <div class="event-filters-list" id="eventFiltersList"></div>
+                    </div>
+                    <div class="event-control-buttons">
+                        <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+                        <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
+                    </div>
+                    <div class="event-navigation-buttons">
+                        <button id="eventPrevBtn" class="event-nav-btn" title="Previous Event">‹</button>
+                        <button id="eventAllEventsBtn" class="event-all-events-btn" title="View All Events">All Events</button>
+                        <button id="eventNextBtn" class="event-nav-btn" title="Next Event">›</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -219,7 +242,10 @@
             <div class="events-manage-close" id="eventsManageClose">&times;</div>
             <div class="events-manage-content">
                 <div class="events-manage-header">
-                    <h2 class="events-manage-title">Event Management</h2>
+                    <div class="events-manage-title-section">
+                        <h2 class="events-manage-title">Event Management</h2>
+                        <p class="events-manage-count" id="eventsCount">0 Events</p>
+                    </div>
                     <div class="events-manage-actions">
                         <button id="addEventBtn" class="events-manage-action-btn">+ Add Event</button>
                         <button id="saveEventsBtn" class="events-manage-action-btn save-btn">💾 Save</button>

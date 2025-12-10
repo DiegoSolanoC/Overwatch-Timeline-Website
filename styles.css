@@ -823,6 +823,22 @@ body.color-palette-gray .filter-btn.selected .filter-label {
     flex-direction: column;
     height: 100%;
     box-sizing: border-box;
+    overflow: hidden; /* Prevent content from overflowing */
+}
+
+/* Scrollable area for title, location, and description */
+.event-slide-scrollable {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+    margin-bottom: 15px;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .event-slide-content h2 {
@@ -843,32 +859,53 @@ body.color-palette-gray .filter-btn.selected .filter-label {
     color: #e0e0e0;
     font-size: 18px;
     margin-top: 0; /* No top margin - should sit immediately below location */
-    margin-bottom: 15px;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 10px;
+    margin-bottom: 0;
+    transition: opacity 0.2s ease;
+    opacity: 1;
     word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
     white-space: normal;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-/* Custom scrollbar for description */
-.event-slide-content p::-webkit-scrollbar {
+/* Bottom section - always at bottom, never scrolls */
+.event-slide-bottom {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+}
+
+/* Fade transition for event title */
+#eventSlideTitle {
+    transition: opacity 0.2s ease;
+    opacity: 1;
+}
+
+/* Fade transition for event location */
+.event-slide-location {
+    transition: opacity 0.2s ease;
+    opacity: 1;
+}
+
+/* Custom scrollbar for scrollable area */
+.event-slide-scrollable::-webkit-scrollbar {
     width: 8px;
 }
 
-.event-slide-content p::-webkit-scrollbar-track {
+.event-slide-scrollable::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
 }
 
-.event-slide-content p::-webkit-scrollbar-thumb {
+.event-slide-scrollable::-webkit-scrollbar-thumb {
     background: rgba(255, 102, 0, 0.6);
     border-radius: 4px;
 }
 
-.event-slide-content p::-webkit-scrollbar-thumb:hover {
+.event-slide-scrollable::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 102, 0, 0.8);
 }
 
@@ -997,11 +1034,12 @@ body.color-palette-gray .filter-btn.selected .filter-label {
 .event-filters-section {
     margin: 0;
     margin-top: 0;
+    margin-bottom: 10px;
     padding: 15px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     border-left: 3px solid #ff6600;
-    flex-shrink: 0; /* Don't shrink */
+    flex-shrink: 0; /* Don't shrink - always visible */
 }
 
 .event-filters-section h3 {
@@ -1050,13 +1088,13 @@ body.color-palette-gray .filter-btn.selected .filter-label {
 /* Event Sources Section */
 .event-sources-section {
     margin: 0;
-    margin-top: auto; /* Push to bottom */
+    margin-top: 0;
+    margin-bottom: 10px;
     padding: 15px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     border-left: 3px solid #ff6600;
-    margin-bottom: 10px;
-    flex-shrink: 0; /* Don't shrink */
+    flex-shrink: 0; /* Don't shrink - always visible */
 }
 
 .event-sources-list {
@@ -1140,7 +1178,94 @@ body.color-palette-gray .filter-btn.selected .filter-label {
     display: flex;
     gap: 10px;
     margin-top: 10px;
-    flex-shrink: 0;
+    margin-bottom: 0;
+    flex-shrink: 0; /* Don't shrink - always at bottom */
+}
+
+/* Event Navigation Buttons (prev/next in full list) */
+.event-navigation-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    margin-bottom: 0;
+    justify-content: center;
+    flex-shrink: 0; /* Don't shrink - always at bottom */
+}
+
+.event-nav-btn {
+    width: 50px;
+    height: 50px;
+    background: rgba(13, 71, 161, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    line-height: 1;
+}
+
+.event-nav-btn:hover:not(:disabled) {
+    background: rgba(13, 71, 161, 1);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.event-nav-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.event-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Gray palette: gray navigation buttons */
+body.color-palette-gray .event-nav-btn {
+    background: rgba(74, 74, 74, 0.9) !important;
+}
+
+body.color-palette-gray .event-nav-btn:hover:not(:disabled) {
+    background: rgba(74, 74, 74, 1) !important;
+}
+
+/* All Events Button */
+.event-all-events-btn {
+    width: auto;
+    min-width: 120px;
+    height: 50px;
+    background: rgba(76, 175, 80, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    line-height: 1;
+}
+
+.event-all-events-btn:hover {
+    background: rgba(76, 175, 80, 1);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.event-all-events-btn:active {
+    transform: scale(0.95);
 }
 
 /* Glitch Toggle Button - matches image toggle exactly */
@@ -1467,9 +1592,17 @@ body.color-palette-gray main {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 10px;
     z-index: 10;
+}
+
+.page-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
 }
 
 
@@ -1557,6 +1690,58 @@ body.color-palette-gray main {
     color: white;
     font-size: 14px;
     font-weight: 500;
+}
+
+/* Event Number Buttons (1-10) */
+.event-number-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.event-number-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(13, 71, 161, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    line-height: 1;
+}
+
+.event-number-btn:hover:not(:disabled) {
+    background: rgba(13, 71, 161, 1);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.event-number-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.event-number-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Gray palette: gray number buttons */
+body.color-palette-gray .event-number-btn {
+    background: rgba(74, 74, 74, 0.9) !important;
+}
+
+body.color-palette-gray .event-number-btn:hover:not(:disabled) {
+    background: rgba(74, 74, 74, 1) !important;
 }
 
 #rotateIcon {
@@ -2060,6 +2245,22 @@ footer p {
         margin: 0 !important;
     }
     
+    /* Mobile: Scrollable area */
+    .event-slide-scrollable {
+        flex: 1 !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding-right: 5px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Mobile: Bottom section always at bottom */
+    .event-slide-bottom {
+        flex-shrink: 0 !important;
+        margin-top: auto !important;
+    }
+    
     .event-slide-content * {
         max-width: 100% !important;
         box-sizing: border-box !important;
@@ -2084,19 +2285,16 @@ footer p {
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
-        height: auto !important;
-        min-height: 250px !important; /* Show ~8-10 lines (16px * 1.6 * 10 ≈ 256px) */
-        max-height: 400px !important; /* Allow scrolling if content is longer */
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
         color: #e0e0e0 !important;
         font-size: 16px !important;
         line-height: 1.6 !important;
-        margin: 10px 0 !important;
+        margin: 0 !important;
         padding: 0 !important;
-        padding-right: 5px !important;
         word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
         white-space: normal !important;
+        max-width: 100% !important;
     }
     
     /* Mobile: Image overlay takes top half, full width */
@@ -2119,14 +2317,6 @@ footer p {
         width: 100vw !important;
     }
     
-    /* Mobile: Move pagination to top center to avoid overlapping with bottom buttons */
-    .event-pagination {
-        top: 70px !important;
-        bottom: auto !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-    }
-    
     /* Mobile: Move pagination to top right, fixed position like other buttons */
     .event-pagination {
         top: 70px !important;
@@ -2134,6 +2324,18 @@ footer p {
         left: auto !important;
         right: 20px !important;
         transform: none !important;
+    }
+    
+    /* Mobile: Stack page controls and number buttons vertically, centered */
+    .page-controls-row {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .event-number-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 100%;
     }
     
     /* Mobile: Ensure no body/html margins causing spacing */
@@ -2617,21 +2819,31 @@ body.color-palette-gray .events-manage-close:hover {
 body.color-palette-gray .events-manage-header {
     border-bottom: 2px solid rgba(255, 102, 0, 0.3);
 }
-    flex-shrink: 0;
+
+.events-manage-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
 }
 
 .events-manage-title {
     color: #2196F3; /* Light blue for default blue palette */
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
 }
 
 /* Gray palette: orange title */
 body.color-palette-gray .events-manage-title {
     color: #ff6600;
 }
+
+.events-manage-count {
+    color: rgba(255, 255, 255, 0.7);
     margin: 0;
-    font-size: 24px;
-    font-weight: 600;
-    flex: 1;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .events-manage-actions {
@@ -2985,9 +3197,9 @@ body.color-palette-gray .event-edit-modal-content {
     border: 2px solid rgba(255, 102, 0, 0.5);
 }
     border-radius: 12px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 95vh;
+    width: 95%;
+    max-width: 1200px;
+    max-height: 98vh;
     overflow: hidden;
     padding: 0;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -2999,9 +3211,10 @@ body.color-palette-gray .event-edit-modal-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px;
+    padding: 25px;
     border-bottom: 2px solid rgba(33, 150, 243, 0.3); /* Light blue for default blue palette */
     gap: 15px;
+    flex-shrink: 0;
 }
 
 /* Gray palette: orange border */
@@ -3012,7 +3225,8 @@ body.color-palette-gray .event-edit-modal-header {
 .event-edit-modal-header h3 {
     color: #2196F3; /* Light blue for default blue palette */
     margin: 0;
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: 600;
 }
 
 /* Gray palette: orange title */
@@ -3025,11 +3239,11 @@ body.color-palette-gray .event-edit-modal-header h3 {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 4px;
     color: #fff;
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     padding: 0;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3044,10 +3258,10 @@ body.color-palette-gray .event-edit-modal-header h3 {
 }
 
 .event-edit-form {
-    padding: 15px;
+    padding: 25px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
+    gap: 12px;
     flex: 1;
     overflow: visible;
     max-height: none;
@@ -3056,20 +3270,11 @@ body.color-palette-gray .event-edit-modal-header h3 {
 .event-edit-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     position: relative;
 }
 
-.event-edit-field label {
-    font-size: 12px;
-    margin-bottom: 2px;
-}
-
 .event-edit-input,
-.event-edit-textarea {
-    font-size: 13px;
-    padding: 6px 8px;
-}
 
 /* Make description and city fields span full width */
 .event-edit-field-full {
@@ -3086,16 +3291,17 @@ body.color-palette-gray .event-edit-modal-header h3 {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
-    margin-top: 10px;
-    padding-top: 15px;
+    margin-top: 15px;
+    padding-top: 20px;
     border-top: 2px solid rgba(255, 102, 0, 0.3);
+    flex-shrink: 0;
 }
 
 .event-edit-field label {
     color: rgba(255, 255, 255, 0.9);
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 500;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .event-edit-input,
@@ -3104,10 +3310,11 @@ body.color-palette-gray .event-edit-modal-header h3 {
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
     color: white;
-    padding: 6px 8px;
-    font-size: 13px;
+    padding: 10px 12px;
+    font-size: 16px;
     font-family: inherit;
     transition: all 0.3s ease;
+    line-height: 1.5;
 }
 
 .event-edit-input:focus,
@@ -3119,13 +3326,14 @@ body.color-palette-gray .event-edit-modal-header h3 {
 
 .event-edit-textarea {
     resize: vertical;
-    min-height: 60px;
-    max-height: 80px;
+    min-height: 150px; /* ~6 lines with larger text (16px * 1.5 * 6 ≈ 144px + padding) */
+    max-height: 300px; /* Allow expansion for longer descriptions */
+    line-height: 1.6;
 }
 
 .event-edit-hint {
     color: rgba(255, 255, 255, 0.5);
-    font-size: 12px;
+    font-size: 14px;
     font-style: italic;
 }
 
@@ -3134,8 +3342,8 @@ body.color-palette-gray .event-edit-modal-header h3 {
     border: 1px solid rgba(255, 102, 0, 0.6);
     border-radius: 6px;
     color: white;
-    padding: 8px 15px;
-    font-size: 12px;
+    padding: 10px 18px;
+    font-size: 14px;
     cursor: pointer;
     margin-top: 5px;
     transition: all 0.3s ease;
@@ -3153,10 +3361,10 @@ body.color-palette-gray .event-edit-modal-header h3 {
 }
 
 .event-edit-btn {
-    padding: 12px 24px;
+    padding: 14px 28px;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;

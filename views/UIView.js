@@ -203,7 +203,36 @@ export class UIView {
                 variantToggles.innerHTML = '';
             }
             
-            eventSlideTitle.innerHTML = getDisplayEventName(eventName);
+            // Check if event slide is already open (for fade transition)
+            const isAlreadyOpen = eventSlide.classList.contains('open');
+            
+            // Helper function to update content with fade transition
+            const updateContentWithFade = (element, newContent) => {
+                if (!element) return;
+                
+                if (isAlreadyOpen) {
+                    // Fade out
+                    element.style.transition = 'opacity 0.2s ease';
+                    element.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        // Update content
+                        element.innerHTML = newContent;
+                        
+                        // Fade in
+                        setTimeout(() => {
+                            element.style.opacity = '1';
+                        }, 10);
+                    }, 200);
+                } else {
+                    // No transition needed, just update
+                    element.innerHTML = newContent;
+                    element.style.opacity = '1';
+                }
+            };
+            
+            // Update title with fade
+            updateContentWithFade(eventSlideTitle, getDisplayEventName(eventName));
             
             // Display location between title and description
             const eventSlideLocation = document.getElementById('eventSlideLocation');
@@ -232,8 +261,23 @@ export class UIView {
                     
                     if (locationName) {
                         // Use same format as preview: icon + location name (which should be "City, Country")
-                        eventSlideLocation.innerHTML = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
-                        eventSlideLocation.style.display = 'block';
+                        const locationContent = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+                        if (isAlreadyOpen) {
+                            // Fade transition for location
+                            eventSlideLocation.style.transition = 'opacity 0.2s ease';
+                            eventSlideLocation.style.opacity = '0';
+                            setTimeout(() => {
+                                eventSlideLocation.innerHTML = locationContent;
+                                eventSlideLocation.style.display = 'block';
+                                setTimeout(() => {
+                                    eventSlideLocation.style.opacity = '1';
+                                }, 10);
+                            }, 200);
+                        } else {
+                            eventSlideLocation.innerHTML = locationContent;
+                            eventSlideLocation.style.display = 'block';
+                            eventSlideLocation.style.opacity = '1';
+                        }
                         
                         // Also set up listener to update when location is enhanced with country
                         const updateLocationInSlide = (updatedLat, updatedLon, updatedLocationName) => {
@@ -245,15 +289,40 @@ export class UIView {
                         window.updateEventSlideLocation = updateLocationInSlide;
                     } else {
                         // Show coordinates as fallback
-                        eventSlideLocation.innerHTML = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-                        eventSlideLocation.style.display = 'block';
+                        const locationContent = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        if (isAlreadyOpen) {
+                            // Fade transition for location
+                            eventSlideLocation.style.transition = 'opacity 0.2s ease';
+                            eventSlideLocation.style.opacity = '0';
+                            setTimeout(() => {
+                                eventSlideLocation.innerHTML = locationContent;
+                                eventSlideLocation.style.display = 'block';
+                                setTimeout(() => {
+                                    eventSlideLocation.style.opacity = '1';
+                                }, 10);
+                            }, 200);
+                        } else {
+                            eventSlideLocation.innerHTML = locationContent;
+                            eventSlideLocation.style.display = 'block';
+                            eventSlideLocation.style.opacity = '1';
+                        }
                     }
                 } else {
-                    eventSlideLocation.style.display = 'none';
+                    if (isAlreadyOpen) {
+                        // Fade out location if hiding
+                        eventSlideLocation.style.transition = 'opacity 0.2s ease';
+                        eventSlideLocation.style.opacity = '0';
+                        setTimeout(() => {
+                            eventSlideLocation.style.display = 'none';
+                        }, 200);
+                    } else {
+                        eventSlideLocation.style.display = 'none';
+                    }
                 }
             }
             
-            eventSlideText.innerHTML = getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.');
+            // Update description with fade
+            updateContentWithFade(eventSlideText, getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.'));
             
             // Start glitch character animation for any glitchy text overlays (only if enabled)
             if (globalGlitchEnabled) {
@@ -410,7 +479,9 @@ export class UIView {
                     eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
                 };
                 
-                eventImage.src = imagePath;
+                // Add cache busting to ensure latest images load
+                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                eventImage.src = `${imagePath}${cacheBuster}`;
                 eventImage.style.display = 'block';
                 // Start with transparent background for image
                 eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
@@ -523,11 +594,215 @@ export class UIView {
             });
         }
         
+        // Setup navigation buttons (prev/next event)
+        this.setupEventNavigation();
+        
         // Reset stillness tracking
         this.lastCameraPosition = null;
         this.lastGlobeRotation = null;
         this.stillnessStartTime = null;
         this.wasDragging = false;
+    }
+    
+    /**
+     * Setup event navigation buttons (prev/next in full events list)
+     */
+    setupEventNavigation() {
+        const prevBtn = document.getElementById('eventPrevBtn');
+        const nextBtn = document.getElementById('eventNextBtn');
+        
+        if (!prevBtn || !nextBtn) return;
+        
+        // Remove existing listeners by cloning
+        const prevBtnClone = prevBtn.cloneNode(true);
+        prevBtn.parentNode.replaceChild(prevBtnClone, prevBtn);
+        const nextBtnClone = nextBtn.cloneNode(true);
+        nextBtn.parentNode.replaceChild(nextBtnClone, nextBtn);
+        
+        const newPrevBtn = document.getElementById('eventPrevBtn');
+        const newNextBtn = document.getElementById('eventNextBtn');
+        
+        // Get all events from EventManager (full list, not paginated)
+        const getAllEvents = () => {
+            if (window.eventManager && window.eventManager.events) {
+                return window.eventManager.events;
+            }
+            if (this.dataModel) {
+                return this.dataModel.getAllEvents();
+            }
+            return [];
+        };
+        
+        // Find current event index in full list
+        const getCurrentEventIndex = () => {
+            const allEvents = getAllEvents();
+            if (!this.currentEventData || allEvents.length === 0) return -1;
+            
+            // Match by lat/lon and name
+            return allEvents.findIndex(event => {
+                if (event.variants && event.variants.length > 0) {
+                    // Multi-event: match first variant
+                    const variant = event.variants[0];
+                    return Math.abs(event.lat - this.currentEventData.lat) < 0.0001 &&
+                           Math.abs(event.lon - this.currentEventData.lon) < 0.0001 &&
+                           variant.name === (this.currentEventData.variants?.[0]?.name || this.currentEventData.name);
+                } else {
+                    return Math.abs(event.lat - this.currentEventData.lat) < 0.0001 &&
+                           Math.abs(event.lon - this.currentEventData.lon) < 0.0001 &&
+                           event.name === this.currentEventData.name;
+                }
+            });
+        };
+        
+        // Navigate to event at index
+        const navigateToEvent = (targetIndex) => {
+            const allEvents = getAllEvents();
+            if (targetIndex < 0 || targetIndex >= allEvents.length) return;
+            
+            const targetEvent = allEvents[targetIndex];
+            
+            // Check if event is on current page, if not switch to correct page
+            if (this.dataModel && window.globeController) {
+                const eventsPerPage = this.dataModel.eventsPerPage || 10;
+                const targetPage = Math.floor(targetIndex / eventsPerPage) + 1;
+                const currentPage = this.dataModel.getCurrentEventPage();
+                
+                if (targetPage !== currentPage) {
+                    this.dataModel.setCurrentEventPage(targetPage);
+                    
+                    // Refresh markers and pagination
+                    if (window.globeController.globeView) {
+                        window.globeController.globeView.refreshEventMarkers();
+                    }
+                    if (window.globeController.uiView) {
+                        window.globeController.uiView.setupEventPagination(() => {
+                            if (window.globeController.globeView) {
+                                window.globeController.globeView.refreshEventMarkers();
+                            }
+                        });
+                    }
+                }
+            }
+            
+            // Find the marker for this event
+            if (window.globeController && window.globeController.globeView) {
+                const markers = window.globeController.sceneModel.getMarkers();
+                const eventMarker = markers.find(m => {
+                    if (m.userData && m.userData.isEventMarker) {
+                        const markerEvent = m.userData.event;
+                        return (markerEvent === targetEvent) ||
+                               (Math.abs(markerEvent.lat - targetEvent.lat) < 0.0001 &&
+                                Math.abs(markerEvent.lon - targetEvent.lon) < 0.0001);
+                    }
+                    return false;
+                });
+                
+                if (eventMarker) {
+                    // Check if this is a multi-event
+                    const isMultiEvent = targetEvent.variants && targetEvent.variants.length > 0;
+                    const displayEvent = isMultiEvent ? targetEvent.variants[0] : targetEvent;
+                    
+                    const eventName = displayEvent.name || eventMarker.userData.eventName;
+                    const eventDescription = displayEvent.description;
+                    
+                    // Get image path
+                    let imagePath = displayEvent.image || null;
+                    if (!imagePath || !imagePath.trim()) {
+                        const normalizedName = eventName.replace(/\s+/g, ' ').trim();
+                        const encodedFileName = encodeURIComponent(normalizedName);
+                        imagePath = `Event Images/${encodedFileName}.png`;
+                    }
+                    
+                    // Zoom to marker and show event slide
+                    if (window.globeController.interactionController) {
+                        window.globeController.interactionController.zoomToMarker(eventMarker);
+                    }
+                    
+                    this.showEventSlide(
+                        eventName,
+                        imagePath,
+                        eventDescription,
+                        eventMarker,
+                        targetEvent
+                    );
+                }
+            }
+        };
+        
+        // Update button states
+        const updateNavButtons = () => {
+            const allEvents = getAllEvents();
+            const currentIndex = getCurrentEventIndex();
+            
+            newPrevBtn.disabled = currentIndex <= 0 || allEvents.length === 0;
+            newNextBtn.disabled = currentIndex >= allEvents.length - 1 || allEvents.length === 0;
+        };
+        
+        // Initial update
+        updateNavButtons();
+        
+        // Previous button
+        newPrevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('page');
+            }
+            
+            const currentIndex = getCurrentEventIndex();
+            if (currentIndex > 0) {
+                navigateToEvent(currentIndex - 1);
+            }
+        });
+        
+        // Next button
+        newNextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('page');
+            }
+            
+            const currentIndex = getCurrentEventIndex();
+            const allEvents = getAllEvents();
+            if (currentIndex < allEvents.length - 1) {
+                navigateToEvent(currentIndex + 1);
+            }
+        });
+        
+        // All Events button
+        const allEventsBtn = document.getElementById('eventAllEventsBtn');
+        if (allEventsBtn) {
+            // Remove existing listeners by cloning
+            const allEventsBtnClone = allEventsBtn.cloneNode(true);
+            allEventsBtn.parentNode.replaceChild(allEventsBtnClone, allEventsBtn);
+            const newAllEventsBtn = document.getElementById('eventAllEventsBtn');
+            
+            newAllEventsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Play sound
+                if (window.SoundEffectsManager) {
+                    window.SoundEffectsManager.play('eventClick');
+                }
+                
+                // Close current event
+                this.hideEventSlide();
+                
+                // Open event manager
+                const panel = document.getElementById('eventsManagePanel');
+                const toggleBtn = document.getElementById('eventsManageToggle');
+                if (panel) {
+                    panel.classList.add('open');
+                }
+                if (toggleBtn) {
+                    toggleBtn.classList.add('active');
+                }
+            });
+        }
     }
     
     /**
@@ -694,7 +969,9 @@ export class UIView {
             }
 
             if (imagePath) {
-                eventImage.src = imagePath;
+                // Add cache busting to ensure latest images load
+                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                eventImage.src = `${imagePath}${cacheBuster}`;
                 eventImage.style.display = 'block';
             } else {
                 eventImage.style.display = 'none';
@@ -1421,9 +1698,36 @@ export class UIView {
             newPageInput.max = totalPages;
             pageTotal.textContent = `/ ${totalPages}`;
             
-            // Disable buttons at boundaries
-            newPrevBtn.disabled = currentPage === 1;
-            newNextBtn.disabled = currentPage === totalPages || totalPages === 0;
+            // Enable wrap buttons - change icon and behavior at boundaries
+            if (totalPages > 1) {
+                // Previous button: wrap to last page if on first page
+                if (currentPage === 1) {
+                    newPrevBtn.disabled = false;
+                    newPrevBtn.textContent = '↻'; // Wrap icon
+                    newPrevBtn.title = 'Go to Last Page';
+                } else {
+                    newPrevBtn.disabled = false;
+                    newPrevBtn.textContent = '‹'; // Normal left arrow
+                    newPrevBtn.title = 'Previous Page';
+                }
+                
+                // Next button: wrap to first page if on last page
+                if (currentPage === totalPages) {
+                    newNextBtn.disabled = false;
+                    newNextBtn.textContent = '↻'; // Wrap icon
+                    newNextBtn.title = 'Go to First Page';
+                } else {
+                    newNextBtn.disabled = false;
+                    newNextBtn.textContent = '›'; // Normal right arrow
+                    newNextBtn.title = 'Next Page';
+                }
+            } else {
+                // Only one page or no events - disable both
+                newPrevBtn.disabled = true;
+                newNextBtn.disabled = true;
+                newPrevBtn.textContent = '‹';
+                newNextBtn.textContent = '›';
+            }
             
             // Hide pagination if only one page or no events
             const pagination = document.getElementById('eventPagination');
@@ -1436,38 +1740,58 @@ export class UIView {
             }
         };
         
-        // Initial update
-        updatePaginationUI();
+        // Setup event number buttons (1-10) - get update function
+        const updateNumberButtons = this.setupEventNumberButtons();
         
-        // Previous page button - go to previous page (decrement)
+        // Wrap updatePaginationUI to also update number buttons
+        const originalUpdatePaginationUI = updatePaginationUI;
+        const wrappedUpdatePaginationUI = () => {
+            originalUpdatePaginationUI();
+            if (updateNumberButtons) {
+                updateNumberButtons();
+            }
+        };
+        
+        // Initial update
+        wrappedUpdatePaginationUI();
+        
+        // Previous page button - go to previous page or wrap to last
         newPrevBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            // Play sound on click attempt, even if disabled
+            // Play sound
             if (window.SoundEffectsManager) {
                 window.SoundEffectsManager.play('page');
             }
             
             if (!newPrevBtn.disabled) {
                 const currentPage = this.dataModel.getCurrentEventPage();
-                if (currentPage > 1) {
-                    const newPage = currentPage - 1;
-                    this.dataModel.setCurrentEventPage(newPage);
-                    updatePaginationUI();
-                    if (onPageChange) {
-                        onPageChange();
-                    }
+                const totalPages = this.dataModel.getTotalEventPages();
+                
+                let newPage;
+                if (currentPage === 1) {
+                    // Wrap to last page
+                    newPage = totalPages;
+                } else {
+                    // Normal previous page
+                    newPage = currentPage - 1;
+                }
+                
+                this.dataModel.setCurrentEventPage(newPage);
+                wrappedUpdatePaginationUI();
+                if (onPageChange) {
+                    onPageChange();
                 }
             }
         });
         
-        // Next page button - go to next page (increment)
+        // Next page button - go to next page or wrap to first
         newNextBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            // Play sound on click attempt, even if disabled
+            // Play sound
             if (window.SoundEffectsManager) {
                 window.SoundEffectsManager.play('page');
             }
@@ -1475,13 +1799,20 @@ export class UIView {
             if (!newNextBtn.disabled) {
                 const currentPage = this.dataModel.getCurrentEventPage();
                 const totalPages = this.dataModel.getTotalEventPages();
-                if (currentPage < totalPages) {
-                    const newPage = currentPage + 1;
-                    this.dataModel.setCurrentEventPage(newPage);
-                    updatePaginationUI();
-                    if (onPageChange) {
-                        onPageChange();
-                    }
+                
+                let newPage;
+                if (currentPage === totalPages) {
+                    // Wrap to first page
+                    newPage = 1;
+                } else {
+                    // Normal next page
+                    newPage = currentPage + 1;
+                }
+                
+                this.dataModel.setCurrentEventPage(newPage);
+                wrappedUpdatePaginationUI();
+                if (onPageChange) {
+                    onPageChange();
                 }
             }
         });
@@ -1495,7 +1826,7 @@ export class UIView {
             if (!isNaN(inputValue) && inputValue >= 1 && inputValue <= totalPages) {
                 const oldPage = this.dataModel.getCurrentEventPage();
                 this.dataModel.setCurrentEventPage(inputValue);
-                updatePaginationUI();
+                wrappedUpdatePaginationUI();
                 // Only play sound if page actually changed
                 if (oldPage !== inputValue && window.SoundEffectsManager) {
                     window.SoundEffectsManager.play('page');
@@ -1505,7 +1836,7 @@ export class UIView {
                 }
             } else {
                 // Reset to current page if invalid
-                updatePaginationUI();
+                wrappedUpdatePaginationUI();
             }
         });
         
@@ -1516,8 +1847,281 @@ export class UIView {
             }
         });
         
-        // Store update function for external calls
-        this.updatePaginationUI = updatePaginationUI;
+        // Store update function for external calls (wrapped version that also updates number buttons)
+        this.updatePaginationUI = wrappedUpdatePaginationUI;
+    }
+    
+    /**
+     * Setup event number buttons (1-10) to open events by position on current page
+     * Returns the update function so it can be called when page changes
+     */
+    setupEventNumberButtons(onPageChange) {
+        const numberButtonsContainer = document.getElementById('eventNumberButtons');
+        if (!numberButtonsContainer || !this.dataModel) return;
+        
+        // Get all number buttons
+        const numberButtons = numberButtonsContainer.querySelectorAll('.event-number-btn');
+        
+        // Update button states based on current page - only show buttons for events that exist
+        const updateNumberButtons = () => {
+            const currentPageEvents = this.dataModel.getEventsForCurrentPage();
+            const eventsPerPage = this.dataModel.eventsPerPage || 10;
+            const numEventsOnPage = currentPageEvents.length;
+            
+            // First, reset all buttons to be visible (in case they were hidden from previous page)
+            numberButtons.forEach((btn) => {
+                btn.style.display = 'flex';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+            
+            // Then hide buttons that don't have events
+            numberButtons.forEach((btn, index) => {
+                const position = index + 1; // 1-10
+                const eventIndex = position - 1; // 0-9
+                
+                // Hide button if no event at this position
+                if (eventIndex >= numEventsOnPage) {
+                    btn.style.display = 'none'; // Hide instead of disable
+                }
+            });
+        };
+        
+        // Initial update
+        updateNumberButtons();
+        
+        // Add click and hover handlers to each button
+        numberButtons.forEach((btn, index) => {
+            const position = index + 1; // 1-10
+            
+            // Remove existing listeners by cloning
+            const btnClone = btn.cloneNode(true);
+            btn.parentNode.replaceChild(btnClone, btn);
+            const newBtn = document.getElementById('eventNumberButtons').querySelectorAll('.event-number-btn')[index];
+            
+            // Get the marker for this event position
+            const getMarkerForPosition = () => {
+                const currentPageEvents = this.dataModel.getEventsForCurrentPage();
+                const eventIndex = position - 1; // 0-9
+                
+                if (eventIndex >= currentPageEvents.length) return null;
+                
+                const targetEvent = currentPageEvents[eventIndex];
+                
+                if (window.globeController && window.globeController.globeView) {
+                    const markers = window.globeController.sceneModel.getMarkers();
+                    return markers.find(m => {
+                        if (m.userData && m.userData.isEventMarker) {
+                            const markerEvent = m.userData.event;
+                            return (markerEvent === targetEvent) ||
+                                   (Math.abs(markerEvent.lat - targetEvent.lat) < 0.0001 &&
+                                    Math.abs(markerEvent.lon - targetEvent.lon) < 0.0001);
+                        }
+                        return false;
+                    });
+                }
+                return null;
+            };
+            
+            // Hover behavior: stop auto rotation, center marker, trigger pulse
+            newBtn.addEventListener('mouseenter', (e) => {
+                const marker = getMarkerForPosition();
+                if (!marker) return;
+                
+                // Stop auto rotation
+                if (window.globeController && window.globeController.sceneModel) {
+                    const sceneModel = window.globeController.sceneModel;
+                    sceneModel.setAutoRotate(false);
+                    if (sceneModel.autoRotateTimeout) {
+                        clearTimeout(sceneModel.autoRotateTimeout);
+                        sceneModel.autoRotateTimeout = null;
+                    }
+                }
+                
+                // Center the marker (zoom to it)
+                // Note: zoomToMarker will store originalCameraPosition if it doesn't exist
+                if (window.globeController && window.globeController.interactionController) {
+                    window.globeController.interactionController.zoomToMarker(marker);
+                }
+                
+                // Start pulse effect (marker hover behavior)
+                if (window.globeController && window.globeController.interactionController) {
+                    const interactionController = window.globeController.interactionController;
+                    // Stop any existing hover marker pulse
+                    if (interactionController.hoveredEventMarker && 
+                        interactionController.hoveredEventMarker !== marker) {
+                        interactionController.stopEventMarkerPulse(interactionController.hoveredEventMarker);
+                    }
+                    // Start pulse on this marker
+                    interactionController.startEventMarkerPulse(marker);
+                    interactionController.hoveredEventMarker = marker;
+                }
+            });
+            
+            // Mouse leave: stop pulse, restore camera, resume auto rotation if enabled
+            newBtn.addEventListener('mouseleave', (e) => {
+                const marker = getMarkerForPosition();
+                
+                // Stop pulse effect
+                if (window.globeController && window.globeController.interactionController) {
+                    const interactionController = window.globeController.interactionController;
+                    if (interactionController.hoveredEventMarker === marker) {
+                        interactionController.stopEventMarkerPulse(marker);
+                        interactionController.hoveredEventMarker = null;
+                    }
+                }
+                
+                // Restore original camera position (only if no event is open)
+                // zoomToMarker stored the original position in this.originalCameraPosition
+                if (!this.currentEventMarker) {
+                    if (window.globeController && window.globeController.sceneModel) {
+                        const sceneModel = window.globeController.sceneModel;
+                        const camera = sceneModel.getCamera();
+                        const globe = sceneModel.getGlobe();
+                        
+                        if (camera && globe) {
+                            // Use stored position from zoomToMarker, or default view
+                            let targetPosition, targetRotation;
+                            
+                            if (this.originalCameraPosition && this.originalGlobeRotation) {
+                                // Use the position stored by zoomToMarker
+                                targetPosition = this.originalCameraPosition.clone();
+                                targetRotation = this.originalGlobeRotation;
+                            } else {
+                                // Default zoomed-out view
+                                targetPosition = new THREE.Vector3(0, 0, 3.5);
+                                targetRotation = { x: 0, y: 0, z: 0 };
+                            }
+                            
+                            // Animate camera back to original/default position
+                            const startPosition = camera.position.clone();
+                            const startRotation = {
+                                x: globe.rotation.x,
+                                y: globe.rotation.y,
+                                z: globe.rotation.z
+                            };
+                            
+                            const duration = 500; // 0.5 second animation
+                            const startTime = Date.now();
+                            
+                            const animate = () => {
+                                const elapsed = Date.now() - startTime;
+                                const progress = Math.min(elapsed / duration, 1);
+                                
+                                // Easing function (ease in-out)
+                                const easeProgress = progress < 0.5
+                                    ? 2 * progress * progress
+                                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                                
+                                // Interpolate camera position
+                                camera.position.lerpVectors(startPosition, targetPosition, easeProgress);
+                                
+                                // Interpolate globe rotation
+                                globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+                                globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+                                globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
+                                
+                                // Look at origin
+                                camera.lookAt(0, 0, 0);
+                                
+                                if (progress < 1) {
+                                    requestAnimationFrame(animate);
+                                } else {
+                                    // Animation complete
+                                    camera.position.copy(targetPosition);
+                                    globe.rotation.x = targetRotation.x;
+                                    globe.rotation.y = targetRotation.y;
+                                    globe.rotation.z = targetRotation.z;
+                                    camera.lookAt(0, 0, 0);
+                                    
+                                    // Clear stored position since we've restored it (only if no event is open)
+                                    if (!this.currentEventMarker) {
+                                        this.originalCameraPosition = null;
+                                        this.originalGlobeRotation = null;
+                                    }
+                                }
+                            };
+                            
+                            animate();
+                        }
+                    }
+                }
+                
+                // Resume auto rotation if enabled
+                if (window.globeController && window.globeController.sceneModel) {
+                    const sceneModel = window.globeController.sceneModel;
+                    if (sceneModel.getAutoRotateEnabled() && !sceneModel.eventMarker) {
+                        sceneModel.autoRotateTimeout = setTimeout(() => {
+                            sceneModel.setAutoRotate(true);
+                        }, 500); // 0.5 second delay
+                    }
+                }
+            });
+            
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Play sound
+                if (window.SoundEffectsManager) {
+                    window.SoundEffectsManager.play('eventClick');
+                }
+                
+                const currentPageEvents = this.dataModel.getEventsForCurrentPage();
+                const eventIndex = position - 1; // 0-9
+                
+                if (eventIndex < currentPageEvents.length) {
+                    const targetEvent = currentPageEvents[eventIndex];
+                    
+                    // Find the marker for this event
+                    if (window.globeController && window.globeController.globeView) {
+                        const markers = window.globeController.sceneModel.getMarkers();
+                        const eventMarker = markers.find(m => {
+                            if (m.userData && m.userData.isEventMarker) {
+                                const markerEvent = m.userData.event;
+                                return (markerEvent === targetEvent) ||
+                                       (Math.abs(markerEvent.lat - targetEvent.lat) < 0.0001 &&
+                                        Math.abs(markerEvent.lon - targetEvent.lon) < 0.0001);
+                            }
+                            return false;
+                        });
+                        
+                        if (eventMarker) {
+                            // Check if this is a multi-event
+                            const isMultiEvent = targetEvent.variants && targetEvent.variants.length > 0;
+                            const displayEvent = isMultiEvent ? targetEvent.variants[0] : targetEvent;
+                            
+                            const eventName = displayEvent.name || eventMarker.userData.eventName;
+                            const eventDescription = displayEvent.description;
+                            
+                            // Get image path
+                            let imagePath = displayEvent.image || null;
+                            if (!imagePath || !imagePath.trim()) {
+                                const normalizedName = eventName.replace(/\s+/g, ' ').trim();
+                                const encodedFileName = encodeURIComponent(normalizedName);
+                                imagePath = `Event Images/${encodedFileName}.png`;
+                            }
+                            
+                            // Zoom to marker and show event slide
+                            if (window.globeController.interactionController) {
+                                window.globeController.interactionController.zoomToMarker(eventMarker);
+                            }
+                            
+                            this.showEventSlide(
+                                eventName,
+                                imagePath,
+                                eventDescription,
+                                eventMarker,
+                                targetEvent
+                            );
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Return update function so it can be called externally
+        return updateNumberButtons;
     }
     
     /**
