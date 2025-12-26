@@ -1905,6 +1905,100 @@ body.color-palette-gray .event-number-btn:hover:not(:disabled) {
     right: 20px !important; /* First button at bottom right */
 }
 
+/* Palette Menu - appears when palette button is clicked */
+.palette-menu {
+    position: fixed;
+    bottom: 150px; /* Pushed further up to avoid overlap (button is 65px tall + 20px bottom = 85px, so 150px gives 65px gap) */
+    right: 20px; /* Align with palette button */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Space between circles */
+    z-index: 300;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    align-items: flex-end; /* Align circles to the right */
+}
+
+.palette-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Palette Option Buttons - circular buttons */
+.palette-option-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.palette-option-btn:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.palette-option-btn.active {
+    border-color: #4CAF50; /* Green highlight for active palette (always green) */
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    transform: scale(1.1);
+}
+
+/* Blue palette option button */
+.palette-option-btn.blue {
+    background: linear-gradient(135deg, #0D47A1 0%, #1976D2 100%);
+}
+
+.palette-option-btn.blue:hover {
+    background: linear-gradient(135deg, #1565C0 0%, #1E88E5 100%);
+}
+
+/* Gray/Black palette option button */
+.palette-option-btn.black {
+    background: linear-gradient(135deg, #1a1a1a 0%, #424242 100%);
+}
+
+.palette-option-btn.black:hover {
+    background: linear-gradient(135deg, #2a2a2a 0%, #525252 100%);
+}
+
+/* Active state is always green regardless of palette */
+body.color-palette-gray .palette-option-btn.active {
+    border-color: #4CAF50; /* Green highlight for active palette (always green) */
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+}
+
+/* Mobile adjustments for palette menu */
+@media (max-width: 768px) {
+    .palette-menu {
+        bottom: 140px; /* Pushed further up on mobile to avoid overlap */
+        right: 15px;
+        gap: 8px;
+    }
+    
+    .palette-option-btn {
+        width: 40px;
+        height: 40px;
+        border-width: 2px;
+    }
+}
+
 #eventsManageIcon {
     display: flex;
     align-items: center;

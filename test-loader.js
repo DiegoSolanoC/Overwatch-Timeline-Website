@@ -100,18 +100,40 @@ function setupPaletteToggle() {
     const colorPaletteToggle = document.getElementById('colorPaletteToggle');
     if (!colorPaletteToggle) return;
     
-    // If already set up, don't set up again (but still apply saved state)
-    if (paletteToggleSetup && colorPaletteToggle.dataset.setup === 'true') {
-        // Just ensure saved state is applied
-        const savedPalette = localStorage.getItem('colorPalette');
-        if (savedPalette === 'gray') {
-            document.body.classList.add('color-palette-gray');
-            updatePaletteMenuActiveState('gray');
-        } else {
-            document.body.classList.remove('color-palette-gray');
-            updatePaletteMenuActiveState('blue');
+    // Check if already set up - if so, just ensure state is applied and listeners exist
+    const wasAlreadySetup = paletteToggleSetup && colorPaletteToggle.dataset.setup === 'true';
+    
+    // Always apply saved state
+    const savedPalette = localStorage.getItem('colorPalette');
+    if (savedPalette === 'gray') {
+        document.body.classList.add('color-palette-gray');
+    } else {
+        document.body.classList.remove('color-palette-gray');
+    }
+    
+    // If already set up, verify listeners are still attached, then return
+    if (wasAlreadySetup) {
+        // Verify menu exists and has listeners
+        const paletteMenu = document.getElementById('paletteMenu');
+        if (paletteMenu) {
+            const optionButtons = paletteMenu.querySelectorAll('.palette-option-btn');
+            // Check if any button is missing its handler
+            let needsReattach = false;
+            optionButtons.forEach(btn => {
+                if (!btn._paletteOptionHandler) {
+                    needsReattach = true;
+                }
+            });
+            // If listeners are missing, continue with setup to reattach them
+            if (!needsReattach && colorPaletteToggle._paletteButtonHandler) {
+                // Update active state
+                if (window.updatePaletteMenuActiveState) {
+                    window.updatePaletteMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
+                }
+                return;
+            }
         }
-        return;
+        // If we get here, something is missing - continue with full setup
     }
     
     // Mark as set up
@@ -130,30 +152,29 @@ function setupPaletteToggle() {
         blueBtn.className = 'palette-option-btn blue';
         blueBtn.dataset.palette = 'blue';
         blueBtn.title = 'Blue Palette';
+        blueBtn.setAttribute('aria-label', 'Blue Palette');
+        // Add a visual indicator inside the button
+        blueBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
         paletteMenu.appendChild(blueBtn);
+        console.log('[Palette] Created blue button:', blueBtn);
         
         // Black/Gray palette option button
         const blackBtn = document.createElement('button');
         blackBtn.className = 'palette-option-btn black';
         blackBtn.dataset.palette = 'gray';
         blackBtn.title = 'Gray Palette';
+        blackBtn.setAttribute('aria-label', 'Gray Palette');
+        // Add a visual indicator inside the button
+        blackBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
         paletteMenu.appendChild(blackBtn);
+        console.log('[Palette] Created black button:', blackBtn);
         
         document.body.appendChild(paletteMenu);
+        console.log('[Palette] Menu appended to body, total children:', paletteMenu.children.length);
     }
     
-    // Load saved color palette preference (default to blue if not set)
-    const savedPalette = localStorage.getItem('colorPalette');
-    if (savedPalette === 'gray') {
-        document.body.classList.add('color-palette-gray');
-        updatePaletteMenuActiveState('gray');
-    } else {
-        // Default to blue palette
-        document.body.classList.remove('color-palette-gray');
-        updatePaletteMenuActiveState('blue');
-    }
-    
-    // Update icon on initial load
+    // Update menu active state and icon (savedPalette was already retrieved and applied above)
+    updatePaletteMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
     updatePaletteButtonIcon(savedPalette === 'gray' ? 'gray' : 'blue');
     
     // Function to update palette button icon based on active palette
@@ -245,13 +266,36 @@ function setupPaletteToggle() {
         e.preventDefault();
         e.stopPropagation();
         
+        console.log('[Palette] Button clicked');
         const menu = document.getElementById('paletteMenu');
-        if (!menu) return;
+        if (!menu) {
+            console.error('[Palette] Menu not found!');
+            return;
+        }
+        
+        console.log('[Palette] Menu found, current state:', menu.classList.contains('open') ? 'open' : 'closed');
         
         if (menu.classList.contains('open')) {
+            console.log('[Palette] Closing menu');
             closePaletteMenu();
         } else {
+            console.log('[Palette] Opening menu');
             openPaletteMenu();
+            
+            // Play sound effect when opening menu
+            if (window.SoundEffectsManager) {
+                if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['colorChange']) {
+                    window.SoundEffectsManager.play('colorChange');
+                } else {
+                    // Load and play if not already loaded
+                    window.SoundEffectsManager.loadSound('colorChange', 'Sound Effects/Color Change.mp3');
+                    setTimeout(() => {
+                        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['colorChange']) {
+                            window.SoundEffectsManager.play('colorChange');
+                        }
+                    }, 100);
+                }
+            }
         }
     };
     
@@ -270,11 +314,42 @@ function setupPaletteToggle() {
     function openPaletteMenu() {
         const menu = document.getElementById('paletteMenu');
         const toggle = document.getElementById('colorPaletteToggle');
+        console.log('[Palette] openPaletteMenu called, menu:', menu, 'toggle:', toggle);
         if (menu) {
             menu.classList.add('open');
+            // Force visibility with inline styles as fallback
+            menu.style.opacity = '1';
+            menu.style.visibility = 'visible';
+            menu.style.transform = 'translateY(0)';
+            menu.style.pointerEvents = 'auto';
+            menu.style.display = 'flex';
+            menu.style.position = 'fixed';
+            menu.style.bottom = '150px'; // Pushed further up to avoid overlap with button
+            menu.style.right = '20px';
+            menu.style.zIndex = '300';
+            menu.style.flexDirection = 'column';
+            menu.style.gap = '10px';
+            menu.style.alignItems = 'flex-end'; // Align circles to the right
+            console.log('[Palette] Added "open" class to menu, classes:', menu.className);
+            console.log('[Palette] Menu computed styles:', {
+                opacity: window.getComputedStyle(menu).opacity,
+                visibility: window.getComputedStyle(menu).visibility,
+                display: window.getComputedStyle(menu).display,
+                zIndex: window.getComputedStyle(menu).zIndex
+            });
+            
+            // Check if buttons exist
+            const buttons = menu.querySelectorAll('.palette-option-btn');
+            console.log('[Palette] Number of option buttons found:', buttons.length);
+            buttons.forEach((btn, index) => {
+                console.log(`[Palette] Button ${index}:`, btn, 'classes:', btn.className);
+            });
+        } else {
+            console.error('[Palette] Menu element not found!');
         }
         if (toggle) {
             toggle.classList.add('active');
+            console.log('[Palette] Added "active" class to toggle');
         }
     }
     
@@ -284,32 +359,58 @@ function setupPaletteToggle() {
         const toggle = document.getElementById('colorPaletteToggle');
         if (menu) {
             menu.classList.remove('open');
+            // Reset inline styles
+            menu.style.opacity = '';
+            menu.style.visibility = '';
+            menu.style.transform = '';
+            menu.style.pointerEvents = '';
         }
         if (toggle) {
             toggle.classList.remove('active');
         }
     }
     
-    // Attach handlers
+    // Store close function globally so click outside handler can access it
+    window._closePaletteMenu = closePaletteMenu;
+    
+    // Remove old event listeners if they exist (to prevent duplicates)
+    const oldHandler = colorPaletteToggle._paletteButtonHandler;
+    if (oldHandler) {
+        colorPaletteToggle.removeEventListener('click', oldHandler, true);
+    }
+    
+    // Attach handlers - store reference to allow removal later
+    colorPaletteToggle._paletteButtonHandler = handlePaletteButtonClick;
     colorPaletteToggle.addEventListener('click', handlePaletteButtonClick, true);
     
+    // Remove old listeners from option buttons and attach new ones
     const optionButtons = paletteMenu.querySelectorAll('.palette-option-btn');
     optionButtons.forEach(btn => {
+        const oldOptionHandler = btn._paletteOptionHandler;
+        if (oldOptionHandler) {
+            btn.removeEventListener('click', oldOptionHandler);
+        }
+        btn._paletteOptionHandler = handlePaletteOptionClick;
         btn.addEventListener('click', handlePaletteOptionClick);
     });
     
-    // Close menu when clicking outside
-    document.addEventListener('click', function(e) {
-        const menu = document.getElementById('paletteMenu');
-        const toggle = document.getElementById('colorPaletteToggle');
-        
-        if (menu && menu.classList.contains('open')) {
-            // Check if click is outside both menu and toggle button
-            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
-                closePaletteMenu();
+    // Close menu when clicking outside - only add once globally
+    if (!window._paletteClickOutsideHandler) {
+        window._paletteClickOutsideHandler = function(e) {
+            const menu = document.getElementById('paletteMenu');
+            const toggle = document.getElementById('colorPaletteToggle');
+            
+            if (menu && menu.classList.contains('open')) {
+                // Check if click is outside both menu and toggle button
+                if (!menu.contains(e.target) && toggle && !toggle.contains(e.target)) {
+                    if (window._closePaletteMenu) {
+                        window._closePaletteMenu();
+                    }
+                }
             }
-        }
-    });
+        };
+        document.addEventListener('click', window._paletteClickOutsideHandler);
+    }
     
     // Make updatePaletteMenuActiveState available globally for state updates
     window.updatePaletteMenuActiveState = updatePaletteMenuActiveState;
