@@ -266,9 +266,9 @@ class EventManager {
             this.updateStatus(`EventManager: events.json fetch completed (${fetchTime.toFixed(0)}ms)`, 'info');
             
             if (data && data.events && Array.isArray(data.events) && data.events.length > 0) {
-                fileEvents = data.events;
-                fileEventCount = data.events.length;
-                console.log('EventManager: Found', fileEventCount, 'events in data/events.json');
+                    fileEvents = data.events;
+                    fileEventCount = data.events.length;
+                    console.log('EventManager: Found', fileEventCount, 'events in data/events.json');
                 this.updateStatus(`EventManager: Found ${fileEventCount} events in events.json`, 'success');
             } else {
                 this.updateStatus('EventManager: events.json has no events array or is empty', 'info');

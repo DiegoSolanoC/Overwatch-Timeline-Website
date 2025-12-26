@@ -861,10 +861,10 @@ async function loadControls() {
                         await loadMenu();
                     } else {
                         // Menu already loaded, just make sure it's visible
-                        const testContainer = document.querySelector('.test-container');
-                        if (testContainer) {
-                            testContainer.style.display = 'flex';
-                            testContainer.classList.remove('fading');
+                    const testContainer = document.querySelector('.test-container');
+                    if (testContainer) {
+                        testContainer.style.display = 'flex';
+                        testContainer.classList.remove('fading');
                             testContainer.style.opacity = '1';
                         }
                     }
@@ -1240,9 +1240,9 @@ async function loadEvents() {
             const eventManager = new EventManager();
             updateStatus('Initializing EventManager...', 'info');
             try {
-                await eventManager.init();
-                window.eventManager = eventManager;
-                updateStatus('✓ EventManager initialized', 'success');
+            await eventManager.init();
+            window.eventManager = eventManager;
+            updateStatus('✓ EventManager initialized', 'success');
             } catch (error) {
                 console.error('EventManager initialization error:', error);
                 updateStatus(`✗ EventManager initialization failed: ${error.message}`, 'error');
@@ -1442,7 +1442,7 @@ async function loadEvents() {
             if (toggleBtn && panel && addBtn) {
                 // Small delay to ensure DOM is fully ready
                 setTimeout(() => {
-                    window.eventManager.setupEventListeners();
+                window.eventManager.setupEventListeners();
                     updateStatus('✓ Event listeners set up - add/edit functionality ready', 'success');
                 }, 50);
             } else {
