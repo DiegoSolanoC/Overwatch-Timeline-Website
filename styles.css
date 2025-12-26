@@ -1914,6 +1914,105 @@ body.color-palette-gray .event-number-btn:hover:not(:disabled) {
     right: 20px !important; /* First button at bottom right */
 }
 
+/* Palette button active state when menu is open */
+.color-palette-btn.active {
+    background: rgba(27, 94, 32, 0.9) !important; /* Darker green shade for background */
+    border-color: rgba(76, 175, 80, 0.8) !important; /* Keep label green tone for border */
+}
+
+.color-palette-btn.active:hover {
+    background: rgba(27, 94, 32, 1) !important; /* Darker green shade on hover */
+}
+
+/* Palette Menu Container */
+.palette-menu {
+    position: fixed;
+    bottom: 160px; /* Position further above the palette button to avoid overlap */
+    right: 20px;
+    display: flex;
+    flex-direction: column-reverse; /* Reverse order so blue is on top, black below */
+    gap: 15px;
+    align-items: center;
+    z-index: 15;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.palette-menu.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Circular Palette Option Buttons */
+.palette-option-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.palette-option-btn:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.palette-option-btn:active {
+    transform: scale(0.95);
+}
+
+/* Blue Palette Option Button */
+.palette-option-btn.blue {
+    background: #2196F3;
+}
+
+.palette-option-btn.blue:hover {
+    background: #1976D2;
+}
+
+.palette-option-btn.blue.active {
+    border-color: #4CAF50;
+    border-width: 4px;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Black/Gray Palette Option Button */
+.palette-option-btn.black {
+    background: #1a1a1a;
+}
+
+.palette-option-btn.black:hover {
+    background: #2a2a2a;
+}
+
+.palette-option-btn.black.active {
+    border-color: #4CAF50; /* Green border for all active buttons */
+    border-width: 4px;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* All active palette buttons have green border */
+body.color-palette-gray .palette-option-btn.black.active {
+    border-color: #4CAF50; /* Green border for all active buttons */
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.color-palette-gray .palette-option-btn.blue.active {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
 #eventsManageIcon {
     display: flex;
     align-items: center;
@@ -2293,15 +2392,13 @@ footer p {
         will-change: left !important; /* Optimize animation performance */
         overflow-y: hidden !important; /* Panel itself doesn't scroll - only content scrolls */
         overflow-x: hidden !important;
-        background: red !important; /* TEST: Red background on mobile to verify styles are applied */
+        background: #0a1929 !important; /* Dark blue for default blue palette */
     }
     
-    /* Override palette-specific backgrounds on mobile - TEST RED */
+    /* Override palette-specific backgrounds on mobile */
     body.color-palette-gray .event-slide,
-    body.color-palette-gray .event-slide.open,
-    body .event-slide,
-    body .event-slide.open {
-        background: red !important; /* TEST: Force red on mobile - override everything */
+    body.color-palette-gray .event-slide.open {
+        background: #1a1a1a !important; /* Dark gray for gray palette */
     }
     
     /* Only show event slide when explicitly opened - slide in from left with transition */
@@ -2310,7 +2407,7 @@ footer p {
         right: 0 !important;
         width: 100% !important;
         transition: left 0.3s ease !important; /* Ensure transition applies when opening */
-        background: red !important; /* TEST: Red background on mobile when open */
+        background: #0a1929 !important; /* Dark blue for default blue palette */
     }
     
     /* Force hide event slide when not open - override any other styles with transition */
@@ -3224,8 +3321,8 @@ body.color-palette-gray .multi-event-badge:hover {
 /* Description warning badge - red trapezoid with ! */
 .description-warning-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 0;
+    right: 0;
     background: #f44336; /* Red color */
     color: white;
     padding: 2px 10px 2px 6px;
@@ -3233,12 +3330,12 @@ body.color-palette-gray .multi-event-badge:hover {
     font-weight: bold;
     z-index: 11;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    /* Right trapezoid shape - straight left, slanted right, top longer than bottom */
-    clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
+    /* Left trapezoid shape - slanted left, straight right, top longer than bottom (mirrored from multi-event badge) */
+    clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 30px;
+    min-width: 40px;
     line-height: 1;
     pointer-events: none;
     transition: background 0.2s ease;

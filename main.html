@@ -621,6 +621,16 @@
                         testContainer.style.visibility = 'hidden';
                     }
                 });
+            } else {
+                // No saved mode - ensure menu is visible
+                document.addEventListener('DOMContentLoaded', function() {
+                    const testContainer = document.querySelector('.test-container');
+                    if (testContainer) {
+                        testContainer.style.display = 'flex';
+                        testContainer.style.opacity = '1';
+                        testContainer.style.visibility = 'visible';
+                    }
+                });
             }
         })();
     </script>
@@ -658,8 +668,5 @@
             });
         }
     </script>
-    
-    <!-- Load script.js for music panel and sound effects (needed even on main.html) -->
-    <script src="script.js"></script>
 </body>
 </html>

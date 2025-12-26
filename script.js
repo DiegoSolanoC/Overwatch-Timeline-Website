@@ -2162,7 +2162,7 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// Color Palette Toggle Functionality
+// Color Palette Menu Functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Skip palette setup on main.html - test-loader.js handles it
     if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
@@ -2172,23 +2172,96 @@ document.addEventListener('DOMContentLoaded', function() {
     const colorPaletteToggle = document.getElementById('colorPaletteToggle');
     if (!colorPaletteToggle) return;
     
+    // Create palette menu if it doesn't exist
+    let paletteMenu = document.getElementById('paletteMenu');
+    if (!paletteMenu) {
+        paletteMenu = document.createElement('div');
+        paletteMenu.id = 'paletteMenu';
+        paletteMenu.className = 'palette-menu';
+        
+        // Blue palette option button
+        const blueBtn = document.createElement('button');
+        blueBtn.className = 'palette-option-btn blue';
+        blueBtn.dataset.palette = 'blue';
+        blueBtn.title = 'Blue Palette';
+        paletteMenu.appendChild(blueBtn);
+        
+        // Black/Gray palette option button
+        const blackBtn = document.createElement('button');
+        blackBtn.className = 'palette-option-btn black';
+        blackBtn.dataset.palette = 'gray';
+        blackBtn.title = 'Gray Palette';
+        paletteMenu.appendChild(blackBtn);
+        
+        document.body.appendChild(paletteMenu);
+    }
+    
     // Load saved color palette preference (default to blue if not set)
     const savedPalette = localStorage.getItem('colorPalette');
     if (savedPalette === 'gray') {
         document.body.classList.add('color-palette-gray');
-        colorPaletteToggle.classList.add('active');
+        updatePaletteMenuActiveState('gray');
     } else {
         // Default to blue palette
         document.body.classList.remove('color-palette-gray');
-        colorPaletteToggle.classList.remove('active');
+        updatePaletteMenuActiveState('blue');
     }
     
-    colorPaletteToggle.addEventListener('click', function() {
-        const isGray = document.body.classList.toggle('color-palette-gray');
-        colorPaletteToggle.classList.toggle('active', isGray);
+    // Update icon on initial load
+    updatePaletteButtonIcon(savedPalette === 'gray' ? 'gray' : 'blue');
+    
+    // Function to update palette button icon based on active palette
+    function updatePaletteButtonIcon(palette) {
+        const colorPaletteToggle = document.getElementById('colorPaletteToggle');
+        if (!colorPaletteToggle) return;
+        
+        const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
+        if (!iconSpan) return;
+        
+        const iconPath = palette === 'gray' ? 'Dark Palette Icon.png' : 'Blue Palette Icon.png';
+        
+        // Check if img already exists, update src; otherwise create new img
+        let img = iconSpan.querySelector('img');
+        if (img) {
+            img.src = iconPath;
+            img.alt = 'Color Palette';
+        } else {
+            iconSpan.innerHTML = `<img src="${iconPath}" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">`;
+        }
+    }
+    
+    // Function to update active state of palette menu buttons
+    function updatePaletteMenuActiveState(palette) {
+        const menu = document.getElementById('paletteMenu');
+        if (!menu) return;
+        
+        const buttons = menu.querySelectorAll('.palette-option-btn');
+        buttons.forEach(btn => {
+            if (btn.dataset.palette === palette) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Update palette button icon
+        updatePaletteButtonIcon(palette);
+    }
+    
+    // Function to change palette
+    function changePalette(palette) {
+        const isGray = palette === 'gray';
+        
+        if (isGray) {
+            document.body.classList.add('color-palette-gray');
+        } else {
+            document.body.classList.remove('color-palette-gray');
+        }
+        
+        updatePaletteMenuActiveState(palette);
         
         // Save preference
-        localStorage.setItem('colorPalette', isGray ? 'gray' : 'blue');
+        localStorage.setItem('colorPalette', palette);
         
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
@@ -2227,6 +2300,75 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else {
             console.warn('SoundEffectsManager not available');
+        }
+        
+        // Close menu after selection
+        closePaletteMenu();
+    }
+    
+    // Handle palette button click - toggle menu
+    colorPaletteToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const menu = document.getElementById('paletteMenu');
+        if (!menu) return;
+        
+        if (menu.classList.contains('open')) {
+            closePaletteMenu();
+        } else {
+            openPaletteMenu();
+        }
+    });
+    
+    // Handle palette option button clicks
+    const optionButtons = paletteMenu.querySelectorAll('.palette-option-btn');
+    optionButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const palette = this.dataset.palette;
+            if (palette) {
+                changePalette(palette);
+            }
+        });
+    });
+    
+    // Open palette menu
+    function openPaletteMenu() {
+        const menu = document.getElementById('paletteMenu');
+        const toggle = document.getElementById('colorPaletteToggle');
+        if (menu) {
+            menu.classList.add('open');
+        }
+        if (toggle) {
+            toggle.classList.add('active');
+        }
+    }
+    
+    // Close palette menu
+    function closePaletteMenu() {
+        const menu = document.getElementById('paletteMenu');
+        const toggle = document.getElementById('colorPaletteToggle');
+        if (menu) {
+            menu.classList.remove('open');
+        }
+        if (toggle) {
+            toggle.classList.remove('active');
+        }
+    }
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('paletteMenu');
+        const toggle = document.getElementById('colorPaletteToggle');
+        
+        if (menu && menu.classList.contains('open')) {
+            // Check if click is outside both menu and toggle button
+            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+                closePaletteMenu();
+            }
         }
     });
 });

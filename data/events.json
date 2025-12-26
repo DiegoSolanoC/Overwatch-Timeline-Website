@@ -93,7 +93,7 @@
       "lat": 57.7072326,
       "lon": 11.9670171,
       "cityDisplayName": "Gothenburg, Sweden",
-      "description": "On September 21st of 2019 Torbjörn Lindholm Is born in the city of Gothenburg. He was a bright mind since an early age and had a clear careeer path in mind, as he pursued multipled advanced degrees in university.",
+      "description": "On September 21st of 2019 Torbjörn Lindholm Is born in the city of Gothenburg. He was a bright mind since an early age and had a clear careeer path in mind, as he pursued multipled advanced degrees in university, where he met his later wife, a chemical engineer student, Ingrid Lindholm",
       "image": "",
       "filters": [
         "Torbjörn"
@@ -455,26 +455,6 @@
       ]
     },
     {
-      "name": "Hanzo Shimada is Born",
-      "lat": 35.6768601,
-      "lon": 139.7638947,
-      "cityDisplayName": "Hanamura, Japan",
-      "description": "A",
-      "image": "",
-      "filters": [
-        "Hanzo"
-      ],
-      "factions": [
-        "22Shimada"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Website, Hanzo",
-          "url": "https://overwatch.blizzard.com/en-us/heroes/hanzo/"
-        }
-      ]
-    },
-    {
       "name": "Wuxing University",
       "lat": 30.659867,
       "lon": 104.063315,
@@ -493,18 +473,22 @@
       ]
     },
     {
-      "name": "Angela Zeigler is Born",
-      "lat": 47.3744489,
-      "lon": 8.5410422,
-      "cityDisplayName": "Zurich, Switzerland",
-      "description": "",
+      "name": "Hanzo Shimada is Born",
+      "lat": 35.6768601,
+      "lon": 139.7638947,
+      "cityDisplayName": "Hanamura, Japan",
+      "description": "On November 3rd of 2038, Hanzo Shimada is Born. The firstborn heir of Sojiro, head of the Shimada clan in Hanamura. An ancient family and clan of assassins that grew a criminal empire across Japan through arms trafficking and protection services to the people they ruled over. \nDue to his position, he trained since very young to take his father's role as the leader of the clan, becoming very close to his father, specially after his mother abandoned the family",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Hanzo"
+      ],
+      "factions": [
+        "22Shimada"
+      ],
       "sources": [
         {
-          "text": "Overwatch Website, Mercy",
-          "url": "https://overwatch.blizzard.com/en-us/heroes/mercy/"
+          "text": "Overwatch Website, Hanzo",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/hanzo/"
         }
       ]
     },
@@ -531,7 +515,7 @@
       "lat": 52.0799838,
       "lon": 4.3113461,
       "cityDisplayName": "The Hague, Netherlands",
-      "description": "a",
+      "description": "New sources of energy and pushes for cleaner solutions lead to many developments in the field of transportation, and the man leading the race would be Dr. Siebren De Kuiper, pioneer of gravitational research, as he believed that gravity was the greatest untapped resource humanity had, and one yet to conquer. For years his studies in the Hague pushed ideas to harness the power of gravity, and lead to many inventions that changed the world forever, most notoriously, the magnetic levitaitonal systems that most holocars and holobikes use in modern day, as well as the technology that would eventually lead to the creation of the Transcontintental Hyperloop.\n\nSiebren's work made flying cars not only a possiblity, but a very standard form of living across the world, closing the gap between fossil fuels and a trulyl substainable future",
       "image": "",
       "filters": [
         "Sigma"
@@ -545,36 +529,18 @@
       ]
     },
     {
-      "name": "Cole Cassidy is Born",
-      "lat": 30.2711286,
-      "lon": -97.7436995,
-      "cityDisplayName": "Austin, United States",
-      "description": "a",
+      "name": "Angela Zeigler is Born",
+      "lat": 47.3744489,
+      "lon": 8.5410422,
+      "cityDisplayName": "Zurich, Switzerland",
+      "description": "On May 13th of 2039, Angela Zeigler is Born in Zurich. Medicine ran in the family, and during the Crisis, her parents would often serve as volunters in local hospitals to aid those in need. Sadly however,  both of them were killed in an Air strike during these visits. Orphaned in dire times and at such a young age, this gave angela a very strong and bocal distate for war.",
       "image": "",
       "filters": [],
       "factions": [],
       "sources": [
         {
-          "text": "Overwatch Website, Cassidy",
-          "url": "https://overwatch.blizzard.com/en-us/heroes/cassidy/"
-        }
-      ]
-    },
-    {
-      "name": "Jean-Baptiste Augustin is Born",
-      "lat": 20.0410035,
-      "lon": -72.785587,
-      "cityDisplayName": "Tortuga Island, Haiti",
-      "description": "a",
-      "image": "",
-      "filters": [
-        "Baptiste"
-      ],
-      "factions": [],
-      "sources": [
-        {
-          "text": "Overwatch Website, Baptiste",
-          "url": "https://overwatch.blizzard.com/en-us/heroes/baptiste/"
+          "text": "Overwatch Website, Mercy",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/mercy/"
         }
       ]
     },
@@ -597,11 +563,27 @@
       ]
     },
     {
+      "name": "Cole Cassidy is Born",
+      "lat": 30.2711286,
+      "lon": -97.7436995,
+      "cityDisplayName": "Austin, United States",
+      "description": "On July 31st of 2039, Cole Cassidy is Born. Records of his early life are scarse, and unrelliable, as the man enjoyed the mystery atmosphere he leaned onto. Its believed he came from Texas, and like many others, got orphaned by the Crisis at an early age. Due to this dire circumstnaces, he never finished formal schooling, leading him to job hoping in order to surivive, and eventually a life of crime",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Cassidy",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/cassidy/"
+        }
+      ]
+    },
+    {
       "name": "Resource Management",
       "lat": 30.0443879,
       "lon": 31.2357257,
       "cityDisplayName": "Cairo, Egypt",
-      "description": "a",
+      "description": "The world had overall become a better place, with more available food, miracle cures for all kinds of medical problems, cleaner energy solutions, highly advanced but complex transport systems, and an abundance of machinery helping on all kins of tasks around the world. But with these perks, came complexity, and with all of these resources available, the global population also grew imensely. Humanity would soon become overwhelmed by the taks of managing all of these sectors on a global scale the traditional way. It was here when the God Ais got conceptualized.\n\nHighly advance artificial intelligence systems would be set across the world. While most AIs were limited by their processing and resources, a God program was desined to have full global control and authority over specific aspects of industry in modern society. Among many otheres there was Xibalbá, in Mexico City, charged with the management of energy Equity across the region. Chernobog in Helsinki, Findland, with a high focus on global security and international affairs. Macaria from Brigeport, Connecticut, in charge of communication systems across the States, and the most imfamous of them all, Anubis from Cairo, Egypt, made to pursue ecological solutions for the preservation of life.\n\nOn a smaller scale, less complex AIs were also stablished to control local traffic, stocking stores, and managing public work projects, among other things, while on a glboal level the God Programs handled these resources and many more with an international perspective in mind, ensuring equity, efficiency and progress. \n\nWhile their power allowed humanity to take a back seat as the world moved forward, many skeptics worried that these god programs were given too much power, and had too much leeway to make decisions, and to calm these fears, each God Ai was under a constant feedback loop by the a dedicated team of programers that provided it mantainance and supervision, allowing humanity to catch any possible mistakes or concerning choices before it was too late.",
       "image": "",
       "filters": [],
       "factions": [
@@ -616,11 +598,50 @@
       ]
     },
     {
+      "name": "Jean-Baptiste Augustin is Born",
+      "lat": 20.0410035,
+      "lon": -72.785587,
+      "cityDisplayName": "Tortuga Island, Haiti",
+      "description": "On Marth 12th, 2041 Jean-Baptiste Augustin is Born. Baptiste was one of the 30 million children that the Crisis orphaned, growing in an orphanage at Port du Paix with his childhood friend, Roseline Mondésir. Dreaming that one day the two of them could build a clinic for their neighborhood",
+      "image": "",
+      "filters": [
+        "Baptiste"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Baptiste",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/baptiste/"
+        }
+      ]
+    },
+    {
+      "name": "The Ironclad Guild",
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Torbjörn",
+        "Bastion"
+      ],
+      "factions": [
+        "10Ironclad"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
+    },
+    {
       "name": "Maugaloa Malosi is Born",
       "lat": -13.8345235,
       "lon": -171.7630955,
       "cityDisplayName": "Apia, Samoa",
-      "description": "A",
+      "description": "",
       "image": "",
       "filters": [
         "Mauga"
@@ -634,26 +655,11 @@
       ]
     },
     {
-      "name": "The Ironclad Guild",
-      "lat": 57.7072326,
-      "lon": 11.9670171,
-      "cityDisplayName": "Gothenburg, Sweden",
-      "description": "a",
-      "image": "",
-      "filters": [
-        "Torbjörn",
-        "Bastion"
-      ],
-      "factions": [
-        "10Ironclad"
-      ]
-    },
-    {
       "name": "Genji Shimada is Born",
       "lat": 35.6768601,
       "lon": 139.7638947,
       "cityDisplayName": "Hanamura, Japan",
-      "description": "A",
+      "description": "",
       "image": "",
       "filters": [
         "Genji"
@@ -665,6 +671,186 @@
         {
           "text": "Overwatch Website, Genji",
           "url": "https://overwatch.blizzard.com/en-us/heroes/genji/"
+        }
+      ]
+    },
+    {
+      "name": "Amélie Lacroix is Born",
+      "lat": 45.8992348,
+      "lon": 6.1288847,
+      "cityDisplayName": "Annecy, France",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Widowmaker"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Widowmaker",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/widowmaker/"
+        }
+      ]
+    },
+    {
+      "name": "Genesis",
+      "lat": 42.3315509,
+      "lon": -83.0466403,
+      "cityDisplayName": "Detroit, United States",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Echo"
+      ],
+      "factions": [
+        "05Omnica",
+        "13Shambali"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Genesis, Part one: Dawn",
+          "url": "https://www.youtube.com/watch?v=PIYMn8eDskg"
+        }
+      ]
+    },
+    {
+      "name": "CallSign Sojourn",
+      "lat": 43.6534817,
+      "lon": -79.3839347,
+      "cityDisplayName": "Toronto, Canada",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Sojourn"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        },
+        {
+          "text": "Sojourn's Novel",
+          "url": "https://www.amazon.com/Audible-Overwatch-2-Sojourn/dp/B0BKBYZYWP/ref=sr_1_1?crid=1G0Y1A2TJTW6E&dib=eyJ2IjoiMSJ9.nuCN9wG_X7GoNmsvzdhAstAeTN_7dqBQl1f0vXlhqOr0mjptq52fWAOIGZKYuJ6ziYwhd-OSeZJAH0yuFsUSaW6yO8JVQ6f9OM9F3I27v6A.Rnhpg-3nIyB9uEFl5O1Sg5GSPXahgviroiOyRcHpVpY&dib_tag=se&keywords=overwatch+sojourn&qid=1764046580&s=books&sprefix=overwatch+sojourn%2Cstripbooks%2C102&sr=1-1"
+        }
+      ]
+    },
+    {
+      "name": "Freja Skov is Born",
+      "lat": 55.6867243,
+      "lon": 12.5700724,
+      "cityDisplayName": "Copenhagen, Denmark",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Freja"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Freja",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/freja/"
+        }
+      ]
+    },
+    {
+      "lat": 23.2599,
+      "lon": 77.4126,
+      "cityDisplayName": "Roshani, India",
+      "variants": [
+        {
+          "name": "Road to the Stars",
+          "description": "",
+          "filters": [],
+          "factions": [
+            "09Lucheng"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "image": "",
+          "lat": 23.2599,
+          "lon": 77.4126,
+          "cityDisplayName": "Roshani, India"
+        },
+        {
+          "name": "Hydroponics",
+          "description": "",
+          "filters": [],
+          "factions": [
+            "09Lucheng"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "image": "",
+          "lat": 30.05518,
+          "lon": 107.8748712,
+          "cityDisplayName": "Chongqing, China"
+        }
+      ]
+    },
+    {
+      "name": "Fareeha Amari is Born",
+      "lat": 30.0443879,
+      "lon": 31.2357257,
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Pharah"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Pharah",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/pharah/"
+        },
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Audible-Overwatch-2-Sojourn/dp/B0BKBYZYWP/ref=sr_1_1?crid=1G0Y1A2TJTW6E&dib=eyJ2IjoiMSJ9.nuCN9wG_X7GoNmsvzdhAstAeTN_7dqBQl1f0vXlhqOr0mjptq52fWAOIGZKYuJ6ziYwhd-OSeZJAH0yuFsUSaW6yO8JVQ6f9OM9F3I27v6A.Rnhpg-3nIyB9uEFl5O1Sg5GSPXahgviroiOyRcHpVpY&dib_tag=se&keywords=overwatch+sojourn&qid=1764046580&s=books&sprefix=overwatch+sojourn%2Cstripbooks%2C102&sr=1-1"
+        }
+      ]
+    },
+    {
+      "name": "Tekhartha Zenyatta is Made",
+      "lat": 6.4550575,
+      "lon": 3.3941795,
+      "cityDisplayName": "Lagos, Nigeria",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Zenyatta"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Zenyatta",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/zenyatta/"
+        }
+      ]
+    },
+    {
+      "name": "SST Laboratories Siege Automaton E54 is Made",
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Bastion"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Bastion",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/bastion/"
         }
       ]
     },

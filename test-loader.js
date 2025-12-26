@@ -7,6 +7,7 @@
 const loadedComponents = {
     palette: false,
     music: false,
+    menu: false,
     globeBase: false,
     transport: false,
     controls: false,
@@ -26,26 +27,25 @@ function updateStatus(message, type = 'info') {
     if (isMainPage && overlayActive) {
         // Use overlay status on main page when overlay is active
         statusContent = document.getElementById('overlayStatusContent');
-        // Replace content instead of appending (show only latest)
+        // Replace content with single current message
         if (statusContent) {
-            statusContent.innerHTML = '';
+            statusContent.innerHTML = ''; // Clear all previous messages
             const item = document.createElement('div');
             item.className = `test-status-item ${type}`;
             item.textContent = message;
             statusContent.appendChild(item);
         }
     } else {
-        // Use regular test status (append for test page)
+        // Use regular test status (replace for test page)
         const statusDiv = document.getElementById('testStatus');
         statusContent = document.getElementById('statusContent');
         if (statusDiv && statusContent) {
             statusDiv.style.display = 'block';
+            statusContent.innerHTML = ''; // Clear all previous messages
             const item = document.createElement('div');
             item.className = `test-status-item ${type}`;
             item.textContent = message;
             statusContent.appendChild(item);
-            // Auto-scroll to bottom
-            statusContent.scrollTop = statusContent.scrollHeight;
         }
     }
 }
@@ -106,10 +106,10 @@ function setupPaletteToggle() {
         const savedPalette = localStorage.getItem('colorPalette');
         if (savedPalette === 'gray') {
             document.body.classList.add('color-palette-gray');
-            colorPaletteToggle.classList.add('active');
+            updatePaletteMenuActiveState('gray');
         } else {
             document.body.classList.remove('color-palette-gray');
-            colorPaletteToggle.classList.remove('active');
+            updatePaletteMenuActiveState('blue');
         }
         return;
     }
@@ -118,33 +118,98 @@ function setupPaletteToggle() {
     colorPaletteToggle.dataset.setup = 'true';
     paletteToggleSetup = true;
     
+    // Create palette menu if it doesn't exist
+    let paletteMenu = document.getElementById('paletteMenu');
+    if (!paletteMenu) {
+        paletteMenu = document.createElement('div');
+        paletteMenu.id = 'paletteMenu';
+        paletteMenu.className = 'palette-menu';
+        
+        // Blue palette option button
+        const blueBtn = document.createElement('button');
+        blueBtn.className = 'palette-option-btn blue';
+        blueBtn.dataset.palette = 'blue';
+        blueBtn.title = 'Blue Palette';
+        paletteMenu.appendChild(blueBtn);
+        
+        // Black/Gray palette option button
+        const blackBtn = document.createElement('button');
+        blackBtn.className = 'palette-option-btn black';
+        blackBtn.dataset.palette = 'gray';
+        blackBtn.title = 'Gray Palette';
+        paletteMenu.appendChild(blackBtn);
+        
+        document.body.appendChild(paletteMenu);
+    }
+    
     // Load saved color palette preference (default to blue if not set)
     const savedPalette = localStorage.getItem('colorPalette');
     if (savedPalette === 'gray') {
         document.body.classList.add('color-palette-gray');
-        colorPaletteToggle.classList.add('active');
+        updatePaletteMenuActiveState('gray');
     } else {
         // Default to blue palette
         document.body.classList.remove('color-palette-gray');
-        colorPaletteToggle.classList.remove('active');
+        updatePaletteMenuActiveState('blue');
     }
     
-    // Create a single persistent handler function that always gets the current button
-    const handlePaletteToggle = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    // Update icon on initial load
+    updatePaletteButtonIcon(savedPalette === 'gray' ? 'gray' : 'blue');
+    
+    // Function to update palette button icon based on active palette
+    function updatePaletteButtonIcon(palette) {
+        const colorPaletteToggle = document.getElementById('colorPaletteToggle');
+        if (!colorPaletteToggle) return;
         
-        // Always get the current button element (in case it was replaced)
-        const currentToggle = document.getElementById('colorPaletteToggle');
-        if (!currentToggle) return;
+        const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
+        if (!iconSpan) return;
         
-        const isGray = document.body.classList.toggle('color-palette-gray');
-        currentToggle.classList.toggle('active', isGray);
+        const iconPath = palette === 'gray' ? 'Dark Palette Icon.png' : 'Blue Palette Icon.png';
+        
+        // Check if img already exists, update src; otherwise create new img
+        let img = iconSpan.querySelector('img');
+        if (img) {
+            img.src = iconPath;
+            img.alt = 'Color Palette';
+        } else {
+            iconSpan.innerHTML = `<img src="${iconPath}" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">`;
+        }
+    }
+    
+    // Function to update active state of palette menu buttons
+    function updatePaletteMenuActiveState(palette) {
+        const menu = document.getElementById('paletteMenu');
+        if (!menu) return;
+        
+        const buttons = menu.querySelectorAll('.palette-option-btn');
+        buttons.forEach(btn => {
+            if (btn.dataset.palette === palette) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Update palette button icon
+        updatePaletteButtonIcon(palette);
+    }
+    
+    // Function to change palette
+    function changePalette(palette) {
+        const isGray = palette === 'gray';
+        
+        if (isGray) {
+            document.body.classList.add('color-palette-gray');
+        } else {
+            document.body.classList.remove('color-palette-gray');
+        }
+        
+        updatePaletteMenuActiveState(palette);
         
         // Save preference
-        localStorage.setItem('colorPalette', isGray ? 'gray' : 'blue');
+        localStorage.setItem('colorPalette', palette);
         
-        console.log('Palette toggled:', isGray ? 'gray' : 'blue', 'Body class:', document.body.classList.contains('color-palette-gray'));
+        console.log('Palette changed to:', palette);
         
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
@@ -170,10 +235,84 @@ function setupPaletteToggle() {
                 }, 100);
             }
         }
+        
+        // Close menu after selection
+        closePaletteMenu();
+    }
+    
+    // Handle palette button click - toggle menu
+    const handlePaletteButtonClick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const menu = document.getElementById('paletteMenu');
+        if (!menu) return;
+        
+        if (menu.classList.contains('open')) {
+            closePaletteMenu();
+        } else {
+            openPaletteMenu();
+        }
     };
     
-    // Attach the handler - use capture phase to ensure it runs
-    colorPaletteToggle.addEventListener('click', handlePaletteToggle, true);
+    // Handle palette option button clicks
+    const handlePaletteOptionClick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const palette = this.dataset.palette;
+        if (palette) {
+            changePalette(palette);
+        }
+    };
+    
+    // Open palette menu
+    function openPaletteMenu() {
+        const menu = document.getElementById('paletteMenu');
+        const toggle = document.getElementById('colorPaletteToggle');
+        if (menu) {
+            menu.classList.add('open');
+        }
+        if (toggle) {
+            toggle.classList.add('active');
+        }
+    }
+    
+    // Close palette menu
+    function closePaletteMenu() {
+        const menu = document.getElementById('paletteMenu');
+        const toggle = document.getElementById('colorPaletteToggle');
+        if (menu) {
+            menu.classList.remove('open');
+        }
+        if (toggle) {
+            toggle.classList.remove('active');
+        }
+    }
+    
+    // Attach handlers
+    colorPaletteToggle.addEventListener('click', handlePaletteButtonClick, true);
+    
+    const optionButtons = paletteMenu.querySelectorAll('.palette-option-btn');
+    optionButtons.forEach(btn => {
+        btn.addEventListener('click', handlePaletteOptionClick);
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('paletteMenu');
+        const toggle = document.getElementById('colorPaletteToggle');
+        
+        if (menu && menu.classList.contains('open')) {
+            // Check if click is outside both menu and toggle button
+            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+                closePaletteMenu();
+            }
+        }
+    });
+    
+    // Make updatePaletteMenuActiveState available globally for state updates
+    window.updatePaletteMenuActiveState = updatePaletteMenuActiveState;
 }
 
 /**
@@ -684,6 +823,9 @@ async function loadControls() {
             
             // Setup exit button click handler
             exitBtn.addEventListener('click', async function() {
+                // Check if we're on main.html
+                const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
+                
                 // Play mode switch sound effect
                 if (window.SoundEffectsManager) {
                     if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
@@ -700,7 +842,6 @@ async function loadControls() {
                 // Clear saved mode when exiting
                 localStorage.removeItem('currentMode');
                 
-                const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
                 const loadingOverlay = document.getElementById('loadingOverlay');
                 
                 // Fade in the black overlay (if on main.html)
@@ -713,12 +854,19 @@ async function loadControls() {
                 updateStatus('Exiting to main menu...', 'info');
                 await killGlobeComponents();
                 
-                // On main.html, show the test container (main menu) again and fade out overlay
+                // On main.html, load menu components after killing globe components
                 if (isMainPage) {
-                    const testContainer = document.querySelector('.test-container');
-                    if (testContainer) {
-                        testContainer.style.display = 'flex';
-                        testContainer.classList.remove('fading');
+                    updateStatus('Loading menu components...', 'info');
+                    if (!loadedComponents.menu) {
+                        await loadMenu();
+                    } else {
+                        // Menu already loaded, just make sure it's visible
+                        const testContainer = document.querySelector('.test-container');
+                        if (testContainer) {
+                            testContainer.style.display = 'flex';
+                            testContainer.classList.remove('fading');
+                            testContainer.style.opacity = '1';
+                        }
                     }
                     
                     // Fade out the black overlay
@@ -1010,19 +1158,44 @@ async function loadEvents() {
     updateStatus('Starting Events load...', 'info');
     
     try {
+        // Clean up any existing EventManager instance first
+        if (window.eventManager) {
+            updateStatus('Cleaning up existing EventManager instance...', 'info');
+            // Clear any listeners or state if needed
+            if (window.eventManager.listenersSetup) {
+                window.eventManager.listenersSetup = false;
+            }
+            // Clear all state
+            if (window.eventManager.events) {
+                window.eventManager.events = [];
+            }
+            if (window.eventManager.cities) {
+                window.eventManager.cities = [];
+            }
+            if (window.eventManager.airports) {
+                window.eventManager.airports = [];
+            }
+            if (window.eventManager.seaports) {
+                window.eventManager.seaports = [];
+            }
+            window.eventManager = null;
+        }
+        
         // Load EventManager (it's loaded via script tag, not ES6 module)
         updateStatus('Loading EventManager...', 'info');
         
         // Check if EventManager is already available (loaded via script tag)
-        if (typeof EventManager === 'undefined') {
+        // Also check if script tag already exists to avoid duplicates
+        const existingScript = document.querySelector('script[src*="EventManager.js"]');
+        if (typeof EventManager === 'undefined' && !existingScript) {
             // Load EventManager script dynamically
             await new Promise((resolve, reject) => {
                 const script = document.createElement('script');
-                script.src = 'js/EventManager.js';
+                script.src = 'js/EventManager.js?' + Date.now(); // Cache busting
                 script.onload = async () => {
                     try {
                         // Wait a bit for EventManager to be available
-                        await new Promise(r => setTimeout(r, 100));
+                        await new Promise(r => setTimeout(r, 50));
                         
                         if (typeof EventManager === 'undefined') {
                             throw new Error('EventManager class not found after loading script');
@@ -1034,21 +1207,47 @@ async function loadEvents() {
                         await eventManager.init();
                         window.eventManager = eventManager;
                         updateStatus('✓ EventManager initialized', 'success');
+                        
                         resolve();
                     } catch (error) {
+                        console.error('EventManager initialization error:', error);
+                        updateStatus(`✗ EventManager initialization failed: ${error.message}`, 'error');
                         reject(error);
                     }
                 };
-                script.onerror = () => reject(new Error('Failed to load EventManager.js'));
+                script.onerror = () => {
+                    const error = new Error('Failed to load EventManager.js');
+                    updateStatus(`✗ ${error.message}`, 'error');
+                    reject(error);
+                };
                 document.head.appendChild(script);
             });
         } else {
-            // EventManager already loaded
-            updateStatus('Initializing EventManager...', 'info');
+            // EventManager already loaded - create fresh instance
+            if (typeof EventManager === 'undefined') {
+                // Wait a bit more if script exists but class not ready
+                updateStatus('Waiting for EventManager class to be available...', 'info');
+                let attempts = 0;
+                while (typeof EventManager === 'undefined' && attempts < 10) {
+                    await new Promise(r => setTimeout(r, 50));
+                    attempts++;
+                }
+                if (typeof EventManager === 'undefined') {
+                    throw new Error('EventManager class not available after waiting');
+                }
+            }
+            updateStatus('Creating new EventManager instance...', 'info');
             const eventManager = new EventManager();
-            await eventManager.init();
-            window.eventManager = eventManager;
-            updateStatus('✓ EventManager initialized', 'success');
+            updateStatus('Initializing EventManager...', 'info');
+            try {
+                await eventManager.init();
+                window.eventManager = eventManager;
+                updateStatus('✓ EventManager initialized', 'success');
+            } catch (error) {
+                console.error('EventManager initialization error:', error);
+                updateStatus(`✗ EventManager initialization failed: ${error.message}`, 'error');
+                throw error;
+            }
         }
         
         // Sync events with globe and add markers
@@ -1095,12 +1294,7 @@ async function loadEvents() {
             updateStatus('✓ Event manager button added', 'success');
         }
         
-        // Setup event listeners AFTER button is created
-        if (window.eventManager) {
-            updateStatus('Setting up event listeners...', 'info');
-            window.eventManager.setupEventListeners();
-            updateStatus('✓ Event listeners set up', 'success');
-        }
+        // Don't set up listeners here - wait until button is created
         
         // Add event pagination (if not already present)
         if (!document.getElementById('eventPagination')) {
@@ -1238,16 +1432,35 @@ async function loadEvents() {
         }
         
         // Setup event listeners AFTER all buttons and panels are created
+        // This is critical - setupEventListeners needs the button to exist
         if (window.eventManager) {
-            updateStatus('Setting up event listeners...', 'info');
+            updateStatus('Setting up event listeners for add/edit functionality...', 'info');
             // Verify button exists before setting up listeners
             const toggleBtn = document.getElementById('eventsManageToggle');
             const panel = document.getElementById('eventsManagePanel');
-            if (toggleBtn && panel) {
-                window.eventManager.setupEventListeners();
-                updateStatus('✓ Event listeners set up', 'success');
+            const addBtn = document.getElementById('addEventBtn');
+            if (toggleBtn && panel && addBtn) {
+                // Small delay to ensure DOM is fully ready
+                setTimeout(() => {
+                    window.eventManager.setupEventListeners();
+                    updateStatus('✓ Event listeners set up - add/edit functionality ready', 'success');
+                }, 50);
             } else {
-                updateStatus(`⚠ Button or panel not found! Button: ${!!toggleBtn}, Panel: ${!!panel}`, 'error');
+                updateStatus(`⚠ Some elements not found! Toggle: ${!!toggleBtn}, Panel: ${!!panel}, AddBtn: ${!!addBtn}`, 'error');
+                // Retry after a longer delay
+                setTimeout(() => {
+                    if (window.eventManager) {
+                        const retryToggleBtn = document.getElementById('eventsManageToggle');
+                        const retryPanel = document.getElementById('eventsManagePanel');
+                        const retryAddBtn = document.getElementById('addEventBtn');
+                        if (retryToggleBtn && retryPanel && retryAddBtn) {
+                            window.eventManager.setupEventListeners();
+                            updateStatus('✓ Event listeners set up (retry successful)', 'success');
+                        } else {
+                            updateStatus(`✗ Failed to set up event listeners - elements still missing`, 'error');
+                        }
+                    }
+                }, 200);
             }
         }
         
@@ -1284,6 +1497,156 @@ async function loadEvents() {
         console.error('Error loading Events:', error);
         updateStatus(`✗ Error loading Events: ${error.message}`, 'error');
         setButtonState('loadEventsBtn', 'error');
+    }
+}
+
+/**
+ * Unload Menu Components
+ */
+async function unloadMenu() {
+    if (!loadedComponents.menu) {
+        updateStatus('Menu not loaded', 'info');
+        return;
+    }
+    
+    updateStatus('Unloading Menu...', 'info');
+    
+    try {
+        // Remove menu container if it exists
+        const testContainer = document.querySelector('.test-container');
+        if (testContainer) {
+            // Remove the main-menu-buttons div
+            const menuButtons = testContainer.querySelector('.main-menu-buttons');
+            if (menuButtons) {
+                menuButtons.remove();
+                updateStatus('✓ Menu buttons removed', 'success');
+            }
+        }
+        
+        loadedComponents.menu = false;
+        setButtonState('loadMenuBtn', 'default');
+        updateStatus('✓ Menu components unloaded!', 'success');
+    } catch (error) {
+        console.error('Error unloading Menu:', error);
+        updateStatus(`✗ Error unloading Menu: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Load Menu Components
+ * - Main menu with 3 buttons (Global Timeline, Concept Glossary, Character Bios)
+ */
+async function loadMenu() {
+    // If already loaded, unload it instead
+    if (loadedComponents.menu) {
+        await unloadMenu();
+        return;
+    }
+    
+    setButtonState('loadMenuBtn', 'loading');
+    updateStatus('Starting Menu load...', 'info');
+    
+    try {
+        // Check if test-container exists, if not create it
+        let testContainer = document.querySelector('.test-container');
+        if (!testContainer) {
+            updateStatus('Creating test container...', 'info');
+            testContainer = document.createElement('div');
+            testContainer.className = 'test-container';
+            testContainer.id = 'testContainer';
+            document.getElementById('content').appendChild(testContainer);
+            updateStatus('✓ Test container created', 'success');
+        }
+        
+        // Check if menu buttons already exist
+        if (testContainer.querySelector('.main-menu-buttons')) {
+            updateStatus('Menu buttons already exist', 'info');
+            loadedComponents.menu = true;
+            setButtonState('loadMenuBtn', 'loaded');
+            updateStatus('✓ Menu components already loaded!', 'success');
+            return;
+        }
+        
+        // Create main menu buttons structure
+        updateStatus('Creating main menu buttons...', 'info');
+        const menuButtons = document.createElement('div');
+        menuButtons.className = 'main-menu-buttons';
+        
+        // Global Timeline button
+        const globeBtn = document.createElement('button');
+        globeBtn.id = 'runGlobeBtn';
+        globeBtn.className = 'main-menu-btn';
+        globeBtn.title = 'Global Timeline';
+        globeBtn.innerHTML = `
+            <div class="main-menu-image-container">
+                <img src="Main Menu Buttons/Global Timeline.png" alt="Global Timeline">
+            </div>
+            <div class="main-menu-label-container">
+                <div class="main-menu-label">Global Timeline</div>
+                <div class="main-menu-description">Revisit the Story of Overwatch in Chronological Order, view through a 3D Globe</div>
+            </div>
+        `;
+        
+        // Concept Glossary button
+        const glossaryBtn = document.createElement('button');
+        glossaryBtn.id = 'runGlossaryBtn';
+        glossaryBtn.className = 'main-menu-btn';
+        glossaryBtn.title = 'Concept Glossary';
+        glossaryBtn.innerHTML = `
+            <div class="main-menu-image-container">
+                <img src="Main Menu Buttons/Concept Glossary.png" alt="Concept Glossary">
+            </div>
+            <div class="main-menu-label-container">
+                <div class="main-menu-label">Concept Glossary</div>
+                <div class="main-menu-description">Coming Soon...</div>
+            </div>
+        `;
+        
+        // Character Bios button
+        const biographyBtn = document.createElement('button');
+        biographyBtn.id = 'runBiographyBtn';
+        biographyBtn.className = 'main-menu-btn';
+        biographyBtn.title = 'Character Bios';
+        biographyBtn.innerHTML = `
+            <div class="main-menu-image-container">
+                <img src="Main Menu Buttons/Character Bios.png" alt="Character Bios">
+            </div>
+            <div class="main-menu-label-container">
+                <div class="main-menu-label">Character Bios</div>
+                <div class="main-menu-description">Coming Soon...</div>
+            </div>
+        `;
+        
+        menuButtons.appendChild(globeBtn);
+        menuButtons.appendChild(glossaryBtn);
+        menuButtons.appendChild(biographyBtn);
+        
+        testContainer.appendChild(menuButtons);
+        updateStatus('✓ Menu buttons created', 'success');
+        
+        // Setup event listeners for menu buttons
+        updateStatus('Setting up menu button listeners...', 'info');
+        if (typeof runGlobeComponents === 'function') {
+            globeBtn.addEventListener('click', () => runGlobeComponents());
+            updateStatus('✓ Global Timeline button listener added', 'success');
+        }
+        if (typeof runGlossaryComponents === 'function') {
+            glossaryBtn.addEventListener('click', () => runGlossaryComponents());
+            updateStatus('✓ Concept Glossary button listener added', 'success');
+        }
+        if (typeof runBiographyComponents === 'function') {
+            biographyBtn.addEventListener('click', () => runBiographyComponents());
+            updateStatus('✓ Character Bios button listener added', 'success');
+        }
+        
+        loadedComponents.menu = true;
+        setButtonState('loadMenuBtn', 'loaded');
+        updateStatus('✓ Menu components fully loaded!', 'success');
+        
+    } catch (error) {
+        console.error('Error loading Menu:', error);
+        updateStatus(`✗ Error loading Menu: ${error.message}`, 'error');
+        setButtonState('loadMenuBtn', 'error');
     }
 }
 
@@ -1445,6 +1808,8 @@ async function runGlobeComponents(isAutoLoad = false) {
             if (testContainer) {
                 setTimeout(() => {
                     testContainer.style.display = 'none';
+                    testContainer.style.opacity = '0';
+                    testContainer.style.visibility = 'hidden';
                     
                     // Resize renderer one more time to ensure it matches final layout
                     const globeContainer = document.getElementById('globe-container');
@@ -1494,6 +1859,69 @@ async function killUniversalFeatures() {
 }
 
 /**
+ * Restore main menu on main.html (show test-container, hide globe)
+ * Make it globally accessible
+ */
+window.restoreMainMenu = async function restoreMainMenu() {
+    if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
+        const testContainer = document.querySelector('.test-container');
+        const globeContainer = document.getElementById('globe-container');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        
+        // Ensure menu is loaded (menu is already in HTML on main.html, just mark it as loaded)
+        if (!loadedComponents.menu) {
+            const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
+            if (menuButtons) {
+                // Menu is already in HTML, just mark it as loaded
+                loadedComponents.menu = true;
+                updateStatus('Menu components detected in HTML', 'info');
+            } else {
+                updateStatus('Menu not loaded, loading menu components...', 'info');
+                await loadMenu();
+            }
+        }
+        
+        // Restore menu visibility - ensure it's fully visible
+        if (testContainer) {
+            testContainer.style.display = 'flex';
+            testContainer.classList.remove('fading');
+            testContainer.style.opacity = '1';
+            testContainer.style.visibility = 'visible';
+            // Force visibility with important styles
+            testContainer.style.setProperty('display', 'flex', 'important');
+            testContainer.style.setProperty('opacity', '1', 'important');
+            testContainer.style.setProperty('visibility', 'visible', 'important');
+        }
+        
+        // Hide globe
+        if (globeContainer) {
+            globeContainer.style.display = 'none';
+            globeContainer.classList.remove('loaded');
+        }
+        
+        // Hide loading overlay if visible
+        if (loadingOverlay) {
+            loadingOverlay.classList.remove('active');
+        }
+        
+        // Close any open panels
+        const eventSlide = document.getElementById('eventSlide');
+        const eventsManagePanel = document.getElementById('eventsManagePanel');
+        const filtersPanel = document.getElementById('filtersPanel');
+        
+        if (eventSlide) eventSlide.classList.remove('open');
+        if (eventsManagePanel) eventsManagePanel.classList.remove('open');
+        if (filtersPanel) filtersPanel.classList.remove('open');
+        
+        // Remove active states from buttons
+        const eventsManageToggle = document.getElementById('eventsManageToggle');
+        const filtersToggle = document.getElementById('filtersToggle');
+        if (eventsManageToggle) eventsManageToggle.classList.remove('active');
+        if (filtersToggle) filtersToggle.classList.remove('active');
+    }
+}
+
+/**
  * Kill all Globe Components
  */
 async function killGlobeComponents() {
@@ -1515,6 +1943,10 @@ async function killGlobeComponents() {
     if (loadedComponents.globeBase) {
         await unloadGlobeBase();
     }
+    
+    // On main.html, restore the menu (test-container) when killing globe components
+    // This will also load menu if not already loaded
+    await restoreMainMenu();
     
     updateStatus('✓ All Globe Components killed!', 'success');
 }
@@ -1633,6 +2065,62 @@ async function killBiographyComponents() {
 
 // Setup button event listeners
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('test-loader.js: DOMContentLoaded fired, setting up button listeners...');
+    
+    // Check if we're on main.html and initialize menu as loaded (since it's already in HTML)
+    const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
+    if (isMainPage) {
+        const testContainer = document.querySelector('.test-container');
+        const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
+        
+        // Check if there's a saved mode - if not, ensure menu is visible
+        const savedMode = localStorage.getItem('currentMode');
+        if (!savedMode && testContainer) {
+            // No saved mode - ensure menu is visible
+            testContainer.style.display = 'flex';
+            testContainer.style.opacity = '1';
+            testContainer.style.visibility = 'visible';
+        }
+        
+        if (menuButtons && !loadedComponents.menu) {
+            // Menu is already in HTML, mark it as loaded
+            loadedComponents.menu = true;
+            console.log('Menu components detected in HTML (already loaded)');
+            
+            // Wire up the Global Timeline button if it exists
+            const runGlobeBtn = document.getElementById('runGlobeBtn');
+            if (runGlobeBtn && !runGlobeBtn.hasAttribute('data-listener-attached')) {
+                runGlobeBtn.setAttribute('data-listener-attached', 'true');
+                runGlobeBtn.addEventListener('click', function() {
+                    runGlobeComponents();
+                });
+                console.log('Global Timeline button wired up');
+            }
+            
+            // Wire up the Concept Glossary button if it exists
+            const runGlossaryBtn = document.getElementById('runGlossaryBtn');
+            if (runGlossaryBtn && !runGlossaryBtn.hasAttribute('data-listener-attached')) {
+                runGlossaryBtn.setAttribute('data-listener-attached', 'true');
+                runGlossaryBtn.addEventListener('click', function() {
+                    runGlossaryComponents();
+                });
+                console.log('Concept Glossary button wired up');
+            }
+            
+            // Wire up the Character Bios button if it exists
+            const runBiographyBtn = document.getElementById('runBiographyBtn');
+            if (runBiographyBtn && !runBiographyBtn.hasAttribute('data-listener-attached')) {
+                runBiographyBtn.setAttribute('data-listener-attached', 'true');
+                runBiographyBtn.addEventListener('click', function() {
+                    runBiographyComponents();
+                });
+                console.log('Character Bios button wired up');
+            }
+        } else if (!menuButtons) {
+            console.warn('Menu buttons not found in HTML on main.html');
+        }
+    }
+    
     // Universal features
     const loadPaletteBtn = document.getElementById('loadPaletteBtn');
     const loadMusicBtn = document.getElementById('loadMusicBtn');
@@ -1663,23 +2151,72 @@ document.addEventListener('DOMContentLoaded', function() {
         killUniversalBtn.addEventListener('click', killUniversalFeatures);
     }
     
+    // Menu components
+    const loadMenuBtn = document.getElementById('loadMenuBtn');
+    const runMenuBtn = document.getElementById('runMenuBtn');
+    const killMenuBtn = document.getElementById('killMenuBtn');
+    
+    if (loadMenuBtn) {
+        loadMenuBtn.addEventListener('click', loadMenu);
+    }
+    
+    if (runMenuBtn) {
+        console.log('test-loader.js: Wiring up runMenuBtn');
+        runMenuBtn.addEventListener('click', function() {
+            console.log('runMenuBtn clicked');
+            runMenuComponents();
+        });
+    } else {
+        console.warn('test-loader.js: runMenuBtn not found!');
+    }
+    
+    if (killMenuBtn) {
+        killMenuBtn.addEventListener('click', killMenuComponents);
+    }
+    
     if (loadGlobeBaseBtn) {
-        loadGlobeBaseBtn.addEventListener('click', loadGlobeBase);
+        console.log('test-loader.js: Wiring up loadGlobeBaseBtn');
+        loadGlobeBaseBtn.addEventListener('click', function() {
+            console.log('loadGlobeBaseBtn clicked');
+            loadGlobeBase();
+        });
+    } else {
+        console.warn('test-loader.js: loadGlobeBaseBtn not found!');
     }
     
     if (loadTransportBtn) {
-        loadTransportBtn.addEventListener('click', loadTransport);
+        console.log('test-loader.js: Wiring up loadTransportBtn');
+        loadTransportBtn.addEventListener('click', function() {
+            console.log('loadTransportBtn clicked');
+            loadTransport();
+        });
+    } else {
+        console.warn('test-loader.js: loadTransportBtn not found!');
     }
     
     if (loadControlsBtn) {
-        loadControlsBtn.addEventListener('click', loadControls);
+        console.log('test-loader.js: Wiring up loadControlsBtn');
+        loadControlsBtn.addEventListener('click', function() {
+            console.log('loadControlsBtn clicked');
+            loadControls();
+        });
+    } else {
+        console.warn('test-loader.js: loadControlsBtn not found!');
     }
     
     if (loadEventsBtn) {
-        loadEventsBtn.addEventListener('click', loadEvents);
+        console.log('test-loader.js: Wiring up loadEventsBtn');
+        loadEventsBtn.addEventListener('click', function() {
+            console.log('loadEventsBtn clicked');
+            loadEvents();
+        });
+    } else {
+        console.warn('test-loader.js: loadEventsBtn not found!');
     }
     
-    if (runGlobeBtn) {
+    // Only wire up if not already wired (main.html buttons are wired earlier)
+    if (runGlobeBtn && !runGlobeBtn.hasAttribute('data-listener-attached')) {
+        runGlobeBtn.setAttribute('data-listener-attached', 'true');
         runGlobeBtn.addEventListener('click', runGlobeComponents);
     }
     
@@ -1691,7 +2228,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const runGlossaryBtn = document.getElementById('runGlossaryBtn');
     const killGlossaryBtn = document.getElementById('killGlossaryBtn');
     
-    if (runGlossaryBtn) {
+    // Only wire up if not already wired (main.html buttons are wired earlier)
+    if (runGlossaryBtn && !runGlossaryBtn.hasAttribute('data-listener-attached')) {
+        runGlossaryBtn.setAttribute('data-listener-attached', 'true');
         runGlossaryBtn.addEventListener('click', runGlossaryComponents);
     }
     
@@ -1703,8 +2242,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const runBiographyBtn = document.getElementById('runBiographyBtn');
     const killBiographyBtn = document.getElementById('killBiographyBtn');
     
-    if (runBiographyBtn) {
-        runBiographyBtn.addEventListener('click', runBiographyComponents);
+    // Wire up Character Bios button (works on both test.html and main.html)
+    if (runBiographyBtn && !runBiographyBtn.hasAttribute('data-listener-attached')) {
+        runBiographyBtn.setAttribute('data-listener-attached', 'true');
+        runBiographyBtn.addEventListener('click', function() {
+            runBiographyComponents();
+        });
     }
     
     if (killBiographyBtn) {

@@ -359,6 +359,9 @@
             if (window.EventManager) {
                 const eventManager = new EventManager();
                 eventManager.init().then(() => {
+                    // Setup event listeners after initialization
+                    eventManager.setupEventListeners();
+                    
                     // After EventManager loads events, sync with DataModel if GlobeController is ready
                     if (window.globeController && window.globeController.dataModel) {
                         window.globeController.dataModel.events = [...eventManager.events];

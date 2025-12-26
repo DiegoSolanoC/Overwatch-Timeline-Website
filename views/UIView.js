@@ -922,14 +922,34 @@ export class UIView {
                 // Close current event
                 this.hideEventSlide();
                 
-                // Open event manager
-                const panel = document.getElementById('eventsManagePanel');
-                const toggleBtn = document.getElementById('eventsManageToggle');
-                if (panel) {
-                    panel.classList.add('open');
-                }
-                if (toggleBtn) {
-                    toggleBtn.classList.add('active');
+                // On main.html, restore the menu if it's hidden (exit to menu)
+                if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
+                    if (typeof restoreMainMenu === 'function') {
+                        restoreMainMenu();
+                    } else {
+                        // Fallback if function doesn't exist
+                        const testContainer = document.querySelector('.test-container');
+                        if (testContainer && testContainer.style.display === 'none') {
+                            testContainer.style.display = 'flex';
+                            testContainer.classList.remove('fading');
+                            testContainer.style.opacity = '1';
+                            
+                            const globeContainer = document.getElementById('globe-container');
+                            if (globeContainer) {
+                                globeContainer.style.display = 'none';
+                            }
+                        }
+                    }
+                } else {
+                    // On other pages, just open event manager
+                    const panel = document.getElementById('eventsManagePanel');
+                    const toggleBtn = document.getElementById('eventsManageToggle');
+                    if (panel) {
+                        panel.classList.add('open');
+                    }
+                    if (toggleBtn) {
+                        toggleBtn.classList.add('active');
+                    }
                 }
             });
         }

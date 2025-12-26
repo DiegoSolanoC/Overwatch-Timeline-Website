@@ -46,23 +46,70 @@ class EventManager {
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
         this.eventItemVariantIndices = new Map(); // Track current variant index for each event item
+        this.listenersSetup = false; // Track if listeners have been set up
+    }
+
+    /**
+     * Helper function to update status (if available)
+     */
+    updateStatus(message, type = 'info') {
+        // Check if updateStatus function exists (from test-loader.js or script.js)
+        if (typeof window.updateStatus === 'function') {
+            window.updateStatus(message, type);
+        }
     }
 
     /**
      * Initialize the event manager
      */
     async init() {
+        const initStartTime = performance.now();
+        console.log('EventManager: Starting initialization...');
+        this.updateStatus('EventManager: Starting initialization...', 'info');
+        
+        // Reset state to ensure clean initialization
+        this.listenersSetup = false;
+        this.events = [];
+        this.cities = [];
+        this.airports = [];
+        this.seaports = [];
+        this.heroes = [];
+        this.factions = [];
+        this.displayNames = {};
+        this.locationCache.clear();
+        this.variantData = [];
+        this.activeVariantIndex = 0;
+        this.eventItemVariantIndices.clear();
+        this.unsavedEventIndices.clear();
+        
+        const loadDataStartTime = performance.now();
+        this.updateStatus('EventManager: Loading locations data (cities, airports, seaports)...', 'info');
         await this.loadLocationsData();
+        console.log(`EventManager: loadLocationsData took ${(performance.now() - loadDataStartTime).toFixed(2)}ms`);
+        this.updateStatus(`EventManager: Locations data loaded (${(performance.now() - loadDataStartTime).toFixed(0)}ms)`, 'success');
+        
         // Don't call setupEventListeners here - it will be called after buttons are created
         // this.setupEventListeners();
+        
+        const loadEventsStartTime = performance.now();
+        this.updateStatus('EventManager: Loading events from storage...', 'info');
         await this.loadEvents();
+        console.log(`EventManager: loadEvents took ${(performance.now() - loadEventsStartTime).toFixed(2)}ms`);
+        this.updateStatus(`EventManager: Loaded ${this.events.length} events (${(performance.now() - loadEventsStartTime).toFixed(0)}ms)`, 'success');
         
         // Ensure DOM is ready before rendering
+        this.updateStatus('EventManager: Checking DOM readiness...', 'info');
+        this.updateStatus(`EventManager: document.readyState = ${document.readyState}`, 'info');
+        
+        this.updateStatus('EventManager: Preparing to render events to DOM...', 'info');
         if (document.readyState === 'loading') {
+            this.updateStatus('EventManager: DOM still loading, waiting for DOMContentLoaded...', 'info');
             document.addEventListener('DOMContentLoaded', () => {
+                this.updateStatus('EventManager: DOMContentLoaded fired, rendering events...', 'info');
                 this.renderEvents();
             });
         } else {
+            this.updateStatus('EventManager: DOM already ready, rendering immediately...', 'info');
             this.renderEvents();
         }
         
@@ -71,7 +118,10 @@ class EventManager {
             const eventsList = document.getElementById('eventsList');
             if (eventsList && this.events.length > 0 && eventsList.children.length === 0) {
                 console.log('EventManager: Retrying render after delay (DOM might not have been ready)');
+                this.updateStatus('EventManager: Retrying render (DOM might not have been ready)', 'info');
                 this.renderEvents();
+            } else {
+                this.updateStatus('EventManager: Render check passed (events already rendered or no events)', 'info');
             }
         }, 100);
         
@@ -84,7 +134,9 @@ class EventManager {
             console.log('EventManager: Button visibility ensured');
         }
         
-        console.log('EventManager: Initialized with', this.events.length, 'events');
+        const initTime = performance.now() - initStartTime;
+        console.log(`EventManager: Initialized with ${this.events.length} events in ${initTime.toFixed(2)}ms`);
+        this.updateStatus(`EventManager: Initialization complete! (${this.events.length} events, ${initTime.toFixed(0)}ms total)`, 'success');
         return Promise.resolve(); // Return promise for chaining
     }
 
@@ -101,37 +153,84 @@ class EventManager {
 
     /**
      * Load locations data for city lookup
+     * Optimized to load all data in parallel instead of sequentially
      */
     async loadLocationsData() {
-        try {
-            const response = await fetch('data/locations.json');
-            const data = await response.json();
+        // Load all data in parallel for better performance
+        this.updateStatus('EventManager: Starting data fetch (3 files in parallel)...', 'info');
+        const fetchStartTime = performance.now();
+        
+        // Add timeout protection to prevent hanging
+        const fetchWithTimeout = (url, timeout = 10000) => {
+            return Promise.race([
+                fetch(url + '?' + Date.now()).then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    }
+                    return res.json();
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error(`Timeout: ${url} took longer than ${timeout}ms`)), timeout)
+                )
+            ]);
+        };
+        
+        this.updateStatus('EventManager: Fetching locations.json...', 'info');
+        const [locationsResult, displayNamesResult, manifestResult] = await Promise.allSettled([
+            fetchWithTimeout('data/locations.json').then(data => {
+                this.updateStatus('EventManager: locations.json response received, parsing...', 'info');
+                return data;
+            }),
+            fetchWithTimeout('data/location-display-names.json').then(data => {
+                this.updateStatus('EventManager: location-display-names.json response received, parsing...', 'info');
+                return data;
+            }),
+            fetchWithTimeout('manifest.json').then(data => {
+                this.updateStatus('EventManager: manifest.json response received, parsing...', 'info');
+                return data;
+            })
+        ]);
+        
+        const fetchTime = performance.now() - fetchStartTime;
+        this.updateStatus(`EventManager: All 3 files fetched (${fetchTime.toFixed(0)}ms)`, 'success');
+        
+        // Process locations data
+        this.updateStatus('EventManager: Processing locations.json data...', 'info');
+        if (locationsResult.status === 'fulfilled') {
+            const data = locationsResult.value;
             this.cities = data.cities || [];
             this.airports = data.airports || [];
             this.seaports = data.seaports || [];
-        } catch (error) {
-            console.error('Error loading locations data:', error);
+            this.updateStatus(`EventManager: Processed ${this.cities.length} cities, ${this.airports.length} airports, ${this.seaports.length} seaports`, 'success');
+        } else {
+            console.error('Error loading locations data:', locationsResult.reason);
+            this.updateStatus('EventManager: Error loading locations.json', 'error');
         }
         
-        // Load display names mapping
-        try {
-            const displayNamesResponse = await fetch('data/location-display-names.json');
-            const displayNamesData = await displayNamesResponse.json();
+        // Process display names
+        this.updateStatus('EventManager: Processing location-display-names.json data...', 'info');
+        if (displayNamesResult.status === 'fulfilled') {
+            const displayNamesData = displayNamesResult.value;
             this.displayNames = displayNamesData.displayNames || {};
-        } catch (error) {
-            console.error('Error loading display names:', error);
+            const displayNamesCount = Object.keys(this.displayNames).length;
+            this.updateStatus(`EventManager: Processed ${displayNamesCount} display name mappings`, 'success');
+        } else {
+            console.error('Error loading display names:', displayNamesResult.reason);
             this.displayNames = {};
+            this.updateStatus('EventManager: Error loading location-display-names.json', 'error');
         }
         
-        // Load manifest for filter autocomplete
-        try {
-            const manifestResponse = await fetch('manifest.json');
-            const manifest = await manifestResponse.json();
+        // Process manifest
+        this.updateStatus('EventManager: Processing manifest.json data...', 'info');
+        if (manifestResult.status === 'fulfilled') {
+            const manifest = manifestResult.value;
             this.heroes = manifest.heroes || [];
             // Store full faction objects (with filename, displayName, number)
             this.factions = manifest.factions || [];
-        } catch (error) {
-            console.error('Error loading manifest:', error);
+            this.updateStatus(`EventManager: Processed ${this.heroes.length} heroes, ${this.factions.length} factions`, 'success');
+        } else {
+            console.error('Error loading manifest:', manifestResult.reason);
+            this.updateStatus('EventManager: Error loading manifest.json', 'error');
         }
     }
 
@@ -142,30 +241,64 @@ class EventManager {
         // First, always try to load from events.json (source of truth)
         let fileEventCount = 0;
         let fileEvents = null;
+        this.updateStatus('EventManager: Starting events load process...', 'info');
+        
+        this.updateStatus('EventManager: Fetching events.json file...', 'info');
+        const fetchStartTime = performance.now();
         try {
-            const response = await fetch('data/events.json?' + Date.now()); // Cache busting
-            if (response.ok) {
-                const data = await response.json();
-                if (data.events && Array.isArray(data.events) && data.events.length > 0) {
-                    fileEvents = data.events;
-                    fileEventCount = data.events.length;
-                    console.log('EventManager: Found', fileEventCount, 'events in data/events.json');
-                }
+            // Add timeout protection
+            const fetchWithTimeout = (url, timeout = 10000) => {
+                return Promise.race([
+                    fetch(url + '?' + Date.now()).then(res => {
+                        if (!res.ok) {
+                            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                        }
+                        return res.json();
+                    }),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error(`Timeout: ${url} took longer than ${timeout}ms`)), timeout)
+                    )
+                ]);
+            };
+            
+            const data = await fetchWithTimeout('data/events.json');
+            const fetchTime = performance.now() - fetchStartTime;
+            this.updateStatus(`EventManager: events.json fetch completed (${fetchTime.toFixed(0)}ms)`, 'info');
+            
+            if (data && data.events && Array.isArray(data.events) && data.events.length > 0) {
+                fileEvents = data.events;
+                fileEventCount = data.events.length;
+                console.log('EventManager: Found', fileEventCount, 'events in data/events.json');
+                this.updateStatus(`EventManager: Found ${fileEventCount} events in events.json`, 'success');
+            } else {
+                this.updateStatus('EventManager: events.json has no events array or is empty', 'info');
             }
         } catch (error) {
             console.log('EventManager: Could not load from data/events.json (file may not exist):', error.message);
+            this.updateStatus(`EventManager: events.json fetch error: ${error.message}`, 'error');
+            this.updateStatus('EventManager: Will try localStorage if available', 'info');
         }
         
         // Check localStorage for comparison
+        this.updateStatus('EventManager: Checking localStorage for saved events...', 'info');
+        const localStorageStartTime = performance.now();
         const savedEvents = localStorage.getItem('timelineEvents');
+        const localStorageTime = performance.now() - localStorageStartTime;
+        this.updateStatus(`EventManager: localStorage access completed (${localStorageTime.toFixed(0)}ms)`, 'info');
         console.log('EventManager: Checking localStorage for events...');
         console.log('EventManager: localStorage.getItem("timelineEvents") =', savedEvents ? 'Found data (' + savedEvents.length + ' chars)' : 'null');
         
         if (savedEvents) {
             try {
+                this.updateStatus('EventManager: Parsing localStorage events...', 'info');
+                const parseStartTime = performance.now();
                 const localStorageEvents = JSON.parse(savedEvents);
+                const parseTime = performance.now() - parseStartTime;
+                this.updateStatus(`EventManager: localStorage parsed (${parseTime.toFixed(0)}ms)`, 'info');
+                
                 const localStorageCount = localStorageEvents.length;
                 console.log('EventManager: Found', localStorageCount, 'events in localStorage');
+                this.updateStatus(`EventManager: Found ${localStorageCount} events in localStorage`, 'success');
                 
                 // Prefer localStorage if it has user's saved changes (user edits take priority)
                 // Only use file if localStorage is empty or file has significantly more events (file was updated externally)
@@ -173,6 +306,7 @@ class EventManager {
                     // If file has more events (likely updated externally), use file
                     if (fileEventCount > localStorageCount + 5) {
                         console.log('EventManager: events.json has significantly more events (' + fileEventCount + ' vs ' + localStorageCount + '), using file version');
+                        this.updateStatus(`EventManager: Using events.json (${fileEventCount} events, file has more than localStorage)`, 'info');
                         this.events = fileEvents;
                         this.saveEvents();
                         this.syncEventsToGlobe();
@@ -180,12 +314,14 @@ class EventManager {
                     }
                     // Otherwise, prefer localStorage (user's saved changes)
                     console.log('EventManager: Using localStorage version (user\'s saved changes) -', localStorageCount, 'events');
+                    this.updateStatus(`EventManager: Using localStorage (${localStorageCount} events, user's saved changes)`, 'info');
                 }
                 
                 // Use localStorage (user's saved changes take priority)
                 this.events = localStorageEvents;
                 console.log('EventManager: Using localStorage version (', this.events.length, 'events)');
                 console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
+                this.updateStatus(`EventManager: Using ${this.events.length} events from localStorage`, 'success');
                 
                 // Sync with DataModel and refresh markers
                 this.syncEventsToGlobe();
@@ -193,9 +329,11 @@ class EventManager {
             } catch (error) {
                 console.error('EventManager: Error parsing saved events:', error);
                 console.error('EventManager: Raw data:', savedEvents.substring(0, 200));
+                this.updateStatus('EventManager: Error parsing localStorage (corrupted?), trying events.json...', 'error');
                 // If localStorage is corrupted, clear it and use file
                 if (fileEvents && fileEventCount > 0) {
                     console.log('EventManager: localStorage corrupted, using file version');
+                    this.updateStatus(`EventManager: Using events.json (${fileEventCount} events, localStorage was corrupted)`, 'info');
                     localStorage.removeItem('timelineEvents');
                     this.events = fileEvents;
                     this.saveEvents();
@@ -210,6 +348,7 @@ class EventManager {
             this.events = fileEvents;
                     console.log('EventManager: Loaded', this.events.length, 'events from data/events.json');
                     console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
+                    this.updateStatus(`EventManager: Using ${this.events.length} events from events.json`, 'success');
                     
                     // Save to localStorage for future use
                     this.saveEvents();
@@ -222,6 +361,7 @@ class EventManager {
         // No saved events - use empty array
         this.events = [];
         console.log('EventManager: No saved events found, using empty array');
+        this.updateStatus('EventManager: No events found, starting with empty array', 'info');
         
         // Sync empty array with DataModel
         this.syncEventsToGlobe();
@@ -392,10 +532,33 @@ class EventManager {
      * Setup event listeners
      */
     setupEventListeners() {
+        console.log('EventManager: setupEventListeners called');
+        
         // Toggle panel
         const toggleBtn = document.getElementById('eventsManageToggle');
         const panel = document.getElementById('eventsManagePanel');
         const closeBtn = document.getElementById('eventsManageClose');
+        
+        if (!panel) {
+            console.error('EventManager: eventsManagePanel not found! Make sure the HTML panel exists in the page.');
+            console.error('EventManager: Current page:', window.location.pathname);
+            // Try again after a short delay in case DOM isn't ready
+            setTimeout(() => {
+                console.log('EventManager: Retrying setupEventListeners after delay...');
+                this.setupEventListeners();
+            }, 200);
+            return;
+        }
+        
+        // If listeners already set up, skip (but allow re-setup if needed)
+        if (this.listenersSetup && toggleBtn && panel) {
+            console.log('EventManager: Listeners already set up, skipping...');
+            return;
+        }
+        
+        console.log('EventManager: Panel found, setting up listeners...');
+        console.log('EventManager: Toggle button found:', !!toggleBtn);
+        console.log('EventManager: Close button found:', !!closeBtn);
 
         // Ensure button is always visible (never hide it)
         if (toggleBtn) {
@@ -521,11 +684,24 @@ class EventManager {
         if (addBtn) {
             if (isGitHubPages) {
                 addBtn.style.display = 'none';
+                console.log('EventManager: Add Event button hidden (GitHub Pages)');
             } else {
-                addBtn.addEventListener('click', () => {
+                // Remove any existing listeners by cloning
+                const addBtnClone = addBtn.cloneNode(true);
+                addBtn.parentNode.replaceChild(addBtnClone, addBtn);
+                const newAddBtn = document.getElementById('addEventBtn');
+                
+                newAddBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('EventManager: Add Event button clicked');
                     this.openEditModal(null);
                 });
+                console.log('EventManager: Add Event button listener attached');
             }
+        } else {
+            console.warn('EventManager: addEventBtn not found! Make sure events-manage-panel HTML exists.');
+            console.warn('EventManager: Panel exists:', !!panel, 'Panel ID:', panel?.id);
         }
 
         // Save events button
@@ -676,6 +852,10 @@ class EventManager {
         
         // Don't close modal on outside click - only buttons can close it
         // Removed the outside click handler
+        
+        // Mark listeners as set up
+        this.listenersSetup = true;
+        console.log('EventManager: setupEventListeners completed successfully');
     }
 
     /**
@@ -685,11 +865,17 @@ class EventManager {
         const eventsList = document.getElementById('eventsList');
         if (!eventsList) {
             console.error('EventManager: eventsList element not found!');
+            this.updateStatus('EventManager: Error - eventsList element not found!', 'error');
             return;
         }
 
         console.log('EventManager: Rendering', this.events.length, 'events');
         console.log('EventManager: Events data:', this.events);
+        if (this.events.length > 0) {
+            this.updateStatus(`EventManager: Rendering ${this.events.length} events to DOM...`, 'info');
+        } else {
+            this.updateStatus('EventManager: No events to render', 'info');
+        }
 
         // Update event count display
         const eventsCountElement = document.getElementById('eventsCount');
@@ -706,13 +892,18 @@ class EventManager {
             return;
         }
 
-        // Create all event items synchronously (fast)
+        // Create all event items using document fragment for better performance
+        const renderStartTime = performance.now();
+        const fragment = document.createDocumentFragment();
         this.events.forEach((event, index) => {
             const eventItem = this.createEventItem(event, index);
-            eventsList.appendChild(eventItem);
+            fragment.appendChild(eventItem);
         });
+        eventsList.appendChild(fragment);
 
+        const renderTime = performance.now() - renderStartTime;
         console.log('EventManager: Rendered', this.events.length, 'event items');
+        this.updateStatus(`EventManager: Rendered ${this.events.length} events (${renderTime.toFixed(0)}ms)`, 'success');
 
         // Setup drag and drop
         this.setupDragAndDrop();
@@ -800,11 +991,12 @@ class EventManager {
         // Cache busting is only needed when we know an image has been updated
         const imagePathWithCache = imagePath || null;
         
-        // Warning icon for missing description - check if description is empty or missing
+        // Warning icon for unfinished event - check if event is missing important information
         // Positioned on the RIGHT side (top-right corner) to avoid overlap with multi-event badge on left
         const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
-        const descriptionWarning = !hasDescription 
-            ? `<div class="description-warning-badge" title="Missing description">!</div>`
+        const isUnfinished = !hasDescription;
+        const unfinishedWarning = isUnfinished 
+            ? `<div class="description-warning-badge" title="Unfinished event: Missing description">!</div>`
             : '';
         
         // Always use the same container structure to maintain consistent sizing
@@ -812,8 +1004,8 @@ class EventManager {
         // Add loading="lazy" for better performance - images load as they come into view
         // Include warning icon inside the image container for proper positioning
         const imageHtml = imagePathWithCache
-            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;">${descriptionWarning}<img src="${imagePathWithCache}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
-            : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">${descriptionWarning}No Image</div>`;
+            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;">${unfinishedWarning}<img src="${imagePathWithCache}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
+            : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">${unfinishedWarning}No Image</div>`;
 
         // Multi-event indicator badge - show current variant / total (e.g., "1/2")
         const multiEventBadge = isMultiEvent 
