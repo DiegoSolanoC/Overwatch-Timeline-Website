@@ -45,10 +45,7 @@ class EventManager {
         this.displayNames = {}; // Mapping of location names to display names
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
-        this.reverseGeocodeQueue = []; // Queue for reverse geocoding requests
-        this.reverseGeocodeInProgress = false; // Track if a request is in progress
-        this.lastReverseGeocodeTime = 0; // Track last API call time for rate limiting
-        this.reverseGeocodeMinDelay = 1000; // Minimum 1 second between Nominatim API calls
+        this.eventItemVariantIndices = new Map(); // Track current variant index for each event item
     }
 
     /**
@@ -56,7 +53,8 @@ class EventManager {
      */
     async init() {
         await this.loadLocationsData();
-        this.setupEventListeners();
+        // Don't call setupEventListeners here - it will be called after buttons are created
+        // this.setupEventListeners();
         await this.loadEvents();
         
         // Ensure DOM is ready before rendering
@@ -141,15 +139,52 @@ class EventManager {
      * Load events from localStorage or fetch from locations.json
      */
     async loadEvents() {
-        // Try to load from localStorage first (user's saved changes)
+        // First, always try to load from events.json (source of truth)
+        let fileEventCount = 0;
+        let fileEvents = null;
+        try {
+            const response = await fetch('data/events.json?' + Date.now()); // Cache busting
+            if (response.ok) {
+                const data = await response.json();
+                if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+                    fileEvents = data.events;
+                    fileEventCount = data.events.length;
+                    console.log('EventManager: Found', fileEventCount, 'events in data/events.json');
+                }
+            }
+        } catch (error) {
+            console.log('EventManager: Could not load from data/events.json (file may not exist):', error.message);
+        }
+        
+        // Check localStorage for comparison
         const savedEvents = localStorage.getItem('timelineEvents');
         console.log('EventManager: Checking localStorage for events...');
         console.log('EventManager: localStorage.getItem("timelineEvents") =', savedEvents ? 'Found data (' + savedEvents.length + ' chars)' : 'null');
         
         if (savedEvents) {
             try {
-                this.events = JSON.parse(savedEvents);
-                console.log('EventManager: Successfully parsed', this.events.length, 'events from localStorage');
+                const localStorageEvents = JSON.parse(savedEvents);
+                const localStorageCount = localStorageEvents.length;
+                console.log('EventManager: Found', localStorageCount, 'events in localStorage');
+                
+                // Prefer localStorage if it has user's saved changes (user edits take priority)
+                // Only use file if localStorage is empty or file has significantly more events (file was updated externally)
+                if (fileEvents && fileEventCount > 0) {
+                    // If file has more events (likely updated externally), use file
+                    if (fileEventCount > localStorageCount + 5) {
+                        console.log('EventManager: events.json has significantly more events (' + fileEventCount + ' vs ' + localStorageCount + '), using file version');
+                        this.events = fileEvents;
+                        this.saveEvents();
+                        this.syncEventsToGlobe();
+                        return;
+                    }
+                    // Otherwise, prefer localStorage (user's saved changes)
+                    console.log('EventManager: Using localStorage version (user\'s saved changes) -', localStorageCount, 'events');
+                }
+                
+                // Use localStorage (user's saved changes take priority)
+                this.events = localStorageEvents;
+                console.log('EventManager: Using localStorage version (', this.events.length, 'events)');
                 console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                 
                 // Sync with DataModel and refresh markers
@@ -158,16 +193,21 @@ class EventManager {
             } catch (error) {
                 console.error('EventManager: Error parsing saved events:', error);
                 console.error('EventManager: Raw data:', savedEvents.substring(0, 200));
+                // If localStorage is corrupted, clear it and use file
+                if (fileEvents && fileEventCount > 0) {
+                    console.log('EventManager: localStorage corrupted, using file version');
+                    localStorage.removeItem('timelineEvents');
+                    this.events = fileEvents;
+                    this.saveEvents();
+                    this.syncEventsToGlobe();
+                    return;
+                }
             }
         }
 
-        // If no localStorage, try to load from data/events.json (for GitHub Pages or initial setup)
-        try {
-            const response = await fetch('data/events.json');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.events && Array.isArray(data.events) && data.events.length > 0) {
-                    this.events = data.events;
+        // If no localStorage, use events.json if available
+        if (fileEvents && fileEventCount > 0) {
+            this.events = fileEvents;
                     console.log('EventManager: Loaded', this.events.length, 'events from data/events.json');
                     console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                     
@@ -177,10 +217,6 @@ class EventManager {
                     // Sync with DataModel and refresh markers
                     this.syncEventsToGlobe();
                     return;
-                }
-            }
-        } catch (error) {
-            console.log('EventManager: Could not load from data/events.json (file may not exist):', error.message);
         }
 
         // No saved events - use empty array
@@ -369,9 +405,23 @@ class EventManager {
         }
 
         if (toggleBtn && panel) {
-            toggleBtn.addEventListener('click', (e) => {
+            // Remove existing listener by cloning the button to prevent duplicates
+            const toggleBtnClone = toggleBtn.cloneNode(true);
+            toggleBtn.parentNode.replaceChild(toggleBtnClone, toggleBtn);
+            const newToggleBtn = document.getElementById('eventsManageToggle');
+            
+            // Re-get panel reference after button clone (in case DOM changed)
+            const currentPanel = document.getElementById('eventsManagePanel');
+            if (!currentPanel) {
+                console.error('EventManager: eventsManagePanel not found after button setup');
+                return;
+            }
+            
+            newToggleBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                console.log('EventManager: Toggle button clicked');
                 
                 // Close music panel if open
                 const musicPanel = document.getElementById('musicPanel');
@@ -399,13 +449,27 @@ class EventManager {
                 }
                 
                 // Toggle event management panel (works normally on both localhost and GitHub Pages)
-                panel.classList.toggle('open');
-                if (panel.classList.contains('open')) {
-                    toggleBtn.classList.add('active');
+                const wasOpen = currentPanel.classList.contains('open');
+                console.log('EventManager: Panel was open:', wasOpen);
+                currentPanel.classList.toggle('open');
+                const isNowOpen = currentPanel.classList.contains('open');
+                console.log('EventManager: Panel is now open:', isNowOpen);
+                
+                if (isNowOpen) {
+                    newToggleBtn.classList.add('active');
                     this.renderEvents();
                 } else {
-                    toggleBtn.classList.remove('active');
+                    // Reset all multi-variant events to first variant when closing
+                    if (wasOpen) {
+                        this.resetAllEventVariants();
+                    }
+                    newToggleBtn.classList.remove('active');
                 }
+            });
+        } else {
+            console.error('EventManager: setupEventListeners - toggleBtn or panel not found', {
+                toggleBtn: !!toggleBtn,
+                panel: !!panel
             });
         }
 
@@ -415,6 +479,9 @@ class EventManager {
                 if (window.SoundEffectsManager) {
                     window.SoundEffectsManager.play('eventManager');
                 }
+                
+                // Reset all multi-variant events to first variant
+                this.resetAllEventVariants();
                 
                 panel.classList.remove('open');
                 const toggleBtn = document.getElementById('eventsManageToggle');
@@ -435,6 +502,9 @@ class EventManager {
                     e.target !== toggleBtn &&
                     !editModal.contains(e.target) &&
                     !editModal.classList.contains('open')) {
+                    // Reset all multi-variant events to first variant
+                    this.resetAllEventVariants();
+                    
                     panel.classList.remove('open');
                     if (toggleBtn) {
                         toggleBtn.classList.remove('active');
@@ -673,33 +743,84 @@ class EventManager {
             item.classList.add('multi-event');
         }
 
-        // Get location name - use cityDisplayName if available, otherwise get from location lookup
-        let locationName = event.cityDisplayName || null;
+        // Get location name - for multi-events, use first variant's cityDisplayName
+        // Otherwise use event's cityDisplayName or get from location lookup
+        let locationName = null;
+        let locationLat = event.lat;
+        let locationLon = event.lon;
+        
+        if (isMultiEvent && event.variants && event.variants.length > 0) {
+            // Use first variant's cityDisplayName and location
+            const firstVariant = event.variants[0];
+            locationName = firstVariant.cityDisplayName || null;
+            if (firstVariant.lat !== undefined) {
+                locationLat = firstVariant.lat;
+            }
+            if (firstVariant.lon !== undefined) {
+                locationLon = firstVariant.lon;
+            }
+        } else {
+            locationName = event.cityDisplayName || null;
+        }
+        
         if (!locationName) {
-            locationName = this.getLocationName(event.lat, event.lon);
+            locationName = this.getLocationName(locationLat, locationLon);
         }
 
-        // For multi-events, show the first variant; otherwise show the main event
-        const displayEvent = isMultiEvent ? event.variants[0] : event;
+        // For multi-events, track and use current variant index (default to 0)
+        let currentVariantIndex = 0;
+        if (isMultiEvent) {
+            const itemKey = `event-${index}`;
+            if (!this.eventItemVariantIndices.has(itemKey)) {
+                this.eventItemVariantIndices.set(itemKey, 0);
+            }
+            currentVariantIndex = this.eventItemVariantIndices.get(itemKey);
+        }
+        
+        // For multi-events, show the current variant; otherwise show the main event
+        const displayEvent = isMultiEvent ? event.variants[currentVariantIndex] : event;
         const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
         
-        // Add cache busting to ensure latest images load
-        const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const imagePathWithCache = imagePath ? `${imagePath}${cacheBuster}` : null;
+        // Update location for current variant
+        if (isMultiEvent && event.variants[currentVariantIndex]) {
+            const currentVariant = event.variants[currentVariantIndex];
+            locationName = currentVariant.cityDisplayName || null;
+            if (currentVariant.lat !== undefined) {
+                locationLat = currentVariant.lat;
+            }
+            if (currentVariant.lon !== undefined) {
+                locationLon = currentVariant.lon;
+            }
+            if (!locationName) {
+                locationName = this.getLocationName(locationLat, locationLon);
+            }
+        }
+        
+        // Don't use cache busting for initial loads - let browser cache work for performance
+        // Cache busting is only needed when we know an image has been updated
+        const imagePathWithCache = imagePath || null;
+        
+        // Warning icon for missing description - check if description is empty or missing
+        // Positioned on the RIGHT side (top-right corner) to avoid overlap with multi-event badge on left
+        const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
+        const descriptionWarning = !hasDescription 
+            ? `<div class="description-warning-badge" title="Missing description">!</div>`
+            : '';
         
         // Always use the same container structure to maintain consistent sizing
         // Use a wrapper div to ensure the square space is always shown
+        // Add loading="lazy" for better performance - images load as they come into view
+        // Include warning icon inside the image container for proper positioning
         const imageHtml = imagePathWithCache
-            ? `<div class="event-item-preview-image" style="background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img src="${imagePathWithCache}" alt="${displayEvent.name}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="console.error('Failed to load image:', '${imagePath}'); this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload="console.log('Image loaded successfully:', '${imagePath}');" loading="lazy"></div>`
-            : `<div class="event-item-preview-image" style="display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">No Image</div>`;
+            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;">${descriptionWarning}<img src="${imagePathWithCache}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
+            : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">${descriptionWarning}No Image</div>`;
 
-        // Multi-event indicator badge
+        // Multi-event indicator badge - show current variant / total (e.g., "1/2")
         const multiEventBadge = isMultiEvent 
-            ? `<div class="multi-event-badge" title="Multi-Event: ${event.variants.length} variants">${event.variants.length}×</div>`
+            ? `<div class="multi-event-badge" data-event-index="${index}" title="Click to cycle through variants">${currentVariantIndex + 1}/${event.variants.length}</div>`
             : '';
 
-        // On GitHub Pages, hide drag handle and edit/delete buttons, but show View button
-        const dragHandle = isGitHubPages ? '' : '<div class="event-item-drag-handle">☰</div>';
+        // On GitHub Pages, hide edit/delete buttons, but show View button
         const actionButtons = isGitHubPages ? `
             <div class="event-item-actions">
                 <div class="event-item-actions-row">
@@ -719,9 +840,10 @@ class EventManager {
         `;
 
         item.innerHTML = `
-            ${dragHandle}
+            <div style="position: relative;">
             ${imageHtml}
             ${multiEventBadge}
+            </div>
             <div class="event-item-info">
                 <h3 class="event-item-title">${getDisplayEventName(displayEvent.name)}</h3>
                 <p class="event-item-location"><img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
@@ -739,12 +861,20 @@ class EventManager {
                 e.stopPropagation();
                 this.openEventFromList(event, index);
             });
+            // Prevent dragging when clicking on button
+            viewBtn.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
         }
 
         if (editBtn && !isGitHubPages) {
             editBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.openEditModal(index);
+            });
+            // Prevent dragging when clicking on button
+            editBtn.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
             });
         }
 
@@ -753,9 +883,105 @@ class EventManager {
                 e.stopPropagation();
                 this.deleteEvent(index);
             });
+            // Prevent dragging when clicking on button
+            deleteBtn.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        // Add click handler for multi-event badge to cycle through variants
+        if (isMultiEvent) {
+            const badge = item.querySelector('.multi-event-badge');
+            if (badge) {
+                badge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.cycleEventVariant(index, event, item);
+                });
+                // Prevent dragging when clicking on badge
+                badge.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                });
+            }
         }
 
         return item;
+    }
+    
+    /**
+     * Cycle through variants for a multi-event item
+     */
+    cycleEventVariant(eventIndex, event, itemElement) {
+        if (!event.variants || event.variants.length <= 1) return;
+        
+        const itemKey = `event-${eventIndex}`;
+        let currentIndex = this.eventItemVariantIndices.get(itemKey) || 0;
+        
+        // Cycle to next variant (wrap around)
+        currentIndex = (currentIndex + 1) % event.variants.length;
+        this.eventItemVariantIndices.set(itemKey, currentIndex);
+        
+        // Play switch event sound when switching variants
+        if (window.SoundEffectsManager) {
+            window.SoundEffectsManager.play('switchEvent');
+        }
+        
+        // Update the preview
+        this.updateEventItemPreview(eventIndex, event, itemElement, currentIndex);
+    }
+    
+    /**
+     * Reset all multi-variant events to the first variant
+     */
+    resetAllEventVariants() {
+        // Clear all variant indices (they will default to 0 when accessed)
+        this.eventItemVariantIndices.clear();
+        
+        // Re-render events to show first variant in all previews
+        this.renderEvents();
+    }
+    
+    /**
+     * Update the preview for an event item with a specific variant
+     */
+    updateEventItemPreview(eventIndex, event, itemElement, variantIndex) {
+        const variant = event.variants[variantIndex];
+        
+        // Update image
+        const imageContainer = itemElement.querySelector('.event-item-preview-image');
+        const imagePath = this.getEventImagePath(variant.name, variant.image);
+        // No cache busting needed for variant switching - images are already loaded
+        const imagePathWithCache = imagePath || null;
+        
+        if (imagePathWithCache) {
+            imageContainer.innerHTML = `<img src="${imagePathWithCache}" alt="${variant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload="">`;
+        } else {
+            imageContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;">No Image</div>';
+        }
+        
+        // Update title
+        const titleElement = itemElement.querySelector('.event-item-title');
+        if (titleElement) {
+            titleElement.textContent = getDisplayEventName(variant.name);
+        }
+        
+        // Update location
+        const locationElement = itemElement.querySelector('.event-item-location');
+        if (locationElement) {
+            let locationName = variant.cityDisplayName || null;
+            if (!locationName && variant.lat !== undefined && variant.lon !== undefined) {
+                locationName = this.getLocationName(variant.lat, variant.lon);
+            }
+            if (!locationName && variant.lat !== undefined && variant.lon !== undefined) {
+                locationName = `${variant.lat.toFixed(4)}, ${variant.lon.toFixed(4)}`;
+            }
+            locationElement.innerHTML = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || 'Unknown'}`;
+        }
+        
+        // Update badge text
+        const badge = itemElement.querySelector('.multi-event-badge');
+        if (badge) {
+            badge.textContent = `${variantIndex + 1}/${event.variants.length}`;
+        }
     }
     
     /**
@@ -817,7 +1043,32 @@ class EventManager {
             if (eventMarker && window.globeController.uiView) {
                 // Check if this is a multi-event
                 const isMultiEvent = event.variants && event.variants.length > 0;
-                const displayEvent = isMultiEvent ? event.variants[0] : event;
+                
+                // Get the currently previewed variant index (default to 0)
+                let variantIndex = 0;
+                if (isMultiEvent) {
+                    const itemKey = `event-${index}`;
+                    variantIndex = this.eventItemVariantIndices.get(itemKey) || 0;
+                }
+                
+                const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
+                
+                // For multi-events, find the marker for the specific variant
+                let targetMarker = eventMarker;
+                if (isMultiEvent && variantIndex > 0) {
+                    // Look for the variant marker
+                    const variantMarker = markers.find(m => {
+                        if (m.userData && m.userData.isEventMarker && 
+                            m.userData.event === event &&
+                            m.userData.variantIndex === variantIndex) {
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (variantMarker) {
+                        targetMarker = variantMarker;
+                    }
+                }
                 
                 const eventName = displayEvent.name || eventMarker.userData.eventName;
                 const eventDescription = displayEvent.description;
@@ -825,16 +1076,19 @@ class EventManager {
                 
                 // Zoom to marker and show event slide
                 if (window.globeController.interactionController) {
-                    window.globeController.interactionController.zoomToMarker(eventMarker);
+                    window.globeController.interactionController.zoomToMarker(targetMarker);
                 }
                 
                 window.globeController.uiView.showEventSlide(
                     eventName,
                     imagePath,
                     eventDescription,
-                    eventMarker,
+                    targetMarker,
                     event
                 );
+                
+                // Reset all multi-variant events to first variant after opening (for next time manager opens)
+                this.resetAllEventVariants();
             }
         }
     }
@@ -949,47 +1203,19 @@ class EventManager {
 
     /**
      * Reverse geocode coordinates to get city and country
-     * Uses rate limiting and queuing to avoid hitting Nominatim API limits
      */
     async reverseGeocode(lat, lon) {
-        // Check cache first
-        const cacheKey = `${lat.toFixed(4)}_${lon.toFixed(4)}`;
-        if (this.locationCache.has(cacheKey)) {
-            const cached = this.locationCache.get(cacheKey);
-            if (cached && cached.country) {
-                return { city: cached.city || '', country: cached.country };
-            }
-        }
-
-        // Rate limiting: ensure minimum delay between API calls
-        const now = Date.now();
-        const timeSinceLastCall = now - this.lastReverseGeocodeTime;
-        if (timeSinceLastCall < this.reverseGeocodeMinDelay) {
-            // Wait before making the request
-            await new Promise(resolve => setTimeout(resolve, this.reverseGeocodeMinDelay - timeSinceLastCall));
-        }
-
         try {
             const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
-            
-            this.lastReverseGeocodeTime = Date.now();
             
             const response = await fetch(url, {
                 headers: {
                     'User-Agent': 'Timeline Overwatch Event Manager'
-                },
-                // Add timeout to prevent hanging requests
-                signal: AbortSignal.timeout(5000) // 5 second timeout
-            }).catch(err => {
-                // Suppress network errors (rate limiting, connection issues)
-                if (err.name === 'AbortError' || err.name === 'TypeError' || err.message?.includes('fetch') || err.message?.includes('ERR_HTTP2')) {
-                    return null; // Return null to indicate failure without logging
                 }
-                throw err; // Re-throw unexpected errors
             });
 
-            if (!response || !response.ok) {
-                // Silently fail - rate limiting is common with Nominatim
+            if (!response.ok) {
+                // Don't log HTTP errors - they're common with rate limiting
                 return null;
             }
 
@@ -1007,13 +1233,9 @@ class EventManager {
             
             return null;
         } catch (error) {
-            // Suppress all network/API errors - they're expected with rate limiting
-            // Only log unexpected errors that aren't network-related
-            if (error.name !== 'AbortError' && 
-                error.name !== 'TypeError' && 
-                !error.message?.includes('fetch') && 
-                !error.message?.includes('ERR_HTTP2') &&
-                !error.message?.includes('network')) {
+            // Silently fail - don't spam console with network errors
+            // Only log if it's not a network/fetch error
+            if (error.name !== 'TypeError' && !error.message.includes('fetch')) {
                 console.error('Reverse geocoding error:', error);
             }
             return null;
@@ -1297,6 +1519,29 @@ class EventManager {
             return found ? found.filename : displayName;
         });
         
+        // Save location (lat/lon) for this variant
+        const latInput = document.getElementById('eventEditLat');
+        const lonInput = document.getElementById('eventEditLon');
+        if (latInput && latInput.value.trim()) {
+            const lat = parseFloat(latInput.value.trim());
+            variant.lat = isNaN(lat) ? undefined : lat;
+        } else {
+            variant.lat = undefined;
+        }
+        if (lonInput && lonInput.value.trim()) {
+            const lon = parseFloat(lonInput.value.trim());
+            variant.lon = isNaN(lon) ? undefined : lon;
+        } else {
+            variant.lon = undefined;
+        }
+        
+        // Save city display name for this variant
+        const cityDisplayNameInput = document.getElementById('eventEditCityDisplayName');
+        if (cityDisplayNameInput) {
+            const cityDisplayName = cityDisplayNameInput.value.trim();
+            variant.cityDisplayName = cityDisplayName || undefined;
+        }
+        
         // Save sources from all source pairs
         variant.sources = [];
         const sourcePairs = document.querySelectorAll('.source-pair');
@@ -1417,6 +1662,33 @@ class EventManager {
         }).join(', ');
         document.getElementById('eventEditFactions').value = displayFactions;
         
+        // Load variant-specific location if it exists
+        if (variant.lat !== undefined) {
+            document.getElementById('eventEditLat').value = variant.lat;
+        }
+        if (variant.lon !== undefined) {
+            document.getElementById('eventEditLon').value = variant.lon;
+        }
+        
+        // Load variant-specific city display name if it exists
+        if (variant.cityDisplayName !== undefined && variant.cityDisplayName !== null && variant.cityDisplayName !== '') {
+            document.getElementById('eventEditCityDisplayName').value = variant.cityDisplayName;
+        } else {
+            // If variant doesn't have cityDisplayName, try to use main event's cityDisplayName (for multi-events)
+            // or keep existing value (for single events)
+            if (this.editingIndex !== null && this.editingIndex !== undefined) {
+                const mainEvent = this.events[this.editingIndex];
+                if (mainEvent && mainEvent.cityDisplayName) {
+                    document.getElementById('eventEditCityDisplayName').value = mainEvent.cityDisplayName;
+                } else {
+            document.getElementById('eventEditCityDisplayName').value = '';
+                }
+            } else {
+                // New event or no event context, clear it
+                document.getElementById('eventEditCityDisplayName').value = '';
+            }
+        }
+        
         // Load sources into source pairs
         const sources = variant.sources || [];
         this.clearSourcePairs();
@@ -1481,12 +1753,17 @@ class EventManager {
         addTabBtn.textContent = '+';
         addTabBtn.addEventListener('click', () => {
             this.saveCurrentVariantToMemory();
+            // Get current lat/lon to use as default for new variant
+            const currentLat = document.getElementById('eventEditLat').value.trim();
+            const currentLon = document.getElementById('eventEditLon').value.trim();
             this.variantData.push({
                 name: '',
                 description: '',
                 filters: [],
                 factions: [],
-                sources: []
+                sources: [],
+                lat: currentLat ? parseFloat(currentLat) : undefined,
+                lon: currentLon ? parseFloat(currentLon) : undefined
             });
             this.loadVariantToForm(this.variantData.length - 1);
             this.updateVariantTabs();
@@ -1543,20 +1820,31 @@ class EventManager {
         
         const isMultiEvent = event.variants && event.variants.length > 0;
         
-        // Set coordinates (same for all variants)
-        document.getElementById('eventEditLat').value = event.lat || '';
-        document.getElementById('eventEditLon').value = event.lon || '';
+        // Set coordinates - for multi-events, use first variant's location or event location
+        // For single events, use event location
+        if (isMultiEvent && event.variants[0] && (event.variants[0].lat !== undefined || event.variants[0].lon !== undefined)) {
+            document.getElementById('eventEditLat').value = event.variants[0].lat !== undefined ? event.variants[0].lat : event.lat || '';
+            document.getElementById('eventEditLon').value = event.variants[0].lon !== undefined ? event.variants[0].lon : event.lon || '';
+            // For multi-events, use first variant's cityDisplayName or main event's cityDisplayName
+            document.getElementById('eventEditCityDisplayName').value = event.variants[0].cityDisplayName || event.cityDisplayName || '';
+        } else {
+            document.getElementById('eventEditLat').value = event.lat || '';
+            document.getElementById('eventEditLon').value = event.lon || '';
+            document.getElementById('eventEditCityDisplayName').value = event.cityDisplayName || '';
+        }
         document.getElementById('eventEditCity').value = '';
-        document.getElementById('eventEditCityDisplayName').value = event.cityDisplayName || '';
         
         if (isMultiEvent) {
-            // Load all variants into variantData
+            // Load all variants into variantData, including lat/lon and cityDisplayName if they exist
             this.variantData = event.variants.map(variant => ({
                 name: variant.name || '',
                 description: variant.description || '',
                 filters: variant.filters || [],
                 factions: variant.factions || [],
-                sources: variant.sources || []
+                sources: variant.sources || [],
+                lat: variant.lat !== undefined ? variant.lat : (event.lat !== undefined ? event.lat : undefined),
+                lon: variant.lon !== undefined ? variant.lon : (event.lon !== undefined ? event.lon : undefined),
+                cityDisplayName: variant.cityDisplayName || undefined
             }));
             this.activeVariantIndex = 0;
         } else {
@@ -1566,7 +1854,10 @@ class EventManager {
                 description: event.description || '',
                 filters: event.filters || [],
                 factions: event.factions || [],
-                sources: event.sources || []
+                sources: event.sources || [],
+                lat: event.lat !== undefined ? event.lat : undefined,
+                lon: event.lon !== undefined ? event.lon : undefined,
+                cityDisplayName: event.cityDisplayName || undefined
             }];
             this.activeVariantIndex = 0;
         }
@@ -1582,6 +1873,21 @@ class EventManager {
                 return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
             }).join(', ');
             document.getElementById('eventEditFactions').value = displayFactions;
+            
+            // Load variant-specific location if it exists
+            if (variant.lat !== undefined) {
+                document.getElementById('eventEditLat').value = variant.lat;
+            }
+            if (variant.lon !== undefined) {
+                document.getElementById('eventEditLon').value = variant.lon;
+            }
+            
+            // Load variant-specific city display name if it exists
+            // Note: cityDisplayName was already set above (line 1805 or 1809), so only override if variant has its own
+            if (variant.cityDisplayName !== undefined && variant.cityDisplayName !== null && variant.cityDisplayName !== '') {
+                document.getElementById('eventEditCityDisplayName').value = variant.cityDisplayName;
+            }
+            // Otherwise, keep the value we already set above (from event or first variant)
             
             // Load sources into source pairs
             const sources = variant.sources || [];
@@ -1969,11 +2275,12 @@ class EventManager {
             };
             
             // If path already contains Event Images/, encode just the filename
-            if (path.includes('Event Images/')) {
-                const parts = path.split('Event Images/');
+            const folderPattern = /Event(?:%20| )Images\//;
+            if (folderPattern.test(path)) {
+                const parts = path.split(/Event(?:%20| )Images\//);
                 if (parts.length === 2) {
                     let filename = fullyDecode(parts[1]);
-                    return `Event Images/${encodeURIComponent(filename)}`;
+                    return `Event%20Images/${encodeURIComponent(filename)}`;
                 }
             }
             // If it's a full path, try to encode just the filename part
@@ -2001,7 +2308,7 @@ class EventManager {
         // Encode the filename to handle spaces and special characters in URLs
         // Split the path so we only encode the filename, not the folder name
         const encodedFileName = encodeURIComponent(normalizedName);
-        const imagePath = `Event Images/${encodedFileName}.png`;
+        const imagePath = `Event%20Images/${encodedFileName}.png`;
         
         // Return the path (browser will handle 404 if image doesn't exist)
         // No console log to reduce noise - 404s are expected for missing images
@@ -2138,8 +2445,8 @@ class EventManager {
         const mainFiltersStr = document.getElementById('eventEditFilters').value.trim();
         const mainFactionsStr = document.getElementById('eventEditFactions').value.trim();
 
-        if (!mainName || !mainDescription) {
-            alert('Please fill in all required fields (Title, Description)');
+        if (!mainName) {
+            alert('Please fill in the required field (Title)');
             return;
         }
 
@@ -2189,7 +2496,7 @@ class EventManager {
                     }).join(', ')
                 );
                 
-                return {
+                const variantObj = {
                     name: variant.name || '',
                     description: variant.description || '',
                     filters: variantData.filters,
@@ -2197,7 +2504,22 @@ class EventManager {
                     sources: variant.sources && variant.sources.length > 0 ? variant.sources : undefined,
                     image: '' // Auto-detect
                 };
-            }).filter(v => v.name && v.description); // Only include variants with name and description
+                
+                // Include lat/lon if they exist for this variant
+                if (variant.lat !== undefined) {
+                    variantObj.lat = variant.lat;
+                }
+                if (variant.lon !== undefined) {
+                    variantObj.lon = variant.lon;
+                }
+                
+                // Include cityDisplayName if it exists for this variant
+                if (variant.cityDisplayName !== undefined) {
+                    variantObj.cityDisplayName = variant.cityDisplayName;
+                }
+                
+                return variantObj;
+            }).filter(v => v.name); // Only include variants with name (description is optional)
 
             if (variants.length < 2) {
                 alert('Multi-events must have at least 2 variants');
@@ -2205,9 +2527,12 @@ class EventManager {
             }
 
             const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
+            // For multi-events, use first variant's location or main lat/lon as fallback
+            const firstVariantLat = variants[0] && variants[0].lat !== undefined ? variants[0].lat : lat;
+            const firstVariantLon = variants[0] && variants[0].lon !== undefined ? variants[0].lon : lon;
             event = {
-                lat,
-                lon,
+                lat: firstVariantLat, // Main event lat (used for backward compatibility)
+                lon: firstVariantLon, // Main event lon (used for backward compatibility)
                 cityDisplayName: cityDisplayName || undefined,
                 variants: variants
             };

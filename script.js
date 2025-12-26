@@ -227,6 +227,8 @@ window.SoundEffectsManager = {
         this.loadSound('filterButton', 'Sound Effects/Filter Button.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Color Change.mp3');
         this.loadSound('colorChange', 'Sound Effects/Color Change.mp3');
+        if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Mode Switch.mp3');
+        this.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
         
         // Load saved volume and apply it
         const savedVolume = this.loadVolume();
@@ -251,7 +253,7 @@ window.SoundEffectsManager = {
 };
 
 function showContact() {
-    window.location.href = 'options.html';
+    window.location.href = 'map.html';
 }
 
 // Contact form handling
@@ -368,7 +370,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Music Panel functionality - SIMPLIFIED VERSION
+// Track if music panel is already initialized to prevent double initialization
+let musicPanelInitialized = false;
+
 function initMusicPanel() {
+    // Prevent double initialization
+    if (musicPanelInitialized) {
+        console.log('Music panel already initialized, skipping...');
+        return;
+    }
+    
     const musicButton = document.getElementById('musicToggle');
     const musicPanel = document.getElementById('musicPanel');
     const musicPanelClose = document.getElementById('musicPanelClose');
@@ -382,10 +393,13 @@ function initMusicPanel() {
     
     if (!musicButton || !musicPanel || !backgroundMusic || !musicGrid) return;
     
+    // Mark as initialized
+    musicPanelInitialized = true;
+    
     // PRIORITY: Load saved music state FIRST to get current song and volume
     const savedState = localStorage.getItem('musicState');
     let prioritySong = null;
-    let initialVolume = 0.2;
+    let initialVolume = 0.1; // Default 10%
     
     if (savedState) {
         try {
@@ -394,7 +408,8 @@ function initMusicPanel() {
                 prioritySong = musicState.currentSong;
                 logAssetLoad('MUSIC_PRIORITY', `Priority loading: ${prioritySong}`);
             }
-            if (musicState.volume !== undefined) {
+            // Only use saved volume if it's not 0 (to avoid starting at 0%)
+            if (musicState.volume !== undefined && musicState.volume > 0) {
                 initialVolume = musicState.volume;
             }
         } catch (e) {
@@ -537,10 +552,15 @@ function initMusicPanel() {
             currentSong = songPath; // Keep original for comparison
             updateNowPlaying();
             
-            // Update selected button
+            // Update selected button - try multiple path formats for matching
             document.querySelectorAll('.music-grid-btn').forEach(btn => {
                 btn.classList.remove('selected');
-                if (btn.dataset.songPath === songPath) {
+                const btnPath = btn.dataset.songPath;
+                // Match exact path, or with spaces encoded, or with different encodings
+                if (btnPath === songPath || 
+                    btnPath === songPath.replace(/ /g, '%20') ||
+                    btnPath.replace(/ /g, '%20') === songPath ||
+                    decodeURIComponent(btnPath) === decodeURIComponent(songPath)) {
                     btn.classList.add('selected');
                 }
             });
@@ -1031,9 +1051,15 @@ function initMusicPanel() {
                     
                     // Update UI
                     updateNowPlaying();
+                    // Update selected button - try multiple path formats for matching
                     document.querySelectorAll('.music-grid-btn').forEach(btn => {
                         btn.classList.remove('selected');
-                        if (btn.dataset.songPath === currentSong) {
+                        const btnPath = btn.dataset.songPath;
+                        // Match exact path, or with spaces encoded, or with different encodings
+                        if (btnPath === currentSong || 
+                            btnPath === currentSong.replace(/ /g, '%20') ||
+                            btnPath.replace(/ /g, '%20') === currentSong ||
+                            decodeURIComponent(btnPath) === decodeURIComponent(currentSong)) {
                             btn.classList.add('selected');
                         }
                     });
@@ -1053,20 +1079,22 @@ function initMusicPanel() {
                                 updatePauseIcon(true);
                                 if (pauseBtn) pauseBtn.classList.add('active');
                             } else {
-                                // Only play if it was NOT paused
-                                const playPromise = backgroundMusic.play();
-                                if (playPromise !== undefined) {
-                                    playPromise.then(() => {
-                                        updatePauseIcon(false);
-                                        if (pauseBtn) pauseBtn.classList.remove('active');
-                                    }).catch(error => {
-                                        console.log('Autoplay prevented on restore:', error);
-                                        // If autoplay prevented, keep it paused
-                                        backgroundMusic.pause();
-                                        updatePauseIcon(true);
-                                        if (pauseBtn) pauseBtn.classList.add('active');
-                                    });
-                                }
+                                // Only play if it was NOT paused - use a small delay to prevent staggering
+                                setTimeout(() => {
+                                    const playPromise = backgroundMusic.play();
+                                    if (playPromise !== undefined) {
+                                        playPromise.then(() => {
+                                            updatePauseIcon(false);
+                                            if (pauseBtn) pauseBtn.classList.remove('active');
+                                        }).catch(error => {
+                                            console.log('Autoplay prevented on restore:', error);
+                                            // If autoplay prevented, keep it paused
+                                            backgroundMusic.pause();
+                                            updatePauseIcon(true);
+                                            if (pauseBtn) pauseBtn.classList.add('active');
+                                        });
+                                    }
+                                }, 100); // Small delay to prevent staggering on refresh
                             }
                             
                             backgroundMusic.removeEventListener('loadedmetadata', restorePosition);
@@ -1243,8 +1271,12 @@ function initMusicPanel() {
             musicBtn.appendChild(imageContainer);
             musicBtn.appendChild(label);
             
-            // Check if this is the current song
-            if (currentSong === `Music/${song.filename}`) {
+            // Check if this is the current song - try multiple path formats for matching
+            const songPath = `Music/${song.filename}`;
+            if (currentSong === songPath || 
+                currentSong === songPath.replace(/ /g, '%20') ||
+                currentSong && currentSong.replace(/ /g, '%20') === songPath ||
+                (currentSong && decodeURIComponent(currentSong) === decodeURIComponent(songPath))) {
                 musicBtn.classList.add('selected');
             }
             
@@ -1548,6 +1580,39 @@ function initFiltersPanel() {
     // Track selected filters (stores both heroes and factions)
     const selectedFilters = new Set();
     let currentFilterType = 'heroes'; // 'heroes' or 'factions'
+    
+    // Function to get confirmed filters from sceneModel
+    function getConfirmedFilters() {
+        if (window.globeController && window.globeController.sceneModel && window.globeController.sceneModel.activeFilters) {
+            return new Set(window.globeController.sceneModel.activeFilters);
+        }
+        return new Set();
+    }
+    
+    // Function to reset selectedFilters to confirmed state and update button states
+    function resetToConfirmedFilters() {
+        const confirmedFilters = getConfirmedFilters();
+        
+        // Reset selectedFilters to match confirmed filters
+        selectedFilters.clear();
+        confirmedFilters.forEach(filter => selectedFilters.add(filter));
+        
+        // Update button visual states
+        const allButtons = filtersGrid.querySelectorAll('.filter-btn');
+        allButtons.forEach(btn => {
+            const filterKey = btn.dataset.filterKey;
+            if (filterKey) {
+                if (selectedFilters.has(filterKey)) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            }
+        });
+        
+        // Update filter counts
+        updateFilterCounts();
+    }
     
     // Load manifest
     async function loadManifest() {
@@ -1935,8 +2000,27 @@ function initFiltersPanel() {
             }
             
             // Toggle panel (open if closed, close if open)
+            const isOpening = !filtersPanel.classList.contains('open');
             filtersPanel.classList.toggle('open');
             console.log('Panel open state:', filtersPanel.classList.contains('open'));
+            
+            if (isOpening) {
+                // When opening, initialize selectedFilters from confirmed filters
+                const confirmedFilters = getConfirmedFilters();
+                selectedFilters.clear();
+                confirmedFilters.forEach(filter => selectedFilters.add(filter));
+                
+                // Update button states for current tab
+                if (currentFilterType === 'heroes') {
+                    createFilterButtons(heroes, 'heroes', 'Heroes');
+                } else {
+                    createFilterButtons(factions, 'factions', 'Factions');
+                }
+            } else {
+                // When closing via toggle button, reset to confirmed state
+                resetToConfirmedFilters();
+            }
+            
             // Update button active state
             if (filtersPanel.classList.contains('open')) {
                 filtersButton.classList.add('active');
@@ -1983,6 +2067,9 @@ function initFiltersPanel() {
             if (window.SoundEffectsManager) {
                 window.SoundEffectsManager.play('filterButton');
             }
+            
+            // Reset to confirmed filters before closing
+            resetToConfirmedFilters();
             
             filtersPanel.classList.remove('open');
             // Update button active state
@@ -2055,6 +2142,9 @@ function initFiltersPanel() {
             if (!filtersPanel.contains(e.target) && 
                 !filtersButton.contains(e.target) && 
                 e.target !== filtersButton) {
+                // Reset to confirmed filters before closing
+                resetToConfirmedFilters();
+                
                 filtersPanel.classList.remove('open');
                 // Update button active state
                 if (filtersButton) {
@@ -2074,6 +2164,11 @@ document.addEventListener('keydown', function(event) {
 
 // Color Palette Toggle Functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Skip palette setup on main.html - test-loader.js handles it
+    if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
+        return;
+    }
+    
     const colorPaletteToggle = document.getElementById('colorPaletteToggle');
     if (!colorPaletteToggle) return;
     

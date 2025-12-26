@@ -9,6 +9,8 @@ export class GlobeView {
     constructor(sceneModel, dataModel) {
         this.sceneModel = sceneModel;
         this.dataModel = dataModel;
+        // Cache textures to avoid reloading delays
+        this.textureCache = new Map();
     }
 
     /**
@@ -22,13 +24,19 @@ export class GlobeView {
         // Create Earth sphere
         const geometry = new THREE.SphereGeometry(1, 64, 64);
         
+        // Check saved palette preference to load correct texture
+        const savedPalette = localStorage.getItem('colorPalette');
+        const isGray = savedPalette === 'gray';
+        const initialTexturePath = isGray ? 'MAP Black.png' : 'MAP.png';
+        console.log('Initializing globe with palette:', savedPalette || 'blue (default)', 'Texture:', initialTexturePath);
+        
         // Load Earth texture
         const textureLoader = new THREE.TextureLoader();
         
         const earthTexture = textureLoader.load(
-            'MAP.png',
+            initialTexturePath,
             (texture) => {
-                console.log('Earth texture loaded successfully');
+                console.log('Earth texture loaded successfully:', initialTexturePath);
                 
                 // Improve texture quality and reduce pole blur
                 texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -38,8 +46,13 @@ export class GlobeView {
                 
                 const globe = this.sceneModel.getGlobe();
                 if (globe) {
+                    // Ensure the texture is applied to the material
+                    globe.material.map = texture;
                     globe.material.needsUpdate = true;
                 }
+                
+                // Cache the loaded texture
+                this.textureCache.set(initialTexturePath, texture);
                 
                 if (onTextureLoaded) {
                     onTextureLoaded();
@@ -54,6 +67,20 @@ export class GlobeView {
                 }
             }
         );
+        
+        // Preload the other texture to avoid delay when switching palettes
+        const otherTexturePath = isGray ? 'MAP.png' : 'MAP Black.png';
+        textureLoader.load(otherTexturePath, (texture) => {
+            // Improve texture quality
+            const renderer = this.sceneModel.getRenderer();
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = false;
+            // Cache the preloaded texture
+            this.textureCache.set(otherTexturePath, texture);
+            console.log('Preloaded and cached alternate texture:', otherTexturePath);
+        });
         
         const material = new THREE.MeshBasicMaterial({
             map: earthTexture
@@ -84,6 +111,18 @@ export class GlobeView {
             return;
         }
 
+        // Check if texture is already cached
+        if (this.textureCache.has(texturePath)) {
+            const cachedTexture = this.textureCache.get(texturePath);
+            console.log('Using cached texture:', texturePath);
+            globe.material.map = cachedTexture;
+            globe.material.needsUpdate = true;
+            if (onTextureLoaded) {
+                onTextureLoaded();
+            }
+            return;
+        }
+
         const renderer = this.sceneModel.getRenderer();
         const textureLoader = new THREE.TextureLoader();
         
@@ -97,6 +136,9 @@ export class GlobeView {
                 texture.minFilter = THREE.LinearFilter;
                 texture.magFilter = THREE.LinearFilter;
                 texture.generateMipmaps = false;
+                
+                // Cache the texture for instant switching
+                this.textureCache.set(texturePath, texture);
                 
                 // Update globe material
                 globe.material.map = texture;
@@ -288,51 +330,136 @@ export class GlobeView {
         const events = this.dataModel.getEventsForCurrentPage(); // Use paginated events
 
         events.forEach(event => {
-            const position = latLonToVector3(event.lat, event.lon, 1.02);
-            
-            // Event markers are orange and bigger than hyperloop markers (0.015 vs 0.010 for seaports)
-            // Make markers bigger on small mobile screens only (not tablets or desktop)
-            const isSmallMobile = window.innerWidth <= 480;
-            const markerRadius = isSmallMobile ? 0.030 : 0.015; // 2x larger on small mobile only
-            const markerGeometry = new THREE.SphereGeometry(markerRadius, 16, 16);
-            const markerMaterial = new THREE.MeshBasicMaterial({
-                color: 0xff6600 // Orange color
-            });
-            
-            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-            marker.position.copy(position);
-            
-            // For multi-events, use first variant's name; otherwise use main event name
             const isMultiEvent = event.variants && event.variants.length > 0;
-            const displayName = isMultiEvent ? (event.variants[0].name || 'Multi-Event') : (event.name || 'Event');
             
-            marker.userData = { 
-                event: event, // Store full event object
-                eventName: displayName,
-                lat: event.lat,
-                lon: event.lon,
-                isEventMarker: true,
-                pulseRings: [], // Store pulse rings for this marker
-                isLocked: false, // Track locked state
-                originalScale: 1.0 // Store original scale for unlocking
-            };
-            
-            globe.add(marker);
-            const markers = this.sceneModel.getMarkers();
-            markers.push(marker);
+            if (isMultiEvent) {
+                // Multi-event: create markers for each variant
+                event.variants.forEach((variant, variantIndex) => {
+                    // Get location from variant if available, otherwise use event location
+                    const lat = variant.lat !== undefined ? variant.lat : event.lat;
+                    const lon = variant.lon !== undefined ? variant.lon : event.lon;
+                    const position = latLonToVector3(lat, lon, 1.02);
+                    
+                    const isMainVariant = variantIndex === 0;
+                    
+                    // Main variant: orange, interactive marker
+                    // Other variants: red, smaller, non-interactive marker
+                    const isSmallMobile = window.innerWidth <= 480;
+                    let markerRadius, markerColor, isInteractive;
+                    
+                    if (isMainVariant) {
+                        markerRadius = isSmallMobile ? 0.030 : 0.015; // Regular size
+                        markerColor = 0xff6600; // Orange
+                        isInteractive = true;
+                    } else {
+                        markerRadius = isSmallMobile ? 0.020 : 0.010; // Smaller
+                        markerColor = 0xff69b4; // Hot pink
+                        isInteractive = false;
+                    }
+                    
+                    const markerGeometry = new THREE.SphereGeometry(markerRadius, 16, 16);
+                    // Create a completely new material instance for each marker to avoid color sharing
+                    // Use THREE.Color to ensure proper color initialization
+                    const markerMaterial = new THREE.MeshBasicMaterial({
+                        color: new THREE.Color(markerColor)
+                    });
+                    
+                    const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+                    // Force update the material to ensure color is applied
+                    marker.material.needsUpdate = true;
+                    marker.position.copy(position);
+                    
+                    const displayName = variant.name || `Variant ${variantIndex + 1}`;
+                    
+                    marker.userData = { 
+                        event: event, // Store full event object
+                        variant: variant, // Store variant object
+                        variantIndex: variantIndex, // Store variant index
+                        eventName: displayName,
+                        lat: lat,
+                        lon: lon,
+                        isEventMarker: true,
+                        isInteractive: isInteractive, // Only main variant is interactive
+                        isMainVariant: isMainVariant,
+                        pulseRings: [], // Store pulse rings for this marker
+                        isLocked: false, // Track locked state
+                        originalScale: 1.0, // Store original scale for unlocking
+                        originalColor: markerColor // Store original color for restoration
+                    };
+                    
+                    // Hide variant markers by default (only show when event is open)
+                    if (!isMainVariant) {
+                        marker.visible = false;
+                    }
+                    
+                    globe.add(marker);
+                    const markers = this.sceneModel.getMarkers();
+                    markers.push(marker);
 
-            // Add pin line
-            const linePoints = [
-                latLonToVector3(event.lat, event.lon, 1.0),
-                position
-            ];
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 }); // Orange color
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            line.userData.isEventMarkerPin = true;
-            line.userData.marker = marker; // Link line to marker
-            marker.userData.pinLine = line; // Store pin line reference
-            globe.add(line);
+                    // Add pin line (only for main variant, or all if you want to see all)
+                    if (isMainVariant) {
+                        const linePoints = [
+                            latLonToVector3(lat, lon, 1.0),
+                            position
+                        ];
+                        const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                        const lineMaterial = new THREE.LineBasicMaterial({ color: markerColor });
+                        const line = new THREE.Line(lineGeometry, lineMaterial);
+                        line.userData.isEventMarkerPin = true;
+                        line.userData.marker = marker; // Link line to marker
+                        marker.userData.pinLine = line; // Store pin line reference
+                        globe.add(line);
+                    }
+                });
+            } else {
+                // Single event: create one orange marker as before
+                const position = latLonToVector3(event.lat, event.lon, 1.02);
+                
+                // Event markers are orange and bigger than hyperloop markers (0.015 vs 0.010 for seaports)
+                // Make markers bigger on small mobile screens only (not tablets or desktop)
+                const isSmallMobile = window.innerWidth <= 480;
+                const markerRadius = isSmallMobile ? 0.030 : 0.015; // 2x larger on small mobile only
+                const markerGeometry = new THREE.SphereGeometry(markerRadius, 16, 16);
+                const markerMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff6600 // Orange color
+                });
+                
+                const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+                marker.position.copy(position);
+                
+                const displayName = event.name || 'Event';
+                
+                marker.userData = { 
+                    event: event, // Store full event object
+                    eventName: displayName,
+                    lat: event.lat,
+                    lon: event.lon,
+                    isEventMarker: true,
+                    isInteractive: true, // Single events are always interactive
+                    isMainVariant: true,
+                    pulseRings: [], // Store pulse rings for this marker
+                    isLocked: false, // Track locked state
+                    originalScale: 1.0, // Store original scale for unlocking
+                    originalColor: 0xff6600 // Store original color (orange) for restoration
+                };
+                
+                globe.add(marker);
+                const markers = this.sceneModel.getMarkers();
+                markers.push(marker);
+
+                // Add pin line
+                const linePoints = [
+                    latLonToVector3(event.lat, event.lon, 1.0),
+                    position
+                ];
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 }); // Orange color
+                const line = new THREE.Line(lineGeometry, lineMaterial);
+                line.userData.isEventMarkerPin = true;
+                line.userData.marker = marker; // Link line to marker
+                marker.userData.pinLine = line; // Store pin line reference
+                globe.add(line);
+            }
         });
     }
     
@@ -475,14 +602,16 @@ export class GlobeView {
         const originalScale = marker.userData.originalScale || 1.0;
         marker.scale.set(originalScale, originalScale, originalScale);
         
-        // Restore orange color
+        // Restore color - use stored original color if available, otherwise determine from marker type
         if (marker.material) {
-            marker.material.color.setHex(0xff6600); // Orange
+            const restoreColor = marker.userData.originalColor || 
+                                 (marker.userData.isInteractive === false ? 0xff69b4 : 0xff6600);
+            marker.material.color.setHex(restoreColor);
         }
         
-        // Restore pin line to orange
+        // Restore pin line color (only main markers have pin lines)
         if (marker.userData.pinLine && marker.userData.pinLine.material) {
-            marker.userData.pinLine.material.color.setHex(0xff6600); // Orange
+            marker.userData.pinLine.material.color.setHex(0xff6600); // Orange (pin lines only on main markers)
         }
     }
     

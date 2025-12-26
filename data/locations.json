@@ -691,6 +691,16 @@
       "name": "Dorado",
       "lat": 19.1738,
       "lon": -96.1342
+    },
+    {
+      "name": "Hanamura",
+      "lat": 35.6762,
+      "lon": 139.6503
+    },
+    {
+      "name": "Hanaoka",
+      "lat": 35.6762,
+      "lon": 139.6503
     }
   ],
   "airports": [
