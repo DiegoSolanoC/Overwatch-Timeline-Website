@@ -43,7 +43,13 @@ export class SceneModel {
     initScene(container) {
         // Scene setup
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x050d18); // Darker blue than panels for contrast
+        
+        // Check saved palette preference to set correct background color
+        const savedPalette = localStorage.getItem('colorPalette');
+        const isGray = savedPalette === 'gray';
+        const bgColor = isGray ? 0x0f0f0f : 0x050d18; // Darker gray/blue than panels for contrast
+        console.log('Initializing scene with palette:', savedPalette || 'blue (default)', 'Background color:', '0x' + bgColor.toString(16));
+        this.scene.background = new THREE.Color(bgColor);
 
         // Camera setup
         this.camera = new THREE.PerspectiveCamera(

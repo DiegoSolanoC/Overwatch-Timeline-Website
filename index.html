@@ -6,6 +6,13 @@
     <title>Map - Timeline Overwatch</title>
     <link rel="icon" type="image/png" href="Icon.png">
     <link rel="stylesheet" href="styles.css?v=3">
+    <!-- Redirect to main.html for GitHub Pages (not on localhost) -->
+    <script>
+        // Only redirect if not on localhost (GitHub Pages)
+        if (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+            window.location.replace('main.html');
+        }
+    </script>
     <script>
         // Auto-generate manifest before page loads
         // Note: Browsers can't run Node.js directly, so this is a reminder
@@ -143,7 +150,7 @@
                     <div class="music-progress-container">
                         <input type="range" id="musicProgressBar" class="music-progress-bar" min="0" max="100" value="0">
                         <div class="music-time-display">
-                            <span id="musicCurrentTime">0:00</span> / <span id="musicTotalTime">0:00</span>
+                            <span id="musicCurrentTime">0:00</span> <span id="musicTotalTime">0:00</span>
                         </div>
                         <div class="music-control-buttons">
                             <button id="pauseBtn" class="music-control-btn">
@@ -163,8 +170,8 @@
                 </div>
                 <div class="music-control-row">
                     <label for="volumeSlider">Music Volume:</label>
-                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="20">
-                    <span id="volumeValue" class="volume-value">20%</span>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="10">
+                    <span id="volumeValue" class="volume-value">10%</span>
                 </div>
                 <div class="music-control-row">
                     <label for="soundEffectsSlider">Sound Effects Volume:</label>
@@ -228,7 +235,7 @@
                     </div>
                     <div class="event-edit-field event-edit-field-full">
                         <label for="eventEditDescription">Description:</label>
-                        <textarea id="eventEditDescription" class="event-edit-textarea" autocomplete="off" rows="4" required></textarea>
+                        <textarea id="eventEditDescription" class="event-edit-textarea" autocomplete="off" rows="4"></textarea>
                     </div>
                     <div class="event-edit-field">
                         <label for="eventEditFilters">Hero Filters (comma-separated):</label>

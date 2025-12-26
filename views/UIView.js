@@ -116,6 +116,112 @@ export class UIView {
     }
 
     /**
+     * Update event sources section
+     * @param {Object} event - Event or variant object
+     */
+    updateEventSources(event) {
+        const eventSourcesSection = document.getElementById('eventSourcesSection');
+        const eventSourcesList = document.getElementById('eventSourcesList');
+        
+        if (event && event.sources && event.sources.length > 0) {
+            if (eventSourcesSection && eventSourcesList) {
+                eventSourcesList.innerHTML = '';
+                
+                event.sources.forEach((source) => {
+                    const sourceItem = document.createElement('div');
+                    sourceItem.className = 'event-source-display-item';
+                    
+                    if (source.url) {
+                        const link = document.createElement('a');
+                        link.href = source.url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = source.text;
+                        link.className = 'event-source-link';
+                        sourceItem.appendChild(link);
+                    } else {
+                        sourceItem.textContent = source.text;
+                        sourceItem.className = 'event-source-text';
+                    }
+                    
+                    eventSourcesList.appendChild(sourceItem);
+                });
+                
+                eventSourcesSection.style.display = 'block';
+            }
+        } else {
+            if (eventSourcesSection) {
+                eventSourcesSection.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Update event filters section
+     * @param {Object} event - Event or variant object
+     */
+    updateEventFilters(event) {
+        const eventFiltersSection = document.getElementById('eventFiltersSection');
+        const eventFiltersList = document.getElementById('eventFiltersList');
+        const activeFilters = this.sceneModel.activeFilters || new Set();
+        
+        if (event && eventFiltersSection && eventFiltersList) {
+            eventFiltersList.innerHTML = '';
+            
+            const heroFilters = event.filters || [];
+            const factionFilters = event.factions || [];
+            
+            // Display heroes section
+            if (heroFilters.length > 0) {
+                const heroesHeader = document.createElement('h4');
+                heroesHeader.textContent = 'Relevant Heroes:';
+                heroesHeader.className = 'event-filter-header';
+                eventFiltersList.appendChild(heroesHeader);
+                
+                heroFilters.forEach(filter => {
+                    const filterTag = document.createElement('span');
+                    filterTag.className = 'event-filter-tag';
+                    if (activeFilters.has(filter)) {
+                        filterTag.classList.add('selected');
+                    }
+                    const displayName = getHeroDisplayName(filter);
+                    filterTag.textContent = displayName;
+                    eventFiltersList.appendChild(filterTag);
+                });
+            }
+            
+            // Display factions section
+            if (factionFilters.length > 0) {
+                const factionsHeader = document.createElement('h4');
+                factionsHeader.textContent = 'Relevant Factions:';
+                factionsHeader.className = 'event-filter-header';
+                eventFiltersList.appendChild(factionsHeader);
+                
+                factionFilters.forEach(faction => {
+                    const filterTag = document.createElement('span');
+                    filterTag.className = 'event-filter-tag';
+                    if (activeFilters.has(faction)) {
+                        filterTag.classList.add('selected');
+                    }
+                    const displayName = faction.replace(/^\d+/, '').trim();
+                    filterTag.textContent = displayName;
+                    eventFiltersList.appendChild(filterTag);
+                });
+            }
+            
+            if (heroFilters.length > 0 || factionFilters.length > 0) {
+                eventFiltersSection.style.display = 'block';
+            } else {
+                eventFiltersSection.style.display = 'none';
+            }
+        } else {
+            if (eventFiltersSection) {
+                eventFiltersSection.style.display = 'none';
+            }
+        }
+    }
+
+    /**
      * Show event slide panel
      * @param {string} eventName - Event name
      * @param {string} imagePath - Optional image path
@@ -128,31 +234,40 @@ export class UIView {
             window.SoundEffectsManager.play('eventClick');
         }
         
-        // Encode image path if provided to handle special characters (but don't double-encode)
+        // Process image path if provided - but only if it needs processing
+        // If path comes from getEventImagePath, it's already properly formatted, so skip processing
         if (imagePath && imagePath.trim()) {
             imagePath = imagePath.trim();
-            if (imagePath.includes('Event Images/')) {
-                const parts = imagePath.split('Event Images/');
-                if (parts.length === 2) {
-                    let filename = parts[1];
-                    // Decode multiple times in case it's double/triple encoded
-                    let previousFilename = '';
-                    while (filename !== previousFilename) {
-                        previousFilename = filename;
-                        try {
-                            const decoded = decodeURIComponent(filename);
-                            if (decoded !== filename) {
-                                filename = decoded;
-                            } else {
-                                break;
+            // Only process if path doesn't look properly formatted already
+            // If path already contains Event%20Images/ with encoded filename, use it as-is
+            // Only process if it has Event Images/ (with space) or needs normalization
+            if (imagePath.includes('Event Images/') && !imagePath.includes('Event%20Images/')) {
+                // Handle "Event Images/" format (with space) - convert to URL-encoded
+                const folderPattern = /Event Images\//;
+                if (folderPattern.test(imagePath)) {
+                    const parts = imagePath.split(/Event Images\//);
+                    if (parts.length === 2) {
+                        let filename = parts[1];
+                        // Decode multiple times in case it's double/triple encoded
+                        let previousFilename = '';
+                        while (filename !== previousFilename) {
+                            previousFilename = filename;
+                            try {
+                                const decoded = decodeURIComponent(filename);
+                                if (decoded !== filename) {
+                                    filename = decoded;
+                                } else {
+                                    break;
+                                }
+                            } catch (e) {
+                                break; // Can't decode further
                             }
-                        } catch (e) {
-                            break; // Can't decode further
                         }
+                        imagePath = `Event%20Images/${encodeURIComponent(filename)}`;
                     }
-                    imagePath = `Event Images/${encodeURIComponent(filename)}`;
                 }
             }
+            // If path already has Event%20Images/, use it as-is (already properly formatted)
         }
         
         const eventSlide = document.getElementById('eventSlide');
@@ -179,6 +294,15 @@ export class UIView {
             // Check if this is a multi-event
             const isMultiEvent = eventData && eventData.variants && eventData.variants.length > 0;
             
+            // Get the variant index from the marker if available (for multi-events)
+            let initialVariantIndex = 0;
+            if (isMultiEvent && marker && marker.userData && marker.userData.variantIndex !== undefined) {
+                initialVariantIndex = marker.userData.variantIndex;
+            }
+            
+            // Store the current variant index
+            this.currentVariantIndex = initialVariantIndex;
+            
             // Setup variant toggle buttons for multi-events
             if (isMultiEvent && variantToggles) {
                 variantToggles.style.display = 'flex';
@@ -190,7 +314,7 @@ export class UIView {
                     btn.className = 'variant-toggle-btn';
                     btn.innerHTML = getDisplayEventName(variant.name) || `Variant ${index + 1}`;
                     btn.dataset.variantIndex = index;
-                    if (index === 0) {
+                    if (index === initialVariantIndex) {
                         btn.classList.add('active');
                     }
                     btn.addEventListener('click', () => {
@@ -237,12 +361,27 @@ export class UIView {
             // Display location between title and description
             const eventSlideLocation = document.getElementById('eventSlideLocation');
             if (eventSlideLocation && eventData) {
-                const lat = eventData.lat;
-                const lon = eventData.lon;
+                // For multi-events, get location from the current variant or event
+                const isMultiEvent = eventData.variants && eventData.variants.length > 0;
+                let lat, lon, locationName;
+                
+                if (isMultiEvent) {
+                    // Use the variant index from marker if available, otherwise default to 0
+                    const variantIndex = (marker && marker.userData && marker.userData.variantIndex !== undefined) 
+                        ? marker.userData.variantIndex 
+                        : 0;
+                    const currentVariant = eventData.variants[variantIndex] || eventData.variants[0];
+                    lat = currentVariant.lat !== undefined ? currentVariant.lat : eventData.lat;
+                    lon = currentVariant.lon !== undefined ? currentVariant.lon : eventData.lon;
+                    // Use variant's cityDisplayName if available, otherwise event's
+                    locationName = currentVariant.cityDisplayName || eventData.cityDisplayName || null;
+                } else {
+                    lat = eventData.lat;
+                    lon = eventData.lon;
+                    locationName = eventData.cityDisplayName || null;
+                }
                 
                 if (lat !== undefined && lon !== undefined && window.eventManager) {
-                    // Use cityDisplayName if available, otherwise get from location lookup
-                    let locationName = eventData.cityDisplayName || null;
                     
                     if (!locationName) {
                         // Check cache first (same as preview does)
@@ -339,111 +478,26 @@ export class UIView {
             // Get current variant or main event
             const currentEvent = isMultiEvent ? eventData.variants[this.currentVariantIndex] : eventData;
             
-            // Display sources if available (before filters)
-            const eventSourcesSection = document.getElementById('eventSourcesSection');
-            const eventSourcesList = document.getElementById('eventSourcesList');
+            // Update sources and filters sections (using shared helper functions)
+            this.updateEventSources(currentEvent);
+            this.updateEventFilters(currentEvent);
             
-            if (currentEvent && currentEvent.sources && currentEvent.sources.length > 0) {
-                if (eventSourcesSection && eventSourcesList) {
-                    eventSourcesList.innerHTML = '';
-                    
-                    currentEvent.sources.forEach((source) => {
-                        const sourceItem = document.createElement('div');
-                        sourceItem.className = 'event-source-display-item';
-                        
-                        if (source.url) {
-                            const link = document.createElement('a');
-                            link.href = source.url;
-                            link.target = '_blank';
-                            link.rel = 'noopener noreferrer';
-                            link.textContent = source.text;
-                            link.className = 'event-source-link';
-                            sourceItem.appendChild(link);
-                        } else {
-                            sourceItem.textContent = source.text;
-                            sourceItem.className = 'event-source-text';
-                        }
-                        
-                        eventSourcesList.appendChild(sourceItem);
-                    });
-                    
-                    eventSourcesSection.style.display = 'block';
-                }
-            } else {
-                if (eventSourcesSection) {
-                    eventSourcesSection.style.display = 'none';
-                }
-            }
-            
-            // Display filters and factions if available
-            const eventFiltersSection = document.getElementById('eventFiltersSection');
-            const eventFiltersList = document.getElementById('eventFiltersList');
-            
-            if (currentEvent) {
-                const heroFilters = currentEvent.filters || [];
-                const factionFilters = currentEvent.factions || [];
-                const activeFilters = this.sceneModel.activeFilters || new Set();
-                
-                if (eventFiltersSection && eventFiltersList) {
-                    eventFiltersList.innerHTML = '';
-                    
-                    // Display heroes section
-                    if (heroFilters.length > 0) {
-                        const heroesHeader = document.createElement('h4');
-                        heroesHeader.textContent = 'Relevant Heroes:';
-                        heroesHeader.className = 'event-filter-header';
-                        eventFiltersList.appendChild(heroesHeader);
-                        
-                        heroFilters.forEach(filter => {
-                            const filterTag = document.createElement('span');
-                            filterTag.className = 'event-filter-tag';
-                            // Check if this filter is currently selected
-                            if (activeFilters.has(filter)) {
-                                filterTag.classList.add('selected');
-                            }
-                            // Get display name for hero (e.g., "Soldier 76" -> "Soldier: 76")
-                            const displayName = getHeroDisplayName(filter);
-                            filterTag.textContent = displayName;
-                            eventFiltersList.appendChild(filterTag);
-                        });
-                    }
-                    
-                    // Display factions section
-                    if (factionFilters.length > 0) {
-                        const factionsHeader = document.createElement('h4');
-                        factionsHeader.textContent = 'Relevant Factions:';
-                        factionsHeader.className = 'event-filter-header';
-                        eventFiltersList.appendChild(factionsHeader);
-                        
-                        factionFilters.forEach(faction => {
-                            const filterTag = document.createElement('span');
-                            filterTag.className = 'event-filter-tag';
-                            // Check if this faction is currently selected
-                            if (activeFilters.has(faction)) {
-                                filterTag.classList.add('selected');
-                            }
-                            // Remove number prefix for display
-                            const displayName = faction.replace(/^\d+/, '').trim();
-                            filterTag.textContent = displayName;
-                            eventFiltersList.appendChild(filterTag);
-                        });
-                    }
-                    
-                    if (heroFilters.length > 0 || factionFilters.length > 0) {
-                        eventFiltersSection.style.display = 'block';
-                    } else {
-                        eventFiltersSection.style.display = 'none';
-                    }
-                }
-            } else {
-                if (eventFiltersSection) {
-                    eventFiltersSection.style.display = 'none';
-                }
+            // Hide variant markers for previous event (if switching between events)
+            if (this.currentEventData && 
+                this.currentEventData !== eventData && 
+                this.currentEventData.variants && 
+                this.currentEventData.variants.length > 0) {
+                this.hideVariantMarkers(this.currentEventData);
             }
             
             // Store event data for variant switching
             if (isMultiEvent) {
                 this.currentEventData = eventData;
+            }
+            
+            // Show variant markers for this event (if it's a multi-event)
+            if (eventData && eventData.variants && eventData.variants.length > 0) {
+                this.showVariantMarkers(eventData);
             }
             
             eventSlide.classList.add('open');
@@ -452,6 +506,60 @@ export class UIView {
             if (eventImageOverlay) {
                 eventImageOverlay.classList.add('slide-open');
             }
+            
+            // On mobile: move bottom section content into scrollable area and fix title position
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                const scrollableArea = document.getElementById('eventSlideScrollable');
+                const bottomSection = document.getElementById('eventSlideBottom');
+                const titleEl = document.getElementById('eventSlideTitle');
+                const contentEl = document.getElementById('eventSlideContent');
+                
+                // Move all children from bottom section to scrollable area
+                if (scrollableArea && bottomSection) {
+                    while (bottomSection.firstChild) {
+                        scrollableArea.appendChild(bottomSection.firstChild);
+                    }
+                    console.log('[DEBUG Mobile] Moved all bottom content into scrollable area');
+                }
+                
+                 // Fix title position on mobile - same row as close button
+                 setTimeout(() => {
+                     if (titleEl) {
+                         titleEl.style.setProperty('position', 'fixed', 'important');
+                         titleEl.style.setProperty('top', '10px', 'important'); // Same as close button
+                         titleEl.style.setProperty('left', '20px', 'important');
+                         titleEl.style.setProperty('right', '70px', 'important');
+                         titleEl.style.setProperty('z-index', '999', 'important');
+                         titleEl.style.setProperty('background', 'transparent', 'important'); // No background
+                         titleEl.style.setProperty('padding', '0', 'important');
+                         titleEl.style.setProperty('margin', '0', 'important');
+                         titleEl.style.setProperty('box-shadow', 'none', 'important');
+                         titleEl.style.setProperty('max-width', 'calc(100% - 90px)', 'important');
+                         titleEl.style.setProperty('width', 'auto', 'important');
+                         titleEl.style.setProperty('line-height', '50px', 'important'); // Match close button height
+                         titleEl.style.setProperty('height', '50px', 'important'); // Match close button height
+                         console.log('[DEBUG Mobile] Fixed title position on same row as close button');
+                     }
+                     
+                     // Adjust content padding for fixed title row
+                     if (contentEl) {
+                         contentEl.style.setProperty('padding-top', '70px', 'important'); // Space for title/close row
+                     }
+                     
+                     // Adjust scrollable area margin for fixed title - reduced spacing
+                     if (scrollableArea) {
+                         scrollableArea.style.setProperty('margin-top', '0', 'important'); // No extra margin
+                         scrollableArea.style.setProperty('padding-top', '0', 'important');
+                     }
+                 }, 50);
+            }
+            
+            // Call helper functions to update sources and filters
+            setTimeout(() => {
+                this.updateEventSources(currentEvent);
+                this.updateEventFilters(currentEvent);
+            }, 100);
         }
         
         // Initialize image overlay state - show by default with fade sequence
@@ -461,11 +569,11 @@ export class UIView {
             eventImage.classList.remove('fade-in', 'fade-out');
             
             if (imagePath) {
-                // Clear any previous error handlers
+                // Clear any previous error handlers first
                 eventImage.onerror = null;
                 eventImage.onload = null;
                 
-                // Set up error and load handlers
+                // Set up error and load handlers BEFORE setting src
                 eventImage.onerror = () => {
                     console.error(`Failed to load event image: ${imagePath}`);
                     console.error(`Tried to load from: ${window.location.origin}/${imagePath}`);
@@ -479,14 +587,28 @@ export class UIView {
                     eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
                 };
                 
-                // Add cache busting to ensure latest images load
-                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                eventImage.src = `${imagePath}${cacheBuster}`;
-                eventImage.style.display = 'block';
-                // Start with transparent background for image
-                eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
+                // Ensure path is relative (no leading slash) for proper resolution
+                const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+                
+                // Force reload by clearing src first, then setting new src with cache busting
+                // This matches how preview images work but with cache busting for overlay
+                eventImage.src = '';
+                eventImage.style.display = 'none';
+                
+                // Use setTimeout to ensure browser processes the clear before setting new src
+                setTimeout(() => {
+                    // Add cache busting to ensure latest images load (different from previews which don't use it)
+                    const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    // Set the new image source (browser will load it fresh)
+                    eventImage.src = `${normalizedPath}${cacheBuster}`;
+                    eventImage.style.display = 'block';
+                    // Start with transparent background for image
+                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
+                }, 10); // Small delay to ensure src clear is processed
             } else {
                 console.log('No image path provided for event');
+                // Clear image src when no path
+                eventImage.src = '';
                 eventImage.style.display = 'none';
                 // No image - use black background
                 eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
@@ -705,12 +827,20 @@ export class UIView {
                     const eventName = displayEvent.name || eventMarker.userData.eventName;
                     const eventDescription = displayEvent.description;
                     
-                    // Get image path
-                    let imagePath = displayEvent.image || null;
-                    if (!imagePath || !imagePath.trim()) {
-                        const normalizedName = eventName.replace(/\s+/g, ' ').trim();
-                        const encodedFileName = encodeURIComponent(normalizedName);
-                        imagePath = `Event Images/${encodedFileName}.png`;
+                    // Get image path - use EventManager's function if available for consistency
+                    let imagePath = null;
+                    if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
+                        imagePath = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
+                        console.log(`[UIView] Image path for "${eventName}": ${imagePath}`);
+                    } else {
+                        // Fallback: construct path manually
+                        imagePath = displayEvent.image || null;
+                        if (!imagePath || !imagePath.trim()) {
+                            const normalizedName = eventName.replace(/\s+/g, ' ').trim();
+                            const encodedFileName = encodeURIComponent(normalizedName);
+                            imagePath = `Event%20Images/${encodedFileName}.png`;
+                        }
+                        console.log(`[UIView] Image path (fallback) for "${eventName}": ${imagePath}`);
                     }
                     
                     // Zoom to marker and show event slide
@@ -815,6 +945,101 @@ export class UIView {
 
         const variant = eventData.variants[variantIndex];
         this.currentVariantIndex = variantIndex;
+        
+        // Update location display for this variant
+        const eventSlideLocation = document.getElementById('eventSlideLocation');
+        if (eventSlideLocation) {
+            const variantLat = variant.lat !== undefined ? variant.lat : eventData.lat;
+            const variantLon = variant.lon !== undefined ? variant.lon : eventData.lon;
+            
+            if (variantLat !== undefined && variantLon !== undefined && window.eventManager) {
+                // Use variant's cityDisplayName if available, otherwise get from location lookup
+                let locationName = variant.cityDisplayName || null;
+                
+                if (!locationName) {
+                    // Check cache first
+                    const cacheKey = `${variantLat.toFixed(4)}_${variantLon.toFixed(4)}`;
+                    if (window.eventManager.locationCache && window.eventManager.locationCache.has(cacheKey)) {
+                        locationName = window.eventManager.locationCache.get(cacheKey);
+                    }
+                    
+                    // If not in cache, get location name
+                    if (!locationName) {
+                        locationName = window.eventManager.getLocationName(variantLat, variantLon);
+                    }
+                }
+                
+                if (locationName) {
+                    const locationContent = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+                    eventSlideLocation.innerHTML = locationContent;
+                    eventSlideLocation.style.display = 'block';
+                    eventSlideLocation.style.opacity = '1';
+                } else {
+                    eventSlideLocation.style.display = 'none';
+                }
+            } else {
+                eventSlideLocation.style.display = 'none';
+            }
+        }
+        
+        // Recenter globe to variant's location if it has one
+        const variantLat = variant.lat !== undefined ? variant.lat : eventData.lat;
+        const variantLon = variant.lon !== undefined ? variant.lon : eventData.lon;
+        
+        // Find the marker for this variant and zoom to it
+        if (window.globeController && window.globeController.interactionController) {
+            const markers = this.sceneModel.getMarkers();
+            let variantMarker = null;
+            
+            // Try to find the marker for this specific variant
+            for (const marker of markers) {
+                if (marker.userData.isEventMarker && 
+                    marker.userData.event === eventData &&
+                    marker.userData.variantIndex === variantIndex) {
+                    variantMarker = marker;
+                    break;
+                }
+            }
+            
+            // If no variant-specific marker found, use the main marker
+            // (for backward compatibility with events that don't have variant-specific markers yet)
+            if (!variantMarker) {
+                for (const marker of markers) {
+                    if (marker.userData.isEventMarker && 
+                        marker.userData.event === eventData &&
+                        (marker.userData.isMainVariant || marker.userData.variantIndex === 0)) {
+                        variantMarker = marker;
+                        break;
+                    }
+                }
+            }
+            
+            // If we found a marker, zoom to it
+            if (variantMarker) {
+                window.globeController.interactionController.zoomToMarker(variantMarker);
+            } else {
+                // Fallback: create a temporary marker to zoom to
+                const THREE = window.THREE;
+                if (THREE && window.globeController.globeView) {
+                    // Use the globeView's latLonToVector3 function via a helper
+                    const tempMarker = new THREE.Object3D();
+                    tempMarker.userData = {
+                        lat: variantLat,
+                        lon: variantLon,
+                        isEventMarker: true
+                    };
+                    // Calculate position using lat/lon (same formula as latLonToVector3)
+                    const phi = (90 - variantLat) * (Math.PI / 180);
+                    const theta = (variantLon + 180) * (Math.PI / 180);
+                    const radius = 1.02;
+                    const x = -(radius * Math.sin(phi) * Math.cos(theta));
+                    const z = radius * Math.sin(phi) * Math.sin(theta);
+                    const y = radius * Math.cos(phi);
+                    tempMarker.position.set(x, y, z);
+                    window.globeController.interactionController.zoomToMarker(tempMarker);
+                }
+            }
+        }
 
         // Update title and description
         const eventSlideTitle = document.getElementById('eventSlideTitle');
@@ -838,143 +1063,92 @@ export class UIView {
             this.stopGlitchAnimation();
         }
 
-        // Update sources (before filters)
-        const eventSourcesSection = document.getElementById('eventSourcesSection');
-        const eventSourcesList = document.getElementById('eventSourcesList');
-        
-        if (variant.sources && variant.sources.length > 0) {
-            if (eventSourcesSection && eventSourcesList) {
-                eventSourcesList.innerHTML = '';
-                
-                variant.sources.forEach((source) => {
-                    const sourceItem = document.createElement('div');
-                    sourceItem.className = 'event-source-display-item';
-                    
-                    if (source.url) {
-                        const link = document.createElement('a');
-                        link.href = source.url;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        link.textContent = source.text;
-                        link.className = 'event-source-link';
-                        sourceItem.appendChild(link);
-                    } else {
-                        sourceItem.textContent = source.text;
-                        sourceItem.className = 'event-source-text';
-                    }
-                    
-                    eventSourcesList.appendChild(sourceItem);
-                });
-                
-                eventSourcesSection.style.display = 'block';
-            }
-        } else {
-            if (eventSourcesSection) {
-                eventSourcesSection.style.display = 'none';
-            }
-        }
-
-        // Update filters display
-        const eventFiltersSection = document.getElementById('eventFiltersSection');
-        const eventFiltersList = document.getElementById('eventFiltersList');
-        const activeFilters = this.sceneModel.activeFilters || new Set();
-
-        if (eventFiltersSection && eventFiltersList) {
-            eventFiltersList.innerHTML = '';
-            
-            const heroFilters = variant.filters || [];
-            const factionFilters = variant.factions || [];
-
-            // Display heroes section
-            if (heroFilters.length > 0) {
-                const heroesHeader = document.createElement('h4');
-                heroesHeader.textContent = 'Relevant Heroes:';
-                heroesHeader.className = 'event-filter-header';
-                eventFiltersList.appendChild(heroesHeader);
-                
-                heroFilters.forEach(filter => {
-                    const filterTag = document.createElement('span');
-                    filterTag.className = 'event-filter-tag';
-                    if (activeFilters.has(filter)) {
-                        filterTag.classList.add('selected');
-                    }
-                    // Get display name for hero (e.g., "Soldier 76" -> "Soldier: 76")
-                    const displayName = getHeroDisplayName(filter);
-                    filterTag.textContent = displayName;
-                    eventFiltersList.appendChild(filterTag);
-                });
-            }
-            
-            // Display factions section
-            if (factionFilters.length > 0) {
-                const factionsHeader = document.createElement('h4');
-                factionsHeader.textContent = 'Relevant Factions:';
-                factionsHeader.className = 'event-filter-header';
-                eventFiltersList.appendChild(factionsHeader);
-                
-                factionFilters.forEach(faction => {
-                    const filterTag = document.createElement('span');
-                    filterTag.className = 'event-filter-tag';
-                    if (activeFilters.has(faction)) {
-                        filterTag.classList.add('selected');
-                    }
-                    const displayName = faction.replace(/^\d+/, '').trim();
-                    filterTag.textContent = displayName;
-                    eventFiltersList.appendChild(filterTag);
-                });
-            }
-            
-            if (heroFilters.length > 0 || factionFilters.length > 0) {
-                eventFiltersSection.style.display = 'block';
-            } else {
-                eventFiltersSection.style.display = 'none';
-            }
-        }
+        // Update sources and filters sections (using shared helper functions)
+        this.updateEventSources(variant);
+        this.updateEventFilters(variant);
         
 
         // Update image
         const eventImage = document.getElementById('eventImage');
         const eventImageOverlay = document.getElementById('eventImageOverlay');
         if (eventImage && eventImageOverlay) {
-            let imagePath = variant.image || null;
-            if (!imagePath || !imagePath.trim()) {
-                const normalizedName = variant.name.replace(/\s+/g, ' ').trim();
-                const encodedFileName = encodeURIComponent(normalizedName);
-                imagePath = `Event Images/${encodedFileName}.png`;
+            // Get image path using EventManager's function (same as previews and marker clicks use)
+            let imagePath = null;
+            if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
+                imagePath = window.eventManager.getEventImagePath(variant.name, variant.image);
+                console.log(`[UIView] Image path for variant "${variant.name}": ${imagePath}`);
             } else {
-                // Encode provided path to handle special characters (but don't double-encode)
-                imagePath = imagePath.trim();
-                if (imagePath.includes('Event Images/')) {
-                    const parts = imagePath.split('Event Images/');
-                    if (parts.length === 2) {
-                        let filename = parts[1];
-                        // Decode multiple times in case it's double/triple encoded
-                        let previousFilename = '';
-                        while (filename !== previousFilename) {
-                            previousFilename = filename;
-                            try {
-                                const decoded = decodeURIComponent(filename);
-                                if (decoded !== filename) {
-                                    filename = decoded;
-                                } else {
-                                    break;
+                // Fallback: construct path manually
+                imagePath = variant.image || null;
+                if (!imagePath || !imagePath.trim()) {
+                    const normalizedName = variant.name.replace(/\s+/g, ' ').trim();
+                    const encodedFileName = encodeURIComponent(normalizedName);
+                    imagePath = `Event%20Images/${encodedFileName}.png`;
+                } else {
+                    // Encode provided path to handle special characters (but don't double-encode)
+                    imagePath = imagePath.trim();
+                    const folderPattern = /Event(?:%20| )Images\//;
+                    if (folderPattern.test(imagePath)) {
+                        const parts = imagePath.split(/Event(?:%20| )Images\//);
+                        if (parts.length === 2) {
+                            let filename = parts[1];
+                            // Decode multiple times in case it's double/triple encoded
+                            let previousFilename = '';
+                            while (filename !== previousFilename) {
+                                previousFilename = filename;
+                                try {
+                                    const decoded = decodeURIComponent(filename);
+                                    if (decoded !== filename) {
+                                        filename = decoded;
+                                    } else {
+                                        break;
+                                    }
+                                } catch (e) {
+                                    break; // Can't decode further
                                 }
-                            } catch (e) {
-                                break; // Can't decode further
                             }
+                            imagePath = `Event%20Images/${encodeURIComponent(filename)}`;
                         }
-                        imagePath = `Event Images/${encodeURIComponent(filename)}`;
                     }
                 }
+                console.log(`[UIView] Image path (fallback) for variant "${variant.name}": ${imagePath}`);
             }
 
             if (imagePath) {
-                // Add cache busting to ensure latest images load
-                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                eventImage.src = `${imagePath}${cacheBuster}`;
-                eventImage.style.display = 'block';
-            } else {
+                // Clear any previous error handlers first
+                eventImage.onerror = null;
+                eventImage.onload = null;
+                
+                // Set up error and load handlers
+                eventImage.onerror = () => {
+                    console.error(`Failed to load event image: ${imagePath}`);
+                    eventImage.style.display = 'none';
+                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+                };
+                eventImage.onload = () => {
+                    console.log(`Successfully loaded event image: ${imagePath}`);
+                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
+                };
+                
+                // Ensure path is relative (no leading slash) for proper resolution
+                const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+                
+                // Force reload by clearing src first, then setting new src with cache busting
+                eventImage.src = '';
                 eventImage.style.display = 'none';
+                
+                // Use setTimeout to ensure browser processes the clear before setting new src
+                setTimeout(() => {
+                    // Add cache busting to ensure latest images load
+                    const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    eventImage.src = `${normalizedPath}${cacheBuster}`;
+                    eventImage.style.display = 'block';
+                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
+                }, 10); // Small delay to ensure src clear is processed
+            } else {
+                eventImage.src = '';
+                eventImage.style.display = 'none';
+                eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
             }
         }
 
@@ -1336,6 +1510,63 @@ export class UIView {
             eventSlide.classList.remove('open');
         }
         
+        // On mobile: move bottom section content back and reset title position when closing
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            const scrollableArea = document.getElementById('eventSlideScrollable');
+            const bottomSection = document.getElementById('eventSlideBottom');
+            const titleEl = document.getElementById('eventSlideTitle');
+            const contentEl = document.getElementById('eventSlideContent');
+            
+            if (scrollableArea && bottomSection) {
+                // Find elements that should be in bottom section (sources, filters, buttons)
+                const sourcesEl = document.getElementById('eventSourcesSection');
+                const filtersEl = document.getElementById('eventFiltersSection');
+                const controlButtons = document.querySelector('.event-control-buttons');
+                const navButtons = document.querySelector('.event-navigation-buttons');
+                
+                // Move them back to bottom section
+                if (sourcesEl && sourcesEl.parentElement === scrollableArea) {
+                    bottomSection.appendChild(sourcesEl);
+                }
+                if (filtersEl && filtersEl.parentElement === scrollableArea) {
+                    bottomSection.appendChild(filtersEl);
+                }
+                if (controlButtons && controlButtons.parentElement === scrollableArea) {
+                    bottomSection.appendChild(controlButtons);
+                }
+                if (navButtons && navButtons.parentElement === scrollableArea) {
+                    bottomSection.appendChild(navButtons);
+                }
+                console.log('[DEBUG Mobile] Moved bottom content back to bottom section');
+            }
+            
+            // Reset title position
+            if (titleEl) {
+                titleEl.style.position = '';
+                titleEl.style.top = '';
+                titleEl.style.left = '';
+                titleEl.style.right = '';
+                titleEl.style.zIndex = '';
+                titleEl.style.background = '';
+                titleEl.style.padding = '';
+                titleEl.style.margin = '';
+                titleEl.style.boxShadow = '';
+                titleEl.style.maxWidth = '';
+            }
+            
+            // Reset content padding
+            if (contentEl) {
+                contentEl.style.paddingTop = '';
+            }
+            
+            // Reset scrollable area
+            if (scrollableArea) {
+                scrollableArea.style.marginTop = '';
+                scrollableArea.style.paddingTop = '';
+            }
+        }
+        
         // Hide image overlay immediately
         if (eventImageOverlay) {
             eventImageOverlay.classList.remove('slide-open', 'open', 'fade-in', 'fade-out');
@@ -1345,6 +1576,15 @@ export class UIView {
             eventImage.classList.remove('fade-in', 'fade-out');
             eventImage.style.display = 'none';
         }
+        
+        // Hide variant markers for the current event (if it was a multi-event)
+        if (this.currentEventData && this.currentEventData.variants && this.currentEventData.variants.length > 0) {
+            this.hideVariantMarkers(this.currentEventData);
+        }
+        
+        // Clear current event data
+        this.currentEventData = null;
+        this.currentEventMarker = null;
         
         // Zoom out and restore camera position
         this.zoomOutFromEvent();
@@ -2099,7 +2339,7 @@ export class UIView {
                             if (!imagePath || !imagePath.trim()) {
                                 const normalizedName = eventName.replace(/\s+/g, ' ').trim();
                                 const encodedFileName = encodeURIComponent(normalizedName);
-                                imagePath = `Event Images/${encodedFileName}.png`;
+                                imagePath = `Event%20Images/${encodedFileName}.png`;
                             }
                             
                             // Zoom to marker and show event slide
@@ -2436,6 +2676,42 @@ export class UIView {
                     positionOverlay(container, index);
                 });
             });
+        });
+    }
+    
+    /**
+     * Show variant markers for a multi-event
+     * @param {Object} eventData - The event data object
+     */
+    showVariantMarkers(eventData) {
+        if (!this.sceneModel) return;
+        
+        const markers = this.sceneModel.getMarkers();
+        markers.forEach(marker => {
+            if (marker.userData && 
+                marker.userData.isEventMarker && 
+                marker.userData.event === eventData &&
+                !marker.userData.isMainVariant) {
+                marker.visible = true;
+            }
+        });
+    }
+    
+    /**
+     * Hide variant markers for a multi-event
+     * @param {Object} eventData - The event data object
+     */
+    hideVariantMarkers(eventData) {
+        if (!this.sceneModel) return;
+        
+        const markers = this.sceneModel.getMarkers();
+        markers.forEach(marker => {
+            if (marker.userData && 
+                marker.userData.isEventMarker && 
+                marker.userData.event === eventData &&
+                !marker.userData.isMainVariant) {
+                marker.visible = false;
+            }
         });
     }
 }

@@ -119,8 +119,8 @@
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-close" id="sidebarClose">&times;</div>
             <button onclick="window.location.href='map.html'" class="active">Map</button>
-            <button onclick="window.location.href='filters.html'">Filters</button>
-            <button onclick="window.location.href='options.html'">Options</button>
+            <button onclick="window.location.href='test.html'">Test</button>
+            <button onclick="window.location.href='main.html'">Main</button>
         </nav>
 
         <!-- Event Slide Panel (left side) -->
@@ -203,7 +203,7 @@
                     <div class="music-progress-container">
                         <input type="range" id="musicProgressBar" class="music-progress-bar" min="0" max="100" value="0">
                         <div class="music-time-display">
-                            <span id="musicCurrentTime">0:00</span> / <span id="musicTotalTime">0:00</span>
+                            <span id="musicCurrentTime">0:00</span> <span id="musicTotalTime">0:00</span>
                         </div>
                         <div class="music-control-buttons">
                             <button id="pauseBtn" class="music-control-btn">
@@ -223,8 +223,8 @@
                 </div>
                 <div class="music-control-row">
                     <label for="volumeSlider">Music Volume:</label>
-                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="20">
-                    <span id="volumeValue" class="volume-value">20%</span>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="10">
+                    <span id="volumeValue" class="volume-value">10%</span>
                 </div>
                 <div class="music-control-row">
                     <label for="soundEffectsSlider">Sound Effects Volume:</label>
@@ -298,7 +298,7 @@
                     </div>
                     <div class="event-edit-field event-edit-field-full">
                         <label for="eventEditDescription">Description:</label>
-                        <textarea id="eventEditDescription" class="event-edit-textarea" autocomplete="off" rows="4" required></textarea>
+                        <textarea id="eventEditDescription" class="event-edit-textarea" autocomplete="off" rows="4"></textarea>
                     </div>
                     <div class="event-edit-field">
                         <label for="eventEditFilters">Hero Filters (comma-separated):</label>

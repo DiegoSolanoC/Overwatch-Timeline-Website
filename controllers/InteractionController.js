@@ -164,6 +164,16 @@ export class InteractionController {
         if (intersects.length > 0) {
             const hoveredMarker = intersects[0].object;
             
+            // Don't allow hover effects on non-interactive markers (variant markers)
+            if (hoveredMarker.userData && hoveredMarker.userData.isInteractive === false) {
+                // If we were hovering an interactive marker, stop it
+                if (this.hoveredEventMarker && this.hoveredEventMarker.userData.isInteractive !== false) {
+                    this.stopEventMarkerPulse(this.hoveredEventMarker);
+                    this.hoveredEventMarker = null;
+                }
+                return;
+            }
+            
             // Don't allow hover effects on locked events
             if (hoveredMarker.userData && hoveredMarker.userData.isLocked) {
                 // If we were hovering an unlocked marker, stop it
@@ -427,8 +437,8 @@ export class InteractionController {
         
         markers.forEach(marker => {
             if (marker && marker.userData && marker.userData.isEventMarker) {
-                // Don't pulse locked events
-                if (marker.userData.isLocked) {
+                // Don't pulse non-interactive markers (variant markers) or locked events
+                if (marker.userData.isInteractive === false || marker.userData.isLocked) {
                     return;
                 }
                 
@@ -628,6 +638,11 @@ export class InteractionController {
             
             // Handle event marker click
             if (clickedMarker.userData.isEventMarker) {
+                // Only allow clicks on interactive markers (main variant or single events)
+                if (clickedMarker.userData.isInteractive === false) {
+                    return; // Non-interactive variant markers cannot be clicked
+                }
+                
                 // Don't allow event marker clicks when image overlay is visible
                 const eventImageOverlay = document.getElementById('eventImageOverlay');
                 if (eventImageOverlay && eventImageOverlay.classList.contains('open')) {
@@ -662,42 +677,69 @@ export class InteractionController {
                 const eventName = displayEvent.name || clickedMarker.userData.eventName;
                 const eventDescription = displayEvent.description || 'Placeholder text for event information.';
                 
-                // Auto-detect image if not provided
-                let eventImage = displayEvent.image || null;
-                if (!eventImage || !eventImage.trim()) {
-                    // Auto-detect from Event Images folder
-                    // Use exact event name (preserve all characters including glitchy text)
-                    // Only normalize multiple spaces to single space
-                    const normalizedName = eventName.replace(/\s+/g, ' ').trim();
-                    // Encode the filename to handle spaces and special characters in URLs
-                    const encodedFileName = encodeURIComponent(normalizedName);
-                    eventImage = `Event Images/${encodedFileName}.png`;
-                    console.log(`Auto-detecting image for event "${eventName}": ${eventImage}`);
+                // Get image path using EventManager's function (same as previews use)
+                let eventImage = null;
+                if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
+                    eventImage = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
+                    console.log(`[InteractionController] Image path for "${eventName}": ${eventImage}`);
                 } else {
-                    // Encode provided path to handle special characters (but don't double-encode)
-                    eventImage = eventImage.trim();
-                    if (eventImage.includes('Event Images/')) {
-                        const parts = eventImage.split('Event Images/');
-                        if (parts.length === 2) {
-                            let filename = parts[1];
-                            // Decode multiple times in case it's double/triple encoded
-                            let previousFilename = '';
-                            while (filename !== previousFilename) {
-                                previousFilename = filename;
-                                try {
-                                    const decoded = decodeURIComponent(filename);
-                                    if (decoded !== filename) {
-                                        filename = decoded;
-                                    } else {
-                                        break;
+                    // Fallback: construct path manually (same logic as EventManager)
+                    eventImage = displayEvent.image || null;
+                    if (!eventImage || !eventImage.trim()) {
+                        // Auto-detect from Event Images folder
+                        const normalizedName = eventName.replace(/\s+/g, ' ').trim();
+                        const encodedFileName = encodeURIComponent(normalizedName);
+                        eventImage = `Event%20Images/${encodedFileName}.png`;
+                        console.log(`[InteractionController] Auto-detecting image for event "${eventName}": ${eventImage}`);
+                    } else {
+                        // Encode provided path to handle special characters
+                        eventImage = eventImage.trim();
+                        const encodeImagePath = (path) => {
+                            if (!path) return path;
+                            
+                            // Helper to decode multiple times until fully decoded
+                            const fullyDecode = (str) => {
+                                let previous = '';
+                                let current = str;
+                                while (current !== previous) {
+                                    previous = current;
+                                    try {
+                                        const decoded = decodeURIComponent(current);
+                                        if (decoded !== current) {
+                                            current = decoded;
+                                        } else {
+                                            break;
+                                        }
+                                    } catch (e) {
+                                        break; // Can't decode further
                                     }
-                                } catch (e) {
-                                    break; // Can't decode further
+                                }
+                                return current;
+                            };
+                            
+                            // If path already contains Event Images/, encode just the filename
+                            const folderPattern = /Event(?:%20| )Images\//;
+                            if (folderPattern.test(path)) {
+                                const parts = path.split(/Event(?:%20| )Images\//);
+                                if (parts.length === 2) {
+                                    let filename = fullyDecode(parts[1]);
+                                    return `Event%20Images/${encodeURIComponent(filename)}`;
                                 }
                             }
-                            eventImage = `Event Images/${encodeURIComponent(filename)}`;
-                        }
+                            // If it's a full path, try to encode just the filename part
+                            const lastSlash = path.lastIndexOf('/');
+                            if (lastSlash !== -1) {
+                                const folder = path.substring(0, lastSlash + 1);
+                                let filename = fullyDecode(path.substring(lastSlash + 1));
+                                return folder + encodeURIComponent(filename);
+                            }
+                            // If no slash, decode first then encode
+                            const decoded = fullyDecode(path);
+                            return encodeURIComponent(decoded);
+                        };
+                        eventImage = encodeImagePath(eventImage);
                     }
+                    console.log(`[InteractionController] Image path (fallback) for "${eventName}": ${eventImage}`);
                 }
                 
                 this.uiView.showEventSlide(eventName, eventImage, eventDescription, clickedMarker, eventData);

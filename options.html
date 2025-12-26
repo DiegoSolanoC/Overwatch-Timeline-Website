@@ -3,8 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Options - My Website</title>
+    <title>Main App - Timeline Overwatch</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .menu-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a1929 0%, #1a1a2e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100; /* Lower than sidebar indicator (z-index: 30) so sidebar is accessible */
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        .menu-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        
+        .menu-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .menu-title {
+            color: #2196F3;
+            font-size: 48px;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(33, 150, 243, 0.5);
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .menu-button {
+            padding: 20px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #2196F3 0%, #0d47a1 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .menu-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+            background: linear-gradient(135deg, #0d47a1 0%, #2196F3 100%);
+        }
+        
+        .menu-button:active {
+            transform: translateY(0);
+        }
+        
+        .menu-button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+    </style>
     <script>
         // Asset loading order tracking for options.html
         console.log('[0.00ms] PAGE: options.html');
@@ -29,16 +103,41 @@
 
     <div class="layout-container">
         <main id="content">
-            <div id="globe-container"></div>
+            <!-- Menu Screen -->
+            <div id="menuScreen" class="menu-screen">
+                <div class="menu-container">
+                    <h1 class="menu-title">Timeline Overwatch</h1>
+                    <div class="menu-buttons">
+                        <button id="globalTimelineBtn" class="menu-button">
+                            Global Timeline
+                        </button>
+                    </div>
+                    <!-- Universal Features Buttons (for testing) -->
+                    <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                        <p style="color: #4caf50; font-size: 18px; margin-bottom: 15px; font-weight: bold;">Universal Features (Loaded)</p>
+                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                            <button id="menuPaletteBtn" class="menu-button" style="min-width: 140px; font-size: 18px; padding: 15px 30px;">
+                                🎨 Palette
+                            </button>
+                            <button id="menuMusicBtn" class="menu-button" style="min-width: 140px; font-size: 18px; padding: 15px 30px;">
+                                🎵 Music
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
-            <!-- Music Toggle Button (bottom right) -->
+            <!-- Globe Container (hidden initially) -->
+            <div id="globe-container" style="display: none;"></div>
+            
+            <!-- Music Toggle Button (bottom right, shown on menu screen) -->
             <button id="musicToggle" class="globe-control-btn music-btn bottom-right-btn" title="Music Options">
                 <span id="musicIcon">
                     <img src="Music Icon.png" alt="Music" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             </button>
             
-            <!-- Color Palette Toggle Button (bottom right) -->
+            <!-- Color Palette Toggle Button (bottom right, shown on menu screen) -->
             <button id="colorPaletteToggle" class="globe-control-btn color-palette-btn bottom-right-btn" title="Toggle Color Palette">
                 <span id="colorPaletteIcon">
                     <img src="Palette Icon.png" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">
@@ -49,8 +148,8 @@
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-close" id="sidebarClose">&times;</div>
             <button onclick="window.location.href='map.html'">Map</button>
-            <button onclick="window.location.href='filters.html'">Filters</button>
-            <button onclick="window.location.href='options.html'" class="active">Options</button>
+            <button onclick="window.location.href='test.html'">Test</button>
+            <button onclick="window.location.href='options.html'" class="active">Main App</button>
         </nav>
 
         <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
@@ -70,7 +169,7 @@
                     <div class="music-progress-container">
                         <input type="range" id="musicProgressBar" class="music-progress-bar" min="0" max="100" value="0">
                         <div class="music-time-display">
-                            <span id="musicCurrentTime">0:00</span> / <span id="musicTotalTime">0:00</span>
+                            <span id="musicCurrentTime">0:00</span> <span id="musicTotalTime">0:00</span>
                         </div>
                         <div class="music-control-buttons">
                             <button id="pauseBtn" class="music-control-btn">
@@ -90,8 +189,8 @@
                 </div>
                 <div class="music-control-row">
                     <label for="volumeSlider">Music Volume:</label>
-                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="20">
-                    <span id="volumeValue" class="volume-value">20%</span>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="10">
+                    <span id="volumeValue" class="volume-value">10%</span>
                 </div>
                 <div class="music-control-row">
                     <label for="soundEffectsSlider">Sound Effects Volume:</label>
@@ -109,12 +208,195 @@
             <source src="" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
+        
+        <!-- Event Slide Panel (left side) -->
+        <div class="event-slide" id="eventSlide">
+            <div class="event-slide-close" id="eventSlideClose">&times;</div>
+            <div class="event-slide-content" id="eventSlideContent">
+                <div class="event-slide-scrollable" id="eventSlideScrollable">
+                    <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                    <h2 id="eventSlideTitle">Event</h2>
+                    <p id="eventSlideLocation" class="event-slide-location" style="display: none;"></p>
+                    <p id="eventSlideText">Placeholder text for event information.</p>
+                </div>
+                <div class="event-slide-bottom" id="eventSlideBottom">
+                    <div class="event-sources-section" id="eventSourcesSection" style="display: none;">
+                        <h4 class="event-filter-header">Sources:</h4>
+                        <div class="event-sources-list" id="eventSourcesList"></div>
+                    </div>
+                    <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
+                        <div class="event-filters-list" id="eventFiltersList"></div>
+                    </div>
+                    <div class="event-control-buttons">
+                        <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+                        <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
+                    </div>
+                    <div class="event-navigation-buttons">
+                        <button id="eventPrevBtn" class="event-nav-btn" title="Previous Event">‹</button>
+                        <button id="eventAllEventsBtn" class="event-all-events-btn" title="View All Events">All Events</button>
+                        <button id="eventNextBtn" class="event-nav-btn" title="Next Event">›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Image Overlay (over globe) -->
+        <div class="event-image-overlay" id="eventImageOverlay">
+            <div class="event-image-container" id="eventImageContainer">
+                <img id="eventImage" src="" alt="Event Image" style="display: none;">
+            </div>
+        </div>
+        
+        <!-- Event Management Panel -->
+        <div class="events-manage-panel" id="eventsManagePanel">
+            <div class="events-manage-close" id="eventsManageClose">&times;</div>
+            <div class="events-manage-content">
+                <div class="events-manage-header">
+                    <div class="events-manage-title-section">
+                        <h2 class="events-manage-title">Event Management</h2>
+                        <p class="events-manage-count" id="eventsCount">0 Events</p>
+                    </div>
+                    <div class="events-manage-actions">
+                        <button id="addEventBtn" class="events-manage-action-btn">+ Add Event</button>
+                        <button id="saveEventsBtn" class="events-manage-action-btn save-btn">💾 Save</button>
+                        <button id="exportEventsBtn" class="events-manage-action-btn export-btn">📥 Export</button>
+                    </div>
+                </div>
+                <div class="events-list" id="eventsList">
+                    <!-- Events will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Edit Modal -->
+        <div class="event-edit-modal" id="eventEditModal">
+            <div class="event-edit-modal-content">
+                <div class="event-edit-modal-header">
+                    <h3 id="eventEditModalTitle">Edit Event</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="eventVariantTabs" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                        <button class="event-edit-modal-close" id="eventEditModalClose">&times;</button>
+                    </div>
+                </div>
+                <div class="event-edit-form">
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditName">Event Title:</label>
+                        <input type="text" id="eventEditName" class="event-edit-input" autocomplete="off" required>
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditCity">City Name (for location lookup):</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="eventEditCity" class="event-edit-input" autocomplete="off" style="flex: 1;">
+                            <label style="display: flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px;">
+                                <input type="checkbox" id="useCodeLookup">
+                                Use Code Lookup
+                            </label>
+                        </div>
+                        <button type="button" id="lookupCityBtn" class="lookup-city-btn">🔍 Lookup</button>
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditCityDisplayName">City Display Name (shown in preview and info panel):</label>
+                        <input type="text" id="eventEditCityDisplayName" class="event-edit-input" autocomplete="off">
+                    </div>
+                    <div class="event-edit-field">
+                        <label for="eventEditLat">Latitude:</label>
+                        <input type="number" id="eventEditLat" class="event-edit-input" autocomplete="off" step="any" required>
+                    </div>
+                    <div class="event-edit-field">
+                        <label for="eventEditLon">Longitude:</label>
+                        <input type="number" id="eventEditLon" class="event-edit-input" autocomplete="off" step="any" required>
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditDescription">Description:</label>
+                        <textarea id="eventEditDescription" class="event-edit-textarea" autocomplete="off" rows="4"></textarea>
+                    </div>
+                    <div class="event-edit-field">
+                        <label for="eventEditFilters">Hero Filters (comma-separated):</label>
+                        <input type="text" id="eventEditFilters" class="event-edit-input" autocomplete="off">
+                    </div>
+                    <div class="event-edit-field">
+                        <label for="eventEditFactions">Faction Filters (comma-separated):</label>
+                        <input type="text" id="eventEditFactions" class="event-edit-input" autocomplete="off">
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label>Sources:</label>
+                        <div id="eventSourcesContainer"></div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" id="addSourceBtn" class="event-edit-btn">+ Add Source</button>
+                            <button type="button" id="removeSourcePairBtn" class="event-edit-btn" style="display: none; background: rgba(244, 67, 54, 0.8);">- Remove Source</button>
+                        </div>
+                    </div>
+                    <div class="event-edit-actions">
+                        <button id="eventEditSave" class="event-edit-btn save-btn">Save</button>
+                        <button id="eventEditCancel" class="event-edit-btn cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Pagination -->
+        <div class="event-pagination" id="eventPagination">
+            <div class="page-controls-row">
+                <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
+                <div class="page-input-container">
+                    <span class="page-label">Page</span>
+                    <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
+                    <span class="page-total" id="pageTotal">/ 1</span>
+                </div>
+                <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
+            </div>
+            <div class="event-number-buttons" id="eventNumberButtons">
+                <button class="event-number-btn" data-position="1" title="Event 1">1</button>
+                <button class="event-number-btn" data-position="2" title="Event 2">2</button>
+                <button class="event-number-btn" data-position="3" title="Event 3">3</button>
+                <button class="event-number-btn" data-position="4" title="Event 4">4</button>
+                <button class="event-number-btn" data-position="5" title="Event 5">5</button>
+                <button class="event-number-btn" data-position="6" title="Event 6">6</button>
+                <button class="event-number-btn" data-position="7" title="Event 7">7</button>
+                <button class="event-number-btn" data-position="8" title="Event 8">8</button>
+                <button class="event-number-btn" data-position="9" title="Event 9">9</button>
+                <button class="event-number-btn" data-position="10" title="Event 10">10</button>
+            </div>
+        </div>
+        
+        <!-- Filters Panel -->
+        <div class="filters-panel" id="filtersPanel">
+            <div class="filters-panel-close" id="filtersPanelClose">&times;</div>
+            <div class="filters-panel-content">
+                <div class="filters-actions">
+                    <h2 class="filters-title">Filters</h2>
+                    <div class="filters-actions-buttons">
+                        <button id="clearFiltersBtn" class="filters-action-btn">Clear</button>
+                        <button id="confirmFiltersBtn" class="filters-action-btn filters-confirm-btn">Confirm</button>
+                    </div>
+                </div>
+                <div class="filters-tabs" id="filtersTabs">
+                    <button class="filter-tab active" data-tab="heroes">
+                        <span class="filter-tab-label">Heroes</span>
+                        <span class="filter-count" id="heroFilterCount">0</span>
+                    </button>
+                    <button class="filter-tab" data-tab="factions">
+                        <span class="filter-tab-label">Factions</span>
+                        <span class="filter-count" id="factionFilterCount">0</span>
+                    </button>
+                </div>
+                <div class="filters-grid" id="filtersGrid">
+                    <!-- Filter buttons will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>
         <p>&copy; 2025 Timeline Overwatch</p>
     </footer>
 
+    <!-- Three.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    
+    <!-- GLTF Loader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
     <script src="script.js"></script>
 </body>
 </html>

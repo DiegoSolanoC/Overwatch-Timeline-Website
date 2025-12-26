@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Test - Timeline Overwatch</title>
+    <link rel="icon" type="image/png" href="Icon.png">
+    <link rel="stylesheet" href="styles.css?v=3">
+    <script>
+        // Asset loading order tracking for test.html
+        console.log('[0.00ms] PAGE: test.html');
+        console.log('[0.00ms] HTML: Document structure parsed');
+        console.log('[0.00ms] CSS: styles.css (linked in <head>)');
+        console.log('[0.00ms] ICON: Icon.png (favicon)');
+        
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('[DOM] DOMContentLoaded event fired');
+        });
+        window.addEventListener('load', function() {
+            console.log('[LOAD] window.load event fired - all resources loaded');
+        });
+    </script>
+    <style>
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            gap: 20px;
+            padding: 40px;
+        }
+        
+        .test-button {
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 250px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .test-button:active {
+            transform: translateY(0);
+        }
+        
+        .test-button.loaded {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .test-button.loading {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            cursor: wait;
+        }
+        
+        .test-run-button {
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .test-run-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+        }
+        
+        .test-run-button:active {
+            transform: translateY(0);
+        }
+        
+        .test-run-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .test-run-button img {
+            filter: brightness(0) invert(1);
+        }
+        
+        .test-kill-button {
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .test-kill-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+        }
+        
+        .test-kill-button:active {
+            transform: translateY(0);
+        }
+        
+        .test-kill-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .test-status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            color: #fff;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .test-status h3 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+        
+        #statusContent {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 8px;
+        }
+        
+        /* Custom scrollbar for status content */
+        #statusContent::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #statusContent::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        #statusContent::-webkit-scrollbar-thumb {
+            background: rgba(33, 150, 243, 0.6);
+            border-radius: 4px;
+        }
+        
+        #statusContent::-webkit-scrollbar-thumb:hover {
+            background: rgba(33, 150, 243, 0.8);
+        }
+        
+        .test-status-item {
+            margin: 8px 0;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .test-status-item.success {
+            color: #4caf50;
+        }
+        
+        .test-status-item.error {
+            color: #f44336;
+        }
+        
+        #globe-container {
+            display: none;
+        }
+        
+        #globe-container.loaded {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Timeline Overwatch - Test Page</h1>
+    </header>
+
+    <div class="layout-container">
+        <main id="content">
+            <div id="globe-container"></div>
+            
+            <div class="test-container">
+                <h2>Component Loading Test</h2>
+                <p>Click the buttons below to load individual components:</p>
+                
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
+                    <h3 style="color: #4caf50; margin: 0;">Universal Features</h3>
+                    <button id="runUniversalBtn" class="test-run-button" title="Run all Universal Features">
+                        <img src="Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                    </button>
+                    <button id="killUniversalBtn" class="test-kill-button" title="Unload all Universal Features">
+                        ×
+                    </button>
+                </div>
+                <button id="loadPaletteBtn" class="test-button">
+                    Load Palette
+                </button>
+                
+                <button id="loadMusicBtn" class="test-button">
+                    Load Music
+                </button>
+                
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
+                    <h3 style="color: #2196F3; margin: 0;">Globe Components</h3>
+                    <button id="runGlobeBtn" class="test-run-button" title="Run all Globe Components">
+                        <img src="Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                    </button>
+                    <button id="killGlobeBtn" class="test-kill-button" title="Unload all Globe Components">
+                        ×
+                    </button>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
+                    <h3 style="color: #ff9800; margin: 0;">Glossary Components</h3>
+                    <button id="runGlossaryBtn" class="test-run-button" title="Run all Glossary Components">
+                        <img src="Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                    </button>
+                    <button id="killGlossaryBtn" class="test-kill-button" title="Unload all Glossary Components">
+                        ×
+                    </button>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
+                    <h3 style="color: #9c27b0; margin: 0;">Biography Components</h3>
+                    <button id="runBiographyBtn" class="test-run-button" title="Run all Biography Components">
+                        <img src="Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                    </button>
+                    <button id="killBiographyBtn" class="test-kill-button" title="Unload all Biography Components">
+                        ×
+                    </button>
+                </div>
+                <button id="loadGlobeBaseBtn" class="test-button">
+                    Load Globe Base
+                </button>
+                
+                <button id="loadTransportBtn" class="test-button">
+                    Load Transport
+                </button>
+                
+                <button id="loadControlsBtn" class="test-button">
+                    Load Controls
+                </button>
+                
+                <button id="loadEventsBtn" class="test-button">
+                    Load Events
+                </button>
+                
+                <div class="test-status" id="testStatus" style="display: none;">
+                    <h3>Loading Status</h3>
+                    <div id="statusContent"></div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-close" id="sidebarClose">&times;</div>
+            <button onclick="window.location.href='map.html'">Map</button>
+            <button onclick="window.location.href='test.html'" class="active">Test</button>
+            <button onclick="window.location.href='main.html'">Main</button>
+        </nav>
+
+        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
+        
+        <!-- Event Slide Panel (left side) -->
+        <div class="event-slide" id="eventSlide">
+            <div class="event-slide-close" id="eventSlideClose">&times;</div>
+            <div class="event-slide-content" id="eventSlideContent">
+                <div class="event-slide-scrollable" id="eventSlideScrollable">
+                    <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                    <h2 id="eventSlideTitle">Event</h2>
+                    <p id="eventSlideLocation" class="event-slide-location" style="display: none;"></p>
+                    <p id="eventSlideText">Placeholder text for event information.</p>
+                </div>
+                <div class="event-slide-bottom" id="eventSlideBottom">
+                    <div class="event-sources-section" id="eventSourcesSection" style="display: none;">
+                        <h4 class="event-filter-header">Sources:</h4>
+                        <div class="event-sources-list" id="eventSourcesList"></div>
+                    </div>
+                    <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
+                        <div class="event-filters-list" id="eventFiltersList"></div>
+                    </div>
+                    <div class="event-control-buttons">
+                        <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+                        <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
+                    </div>
+                    <div class="event-navigation-buttons">
+                        <button id="eventPrevBtn" class="event-nav-btn" title="Previous Event">‹</button>
+                        <button id="eventAllEventsBtn" class="event-all-events-btn" title="View All Events">All Events</button>
+                        <button id="eventNextBtn" class="event-nav-btn" title="Next Event">›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Image Overlay (over globe) -->
+        <div class="event-image-overlay" id="eventImageOverlay">
+            <div class="event-image-container" id="eventImageContainer">
+                <img id="eventImage" src="" alt="Event Image" style="display: none;">
+            </div>
+        </div>
+        
+        <!-- Event Manager Panel -->
+        <div class="events-manage-panel" id="eventsManagePanel">
+            <div class="events-manage-close" id="eventsManageClose">&times;</div>
+            <div class="events-manage-content">
+                <div class="events-manage-header">
+                    <div class="events-manage-title-section">
+                        <h2 class="events-manage-title">Event Management</h2>
+                        <p class="events-manage-count" id="eventsCount">0 Events</p>
+                    </div>
+                    <div class="events-manage-actions">
+                        <button id="addEventBtn" class="events-manage-action-btn">+ Add Event</button>
+                        <button id="saveEventsBtn" class="events-manage-action-btn save-btn">💾 Save</button>
+                        <button id="exportEventsBtn" class="events-manage-action-btn export-btn">📥 Export</button>
+                    </div>
+                </div>
+                <div class="events-list" id="eventsList">
+                    <!-- Events will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Edit Modal -->
+        <div class="event-edit-modal" id="eventEditModal">
+            <div class="event-edit-modal-content">
+                <div class="event-edit-modal-header">
+                    <h3 id="eventEditModalTitle">Edit Event</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="eventVariantTabs" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                        <button class="event-edit-modal-close" id="eventEditModalClose">&times;</button>
+                    </div>
+                </div>
+                <div class="event-edit-form" id="eventEditForm">
+                    <!-- Form will be populated by EventManager -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Original Work by Blizzard Entertainment.</p>
+    </footer>
+
+    <!-- Load Three.js and GLTFLoader for globe -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- Load test script -->
+    <script type="module" src="test-loader.js"></script>
+    
+    <!-- Load main script for sidebar and other UI -->
+    <script src="script.js"></script>
+</body>
+</html>
+

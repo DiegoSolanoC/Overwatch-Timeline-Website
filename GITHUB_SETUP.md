@@ -26,14 +26,42 @@ After creating the repository, you'll see a page with setup instructions. Look f
 But we'll use the easier web upload method:
 1. Look for the link that says **"uploading an existing file"** (it's in the middle of the page)
 2. Click it
-3. **Drag and drop** ALL these files from your folder:
-   - index.html
-   - about.html
-   - contact.html
+3. **Drag and drop** ALL these files and folders from your project:
+   
+   **Essential Files:**
+   - index.html (redirects to main.html)
+   - main.html (main entry point for GitHub Pages)
    - styles.css
    - script.js
+   - test-loader.js
    - README.md
    - .gitignore
+   - manifest.json
+   
+   **Important:** Do NOT upload `map.html` or `test.html` - these are for local development only!
+   
+   **Required Folders:**
+   - data/ (events.json, locations.json, etc.)
+   - controllers/
+   - models/
+   - views/
+   - utils/
+   - js/
+   - helpers/
+   - Event Images/
+   - Heroes/
+   - Factions/
+   - Music/
+   - Music Icons/
+   - Sound Effects/
+   - Main Menu Buttons/
+   
+   **Required Assets:**
+   - All .png icon files (Palette Icon.png, Music Icon.png, etc.)
+   - All .glb 3D model files
+   - loading.gif
+   - Home Button.png
+   - MAP.png, MAP Black.png, etc.
 4. In the "Commit changes" box at the bottom, type: `Initial commit - website files`
 5. Click **"Commit changes"**
 
@@ -144,9 +172,11 @@ GitHub Pages is free even with a custom domain!
 - Make sure you've uploaded at least one file
 
 ### "My site shows a 404 error"
-- Make sure your main file is named exactly `index.html` (lowercase)
+- Make sure `main.html` is uploaded (this is the main entry point)
+- Make sure `index.html` is uploaded (it redirects to main.html)
 - Wait a full 5 minutes, sometimes it takes time
-- Try accessing: `https://your-username.github.io/Timeline-Overwatch/index.html`
+- Try accessing: `https://your-username.github.io/Timeline-Overwatch/main.html` directly
+- Try accessing: `https://your-username.github.io/Timeline-Overwatch/index.html` (should redirect)
 
 ### "CSS/JavaScript isn't working"
 - Make sure all files are in the same folder (root of repository)
