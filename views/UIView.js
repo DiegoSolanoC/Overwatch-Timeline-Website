@@ -116,6 +116,112 @@ export class UIView {
     }
 
     /**
+     * Update event sources section
+     * @param {Object} event - Event or variant object
+     */
+    updateEventSources(event) {
+        const eventSourcesSection = document.getElementById('eventSourcesSection');
+        const eventSourcesList = document.getElementById('eventSourcesList');
+        
+        if (event && event.sources && event.sources.length > 0) {
+            if (eventSourcesSection && eventSourcesList) {
+                eventSourcesList.innerHTML = '';
+                
+                event.sources.forEach((source) => {
+                    const sourceItem = document.createElement('div');
+                    sourceItem.className = 'event-source-display-item';
+                    
+                    if (source.url) {
+                        const link = document.createElement('a');
+                        link.href = source.url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = source.text;
+                        link.className = 'event-source-link';
+                        sourceItem.appendChild(link);
+                    } else {
+                        sourceItem.textContent = source.text;
+                        sourceItem.className = 'event-source-text';
+                    }
+                    
+                    eventSourcesList.appendChild(sourceItem);
+                });
+                
+                eventSourcesSection.style.display = 'block';
+            }
+        } else {
+            if (eventSourcesSection) {
+                eventSourcesSection.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Update event filters section
+     * @param {Object} event - Event or variant object
+     */
+    updateEventFilters(event) {
+        const eventFiltersSection = document.getElementById('eventFiltersSection');
+        const eventFiltersList = document.getElementById('eventFiltersList');
+        const activeFilters = this.sceneModel.activeFilters || new Set();
+        
+        if (event && eventFiltersSection && eventFiltersList) {
+            eventFiltersList.innerHTML = '';
+            
+            const heroFilters = event.filters || [];
+            const factionFilters = event.factions || [];
+            
+            // Display heroes section
+            if (heroFilters.length > 0) {
+                const heroesHeader = document.createElement('h4');
+                heroesHeader.textContent = 'Relevant Heroes:';
+                heroesHeader.className = 'event-filter-header';
+                eventFiltersList.appendChild(heroesHeader);
+                
+                heroFilters.forEach(filter => {
+                    const filterTag = document.createElement('span');
+                    filterTag.className = 'event-filter-tag';
+                    if (activeFilters.has(filter)) {
+                        filterTag.classList.add('selected');
+                    }
+                    const displayName = getHeroDisplayName(filter);
+                    filterTag.textContent = displayName;
+                    eventFiltersList.appendChild(filterTag);
+                });
+            }
+            
+            // Display factions section
+            if (factionFilters.length > 0) {
+                const factionsHeader = document.createElement('h4');
+                factionsHeader.textContent = 'Relevant Factions:';
+                factionsHeader.className = 'event-filter-header';
+                eventFiltersList.appendChild(factionsHeader);
+                
+                factionFilters.forEach(faction => {
+                    const filterTag = document.createElement('span');
+                    filterTag.className = 'event-filter-tag';
+                    if (activeFilters.has(faction)) {
+                        filterTag.classList.add('selected');
+                    }
+                    const displayName = faction.replace(/^\d+/, '').trim();
+                    filterTag.textContent = displayName;
+                    eventFiltersList.appendChild(filterTag);
+                });
+            }
+            
+            if (heroFilters.length > 0 || factionFilters.length > 0) {
+                eventFiltersSection.style.display = 'block';
+            } else {
+                eventFiltersSection.style.display = 'none';
+            }
+        } else {
+            if (eventFiltersSection) {
+                eventFiltersSection.style.display = 'none';
+            }
+        }
+    }
+
+    /**
      * Show event slide panel
      * @param {string} eventName - Event name
      * @param {string} imagePath - Optional image path
@@ -372,107 +478,9 @@ export class UIView {
             // Get current variant or main event
             const currentEvent = isMultiEvent ? eventData.variants[this.currentVariantIndex] : eventData;
             
-            // Display sources if available (before filters)
-            const eventSourcesSection = document.getElementById('eventSourcesSection');
-            const eventSourcesList = document.getElementById('eventSourcesList');
-            
-            if (currentEvent && currentEvent.sources && currentEvent.sources.length > 0) {
-                if (eventSourcesSection && eventSourcesList) {
-                    eventSourcesList.innerHTML = '';
-                    
-                    currentEvent.sources.forEach((source) => {
-                        const sourceItem = document.createElement('div');
-                        sourceItem.className = 'event-source-display-item';
-                        
-                        if (source.url) {
-                            const link = document.createElement('a');
-                            link.href = source.url;
-                            link.target = '_blank';
-                            link.rel = 'noopener noreferrer';
-                            link.textContent = source.text;
-                            link.className = 'event-source-link';
-                            sourceItem.appendChild(link);
-                        } else {
-                            sourceItem.textContent = source.text;
-                            sourceItem.className = 'event-source-text';
-                        }
-                        
-                        eventSourcesList.appendChild(sourceItem);
-                    });
-                    
-                    eventSourcesSection.style.display = 'block';
-                }
-            } else {
-                if (eventSourcesSection) {
-                    eventSourcesSection.style.display = 'none';
-                }
-            }
-            
-            // Display filters and factions if available
-            const eventFiltersSection = document.getElementById('eventFiltersSection');
-            const eventFiltersList = document.getElementById('eventFiltersList');
-            
-            if (currentEvent) {
-                const heroFilters = currentEvent.filters || [];
-                const factionFilters = currentEvent.factions || [];
-                const activeFilters = this.sceneModel.activeFilters || new Set();
-                
-                if (eventFiltersSection && eventFiltersList) {
-                    eventFiltersList.innerHTML = '';
-                    
-                    // Display heroes section
-                    if (heroFilters.length > 0) {
-                        const heroesHeader = document.createElement('h4');
-                        heroesHeader.textContent = 'Relevant Heroes:';
-                        heroesHeader.className = 'event-filter-header';
-                        eventFiltersList.appendChild(heroesHeader);
-                        
-                        heroFilters.forEach(filter => {
-                            const filterTag = document.createElement('span');
-                            filterTag.className = 'event-filter-tag';
-                            // Check if this filter is currently selected
-                            if (activeFilters.has(filter)) {
-                                filterTag.classList.add('selected');
-                            }
-                            // Get display name for hero (e.g., "Soldier 76" -> "Soldier: 76")
-                            const displayName = getHeroDisplayName(filter);
-                            filterTag.textContent = displayName;
-                            eventFiltersList.appendChild(filterTag);
-                        });
-                    }
-                    
-                    // Display factions section
-                    if (factionFilters.length > 0) {
-                        const factionsHeader = document.createElement('h4');
-                        factionsHeader.textContent = 'Relevant Factions:';
-                        factionsHeader.className = 'event-filter-header';
-                        eventFiltersList.appendChild(factionsHeader);
-                        
-                        factionFilters.forEach(faction => {
-                            const filterTag = document.createElement('span');
-                            filterTag.className = 'event-filter-tag';
-                            // Check if this faction is currently selected
-                            if (activeFilters.has(faction)) {
-                                filterTag.classList.add('selected');
-                            }
-                            // Remove number prefix for display
-                            const displayName = faction.replace(/^\d+/, '').trim();
-                            filterTag.textContent = displayName;
-                            eventFiltersList.appendChild(filterTag);
-                        });
-                    }
-                    
-                    if (heroFilters.length > 0 || factionFilters.length > 0) {
-                        eventFiltersSection.style.display = 'block';
-                    } else {
-                        eventFiltersSection.style.display = 'none';
-                    }
-                }
-            } else {
-                if (eventFiltersSection) {
-                    eventFiltersSection.style.display = 'none';
-                }
-            }
+            // Update sources and filters sections (using shared helper functions)
+            this.updateEventSources(currentEvent);
+            this.updateEventFilters(currentEvent);
             
             // Hide variant markers for previous event (if switching between events)
             if (this.currentEventData && 
@@ -498,6 +506,60 @@ export class UIView {
             if (eventImageOverlay) {
                 eventImageOverlay.classList.add('slide-open');
             }
+            
+            // On mobile: move bottom section content into scrollable area and fix title position
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                const scrollableArea = document.getElementById('eventSlideScrollable');
+                const bottomSection = document.getElementById('eventSlideBottom');
+                const titleEl = document.getElementById('eventSlideTitle');
+                const contentEl = document.getElementById('eventSlideContent');
+                
+                // Move all children from bottom section to scrollable area
+                if (scrollableArea && bottomSection) {
+                    while (bottomSection.firstChild) {
+                        scrollableArea.appendChild(bottomSection.firstChild);
+                    }
+                    console.log('[DEBUG Mobile] Moved all bottom content into scrollable area');
+                }
+                
+                 // Fix title position on mobile - same row as close button
+                 setTimeout(() => {
+                     if (titleEl) {
+                         titleEl.style.setProperty('position', 'fixed', 'important');
+                         titleEl.style.setProperty('top', '10px', 'important'); // Same as close button
+                         titleEl.style.setProperty('left', '20px', 'important');
+                         titleEl.style.setProperty('right', '70px', 'important');
+                         titleEl.style.setProperty('z-index', '999', 'important');
+                         titleEl.style.setProperty('background', 'transparent', 'important'); // No background
+                         titleEl.style.setProperty('padding', '0', 'important');
+                         titleEl.style.setProperty('margin', '0', 'important');
+                         titleEl.style.setProperty('box-shadow', 'none', 'important');
+                         titleEl.style.setProperty('max-width', 'calc(100% - 90px)', 'important');
+                         titleEl.style.setProperty('width', 'auto', 'important');
+                         titleEl.style.setProperty('line-height', '50px', 'important'); // Match close button height
+                         titleEl.style.setProperty('height', '50px', 'important'); // Match close button height
+                         console.log('[DEBUG Mobile] Fixed title position on same row as close button');
+                     }
+                     
+                     // Adjust content padding for fixed title row
+                     if (contentEl) {
+                         contentEl.style.setProperty('padding-top', '70px', 'important'); // Space for title/close row
+                     }
+                     
+                     // Adjust scrollable area margin for fixed title - reduced spacing
+                     if (scrollableArea) {
+                         scrollableArea.style.setProperty('margin-top', '0', 'important'); // No extra margin
+                         scrollableArea.style.setProperty('padding-top', '0', 'important');
+                     }
+                 }, 50);
+            }
+            
+            // Call helper functions to update sources and filters
+            setTimeout(() => {
+                this.updateEventSources(currentEvent);
+                this.updateEventFilters(currentEvent);
+            }, 100);
         }
         
         // Initialize image overlay state - show by default with fade sequence
@@ -1001,98 +1063,9 @@ export class UIView {
             this.stopGlitchAnimation();
         }
 
-        // Update sources (before filters)
-        const eventSourcesSection = document.getElementById('eventSourcesSection');
-        const eventSourcesList = document.getElementById('eventSourcesList');
-        
-        if (variant.sources && variant.sources.length > 0) {
-            if (eventSourcesSection && eventSourcesList) {
-                eventSourcesList.innerHTML = '';
-                
-                variant.sources.forEach((source) => {
-                    const sourceItem = document.createElement('div');
-                    sourceItem.className = 'event-source-display-item';
-                    
-                    if (source.url) {
-                        const link = document.createElement('a');
-                        link.href = source.url;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        link.textContent = source.text;
-                        link.className = 'event-source-link';
-                        sourceItem.appendChild(link);
-                    } else {
-                        sourceItem.textContent = source.text;
-                        sourceItem.className = 'event-source-text';
-                    }
-                    
-                    eventSourcesList.appendChild(sourceItem);
-                });
-                
-                eventSourcesSection.style.display = 'block';
-            }
-        } else {
-            if (eventSourcesSection) {
-                eventSourcesSection.style.display = 'none';
-            }
-        }
-
-        // Update filters display
-        const eventFiltersSection = document.getElementById('eventFiltersSection');
-        const eventFiltersList = document.getElementById('eventFiltersList');
-        const activeFilters = this.sceneModel.activeFilters || new Set();
-
-        if (eventFiltersSection && eventFiltersList) {
-            eventFiltersList.innerHTML = '';
-            
-            const heroFilters = variant.filters || [];
-            const factionFilters = variant.factions || [];
-
-            // Display heroes section
-            if (heroFilters.length > 0) {
-                const heroesHeader = document.createElement('h4');
-                heroesHeader.textContent = 'Relevant Heroes:';
-                heroesHeader.className = 'event-filter-header';
-                eventFiltersList.appendChild(heroesHeader);
-                
-                heroFilters.forEach(filter => {
-                    const filterTag = document.createElement('span');
-                    filterTag.className = 'event-filter-tag';
-                    if (activeFilters.has(filter)) {
-                        filterTag.classList.add('selected');
-                    }
-                    // Get display name for hero (e.g., "Soldier 76" -> "Soldier: 76")
-                    const displayName = getHeroDisplayName(filter);
-                    filterTag.textContent = displayName;
-                    eventFiltersList.appendChild(filterTag);
-                });
-            }
-            
-            // Display factions section
-            if (factionFilters.length > 0) {
-                const factionsHeader = document.createElement('h4');
-                factionsHeader.textContent = 'Relevant Factions:';
-                factionsHeader.className = 'event-filter-header';
-                eventFiltersList.appendChild(factionsHeader);
-                
-                factionFilters.forEach(faction => {
-                    const filterTag = document.createElement('span');
-                    filterTag.className = 'event-filter-tag';
-                    if (activeFilters.has(faction)) {
-                        filterTag.classList.add('selected');
-                    }
-                    const displayName = faction.replace(/^\d+/, '').trim();
-                    filterTag.textContent = displayName;
-                    eventFiltersList.appendChild(filterTag);
-                });
-            }
-            
-            if (heroFilters.length > 0 || factionFilters.length > 0) {
-                eventFiltersSection.style.display = 'block';
-            } else {
-                eventFiltersSection.style.display = 'none';
-            }
-        }
+        // Update sources and filters sections (using shared helper functions)
+        this.updateEventSources(variant);
+        this.updateEventFilters(variant);
         
 
         // Update image
@@ -1535,6 +1508,63 @@ export class UIView {
         // Close instantly - no fade delays
         if (eventSlide) {
             eventSlide.classList.remove('open');
+        }
+        
+        // On mobile: move bottom section content back and reset title position when closing
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            const scrollableArea = document.getElementById('eventSlideScrollable');
+            const bottomSection = document.getElementById('eventSlideBottom');
+            const titleEl = document.getElementById('eventSlideTitle');
+            const contentEl = document.getElementById('eventSlideContent');
+            
+            if (scrollableArea && bottomSection) {
+                // Find elements that should be in bottom section (sources, filters, buttons)
+                const sourcesEl = document.getElementById('eventSourcesSection');
+                const filtersEl = document.getElementById('eventFiltersSection');
+                const controlButtons = document.querySelector('.event-control-buttons');
+                const navButtons = document.querySelector('.event-navigation-buttons');
+                
+                // Move them back to bottom section
+                if (sourcesEl && sourcesEl.parentElement === scrollableArea) {
+                    bottomSection.appendChild(sourcesEl);
+                }
+                if (filtersEl && filtersEl.parentElement === scrollableArea) {
+                    bottomSection.appendChild(filtersEl);
+                }
+                if (controlButtons && controlButtons.parentElement === scrollableArea) {
+                    bottomSection.appendChild(controlButtons);
+                }
+                if (navButtons && navButtons.parentElement === scrollableArea) {
+                    bottomSection.appendChild(navButtons);
+                }
+                console.log('[DEBUG Mobile] Moved bottom content back to bottom section');
+            }
+            
+            // Reset title position
+            if (titleEl) {
+                titleEl.style.position = '';
+                titleEl.style.top = '';
+                titleEl.style.left = '';
+                titleEl.style.right = '';
+                titleEl.style.zIndex = '';
+                titleEl.style.background = '';
+                titleEl.style.padding = '';
+                titleEl.style.margin = '';
+                titleEl.style.boxShadow = '';
+                titleEl.style.maxWidth = '';
+            }
+            
+            // Reset content padding
+            if (contentEl) {
+                contentEl.style.paddingTop = '';
+            }
+            
+            // Reset scrollable area
+            if (scrollableArea) {
+                scrollableArea.style.marginTop = '';
+                scrollableArea.style.paddingTop = '';
+            }
         }
         
         // Hide image overlay immediately

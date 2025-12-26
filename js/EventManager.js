@@ -804,7 +804,7 @@ class EventManager {
         // Positioned on the RIGHT side (top-right corner) to avoid overlap with multi-event badge on left
         const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
         const descriptionWarning = !hasDescription 
-            ? `<div class="description-warning-icon" title="Missing description" style="position: absolute; top: 8px; right: 8px; z-index: 11; font-size: 20px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); pointer-events: none; width: auto; height: auto;">⚠️</div>`
+            ? `<div class="description-warning-badge" title="Missing description">!</div>`
             : '';
         
         // Always use the same container structure to maintain consistent sizing

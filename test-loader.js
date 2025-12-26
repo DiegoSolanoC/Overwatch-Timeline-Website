@@ -684,6 +684,22 @@ async function loadControls() {
             
             // Setup exit button click handler
             exitBtn.addEventListener('click', async function() {
+                // Play mode switch sound effect
+                if (window.SoundEffectsManager) {
+                    if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
+                        window.SoundEffectsManager.play('modeSwitch');
+                    } else {
+                        // Load and play if not already loaded
+                        window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+                        setTimeout(() => {
+                            window.SoundEffectsManager.play('modeSwitch');
+                        }, 100);
+                    }
+                }
+                
+                // Clear saved mode when exiting
+                localStorage.removeItem('currentMode');
+                
                 const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
                 const loadingOverlay = document.getElementById('loadingOverlay');
                 
@@ -849,8 +865,8 @@ async function loadMusic() {
                     </div>
                     <div class="music-control-row">
                         <label for="volumeSlider">Music Volume:</label>
-                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="20">
-                        <span id="volumeValue" class="volume-value">20%</span>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="10">
+                        <span id="volumeValue" class="volume-value">10%</span>
                     </div>
                     <div class="music-control-row">
                         <label for="soundEffectsSlider">Sound Effects Volume:</label>
@@ -1116,6 +1132,26 @@ async function loadEvents() {
                 </div>
             `;
             document.getElementById('content').appendChild(pagination);
+            
+            // Function to apply mobile positioning
+            const applyMobilePaginationPosition = () => {
+                const paginationEl = document.getElementById('eventPagination');
+                if (paginationEl && window.innerWidth <= 768) {
+                    paginationEl.style.setProperty('position', 'fixed', 'important');
+                    paginationEl.style.setProperty('bottom', '120px', 'important');
+                    paginationEl.style.setProperty('left', '50%', 'important');
+                    paginationEl.style.setProperty('right', 'auto', 'important');
+                    paginationEl.style.setProperty('transform', 'translateX(-50%)', 'important');
+                    paginationEl.style.setProperty('top', 'auto', 'important');
+                }
+            };
+            
+            // Apply immediately if on mobile
+            applyMobilePaginationPosition();
+            
+            // Also apply on window resize
+            window.addEventListener('resize', applyMobilePaginationPosition);
+            
             updateStatus('✓ Event pagination added', 'success');
         }
         
@@ -1300,7 +1336,23 @@ window.runUniversalFeatures = runUniversalFeatures;
  * Run all Globe Components sequentially
  * Loads: Globe Base, then Transport, then Controls, then Events
  */
-async function runGlobeComponents() {
+async function runGlobeComponents(isAutoLoad = false) {
+    // Play mode switch sound effect only if manually triggered (not auto-load)
+    if (!isAutoLoad && window.SoundEffectsManager) {
+        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
+            window.SoundEffectsManager.play('modeSwitch');
+        } else {
+            // Load and play if not already loaded
+            window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+            setTimeout(() => {
+                window.SoundEffectsManager.play('modeSwitch');
+            }, 100);
+        }
+    }
+    
+    // Save current mode to localStorage
+    localStorage.setItem('currentMode', 'globe');
+    
     const runBtn = document.getElementById('runGlobeBtn');
     if (runBtn) {
         runBtn.disabled = true;
@@ -1471,7 +1523,23 @@ async function killGlobeComponents() {
  * Run all Glossary Components sequentially
  * (Placeholder - no actual loads yet)
  */
-async function runGlossaryComponents() {
+async function runGlossaryComponents(isAutoLoad = false) {
+    // Play mode switch sound effect only if manually triggered (not auto-load)
+    if (!isAutoLoad && window.SoundEffectsManager) {
+        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
+            window.SoundEffectsManager.play('modeSwitch');
+        } else {
+            // Load and play if not already loaded
+            window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+            setTimeout(() => {
+                window.SoundEffectsManager.play('modeSwitch');
+            }, 100);
+        }
+    }
+    
+    // Save current mode to localStorage
+    localStorage.setItem('currentMode', 'glossary');
+    
     const runBtn = document.getElementById('runGlossaryBtn');
     if (runBtn) {
         runBtn.disabled = true;
@@ -1511,7 +1579,23 @@ async function killGlossaryComponents() {
  * Run all Biography Components sequentially
  * (Placeholder - no actual loads yet)
  */
-async function runBiographyComponents() {
+async function runBiographyComponents(isAutoLoad = false) {
+    // Play mode switch sound effect only if manually triggered (not auto-load)
+    if (!isAutoLoad && window.SoundEffectsManager) {
+        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
+            window.SoundEffectsManager.play('modeSwitch');
+        } else {
+            // Load and play if not already loaded
+            window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+            setTimeout(() => {
+                window.SoundEffectsManager.play('modeSwitch');
+            }, 100);
+        }
+    }
+    
+    // Save current mode to localStorage
+    localStorage.setItem('currentMode', 'biography');
+    
     const runBtn = document.getElementById('runBiographyBtn');
     if (runBtn) {
         runBtn.disabled = true;
@@ -1631,11 +1715,41 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto-run Universal Features on main.html
     if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
+        // Check for saved mode first - hide menu immediately if mode exists
+        const savedMode = localStorage.getItem('currentMode');
+        if (savedMode) {
+            console.log('Main page: Found saved mode:', savedMode, '- Hiding menu immediately');
+            // Hide the test container immediately to prevent brief flash
+            const testContainer = document.querySelector('.test-container');
+            if (testContainer) {
+                testContainer.style.display = 'none';
+                testContainer.style.opacity = '0';
+            }
+        }
+        
         console.log('Main page detected: Auto-running Universal Features...');
         // Small delay to ensure everything is ready
         setTimeout(function() {
             runUniversalFeatures();
         }, 100);
+        
+        // Check for saved mode and auto-load it (without sound)
+        if (savedMode) {
+            console.log('Main page: Auto-loading saved mode:', savedMode);
+            // Wait a bit longer to ensure all components are ready
+            setTimeout(function() {
+                if (savedMode === 'globe') {
+                    console.log('Main page: Auto-loading Globe mode (silent)...');
+                    runGlobeComponents(true); // Pass true to indicate auto-load
+                } else if (savedMode === 'glossary') {
+                    console.log('Main page: Auto-loading Glossary mode (silent)...');
+                    runGlossaryComponents(true); // Pass true to indicate auto-load
+                } else if (savedMode === 'biography') {
+                    console.log('Main page: Auto-loading Biography mode (silent)...');
+                    runBiographyComponents(true); // Pass true to indicate auto-load
+                }
+            }, 500); // Wait 500ms after Universal Features start
+        }
     }
 });
 
