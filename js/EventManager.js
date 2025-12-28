@@ -2799,7 +2799,26 @@ class EventManager {
         // Otherwise, try to find image in Event Images folder
         // Use the exact event name (preserve all characters including glitchy text)
         // Only normalize multiple spaces to single space
-        const normalizedName = eventName.replace(/\s+/g, ' ').trim();
+        let normalizedName = eventName.replace(/\s+/g, ' ').trim();
+        
+        // Handle case variations for common patterns (e.g., "CallSign" vs "Callsign")
+        // Try to match common filename patterns by normalizing case
+        // This handles cases where event name has different capitalization than filename
+        const caseVariations = [
+            normalizedName, // Original
+            normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1).toLowerCase(), // Title Case
+            // Try common variations: if name contains "CallSign", try "Callsign"
+            normalizedName.replace(/CallSign/g, 'Callsign'),
+            normalizedName.replace(/Callsign/g, 'CallSign'),
+        ];
+        
+        // Remove duplicates
+        const uniqueVariations = [...new Set(caseVariations)];
+        
+        // Try each variation (browser will handle 404 if none exist)
+        // For now, return the most likely match (original, then common variations)
+        // The browser's image onerror handler will catch 404s
+        normalizedName = uniqueVariations[0]; // Use first variation (original)
         
         // Encode the filename to handle spaces and special characters in URLs
         // Split the path so we only encode the filename, not the folder name

@@ -467,6 +467,33 @@
     <!-- Load main script for sidebar and other UI -->
     <script src="script.js"></script>
     
+    <!-- Hide sidebar on GitHub Pages -->
+    <script>
+        // Check if we're on GitHub Pages
+        function isGitHubPages() {
+            const hostname = window.location.hostname;
+            return hostname.includes('github.io') || 
+                   hostname.includes('github.com') ||
+                   (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.') && !hostname.startsWith('10.') && window.location.protocol !== 'file:');
+        }
+        
+        // Hide sidebar on GitHub Pages
+        if (isGitHubPages()) {
+            document.addEventListener('DOMContentLoaded', function() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarIndicator = document.getElementById('sidebarIndicator');
+                if (sidebar) {
+                    sidebar.style.display = 'none';
+                    sidebar.style.visibility = 'hidden';
+                }
+                if (sidebarIndicator) {
+                    sidebarIndicator.style.display = 'none';
+                    sidebarIndicator.style.visibility = 'hidden';
+                }
+            });
+        }
+    </script>
+    
     <!-- Auto-load Universal Features and Menu Components on main.html -->
     <script>
         // Wait for DOM and test-loader to be ready
