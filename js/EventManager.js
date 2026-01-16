@@ -14,16 +14,39 @@ function getRandomGlitchChar() {
 function getDisplayEventName(eventName) {
     if (!eventName) return eventName;
     
-    // Replace "Olivia Colomar" with glitchy overlay effect
-    if (eventName === 'Olivia Colomar' || eventName.includes('Olivia Colomar')) {
-        return eventName.replace(/Olivia Colomar/gi, (match) => {
-            // Create overlay with random characters that will constantly change
+    // Use the same logic as getDisplayText - handle "Olivia Colomar" as whole first, then individual words
+    // First, replace "Olivia Colomar" as a whole (full name together)
+    let processedText = eventName;
+    const placeholders = [];
+    let placeholderIndex = 0;
+    
+    // Replace full "Olivia Colomar" first (case-insensitive, with word boundaries)
+    processedText = processedText.replace(/\bOlivia\s+Colomar\b/gi, (match) => {
+        const placeholder = `__GLITCH_FULL_${placeholderIndex}__`;
+        const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
+        placeholders[placeholderIndex] = `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
+        placeholderIndex++;
+        return placeholder;
+    });
+    
+    // Then replace "Olivia" individually
+    processedText = processedText.replace(/\bOlivia\b/gi, (match) => {
             const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
             return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
         });
-    }
     
-    return eventName;
+    // Then replace "Colomar" individually
+    processedText = processedText.replace(/\bColomar\b/gi, (match) => {
+        const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
+        return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
+    });
+    
+    // Restore placeholders (full "Olivia Colomar" replacements)
+    placeholders.forEach((replacement, index) => {
+        processedText = processedText.replace(`__GLITCH_FULL_${index}__`, replacement);
+    });
+    
+    return processedText;
 }
 
 /**
@@ -33,6 +56,7 @@ class EventManager {
     constructor() {
         this.events = [];
         this.cities = [];
+        this.fictionalCities = [];
         this.airports = [];
         this.seaports = [];
         this.draggedElement = null;
@@ -43,10 +67,13 @@ class EventManager {
         this.unsavedEventIndices = new Set(); // Track which events have unsaved changes
         this.locationCache = new Map(); // Cache for location names with countries
         this.displayNames = {}; // Mapping of location names to display names
+        this.currentPage = 1; // Current page number (1-indexed)
+        this.eventsPerPage = 50; // Number of events per page
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
         this.eventItemVariantIndices = new Map(); // Track current variant index for each event item
         this.listenersSetup = false; // Track if listeners have been set up
+        this.isOpeningEvent = false; // Flag to prevent panel from closing during event opening
     }
 
     /**
@@ -71,6 +98,7 @@ class EventManager {
         this.listenersSetup = false;
         this.events = [];
         this.cities = [];
+        this.fictionalCities = [];
         this.airports = [];
         this.seaports = [];
         this.heroes = [];
@@ -199,9 +227,10 @@ class EventManager {
         if (locationsResult.status === 'fulfilled') {
             const data = locationsResult.value;
             this.cities = data.cities || [];
+            this.fictionalCities = data.fictionalCities || [];
             this.airports = data.airports || [];
             this.seaports = data.seaports || [];
-            this.updateStatus(`EventManager: Processed ${this.cities.length} cities, ${this.airports.length} airports, ${this.seaports.length} seaports`, 'success');
+            this.updateStatus(`EventManager: Processed ${this.cities.length} cities, ${this.fictionalCities.length} fictional cities, ${this.airports.length} airports, ${this.seaports.length} seaports`, 'success');
         } else {
             console.error('Error loading locations data:', locationsResult.reason);
             this.updateStatus('EventManager: Error loading locations.json', 'error');
@@ -506,6 +535,21 @@ class EventManager {
             return { lat: city.lat, lon: city.lon, name: city.name };
         }
 
+        // Search in fictional cities (exact match first, then partial)
+        let fictionalCity = this.fictionalCities.find(c => 
+            c.name.toLowerCase() === searchName
+        );
+        if (!fictionalCity) {
+            // Try partial match
+            fictionalCity = this.fictionalCities.find(c => 
+                c.name.toLowerCase().includes(searchName) ||
+                searchName.includes(c.name.toLowerCase())
+            );
+        }
+        if (fictionalCity) {
+            return { lat: fictionalCity.lat, lon: fictionalCity.lon, name: fictionalCity.name };
+        }
+
         // Search in airports (partial match)
         const airport = this.airports.find(a => 
             a.name.toLowerCase().includes(searchName) ||
@@ -657,14 +701,24 @@ class EventManager {
         // Close panel when clicking outside
         document.addEventListener('click', (e) => {
             if (panel && panel.classList.contains('open')) {
+                // Don't close panel if we're in the process of opening an event
+                if (this.isOpeningEvent) {
+                    return;
+                }
+                
                 const toggleBtn = document.getElementById('eventsManageToggle');
                 const editModal = document.getElementById('eventEditModal');
-                // Don't close panel if clicking on edit modal or its children
+                // Check if clicking on a View button (don't close panel)
+                const isViewButton = e.target.classList && e.target.classList.contains('view-btn');
+                const isViewButtonParent = e.target.closest && e.target.closest('.view-btn');
+                // Don't close panel if clicking on edit modal, toggle button, or View buttons
                 if (!panel.contains(e.target) && 
                     !toggleBtn.contains(e.target) && 
                     e.target !== toggleBtn &&
                     !editModal.contains(e.target) &&
-                    !editModal.classList.contains('open')) {
+                    !editModal.classList.contains('open') &&
+                    !isViewButton &&
+                    !isViewButtonParent) {
                     // Reset all multi-variant events to first variant
                     this.resetAllEventVariants();
                     
@@ -859,7 +913,7 @@ class EventManager {
     }
 
     /**
-     * Render events list
+     * Render events list with pagination
      */
     renderEvents() {
         const eventsList = document.getElementById('eventsList');
@@ -869,10 +923,25 @@ class EventManager {
             return;
         }
 
-        console.log('EventManager: Rendering', this.events.length, 'events');
-        console.log('EventManager: Events data:', this.events);
-        if (this.events.length > 0) {
-            this.updateStatus(`EventManager: Rendering ${this.events.length} events to DOM...`, 'info');
+        // Calculate pagination
+        const totalEvents = this.events.length;
+        const totalPages = Math.max(1, Math.ceil(totalEvents / this.eventsPerPage));
+        
+        // Ensure current page is valid
+        if (this.currentPage > totalPages) {
+            this.currentPage = totalPages;
+        }
+        if (this.currentPage < 1) {
+            this.currentPage = 1;
+        }
+
+        const startIndex = (this.currentPage - 1) * this.eventsPerPage;
+        const endIndex = Math.min(startIndex + this.eventsPerPage, totalEvents);
+        const eventsToRender = this.events.slice(startIndex, endIndex);
+
+        console.log(`EventManager: Rendering page ${this.currentPage} of ${totalPages} (events ${startIndex + 1}-${endIndex} of ${totalEvents})`);
+        if (eventsToRender.length > 0) {
+            this.updateStatus(`EventManager: Rendering page ${this.currentPage} of ${totalPages}...`, 'info');
         } else {
             this.updateStatus('EventManager: No events to render', 'info');
         }
@@ -880,8 +949,7 @@ class EventManager {
         // Update event count display
         const eventsCountElement = document.getElementById('eventsCount');
         if (eventsCountElement) {
-            const count = this.events.length;
-            eventsCountElement.textContent = `${count} ${count === 1 ? 'Event' : 'Events'}`;
+            eventsCountElement.textContent = `${totalEvents} ${totalEvents === 1 ? 'Event' : 'Events'} (Page ${this.currentPage}/${totalPages})`;
         }
 
         eventsList.innerHTML = '';
@@ -889,24 +957,146 @@ class EventManager {
         if (this.events.length === 0) {
             eventsList.innerHTML = '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No events yet. Click "Add Event" to create one.</div>';
             console.log('EventManager: No events to render');
+            this.renderPaginationControls();
             return;
         }
 
-        // Create all event items using document fragment for better performance
+        // Create event items for current page using document fragment for better performance
         const renderStartTime = performance.now();
         const fragment = document.createDocumentFragment();
-        this.events.forEach((event, index) => {
-            const eventItem = this.createEventItem(event, index);
+        eventsToRender.forEach((event, pageIndex) => {
+            const actualIndex = startIndex + pageIndex; // Actual index in full events array
+            const eventItem = this.createEventItem(event, actualIndex);
             fragment.appendChild(eventItem);
         });
         eventsList.appendChild(fragment);
 
         const renderTime = performance.now() - renderStartTime;
-        console.log('EventManager: Rendered', this.events.length, 'event items');
-        this.updateStatus(`EventManager: Rendered ${this.events.length} events (${renderTime.toFixed(0)}ms)`, 'success');
+        console.log(`EventManager: Rendered ${eventsToRender.length} event items (${renderTime.toFixed(0)}ms)`);
+        this.updateStatus(`EventManager: Rendered page ${this.currentPage} (${eventsToRender.length} events, ${renderTime.toFixed(0)}ms)`, 'success');
 
         // Setup drag and drop
         this.setupDragAndDrop();
+        
+        // Render pagination controls
+        this.renderPaginationControls();
+    }
+    
+    /**
+     * Render pagination controls
+     */
+    renderPaginationControls() {
+        const totalEvents = this.events.length;
+        const totalPages = Math.max(1, Math.ceil(totalEvents / this.eventsPerPage));
+        
+        // Find or create pagination container
+        let paginationContainer = document.getElementById('eventsPagination');
+        if (!paginationContainer) {
+            paginationContainer = document.createElement('div');
+            paginationContainer.id = 'eventsPagination';
+            paginationContainer.className = 'events-pagination';
+            const eventsList = document.getElementById('eventsList');
+            if (eventsList && eventsList.parentNode) {
+                eventsList.parentNode.insertBefore(paginationContainer, eventsList.nextSibling);
+            }
+        }
+        
+        // Don't show pagination if only one page
+        if (totalPages <= 1) {
+            paginationContainer.innerHTML = '';
+            paginationContainer.style.display = 'none';
+            return;
+        }
+        
+        paginationContainer.style.display = 'flex';
+        
+        // Build pagination HTML
+        let paginationHTML = '<div class="events-pagination-controls">';
+        
+        // Previous button
+        const prevDisabled = this.currentPage === 1 ? 'disabled' : '';
+        paginationHTML += `<button class="events-pagination-btn" id="eventsPrevPage" ${prevDisabled}>‹ Prev</button>`;
+        
+        // Page selector with text input
+        paginationHTML += `<span class="events-pagination-page-selector">`;
+        paginationHTML += `<label for="eventsPageInput">Page:</label>`;
+        paginationHTML += `<input type="number" id="eventsPageInput" class="events-pagination-input" min="1" max="${totalPages}" value="${this.currentPage}" />`;
+        paginationHTML += `<span class="events-pagination-total">of ${totalPages}</span>`;
+        paginationHTML += `</span>`;
+        
+        // Next button
+        const nextDisabled = this.currentPage === totalPages ? 'disabled' : '';
+        paginationHTML += `<button class="events-pagination-btn" id="eventsNextPage" ${nextDisabled}>Next ›</button>`;
+        
+        paginationHTML += '</div>';
+        paginationContainer.innerHTML = paginationHTML;
+        
+        // Attach event listeners
+        this.setupPaginationListeners();
+    }
+    
+    /**
+     * Setup pagination event listeners
+     */
+    setupPaginationListeners() {
+        // Previous button
+        const prevBtn = document.getElementById('eventsPrevPage');
+        if (prevBtn) {
+            prevBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.renderEvents();
+                }
+            };
+        }
+        
+        // Next button
+        const nextBtn = document.getElementById('eventsNextPage');
+        if (nextBtn) {
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const totalPages = Math.max(1, Math.ceil(this.events.length / this.eventsPerPage));
+                if (this.currentPage < totalPages) {
+                    this.currentPage++;
+                    this.renderEvents();
+                }
+            };
+        }
+        
+        // Page input field
+        const pageInput = document.getElementById('eventsPageInput');
+        if (pageInput) {
+            pageInput.onchange = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const totalPages = Math.max(1, Math.ceil(this.events.length / this.eventsPerPage));
+                const page = parseInt(pageInput.value);
+                if (page && page >= 1 && page <= totalPages && page !== this.currentPage) {
+                    this.currentPage = page;
+                    this.renderEvents();
+                } else {
+                    // Reset to current page if invalid
+                    pageInput.value = this.currentPage;
+                }
+            };
+            
+            pageInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    pageInput.onchange(e);
+                }
+                // Stop propagation for all keys to prevent panel closing
+                e.stopPropagation();
+            };
+            
+            pageInput.onclick = (e) => {
+                e.stopPropagation();
+            };
+        }
     }
 
     /**
@@ -937,25 +1127,49 @@ class EventManager {
         // Get location name - for multi-events, use first variant's cityDisplayName
         // Otherwise use event's cityDisplayName or get from location lookup
         let locationName = null;
+        const locationType = event.locationType || 'earth';
         let locationLat = event.lat;
         let locationLon = event.lon;
+        let locationX = event.x;
+        let locationY = event.y;
         
         if (isMultiEvent && event.variants && event.variants.length > 0) {
             // Use first variant's cityDisplayName and location
             const firstVariant = event.variants[0];
             locationName = firstVariant.cityDisplayName || null;
-            if (firstVariant.lat !== undefined) {
-                locationLat = firstVariant.lat;
-            }
-            if (firstVariant.lon !== undefined) {
-                locationLon = firstVariant.lon;
+            const variantLocationType = firstVariant.locationType || locationType;
+            if (variantLocationType === 'earth') {
+                if (firstVariant.lat !== undefined) {
+                    locationLat = firstVariant.lat;
+                }
+                if (firstVariant.lon !== undefined) {
+                    locationLon = firstVariant.lon;
+                }
+            } else {
+                // Moon or Mars
+                if (firstVariant.x !== undefined) {
+                    locationX = firstVariant.x;
+                }
+                if (firstVariant.y !== undefined) {
+                    locationY = firstVariant.y;
+                }
             }
         } else {
             locationName = event.cityDisplayName || null;
         }
         
-        if (!locationName) {
+        // Only call getLocationName for Earth events with valid lat/lon
+        if (!locationName && locationType === 'earth' && locationLat !== undefined && locationLon !== undefined) {
             locationName = this.getLocationName(locationLat, locationLon);
+        }
+        
+        // For Moon/Mars events, display coordinates if no custom name
+        if (!locationName && locationType !== 'earth') {
+            if (locationX !== undefined && locationY !== undefined) {
+                locationName = `${locationType === 'moon' ? 'Moon' : 'Mars'}: (${locationX.toFixed(1)}, ${locationY.toFixed(1)})`;
+            } else {
+                locationName = locationType === 'moon' ? 'Moon' : 'Mars';
+            }
         }
 
         // For multi-events, track and use current variant index (default to 0)
@@ -982,8 +1196,20 @@ class EventManager {
             if (currentVariant.lon !== undefined) {
                 locationLon = currentVariant.lon;
             }
-            if (!locationName) {
+            // Only call getLocationName for Earth events with valid lat/lon
+            const currentVariantLocationType = currentVariant.locationType || locationType;
+            if (!locationName && currentVariantLocationType === 'earth' && locationLat !== undefined && locationLon !== undefined) {
                 locationName = this.getLocationName(locationLat, locationLon);
+            }
+            // For Moon/Mars events, display coordinates if no custom name
+            if (!locationName && currentVariantLocationType !== 'earth') {
+                const variantX = currentVariant.x !== undefined ? currentVariant.x : (event.x !== undefined ? event.x : undefined);
+                const variantY = currentVariant.y !== undefined ? currentVariant.y : (event.y !== undefined ? event.y : undefined);
+                if (variantX !== undefined && variantY !== undefined) {
+                    locationName = `${currentVariantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variantX.toFixed(1)}, ${variantY.toFixed(1)})`;
+                } else {
+                    locationName = currentVariantLocationType === 'moon' ? 'Moon' : 'Mars';
+                }
             }
         }
         
@@ -1004,13 +1230,16 @@ class EventManager {
         // Add loading="lazy" for better performance - images load as they come into view
         // Include warning icon inside the image container for proper positioning
         const imageHtml = imagePathWithCache
-            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;">${unfinishedWarning}<img src="${imagePathWithCache}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
-            : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">${unfinishedWarning}No Image</div>`;
+            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img src="${imagePathWithCache}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
+            : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">No Image</div>`;
 
         // Multi-event indicator badge - show current variant / total (e.g., "1/2")
         const multiEventBadge = isMultiEvent 
             ? `<div class="multi-event-badge" data-event-index="${index}" title="Click to cycle through variants">${currentVariantIndex + 1}/${event.variants.length}</div>`
             : '';
+
+        // Event number badge - show event number in chronological order (bottom-right)
+        const eventNumberBadge = `<div class="event-number-badge" title="Event #${index + 1}">${index + 1}</div>`;
 
         // On GitHub Pages, hide edit/delete buttons, but show View button
         const actionButtons = isGitHubPages ? `
@@ -1035,10 +1264,12 @@ class EventManager {
             <div style="position: relative;">
             ${imageHtml}
             ${multiEventBadge}
+            ${unfinishedWarning}
+            ${eventNumberBadge}
             </div>
             <div class="event-item-info">
                 <h3 class="event-item-title">${getDisplayEventName(displayEvent.name)}</h3>
-                <p class="event-item-location"><img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
+                <p class="event-item-location"><img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
             </div>
             ${actionButtons}
         `;
@@ -1050,11 +1281,14 @@ class EventManager {
 
         if (viewBtn) {
             viewBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 this.openEventFromList(event, index);
             });
             // Prevent dragging when clicking on button
             viewBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
             });
         }
@@ -1160,13 +1394,25 @@ class EventManager {
         const locationElement = itemElement.querySelector('.event-item-location');
         if (locationElement) {
             let locationName = variant.cityDisplayName || null;
-            if (!locationName && variant.lat !== undefined && variant.lon !== undefined) {
+            const variantLocationType = variant.locationType || (event.locationType || 'earth');
+            
+            // Only call getLocationName for Earth events with valid lat/lon
+            if (!locationName && variantLocationType === 'earth' && variant.lat !== undefined && variant.lon !== undefined) {
                 locationName = this.getLocationName(variant.lat, variant.lon);
             }
-            if (!locationName && variant.lat !== undefined && variant.lon !== undefined) {
+            // Fallback to coordinates for Earth events
+            if (!locationName && variantLocationType === 'earth' && variant.lat !== undefined && variant.lon !== undefined) {
                 locationName = `${variant.lat.toFixed(4)}, ${variant.lon.toFixed(4)}`;
             }
-            locationElement.innerHTML = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || 'Unknown'}`;
+            // For Moon/Mars events, display coordinates
+            if (!locationName && variantLocationType !== 'earth') {
+                if (variant.x !== undefined && variant.y !== undefined) {
+                    locationName = `${variantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variant.x.toFixed(1)}, ${variant.y.toFixed(1)})`;
+                } else {
+                    locationName = variantLocationType === 'moon' ? 'Moon' : 'Mars';
+                }
+            }
+            locationElement.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || 'Unknown'}`;
         }
         
         // Update badge text
@@ -1180,6 +1426,100 @@ class EventManager {
      * Open event info from list (like clicking a marker) - for GitHub Pages
      */
     openEventFromList(event, index) {
+        // Set flag to prevent panel from closing during event opening
+        this.isOpeningEvent = true;
+        
+        // Helper function to actually open the event (called after page change completes if needed)
+        const openEventAfterPageChange = () => {
+            // Close the event manager panel
+            const panel = document.getElementById('eventsManagePanel');
+            if (panel) {
+                panel.classList.remove('open');
+            }
+            const toggleBtn = document.getElementById('eventsManageToggle');
+            if (toggleBtn) {
+                toggleBtn.classList.remove('active');
+            }
+            
+            // Clear the flag after a short delay to allow event slide to open
+            setTimeout(() => {
+                this.isOpeningEvent = false;
+            }, 500);
+            
+            // Find the corresponding marker on the globe
+            if (window.globeController && window.globeController.globeView) {
+                const markers = window.globeController.sceneModel.getMarkers();
+                const eventMarker = markers.find(m => {
+                    if (m.userData && m.userData.isEventMarker) {
+                        const markerEvent = m.userData.event;
+                        // Match by index or by lat/lon
+                        return (markerEvent === event) || 
+                               (Math.abs(markerEvent.lat - event.lat) < 0.0001 && 
+                                Math.abs(markerEvent.lon - event.lon) < 0.0001);
+                    }
+                    return false;
+                });
+                
+                if (eventMarker && window.globeController.uiView) {
+                    // Check if this is a multi-event
+                    const isMultiEvent = event.variants && event.variants.length > 0;
+                    
+                    // Get the currently previewed variant index (default to 0)
+                    let variantIndex = 0;
+                    if (isMultiEvent) {
+                        const itemKey = `event-${index}`;
+                        variantIndex = this.eventItemVariantIndices.get(itemKey) || 0;
+                    }
+                    
+                    const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
+                    
+                    // For multi-events, find the marker for the specific variant
+                    let targetMarker = eventMarker;
+                    if (isMultiEvent && variantIndex > 0) {
+                        // Look for the variant marker
+                        const variantMarker = markers.find(m => {
+                            if (m.userData && m.userData.isEventMarker && 
+                                m.userData.event === event &&
+                                m.userData.variantIndex === variantIndex) {
+                                return true;
+                            }
+                            return false;
+                        });
+                        if (variantMarker) {
+                            targetMarker = variantMarker;
+                        }
+                    }
+                    
+                    const eventName = displayEvent.name || eventMarker.userData.eventName;
+                    const eventDescription = displayEvent.description;
+                    const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
+                    
+                    // Zoom to marker or reset to default view (for Moon/Mars) and show event slide
+                    if (window.globeController.interactionController) {
+                        const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
+                        if (locationType === 'moon' || locationType === 'mars') {
+                            // Reset camera to default view for Moon/Mars events
+                            window.globeController.interactionController.resetCameraToDefault();
+                        } else {
+                            // Zoom in and center on the marker (Earth events)
+                            window.globeController.interactionController.zoomToMarker(targetMarker);
+                        }
+                    }
+                    
+                    window.globeController.uiView.showEventSlide(
+                        eventName,
+                        imagePath,
+                        eventDescription,
+                        targetMarker,
+                        event
+                    );
+                    
+                    // Reset all multi-variant events to first variant after opening (for next time manager opens)
+                    this.resetAllEventVariants();
+                }
+            }
+        };
+        
         // Check if event is on current page, if not switch to the correct page
         if (window.globeController && window.globeController.dataModel) {
             const dataModel = window.globeController.dataModel;
@@ -1191,10 +1531,38 @@ class EventManager {
                 // Switch to the correct page
                 dataModel.setCurrentEventPage(eventPage);
                 
-                // Refresh markers and pagination
+                // Re-render events list first
+                this.renderEvents();
+                
+                // Refresh markers and pagination, then open event after markers are ready
                 if (window.globeController.globeView) {
-                    window.globeController.globeView.refreshEventMarkers();
+                    const refreshPromise = window.globeController.globeView.refreshEventMarkers();
+                    if (refreshPromise && typeof refreshPromise.then === 'function') {
+                        // refreshEventMarkers returns a promise
+                        refreshPromise.then(() => {
+                            // Wait a bit more for markers to be fully ready
+                            setTimeout(() => {
+                                openEventAfterPageChange();
+                            }, 100);
+                        }).catch(() => {
+                            // If promise rejects, just wait and try
+                            setTimeout(() => {
+                                openEventAfterPageChange();
+                            }, 300);
+                        });
+                    } else {
+                        // refreshEventMarkers doesn't return a promise, just wait
+                        setTimeout(() => {
+                            openEventAfterPageChange();
+                        }, 400);
+                    }
+                } else {
+                    // No globeView, just wait and open
+                    setTimeout(() => {
+                        openEventAfterPageChange();
+                    }, 300);
                 }
+                
                 if (window.globeController.uiView) {
                     window.globeController.uiView.setupEventPagination(() => {
                         if (window.globeController.globeView) {
@@ -1202,87 +1570,19 @@ class EventManager {
                         }
                     });
                 }
-                
-                // Re-render events list
-                this.renderEvents();
+            } else {
+                // Event is on current page, open immediately
+                openEventAfterPageChange();
             }
+        } else {
+            // No globeController, just try to open
+            openEventAfterPageChange();
         }
         
-        // Close the event manager panel
-        const panel = document.getElementById('eventsManagePanel');
-        if (panel) {
-            panel.classList.remove('open');
-        }
-        const toggleBtn = document.getElementById('eventsManageToggle');
-        if (toggleBtn) {
-            toggleBtn.classList.remove('active');
-        }
-        
-        // Find the corresponding marker on the globe
-        if (window.globeController && window.globeController.globeView) {
-            const markers = window.globeController.sceneModel.getMarkers();
-            const eventMarker = markers.find(m => {
-                if (m.userData && m.userData.isEventMarker) {
-                    const markerEvent = m.userData.event;
-                    // Match by index or by lat/lon
-                    return (markerEvent === event) || 
-                           (Math.abs(markerEvent.lat - event.lat) < 0.0001 && 
-                            Math.abs(markerEvent.lon - event.lon) < 0.0001);
-                }
-                return false;
-            });
-            
-            if (eventMarker && window.globeController.uiView) {
-                // Check if this is a multi-event
-                const isMultiEvent = event.variants && event.variants.length > 0;
-                
-                // Get the currently previewed variant index (default to 0)
-                let variantIndex = 0;
-                if (isMultiEvent) {
-                    const itemKey = `event-${index}`;
-                    variantIndex = this.eventItemVariantIndices.get(itemKey) || 0;
-                }
-                
-                const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
-                
-                // For multi-events, find the marker for the specific variant
-                let targetMarker = eventMarker;
-                if (isMultiEvent && variantIndex > 0) {
-                    // Look for the variant marker
-                    const variantMarker = markers.find(m => {
-                        if (m.userData && m.userData.isEventMarker && 
-                            m.userData.event === event &&
-                            m.userData.variantIndex === variantIndex) {
-                            return true;
-                        }
-                        return false;
-                    });
-                    if (variantMarker) {
-                        targetMarker = variantMarker;
-                    }
-                }
-                
-                const eventName = displayEvent.name || eventMarker.userData.eventName;
-                const eventDescription = displayEvent.description;
-                const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
-                
-                // Zoom to marker and show event slide
-                if (window.globeController.interactionController) {
-                    window.globeController.interactionController.zoomToMarker(targetMarker);
-                }
-                
-                window.globeController.uiView.showEventSlide(
-                    eventName,
-                    imagePath,
-                    eventDescription,
-                    targetMarker,
-                    event
-                );
-                
-                // Reset all multi-variant events to first variant after opening (for next time manager opens)
-                this.resetAllEventVariants();
-            }
-        }
+        // Clear flag if something goes wrong (safety net)
+        setTimeout(() => {
+            this.isOpeningEvent = false;
+        }, 2000);
     }
 
     /**
@@ -1300,6 +1600,7 @@ class EventManager {
 
         const allLocations = [
             ...this.cities.map(c => ({ ...c, type: 'city' })),
+            ...this.fictionalCities.map(c => ({ ...c, type: 'fictionalCity' })),
             ...this.airports.map(a => ({ ...a, type: 'airport' })),
             ...this.seaports.map(s => ({ ...s, type: 'seaport' }))
         ];
@@ -1386,7 +1687,7 @@ class EventManager {
                     const event = this.events[itemIndex];
                     const tolerance = 0.01;
                     if (Math.abs(event.lat - lat) < tolerance && Math.abs(event.lon - lon) < tolerance) {
-                        locationEl.innerHTML = `<img src="Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+                        locationEl.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
                     }
                 }
             }
@@ -1555,6 +1856,11 @@ class EventManager {
         }
         
         if (confirm(`Are you sure you want to delete "${this.events[index].name}"?`)) {
+            // Check if we need to adjust pagination
+            const totalPages = Math.ceil(this.events.length / this.eventsPerPage);
+            const currentPageStartIndex = (this.currentPage - 1) * this.eventsPerPage;
+            const currentPageEndIndex = currentPageStartIndex + this.eventsPerPage;
+            
             this.events.splice(index, 1);
             
             // Update indices for events after the deleted one
@@ -1570,6 +1876,20 @@ class EventManager {
             
             // Mark all remaining events as unsaved after deletion
             this.events.forEach((_, idx) => this.unsavedEventIndices.add(idx));
+            
+            // Adjust current page if needed
+            const newTotalPages = Math.max(1, Math.ceil(this.events.length / this.eventsPerPage));
+            if (this.currentPage > newTotalPages) {
+                this.currentPage = newTotalPages;
+            }
+            
+            // If we deleted the last item on the current page and it's not the first page, go to previous page
+            if (this.events.length > 0 && index >= currentPageStartIndex && index < currentPageEndIndex) {
+                const remainingOnPage = this.events.slice(currentPageStartIndex, currentPageEndIndex - 1).length;
+                if (remainingOnPage === 0 && this.currentPage > 1) {
+                    this.currentPage--;
+                }
+            }
             
             this.renderEvents();
         }
@@ -1603,6 +1923,9 @@ class EventManager {
         }
 
         modal.classList.add('open');
+        
+        // Setup location type change handler
+        this.setupLocationTypeHandler();
         
         // Keep event manager panel open when opening edit modal
         // Don't close the events panel
@@ -1641,18 +1964,153 @@ class EventManager {
         }
     }
 
+
+    /**
+     * Setup location type change handler
+     */
+    setupLocationTypeHandler() {
+        const locationTypeButtons = document.querySelectorAll('.location-type-btn');
+        const locationTypeInput = document.getElementById('eventEditLocationType');
+        
+        if (locationTypeButtons.length > 0 && !locationTypeButtons[0].dataset.handlerSetup) {
+            locationTypeButtons[0].dataset.handlerSetup = 'true';
+            
+            locationTypeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    locationTypeButtons.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    btn.classList.add('active');
+                    // Update hidden input value
+                    if (locationTypeInput) {
+                        locationTypeInput.value = btn.dataset.locationType;
+                    }
+                    // Update location fields
+                    this.updateLocationFields();
+                });
+            });
+        }
+    }
+
+    /**
+     * Set location type and update UI (buttons and hidden input)
+     * @param {string} locationType - 'earth', 'moon', or 'mars'
+     */
+    setLocationType(locationType) {
+        const locationTypeInput = document.getElementById('eventEditLocationType');
+        const locationTypeButtons = document.querySelectorAll('.location-type-btn');
+        
+        // Update hidden input
+        if (locationTypeInput) {
+            locationTypeInput.value = locationType;
+        }
+        
+        // Update button active states
+        locationTypeButtons.forEach(btn => {
+            if (btn.dataset.locationType === locationType) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Update location fields
+        this.updateLocationFields();
+    }
+
+    /**
+     * Update location fields based on selected location type
+     */
+    updateLocationFields() {
+        const locationTypeInput = document.getElementById('eventEditLocationType');
+        const locationType = locationTypeInput ? locationTypeInput.value : 'earth';
+        const latLonFields = document.getElementById('latLonFields');
+        const lonFields = document.getElementById('lonFields');
+        const xyFields = document.getElementById('xyFields');
+        const yFields = document.getElementById('yFields');
+        const cityLookupField = document.getElementById('eventEditCity').closest('.event-edit-field');
+        const cityDisplayNameField = document.getElementById('eventEditCityDisplayName').closest('.event-edit-field');
+        
+        if (locationType === 'earth') {
+            if (latLonFields) latLonFields.style.display = '';
+            if (lonFields) lonFields.style.display = '';
+            if (xyFields) xyFields.style.display = 'none';
+            if (yFields) yFields.style.display = 'none';
+            if (cityLookupField) cityLookupField.style.display = '';
+            if (cityDisplayNameField) cityDisplayNameField.style.display = '';
+            const latInput = document.getElementById('eventEditLat');
+            const lonInput = document.getElementById('eventEditLon');
+            const xInput = document.getElementById('eventEditX');
+            const yInput = document.getElementById('eventEditY');
+            if (latInput) latInput.required = true;
+            if (lonInput) lonInput.required = true;
+            if (xInput) xInput.required = false;
+            if (yInput) yInput.required = false;
+        } else {
+            // Moon or Mars
+            if (latLonFields) latLonFields.style.display = 'none';
+            if (lonFields) lonFields.style.display = 'none';
+            if (xyFields) xyFields.style.display = '';
+            if (yFields) yFields.style.display = '';
+            if (cityLookupField) cityLookupField.style.display = 'none';
+            // Show city display name field for Moon/Mars (same as Earth)
+            if (cityDisplayNameField) cityDisplayNameField.style.display = '';
+            const latInput = document.getElementById('eventEditLat');
+            const lonInput = document.getElementById('eventEditLon');
+            const xInput = document.getElementById('eventEditX');
+            const yInput = document.getElementById('eventEditY');
+            const cityDisplayNameInput = document.getElementById('eventEditCityDisplayName');
+            if (latInput) latInput.required = false;
+            if (lonInput) lonInput.required = false;
+            if (xInput) xInput.required = true;
+            if (yInput) yInput.required = true;
+            
+            // Set default X/Y coordinates if fields are empty (only when switching, not when editing existing)
+            if (xInput && !xInput.value.trim()) {
+                if (locationType === 'moon') {
+                    xInput.value = '60';
+                } else if (locationType === 'mars') {
+                    xInput.value = '45';
+                }
+            }
+            if (yInput && !yInput.value.trim()) {
+                if (locationType === 'moon') {
+                    yInput.value = '70';
+                } else if (locationType === 'mars') {
+                    yInput.value = '35';
+                }
+            }
+            
+            // Set default city display name if field is empty
+            if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
+                if (locationType === 'moon') {
+                    cityDisplayNameInput.value = 'Horizon Lunar Colony';
+                } else if (locationType === 'mars') {
+                    cityDisplayNameInput.value = 'Red Promise Colony';
+                }
+            }
+        }
+    }
+
     /**
      * Clear edit form
      */
     clearEditForm() {
         document.getElementById('eventEditName').value = '';
+        // Set default event number to position after last event (1-indexed)
+        const defaultEventNumber = this.events.length + 1;
+        document.getElementById('eventEditNumber').value = defaultEventNumber;
         document.getElementById('eventEditCity').value = '';
         document.getElementById('eventEditCityDisplayName').value = '';
         document.getElementById('eventEditLat').value = '';
         document.getElementById('eventEditLon').value = '';
+        document.getElementById('eventEditX').value = '';
+        document.getElementById('eventEditY').value = '';
         document.getElementById('eventEditDescription').value = '';
         document.getElementById('eventEditFilters').value = '';
         document.getElementById('eventEditFactions').value = '';
+        // Set default location type (will trigger updateLocationFields which sets defaults)
+        this.setLocationType('earth');
         // Clear all source pairs and reset to one
         this.clearSourcePairs();
         // Initialize with one variant (always show tabs)
@@ -1661,7 +2119,8 @@ class EventManager {
             description: '',
             filters: [],
             factions: [],
-            sources: []
+            sources: [],
+            locationType: 'earth'
         }];
         this.activeVariantIndex = 0;
         this.updateVariantTabs();
@@ -1711,19 +2170,46 @@ class EventManager {
             return found ? found.filename : displayName;
         });
         
-        // Save location (lat/lon) for this variant
+        // Save location type and coordinates for this variant
+        const locationTypeInput = document.getElementById('eventEditLocationType');
+        if (locationTypeInput) {
+            variant.locationType = locationTypeInput.value;
+        }
+
         const latInput = document.getElementById('eventEditLat');
         const lonInput = document.getElementById('eventEditLon');
-        if (latInput && latInput.value.trim()) {
-            const lat = parseFloat(latInput.value.trim());
-            variant.lat = isNaN(lat) ? undefined : lat;
+        const xInput = document.getElementById('eventEditX');
+        const yInput = document.getElementById('eventEditY');
+
+        if (variant.locationType === 'earth') {
+            if (latInput && latInput.value.trim()) {
+                const lat = parseFloat(latInput.value.trim());
+                variant.lat = isNaN(lat) ? undefined : lat;
+            } else {
+                variant.lat = undefined;
+            }
+            if (lonInput && lonInput.value.trim()) {
+                const lon = parseFloat(lonInput.value.trim());
+                variant.lon = isNaN(lon) ? undefined : lon;
+            } else {
+                variant.lon = undefined;
+            }
+            variant.x = undefined;
+            variant.y = undefined;
         } else {
+            if (xInput && xInput.value.trim()) {
+                const x = parseFloat(xInput.value.trim());
+                variant.x = isNaN(x) ? undefined : x;
+            } else {
+                variant.x = undefined;
+            }
+            if (yInput && yInput.value.trim()) {
+                const y = parseFloat(yInput.value.trim());
+                variant.y = isNaN(y) ? undefined : y;
+            } else {
+                variant.y = undefined;
+            }
             variant.lat = undefined;
-        }
-        if (lonInput && lonInput.value.trim()) {
-            const lon = parseFloat(lonInput.value.trim());
-            variant.lon = isNaN(lon) ? undefined : lon;
-        } else {
             variant.lon = undefined;
         }
         
@@ -1854,12 +2340,23 @@ class EventManager {
         }).join(', ');
         document.getElementById('eventEditFactions').value = displayFactions;
         
-        // Load variant-specific location if it exists
-        if (variant.lat !== undefined) {
-            document.getElementById('eventEditLat').value = variant.lat;
-        }
-        if (variant.lon !== undefined) {
-            document.getElementById('eventEditLon').value = variant.lon;
+            // Load variant-specific location type and coordinates
+            this.setLocationType(variant.locationType || 'earth');
+        
+        if (variant.locationType === 'earth') {
+            if (variant.lat !== undefined) {
+                document.getElementById('eventEditLat').value = variant.lat;
+            }
+            if (variant.lon !== undefined) {
+                document.getElementById('eventEditLon').value = variant.lon;
+            }
+        } else {
+            if (variant.x !== undefined) {
+                document.getElementById('eventEditX').value = variant.x;
+            }
+            if (variant.y !== undefined) {
+                document.getElementById('eventEditY').value = variant.y;
+            }
         }
         
         // Load variant-specific city display name if it exists
@@ -1945,18 +2442,32 @@ class EventManager {
         addTabBtn.textContent = '+';
         addTabBtn.addEventListener('click', () => {
             this.saveCurrentVariantToMemory();
-            // Get current lat/lon to use as default for new variant
+            // Get current location type and coordinates to use as default for new variant
+            const locationTypeInput = document.getElementById('eventEditLocationType');
+            const currentLocationType = locationTypeInput ? locationTypeInput.value : 'earth';
             const currentLat = document.getElementById('eventEditLat').value.trim();
             const currentLon = document.getElementById('eventEditLon').value.trim();
-            this.variantData.push({
+            const currentX = document.getElementById('eventEditX').value.trim();
+            const currentY = document.getElementById('eventEditY').value.trim();
+            
+            const newVariant = {
                 name: '',
                 description: '',
                 filters: [],
                 factions: [],
                 sources: [],
-                lat: currentLat ? parseFloat(currentLat) : undefined,
-                lon: currentLon ? parseFloat(currentLon) : undefined
-            });
+                locationType: currentLocationType
+            };
+            
+            if (currentLocationType === 'earth') {
+                newVariant.lat = currentLat ? parseFloat(currentLat) : undefined;
+                newVariant.lon = currentLon ? parseFloat(currentLon) : undefined;
+            } else {
+                newVariant.x = currentX ? parseFloat(currentX) : undefined;
+                newVariant.y = currentY ? parseFloat(currentY) : undefined;
+            }
+            
+            this.variantData.push(newVariant);
             this.loadVariantToForm(this.variantData.length - 1);
             this.updateVariantTabs();
         });
@@ -2010,32 +2521,61 @@ class EventManager {
         this.variantData = [];
         this.activeVariantIndex = 0;
         
+        // Set event number to current position (1-indexed)
+        const eventNumberInput = document.getElementById('eventEditNumber');
+        if (eventNumberInput && this.editingIndex !== null) {
+            eventNumberInput.value = this.editingIndex + 1;
+        }
+        
         const isMultiEvent = event.variants && event.variants.length > 0;
+        
+        // Determine the main location type for the event (or first variant)
+        const mainLocationType = isMultiEvent && event.variants[0] ? 
+                                 (event.variants[0].locationType || event.locationType || 'earth') :
+                                 (event.locationType || 'earth');
+        
+        // Set the location type buttons
+        this.setLocationType(mainLocationType);
         
         // Set coordinates - for multi-events, use first variant's location or event location
         // For single events, use event location
-        if (isMultiEvent && event.variants[0] && (event.variants[0].lat !== undefined || event.variants[0].lon !== undefined)) {
-            document.getElementById('eventEditLat').value = event.variants[0].lat !== undefined ? event.variants[0].lat : event.lat || '';
-            document.getElementById('eventEditLon').value = event.variants[0].lon !== undefined ? event.variants[0].lon : event.lon || '';
+        if (isMultiEvent && event.variants[0]) {
+            const variant = event.variants[0];
+            const variantLocationType = variant.locationType || mainLocationType;
+            if (variantLocationType === 'earth') {
+                document.getElementById('eventEditLat').value = variant.lat !== undefined ? variant.lat : (event.lat || '');
+                document.getElementById('eventEditLon').value = variant.lon !== undefined ? variant.lon : (event.lon || '');
+            } else {
+                document.getElementById('eventEditX').value = variant.x !== undefined ? variant.x : (event.x || '');
+                document.getElementById('eventEditY').value = variant.y !== undefined ? variant.y : (event.y || '');
+            }
             // For multi-events, use first variant's cityDisplayName or main event's cityDisplayName
-            document.getElementById('eventEditCityDisplayName').value = event.variants[0].cityDisplayName || event.cityDisplayName || '';
+            document.getElementById('eventEditCityDisplayName').value = variant.cityDisplayName || event.cityDisplayName || '';
         } else {
-            document.getElementById('eventEditLat').value = event.lat || '';
-            document.getElementById('eventEditLon').value = event.lon || '';
+            if (mainLocationType === 'earth') {
+                document.getElementById('eventEditLat').value = event.lat || '';
+                document.getElementById('eventEditLon').value = event.lon || '';
+            } else {
+                document.getElementById('eventEditX').value = event.x || '';
+                document.getElementById('eventEditY').value = event.y || '';
+            }
             document.getElementById('eventEditCityDisplayName').value = event.cityDisplayName || '';
         }
         document.getElementById('eventEditCity').value = '';
         
         if (isMultiEvent) {
-            // Load all variants into variantData, including lat/lon and cityDisplayName if they exist
+            // Load all variants into variantData, including locationType, lat/lon, x/y, and cityDisplayName
             this.variantData = event.variants.map(variant => ({
                 name: variant.name || '',
                 description: variant.description || '',
                 filters: variant.filters || [],
                 factions: variant.factions || [],
                 sources: variant.sources || [],
-                lat: variant.lat !== undefined ? variant.lat : (event.lat !== undefined ? event.lat : undefined),
-                lon: variant.lon !== undefined ? variant.lon : (event.lon !== undefined ? event.lon : undefined),
+                locationType: variant.locationType || mainLocationType,
+                lat: variant.lat !== undefined ? variant.lat : undefined,
+                lon: variant.lon !== undefined ? variant.lon : undefined,
+                x: variant.x !== undefined ? variant.x : undefined,
+                y: variant.y !== undefined ? variant.y : undefined,
                 cityDisplayName: variant.cityDisplayName || undefined
             }));
             this.activeVariantIndex = 0;
@@ -2047,8 +2587,11 @@ class EventManager {
                 filters: event.filters || [],
                 factions: event.factions || [],
                 sources: event.sources || [],
+                locationType: event.locationType || 'earth',
                 lat: event.lat !== undefined ? event.lat : undefined,
                 lon: event.lon !== undefined ? event.lon : undefined,
+                x: event.x !== undefined ? event.x : undefined,
+                y: event.y !== undefined ? event.y : undefined,
                 cityDisplayName: event.cityDisplayName || undefined
             }];
             this.activeVariantIndex = 0;
@@ -2066,12 +2609,23 @@ class EventManager {
             }).join(', ');
             document.getElementById('eventEditFactions').value = displayFactions;
             
-            // Load variant-specific location if it exists
-            if (variant.lat !== undefined) {
-                document.getElementById('eventEditLat').value = variant.lat;
-            }
-            if (variant.lon !== undefined) {
-                document.getElementById('eventEditLon').value = variant.lon;
+            // Load variant-specific location type and coordinates
+            this.setLocationType(variant.locationType || 'earth');
+            
+            if (variant.locationType === 'earth') {
+                if (variant.lat !== undefined) {
+                    document.getElementById('eventEditLat').value = variant.lat;
+                }
+                if (variant.lon !== undefined) {
+                    document.getElementById('eventEditLon').value = variant.lon;
+                }
+            } else {
+                if (variant.x !== undefined) {
+                    document.getElementById('eventEditX').value = variant.x;
+                }
+                if (variant.y !== undefined) {
+                    document.getElementById('eventEditY').value = variant.y;
+                }
             }
             
             // Load variant-specific city display name if it exists
@@ -2495,7 +3049,26 @@ class EventManager {
         // Otherwise, try to find image in Event Images folder
         // Use the exact event name (preserve all characters including glitchy text)
         // Only normalize multiple spaces to single space
-        const normalizedName = eventName.replace(/\s+/g, ' ').trim();
+        let normalizedName = eventName.replace(/\s+/g, ' ').trim();
+        
+        // Handle case variations for common patterns (e.g., "CallSign" vs "Callsign")
+        // Try to match common filename patterns by normalizing case
+        // This handles cases where event name has different capitalization than filename
+        const caseVariations = [
+            normalizedName, // Original
+            normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1).toLowerCase(), // Title Case
+            // Try common variations: if name contains "CallSign", try "Callsign"
+            normalizedName.replace(/CallSign/g, 'Callsign'),
+            normalizedName.replace(/Callsign/g, 'CallSign'),
+        ];
+        
+        // Remove duplicates
+        const uniqueVariations = [...new Set(caseVariations)];
+        
+        // Try each variation (browser will handle 404 if none exist)
+        // For now, return the most likely match (original, then common variations)
+        // The browser's image onerror handler will catch 404s
+        normalizedName = uniqueVariations[0]; // Use first variation (original)
         
         // Encode the filename to handle spaces and special characters in URLs
         // Split the path so we only encode the filename, not the folder name
@@ -2620,15 +3193,34 @@ class EventManager {
             return;
         }
         
-        const lat = parseFloat(document.getElementById('eventEditLat').value);
-        const lon = parseFloat(document.getElementById('eventEditLon').value);
         // Save current variant before processing
         this.saveCurrentVariantToMemory();
         const isMultiEvent = this.variantData.length > 1;
-
-        if (isNaN(lat) || isNaN(lon)) {
-            alert('Please fill in Latitude and Longitude');
-            return;
+        
+        // Get location type
+        const locationTypeInput = document.getElementById('eventEditLocationType');
+        const locationType = locationTypeInput ? locationTypeInput.value : 'earth';
+        
+        // Validate coordinates based on location type
+        let lat, lon, x, y;
+        if (locationType === 'earth') {
+            lat = parseFloat(document.getElementById('eventEditLat').value);
+            lon = parseFloat(document.getElementById('eventEditLon').value);
+            if (isNaN(lat) || isNaN(lon)) {
+                alert('Please fill in Latitude and Longitude');
+                return;
+            }
+        } else {
+            x = parseFloat(document.getElementById('eventEditX').value);
+            y = parseFloat(document.getElementById('eventEditY').value);
+            if (isNaN(x) || isNaN(y)) {
+                alert('Please fill in X and Y coordinates (0-100)');
+                return;
+            }
+            if (x < 0 || x > 100 || y < 0 || y > 100) {
+                alert('X and Y coordinates must be between 0 and 100');
+                return;
+            }
         }
 
         // Process main event (or first variant if multi-event)
@@ -2694,15 +3286,25 @@ class EventManager {
                     filters: variantData.filters,
                     factions: variantData.factions,
                     sources: variant.sources && variant.sources.length > 0 ? variant.sources : undefined,
-                    image: '' // Auto-detect
+                    image: '', // Auto-detect
+                    locationType: variant.locationType || 'earth'
                 };
                 
-                // Include lat/lon if they exist for this variant
-                if (variant.lat !== undefined) {
-                    variantObj.lat = variant.lat;
-                }
-                if (variant.lon !== undefined) {
-                    variantObj.lon = variant.lon;
+                // Include coordinates based on location type
+                if (variant.locationType === 'earth') {
+                    if (variant.lat !== undefined) {
+                        variantObj.lat = variant.lat;
+                    }
+                    if (variant.lon !== undefined) {
+                        variantObj.lon = variant.lon;
+                    }
+                } else {
+                    if (variant.x !== undefined) {
+                        variantObj.x = variant.x;
+                    }
+                    if (variant.y !== undefined) {
+                        variantObj.y = variant.y;
+                    }
                 }
                 
                 // Include cityDisplayName if it exists for this variant
@@ -2719,22 +3321,28 @@ class EventManager {
             }
 
             const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
-            // For multi-events, use first variant's location or main lat/lon as fallback
-            const firstVariantLat = variants[0] && variants[0].lat !== undefined ? variants[0].lat : lat;
-            const firstVariantLon = variants[0] && variants[0].lon !== undefined ? variants[0].lon : lon;
+            // For multi-events, use first variant's location type and coordinates
+            const firstVariant = variants[0];
+            const firstVariantLocationType = firstVariant && firstVariant.locationType ? firstVariant.locationType : locationType;
             event = {
-                lat: firstVariantLat, // Main event lat (used for backward compatibility)
-                lon: firstVariantLon, // Main event lon (used for backward compatibility)
+                locationType: firstVariantLocationType,
                 cityDisplayName: cityDisplayName || undefined,
                 variants: variants
             };
+            // Add coordinates for backward compatibility
+            if (firstVariantLocationType === 'earth') {
+                event.lat = firstVariant && firstVariant.lat !== undefined ? firstVariant.lat : lat;
+                event.lon = firstVariant && firstVariant.lon !== undefined ? firstVariant.lon : lon;
+            } else {
+                event.x = firstVariant && firstVariant.x !== undefined ? firstVariant.x : x;
+                event.y = firstVariant && firstVariant.y !== undefined ? firstVariant.y : y;
+            }
         } else {
             // Regular single event
             const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
             event = {
                 name: mainName,
-                lat,
-                lon,
+                locationType: locationType,
                 cityDisplayName: cityDisplayName || undefined,
                 description: mainDescription,
                 image: '', // Auto-detect
@@ -2742,23 +3350,131 @@ class EventManager {
                 factions: mainData.factions,
                 sources: mainSources.length > 0 ? mainSources : undefined
             };
+            // Add coordinates based on location type
+            if (locationType === 'earth') {
+                event.lat = lat;
+                event.lon = lon;
+            } else {
+                event.x = x;
+                event.y = y;
+            }
         }
 
+        // Get event number (position) from input
+        const eventNumberInput = document.getElementById('eventEditNumber');
+        let targetPosition = null;
+        if (eventNumberInput && eventNumberInput.value) {
+            const eventNumber = parseInt(eventNumberInput.value);
+            if (!isNaN(eventNumber) && eventNumber >= 1) {
+                targetPosition = eventNumber - 1; // Convert to 0-indexed
+                // Clamp to valid range
+                const maxPosition = this.editingIndex === null ? this.events.length : this.events.length - 1;
+                targetPosition = Math.min(targetPosition, maxPosition);
+            }
+        }
+        
         if (this.editingIndex === null) {
             // Add new event
-            const newIndex = this.events.length;
-            this.events.push(event);
-            // Mark as unsaved until user clicks Save button
-            this.unsavedEventIndices.add(newIndex);
+            if (targetPosition !== null && targetPosition <= this.events.length) {
+                // Insert at specified position
+                this.events.splice(targetPosition, 0, event);
+                // Update unsaved indices - shift all indices >= targetPosition
+                const newUnsaved = new Set();
+                this.unsavedEventIndices.forEach(oldIndex => {
+                    if (oldIndex >= targetPosition) {
+                        newUnsaved.add(oldIndex + 1);
+                    } else {
+                        newUnsaved.add(oldIndex);
+                    }
+                });
+                newUnsaved.add(targetPosition);
+                this.unsavedEventIndices = newUnsaved;
+                
+                // Navigate to page containing the new event
+                const eventPage = Math.ceil((targetPosition + 1) / this.eventsPerPage);
+                this.currentPage = eventPage;
+            } else {
+                // Add at end (default behavior)
+                const newIndex = this.events.length;
+                this.events.push(event);
+                this.unsavedEventIndices.add(newIndex);
+                
+                // Go to the last page to show the newly added event
+                const totalPages = Math.ceil(this.events.length / this.eventsPerPage);
+                this.currentPage = totalPages;
+            }
         } else {
             // Update existing event
-            this.events[this.editingIndex] = event;
-            // Mark as unsaved until user clicks Save button
-            this.unsavedEventIndices.add(this.editingIndex);
+            const oldIndex = this.editingIndex;
+            
+            if (targetPosition !== null && targetPosition !== oldIndex) {
+                // Move event to new position
+                // Clamp target position to valid range
+                const maxPosition = this.events.length - 1;
+                const clampedTargetPosition = Math.min(targetPosition, maxPosition);
+                
+                if (clampedTargetPosition === oldIndex) {
+                    // Position didn't actually change after clamping, just update in place
+                    this.events[oldIndex] = event;
+                    this.unsavedEventIndices.add(oldIndex);
+                    const eventPage = Math.ceil((oldIndex + 1) / this.eventsPerPage);
+                    this.currentPage = eventPage;
+                } else {
+                    // Remove from old position
+                    const [movedEvent] = this.events.splice(oldIndex, 1);
+                    
+                    // Adjust target position if removing before it
+                    const adjustedTargetPosition = clampedTargetPosition > oldIndex ? clampedTargetPosition - 1 : clampedTargetPosition;
+                    
+                    // Insert at new position
+                    this.events.splice(adjustedTargetPosition, 0, event);
+                    
+                    // Update unsaved indices
+                    const newUnsaved = new Set();
+                    this.unsavedEventIndices.forEach(oldIdx => {
+                        if (oldIdx === oldIndex) {
+                            // This event moved to adjustedTargetPosition
+                            newUnsaved.add(adjustedTargetPosition);
+                        } else if (oldIndex < adjustedTargetPosition) {
+                            // Moving forward: indices between old and new shift back by 1
+                            if (oldIdx > oldIndex && oldIdx <= adjustedTargetPosition) {
+                                newUnsaved.add(oldIdx - 1);
+                            } else {
+                                newUnsaved.add(oldIdx);
+                            }
+                        } else {
+                            // Moving backward: indices between new and old shift forward by 1
+                            if (oldIdx >= adjustedTargetPosition && oldIdx < oldIndex) {
+                                newUnsaved.add(oldIdx + 1);
+                            } else {
+                                newUnsaved.add(oldIdx);
+                            }
+                        }
+                    });
+                    // Ensure the moved event is marked as unsaved
+                    newUnsaved.add(adjustedTargetPosition);
+                    this.unsavedEventIndices = newUnsaved;
+                    
+                    // Navigate to page containing the moved event
+                    const eventPage = Math.ceil((adjustedTargetPosition + 1) / this.eventsPerPage);
+                    this.currentPage = eventPage;
+                }
+            } else {
+                // Update in place (no position change)
+                this.events[oldIndex] = event;
+                this.unsavedEventIndices.add(oldIndex);
+                
+                // Stay on the current page where the edited event is
+                const eventPage = Math.ceil((oldIndex + 1) / this.eventsPerPage);
+                this.currentPage = eventPage;
+            }
         }
 
         this.renderEvents();
         this.closeEditModal();
+        
+        // Refresh globe markers to reflect changes (remove old markers, add new ones)
+        this.refreshGlobeEvents();
     }
 }
 

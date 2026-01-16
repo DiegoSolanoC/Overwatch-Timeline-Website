@@ -608,6 +608,23 @@
       "lon": 144.9631
     },
     {
+      "name": "Dorado",
+      "lat": 19.1738,
+      "lon": -96.1342
+    },
+    {
+      "name": "Hanamura",
+      "lat": 35.6762,
+      "lon": 139.6503
+    },
+    {
+      "name": "Hanaoka",
+      "lat": 35.6762,
+      "lon": 139.6503
+    }
+  ],
+  "fictionalCities": [
+    {
       "name": "Ilios",
       "lat": 36.4412,
       "lon": 28.2225
@@ -691,16 +708,6 @@
       "name": "Dorado",
       "lat": 19.1738,
       "lon": -96.1342
-    },
-    {
-      "name": "Hanamura",
-      "lat": 35.6762,
-      "lon": 139.6503
-    },
-    {
-      "name": "Hanaoka",
-      "lat": 35.6762,
-      "lon": 139.6503
     }
   ],
   "airports": [
@@ -940,11 +947,6 @@
       "name": "Suez",
       "lat": 30.5,
       "lon": 32.35
-    },
-    {
-      "name": "Port Said",
-      "lat": 31.2653,
-      "lon": 32.3019
     },
     {
       "name": "Singapore",
@@ -1232,11 +1234,6 @@
       "lon": 80.2707
     },
     {
-      "name": "Kolkata",
-      "lat": 22.5726,
-      "lon": 88.3639
-    },
-    {
       "name": "Colombo",
       "lat": 6.9271,
       "lon": 79.8612
@@ -1267,24 +1264,9 @@
       "lon": 114.1694
     },
     {
-      "name": "Guangzhou",
-      "lat": 23.1291,
-      "lon": 113.2644
-    },
-    {
-      "name": "Qingdao",
-      "lat": 36.0671,
-      "lon": 120.3826
-    },
-    {
       "name": "Busan",
       "lat": 35.1028,
       "lon": 129.0403
-    },
-    {
-      "name": "Incheon",
-      "lat": 37.4563,
-      "lon": 126.7052
     },
     {
       "name": "Tokyo",
@@ -1292,19 +1274,9 @@
       "lon": 139.6503
     },
     {
-      "name": "Yokohama",
-      "lat": 35.4437,
-      "lon": 139.638
-    },
-    {
       "name": "Osaka",
       "lat": 34.6937,
       "lon": 135.5023
-    },
-    {
-      "name": "Hokkaido",
-      "lat": 43.0642,
-      "lon": 141.3469
     },
     {
       "name": "Jakarta",
@@ -1320,11 +1292,6 @@
       "name": "Manila",
       "lat": 14.5995,
       "lon": 120.9842
-    },
-    {
-      "name": "Bangkok",
-      "lat": 13.7563,
-      "lon": 100.5018
     },
     {
       "name": "Ho Chi Minh City",
@@ -1362,11 +1329,6 @@
       "lon": -157.8581
     },
     {
-      "name": "Hilo",
-      "lat": 19.7297,
-      "lon": -155.09
-    },
-    {
       "name": "Auckland",
       "lat": -36.8485,
       "lon": 174.7633
@@ -1402,11 +1364,6 @@
       "lon": 168.3167
     },
     {
-      "name": "Nadi",
-      "lat": -17.7533,
-      "lon": 177.4231
-    },
-    {
       "name": "Apia",
       "lat": -13.83,
       "lon": -171.7667
@@ -1415,11 +1372,6 @@
       "name": "Nuku'alofa",
       "lat": -21.1394,
       "lon": -175.2018
-    },
-    {
-      "name": "Pago Pago",
-      "lat": -14.2756,
-      "lon": -170.702
     },
     {
       "name": "Honiara",
@@ -1432,29 +1384,9 @@
       "lon": 145.7875
     },
     {
-      "name": "Medan",
-      "lat": 3.5952,
-      "lon": 98.6722
-    },
-    {
-      "name": "Padang",
-      "lat": -0.9492,
-      "lon": 100.3543
-    },
-    {
-      "name": "Palembang",
-      "lat": -2.9761,
-      "lon": 104.7754
-    },
-    {
       "name": "Makassar",
       "lat": -5.1477,
       "lon": 119.4327
-    },
-    {
-      "name": "Balikpapan",
-      "lat": -1.2379,
-      "lon": 116.8529
     },
     {
       "name": "Pontianak",
@@ -1467,29 +1399,9 @@
       "lon": 95.3238
     },
     {
-      "name": "Cebu",
-      "lat": 10.3157,
-      "lon": 123.8854
-    },
-    {
-      "name": "Davao",
-      "lat": 7.1907,
-      "lon": 125.4553
-    },
-    {
       "name": "Zamboanga",
       "lat": 6.9214,
       "lon": 122.078
-    },
-    {
-      "name": "Iloilo",
-      "lat": 10.7202,
-      "lon": 122.5621
-    },
-    {
-      "name": "Penang",
-      "lat": 5.4164,
-      "lon": 100.3327
     },
     {
       "name": "Phuket",

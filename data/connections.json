@@ -66,9 +66,9 @@
     { "from": "Los Angeles", "to": "Seattle" }
   ],
   "seaportConnections": [
-    { "from": "Houston", "to": "Dorado" },
     { "from": "Houston", "to": "Havana" },
     { "from": "Houston", "to": "Cartagena" },
+    { "from": "Houston", "to": "Veracruz" },
     { "from": "Panama", "to": "Cartagena" },
     { "from": "Panama", "to": "Port-au-Prince" },
     { "from": "La Guaira", "to": "San Juan" },
@@ -165,7 +165,26 @@
     { "from": "Mombasa", "to": "Perth" },
     { "from": "Jayapura", "to": "Tokyo" },
     { "from": "Jayapura", "to": "Shanghai" },
-    { "from": "Ilo", "to": "Honolulu" }
+    { "from": "Ilo", "to": "Honolulu" },
+    { "from": "Los Angeles", "to": "Honolulu" },
+    { "from": "Seattle", "to": "Honolulu" },
+    { "from": "Seattle", "to": "Tokyo" },
+    { "from": "Manzanillo", "to": "Apia" },
+    { "from": "Callao", "to": "Apia" },
+    { "from": "Callao", "to": "Honolulu" },
+    { "from": "Callao", "to": "Wellington" },
+    { "from": "Melbourne", "to": "Kerguelen" },
+    { "from": "Brisbane", "to": "Noumea" },
+    { "from": "Suva", "to": "Port Vila" },
+    { "from": "Suva", "to": "Noumea" },
+    { "from": "Suva", "to": "Auckland" },
+    { "from": "Suva", "to": "Honiara" },
+    { "from": "Madang", "to": "Honolulu" },
+    { "from": "Madang", "to": "Anchorage" },
+    { "from": "Chennai", "to": "Chittagong" },
+    { "from": "Chennai", "to": "Banda Aceh" },
+    { "from": "Banda Aceh", "to": "Kerguelen" },
+    { "from": "Banda Aceh", "to": "Mombasa" }
   ]
 }
 

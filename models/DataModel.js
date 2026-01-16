@@ -6,8 +6,10 @@ export class DataModel {
     constructor() {
         this.events = [];
         this.cities = [];
+        this.fictionalCities = [];
         this.airports = [];
         this.seaports = [];
+        this.allSeaports = []; // Store all seaports before filtering (for display purposes)
         this.trainConnections = [];
         this.secondaryConnections = [];
         this.seaportConnections = [];
@@ -44,8 +46,10 @@ export class DataModel {
             }
             
             this.cities = locationsData.cities || [];
+            this.fictionalCities = locationsData.fictionalCities || [];
             this.airports = locationsData.airports || [];
             this.seaports = locationsData.seaports || [];
+            this.allSeaports = [...(locationsData.seaports || [])]; // Store all seaports before filtering
 
             // Load connections
             const connectionsResponse = await fetch('data/connections.json');
@@ -54,7 +58,7 @@ export class DataModel {
             this.secondaryConnections = connectionsData.secondaryConnections || [];
             this.seaportConnections = connectionsData.seaportConnections || [];
 
-            // Filter out seaports with 0 connections
+            // Filter out seaports with 0 connections (for transport system only)
             this.filterSeaports();
 
             this.loaded = true;

@@ -1,5 +1,6 @@
 /**
  * GeometryUtils - Utility functions for coordinate conversion and geometry
+ * Version: 1.1.0 (Added xyToPlanePosition for Moon/Mars support)
  */
 
 /**
@@ -29,15 +30,30 @@ export function latLonToVector3(lat, lon, radius) {
  * @param {number} altitude - Altitude above globe
  * @param {number} segments - Number of segments
  * @param {boolean} isMainConnection - Is main connection
+ * @param {boolean} forceLongWay - Force the long way around (opposite direction)
  * @returns {Array<THREE.Vector3>}
  */
-export function createArcBetweenPoints(lat1, lon1, lat2, lon2, altitude, segments, isMainConnection = true) {
+export function createArcBetweenPoints(lat1, lon1, lat2, lon2, altitude, segments, isMainConnection = true, forceLongWay = false) {
     const points = [];
     
     const lat1Rad = lat1 * Math.PI / 180;
-    const lon1Rad = lon1 * Math.PI / 180;
+    let lon1Rad = lon1 * Math.PI / 180;
     const lat2Rad = lat2 * Math.PI / 180;
-    const lon2Rad = lon2 * Math.PI / 180;
+    let lon2Rad = lon2 * Math.PI / 180;
+    
+    // If forcing long way, adjust longitude to go the opposite direction
+    if (forceLongWay) {
+        // Normalize longitudes to 0-360 range
+        const lon1Norm = ((lon1 % 360) + 360) % 360;
+        const lon2Norm = ((lon2 % 360) + 360) % 360;
+        
+        // Calculate both directions
+        const dLonShort = ((lon2Norm - lon1Norm + 540) % 360) - 180;
+        const dLonLong = dLonShort > 0 ? dLonShort - 360 : dLonShort + 360;
+        
+        // Use the long way
+        lon2Rad = lon1Rad + dLonLong * Math.PI / 180;
+    }
     
     const dLon = lon2Rad - lon1Rad;
     const dLat = lat2Rad - lat1Rad;
@@ -77,3 +93,34 @@ export function createArcBetweenPoints(lat1, lon1, lat2, lon2, altitude, segment
     return points;
 }
 
+/**
+ * Convert 2D plane coordinates (0-100, 0-100) to 3D position on a plane
+ * @param {number} x - X coordinate (0-100, where 0 is left, 100 is right)
+ * @param {number} y - Y coordinate (0-100, where 0 is top, 100 is bottom)
+ * @param {number} planeWidth - Width of the plane in 3D units
+ * @param {number} planeHeight - Height of the plane in 3D units
+ * @param {THREE.Vector3} planeCenter - Center position of the plane in 3D space
+ * @param {THREE.Vector3} planeNormal - Normal vector of the plane (default: 0, 0, 1 for XY plane)
+ * @returns {THREE.Vector3}
+ */
+export function xyToPlanePosition(x, y, planeWidth, planeHeight, planeCenter, planeNormal = null) {
+    // Convert from 0-100 coordinate system to -1 to 1 (centered)
+    // (0,0) = top-left in image = (-width/2, height/2) in 3D
+    // (100,100) = bottom-right in image = (width/2, -height/2) in 3D
+    const normalizedX = (x / 100) * 2 - 1; // Convert 0-100 to -1 to 1
+    const normalizedY = 1 - (y / 100) * 2; // Convert 0-100 to 1 to -1 (flip Y)
+    
+    // Calculate position on plane (plane default orientation: faces +Z axis)
+    // Plane is positioned at planeCenter and faces camera (at z=3.5)
+    // Since markers are added as children of the plane, we need LOCAL coordinates (relative to plane center)
+    const localX = normalizedX * (planeWidth / 2);
+    const localY = normalizedY * (planeHeight / 2);
+    const localZ = 0.03; // Push marker further in front of plane surface to prevent clipping with hover waves
+    
+    // Plane default orientation: X is left-right, Y is up-down, Z is forward-back
+    // Since markers are children of the plane, return LOCAL position (not world position)
+    // The plane's position (1.5, 0.3, 0) will be added automatically by Three.js
+    const localPosition = new THREE.Vector3(localX, localY, localZ);
+    
+    return localPosition;
+}

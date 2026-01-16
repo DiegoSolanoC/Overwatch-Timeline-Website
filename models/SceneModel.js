@@ -10,6 +10,8 @@ export class SceneModel {
         this.renderer = null;
         this.globe = null;
         this.stars = null;
+        this.moonPlane = null;
+        this.marsPlane = null;
 
         // Markers
         this.markers = [];
@@ -66,6 +68,16 @@ export class SceneModel {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(this.renderer.domElement);
 
+        // Add lighting for normal map visualization (MeshStandardMaterial needs lighting)
+        // Ambient light for overall illumination
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+        
+        // Directional light to show normal map depth
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 3, 5);
+        this.scene.add(directionalLight);
+
         // Initialize GLTF Loader
         this.gltfLoader = new THREE.GLTFLoader();
     }
@@ -120,6 +132,7 @@ export class SceneModel {
         return this.globe;
     }
 
+
     /**
      * Set stars
      * @param {THREE.Points} stars - Stars point cloud
@@ -134,6 +147,38 @@ export class SceneModel {
      */
     getStars() {
         return this.stars;
+    }
+
+    /**
+     * Set moon plane
+     * @param {THREE.Mesh} moonPlane - Moon plane mesh
+     */
+    setMoonPlane(moonPlane) {
+        this.moonPlane = moonPlane;
+    }
+
+    /**
+     * Get moon plane
+     * @returns {THREE.Mesh}
+     */
+    getMoonPlane() {
+        return this.moonPlane;
+    }
+
+    /**
+     * Set mars plane
+     * @param {THREE.Mesh} marsPlane - Mars plane mesh
+     */
+    setMarsPlane(marsPlane) {
+        this.marsPlane = marsPlane;
+    }
+
+    /**
+     * Get mars plane
+     * @returns {THREE.Mesh}
+     */
+    getMarsPlane() {
+        return this.marsPlane;
     }
 
     /**

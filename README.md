@@ -1,134 +1,136 @@
-# My Website
+# Timeline Overwatch
 
-A simple, modern website built with HTML, CSS, and JavaScript.
+An interactive 3D timeline visualization of the Overwatch universe, featuring a globe-based interface for exploring events, characters, and locations.
 
-## 🚀 How to Deploy for FREE
+## Features
 
-### Option 1: GitHub Pages (Recommended)
+- **3D Interactive Globe**: Navigate events on Earth, Moon, and Mars
+- **Event Management**: View and manage timeline events with detailed information
+- **Transport System**: Visualize connections between cities via planes, trains, and boats
+- **Music Player**: Background music with multiple tracks
+- **Color Palettes**: Switch between blue and gray color schemes
+- **Event Filtering**: Filter events by heroes and factions
+- **Responsive Design**: Works on desktop and mobile devices
 
-1. **Create a GitHub account** at https://github.com if you don't have one
+## Local Development
 
-2. **Create a new repository**
-   - Click the "+" icon → "New repository"
-   - Name it `your-username.github.io` (replace "your-username" with your GitHub username)
-   - Make it public
-   - Don't initialize with README (we already have one)
+### Prerequisites
 
-3. **Upload your files**
-   - Click "uploading an existing file"
-   - Drag and drop all your HTML, CSS, and JS files
-   - Click "Commit changes"
+- Node.js (v14 or higher)
+- npm (comes with Node.js)
 
-4. **Enable GitHub Pages**
-   - Go to repository Settings → Pages
-   - Source: Deploy from a branch
-   - Branch: main (or master)
-   - Click Save
+### Setup
 
-5. **Access your site!**
-   - Your site will be live at: `https://your-username.github.io`
-   - It may take a few minutes to go live
-
-### Option 2: Netlify (Easiest for beginners)
-
-1. Go to https://www.netlify.com
-2. Sign up for free (can use GitHub account)
-3. Click "Add new site" → "Deploy manually"
-4. Drag and drop your entire project folder
-5. Your site is live! Netlify gives you a random URL like `random-name.netlify.app`
-6. You can customize the URL in settings
-
-### Option 3: Vercel
-
-1. Go to https://vercel.com
-2. Sign up for free
-3. Click "Add New" → "Project"
-4. Import your GitHub repository or drag and drop files
-5. Click "Deploy"
-
-### Option 4: Cloudflare Pages
-
-1. Go to https://pages.cloudflare.com
-2. Sign up for free
-3. Create a project
-4. Connect your GitHub or upload files directly
-5. Deploy!
-
-## 📁 File Structure
-
-```
-your-website/
-│
-├── index.html      # Home page
-├── about.html      # About page
-├── contact.html    # Contact page
-├── styles.css      # All styling
-├── script.js       # All JavaScript functionality
-└── README.md       # This file
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd Timeline-Overwatch
 ```
 
-## ✏️ Customization
+2. Install dependencies (if any):
+```bash
+npm install
+```
 
-### Change Colors
-Open `styles.css` and modify these variables at the top:
-- `#667eea` - Primary purple color
-- `#764ba2` - Secondary purple color
+3. Start the local server:
+```bash
+npm start
+```
 
-### Add More Pages
-1. Copy one of the existing HTML files
-2. Rename it (e.g., `projects.html`)
-3. Update the content
-4. Add a button to the navigation in all pages
+4. Open your browser and navigate to:
+- `http://localhost:8000/` - Main application (index.html)
+- `http://localhost:8000/main` - Main application (alternative)
+- `http://localhost:8000/test` - Test page with component loader
+- `http://localhost:8000/map` - Map view
 
-### Modify Content
-Just open the HTML files and change the text inside the tags!
+## GitHub Pages Deployment
 
-## 🎨 Features
+The application is configured to work on GitHub Pages. Follow these steps to deploy:
 
-- ✅ Responsive design (works on mobile, tablet, desktop)
-- ✅ Modern gradient background
-- ✅ Interactive buttons and hover effects
-- ✅ Modal popup for additional information
-- ✅ Contact form (frontend only - you'll need a backend to actually send emails)
-- ✅ Smooth animations
+### 1. Enable GitHub Pages
 
-## 📧 Making the Contact Form Work
+1. Go to your repository on GitHub
+2. Click **Settings** → **Pages**
+3. Under **Source**, select:
+   - **Branch**: `main` (or `master`)
+   - **Folder**: `/ (root)`
+4. Click **Save**
 
-The contact form is currently frontend-only. To make it actually send emails, you can:
+### 2. Verify Files
 
-1. **Use Formspree** (free tier available)
-   - Go to https://formspree.io
-   - Create an account
-   - Update your form's action attribute
+Make sure these files are in your repository root:
+- `index.html` - Main entry point (GitHub Pages will serve this at the root URL)
+- `404.html` - Fallback page for 404 errors
+- All asset folders (`data/`, `Misc/`, `Music/`, `Icons/`, etc.)
+- All JavaScript files (`script.js`, `test-loader.js`, `js/`, `controllers/`, `models/`, `views/`, `utils/`)
+- `styles.css` - Main stylesheet
 
-2. **Use Netlify Forms** (if using Netlify)
-   - Add `netlify` attribute to your form
-   - Add `name="contact"` to your form tag
+### 3. Access Your Site
 
-3. **Use EmailJS** (free tier available)
-   - Go to https://www.emailjs.com
-   - Follow their setup guide
+After enabling GitHub Pages, your site will be available at:
+```
+https://<your-username>.github.io/<repository-name>/
+```
 
-## 🛠️ Testing Locally
+For example:
+```
+https://username.github.io/Timeline-Overwatch/
+```
 
-Just open `index.html` in your web browser! No server needed for basic testing.
+### 4. Important Notes for GitHub Pages
 
-## 📝 License
+- **Edit Mode**: The application automatically detects when running on GitHub Pages and disables edit/delete functionality for events. This prevents users from modifying data on the live site.
+- **Local Storage**: User preferences (color palette, music state) are saved in browser localStorage and will persist across sessions.
+- **Event Data**: Events are loaded from `data/events.json`. On GitHub Pages, users can view events but cannot edit them (edit buttons are hidden).
+- **File Paths**: All file paths are relative, so they work correctly on both localhost and GitHub Pages.
 
-Feel free to use this template for any project!
+## Project Structure
 
----
+```
+Timeline-Overwatch/
+├── index.html          # Main entry point (GitHub Pages)
+├── main.html           # Main application page
+├── test.html           # Test/development page
+├── map.html            # Map view
+├── 404.html            # GitHub Pages 404 handler
+├── styles.css          # Main stylesheet
+├── script.js           # Main application script
+├── test-loader.js      # Component loader
+├── server.js            # Local development server
+├── package.json         # Node.js dependencies
+├── data/                # JSON data files
+│   ├── events.json
+│   ├── locations.json
+│   └── connections.json
+├── controllers/         # Application controllers
+├── models/              # Data models
+├── views/               # View components
+├── utils/               # Utility functions
+├── js/                  # Additional JavaScript
+├── Music/               # Music files
+├── Music Icons/         # Music icons
+├── Event Images/        # Event images
+├── Icons/               # Application icons
+├── Misc/                # Miscellaneous assets
+└── Models3D/            # 3D model files
+```
 
-**Need help?** Check out:
-- [GitHub Pages Documentation](https://docs.github.com/en/pages)
-- [Netlify Documentation](https://docs.netlify.com)
-- [W3Schools HTML Tutorial](https://www.w3schools.com/html/)
+## Browser Compatibility
 
+- Chrome/Edge (recommended)
+- Firefox
+- Safari
+- Opera
 
+Note: Some features may require modern browser support for ES6 modules and WebGL.
 
+## License
 
+Original work by Blizzard Entertainment. This project is for educational/non-commercial use.
 
+## Credits
 
-
+- **Three.js**: 3D graphics library
+- **Overwatch**: Original game and lore by Blizzard Entertainment
 
 

@@ -353,18 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Music Panel (PRIORITY)');
         initMusicPanel();
         
-        // Then initialize Filters Panel (if elements exist - they may be created later when Events component loads)
+        // Then initialize Filters Panel
         if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Filters Panel');
-        // Only try to initialize if elements exist, otherwise it will be initialized when Events component loads
-        const filtersButton = document.getElementById('filtersToggle');
-        const filtersPanel = document.getElementById('filtersPanel');
-        const filtersGrid = document.getElementById('filtersGrid');
-        if (filtersButton && filtersPanel && filtersGrid) {
-            initFiltersPanel();
-        } else {
-            // Elements don't exist yet - they'll be created when Events component loads
-            // initFiltersPanel will be called again at that time
-        }
+        initFiltersPanel();
         
         // Log asset loading summary
         if (typeof logAssetLoad === 'function' && assetLoadOrder.length > 0) {
@@ -1578,8 +1569,7 @@ function initFiltersPanel() {
     console.log('Filters grid:', filtersGrid);
     
     if (!filtersButton || !filtersPanel || !filtersGrid) {
-        // Elements not found - this is expected if Events component hasn't loaded yet
-        // Don't log as error, just return silently
+        console.error('Filters panel elements not found!');
         return;
     }
     

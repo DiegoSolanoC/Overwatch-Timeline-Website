@@ -31,6 +31,14 @@ function findCityCoordinates(cityName) {
         return { lat: city.lat, lon: city.lon };
     }
     
+    // Search in fictional cities
+    const fictionalCity = locationsData.fictionalCities.find(c => 
+        c.name.toLowerCase() === cityName.toLowerCase()
+    );
+    if (fictionalCity) {
+        return { lat: fictionalCity.lat, lon: fictionalCity.lon };
+    }
+    
     // Search in airports
     const airport = locationsData.airports.find(a => 
         a.name.toLowerCase().includes(cityName.toLowerCase()) ||

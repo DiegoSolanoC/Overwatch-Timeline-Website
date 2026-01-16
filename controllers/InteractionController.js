@@ -9,6 +9,44 @@ export class InteractionController {
     }
 
     /**
+     * Set Moon/Mars plane visibility with animation
+     * @param {boolean} visible - Whether planes should be visible
+     */
+    setPlanesVisibility(visible) {
+        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
+        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
+        
+        // Use GlobeController's animatePlaneScale for smooth squash/stretch animation
+        if (window.globeController && typeof window.globeController.animatePlaneScale === 'function') {
+            if (moonPlane) {
+                window.globeController.animatePlaneScale(moonPlane, visible);
+            }
+            if (marsPlane) {
+                window.globeController.animatePlaneScale(marsPlane, visible);
+            }
+        } else {
+            // Fallback to instant show/hide if animation not available
+            if (moonPlane) {
+                moonPlane.visible = visible;
+            }
+            if (marsPlane) {
+                marsPlane.visible = visible;
+            }
+        }
+    }
+
+    /**
+     * Restore plane visibility based on current page events
+     * This should be called when camera returns to normal view
+     */
+    restorePlanesVisibility() {
+        // Use GlobeController's updatePlaneVisibility to check current page and show/hide accordingly
+        if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
+            window.globeController.updatePlaneVisibility();
+        }
+    }
+
+    /**
      * Setup mouse/touch controls
      * @param {HTMLElement} container - Container element
      */
@@ -132,11 +170,30 @@ export class InteractionController {
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
         
-        // Get all event markers
+        // Get all event markers from globe, Moon plane, and Mars plane
         const eventMarkers = [];
         const globe = sceneModel.getGlobe();
         if (globe) {
             globe.traverse((child) => {
+                if (child.userData && child.userData.isEventMarker) {
+                    eventMarkers.push(child);
+                }
+            });
+        }
+        
+        // Also check Moon and Mars planes for event markers
+        const moonPlane = sceneModel.getMoonPlane ? sceneModel.getMoonPlane() : sceneModel.moonPlane;
+        if (moonPlane) {
+            moonPlane.traverse((child) => {
+                if (child.userData && child.userData.isEventMarker) {
+                    eventMarkers.push(child);
+                }
+            });
+        }
+        
+        const marsPlane = sceneModel.getMarsPlane ? sceneModel.getMarsPlane() : sceneModel.marsPlane;
+        if (marsPlane) {
+            marsPlane.traverse((child) => {
                 if (child.userData && child.userData.isEventMarker) {
                     eventMarkers.push(child);
                 }
@@ -277,12 +334,11 @@ export class InteractionController {
             marker.userData.pulseInterval = null;
         }
         
-        // Remove all pulse rings
-        const globe = this.sceneModel.getGlobe();
-        if (globe && marker.userData.pulseRings) {
+        // Remove all pulse rings from their parent (globe, moonPlane, or marsPlane)
+        if (marker.userData.pulseRings) {
             marker.userData.pulseRings.forEach(ring => {
                 if (ring && ring.parent) {
-                    globe.remove(ring);
+                    ring.parent.remove(ring);
                 }
             });
         }
@@ -295,6 +351,18 @@ export class InteractionController {
     createPulseRing(marker) {
         const globe = this.sceneModel.getGlobe();
         if (!globe) return;
+        
+        // Determine parent (globe, moonPlane, or marsPlane)
+        const locationType = marker.userData ? marker.userData.locationType : 'earth';
+        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
+        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
+        
+        let ringParent = globe; // Default to globe
+        if (locationType === 'moon' && moonPlane && marker.parent === moonPlane) {
+            ringParent = moonPlane;
+        } else if (locationType === 'mars' && marsPlane && marker.parent === marsPlane) {
+            ringParent = marsPlane;
+        }
         
         // Create filled circle geometry (not a ring)
         const circleGeometry = new THREE.CircleGeometry(0.02, 32);
@@ -318,7 +386,7 @@ export class InteractionController {
         // Position and orient the ring (will be updated in updatePulseRings)
         this.updateRingPositionAndOrientation(ring, marker);
         
-        globe.add(ring);
+        ringParent.add(ring);
         marker.userData.pulseRings.push(ring);
         
         // Play radiate sound effect when pulse ring is created
@@ -328,39 +396,56 @@ export class InteractionController {
     }
     
     /**
-     * Update ring position and orientation to be flat on globe surface
+     * Update ring position and orientation to be flat on globe surface or plane
      */
     updateRingPositionAndOrientation(ring, marker) {
-        // Since both marker and ring are children of the globe, use local position
+        // Copy marker position (local to parent)
         ring.position.copy(marker.position);
         
-        // Calculate normal (direction from globe center to marker)
-        // Use local position since we're in globe's local space
-        const normal = marker.position.clone().normalize();
+        // Check if marker is on Moon/Mars plane or Earth globe
+        const locationType = marker.userData ? marker.userData.locationType : 'earth';
+        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
+        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
         
-        // Create a coordinate system with normal as Z-axis (pointing outward from globe)
-        // We need two perpendicular vectors in the tangent plane
-        const up = new THREE.Vector3(0, 1, 0);
-        let tangent = new THREE.Vector3();
-        
-        // If normal is parallel to up, use a different reference
-        if (Math.abs(normal.dot(up)) > 0.9) {
-            const right = new THREE.Vector3(1, 0, 0);
-            tangent.crossVectors(normal, right).normalize();
+        if (locationType === 'moon' && moonPlane && marker.parent === moonPlane) {
+            // Moon plane: ring should be flat on the plane (same orientation as plane)
+            ring.quaternion.copy(moonPlane.quaternion);
+            // Rotate 90 degrees around Z to make ring horizontal (CircleGeometry faces +Z by default)
+            ring.rotateZ(Math.PI / 2);
+        } else if (locationType === 'mars' && marsPlane && marker.parent === marsPlane) {
+            // Mars plane: ring should be flat on the plane (same orientation as plane)
+            ring.quaternion.copy(marsPlane.quaternion);
+            // Rotate 90 degrees around Z to make ring horizontal
+            ring.rotateZ(Math.PI / 2);
         } else {
-            tangent.crossVectors(normal, up).normalize();
+            // Earth globe: calculate normal (direction from globe center to marker)
+            // Use local position since we're in globe's local space
+            const normal = marker.position.clone().normalize();
+            
+            // Create a coordinate system with normal as Z-axis (pointing outward from globe)
+            // We need two perpendicular vectors in the tangent plane
+            const up = new THREE.Vector3(0, 1, 0);
+            let tangent = new THREE.Vector3();
+            
+            // If normal is parallel to up, use a different reference
+            if (Math.abs(normal.dot(up)) > 0.9) {
+                const right = new THREE.Vector3(1, 0, 0);
+                tangent.crossVectors(normal, right).normalize();
+            } else {
+                tangent.crossVectors(normal, up).normalize();
+            }
+            
+            const bitangent = new THREE.Vector3().crossVectors(normal, tangent).normalize();
+            
+            // Create rotation matrix to orient ring flat on surface
+            // Ring's local Z should point along normal (outward), X and Y in tangent plane
+            const matrix = new THREE.Matrix4();
+            matrix.makeBasis(tangent, bitangent, normal);
+            ring.setRotationFromMatrix(matrix);
+            
+            // Rotate 90 degrees around Z to make ring horizontal
+            ring.rotateZ(Math.PI / 2);
         }
-        
-        const bitangent = new THREE.Vector3().crossVectors(normal, tangent).normalize();
-        
-        // Create rotation matrix to orient ring flat on surface
-        // Ring's local Z should point along normal (outward), X and Y in tangent plane
-        const matrix = new THREE.Matrix4();
-        matrix.makeBasis(tangent, bitangent, normal);
-        ring.setRotationFromMatrix(matrix);
-        
-        // Rotate 90 degrees around Z to make ring horizontal
-        ring.rotateZ(Math.PI / 2);
     }
     
     /**
@@ -400,14 +485,21 @@ export class InteractionController {
                     
                     if (progress >= 1) {
                         // Remove expired ring
-                        if (globe && ring.parent) {
-                            globe.remove(ring);
+                        if (ring.parent) {
+                            ring.parent.remove(ring);
                         }
                         pulseRings.splice(i, 1);
                     } else {
-                        // Animate ring
+                        // Animate ring - for Moon/Mars, scale only in X and Y (flat), keep Z at 1
+                        const locationType = marker.userData ? marker.userData.locationType : 'earth';
                         const scale = ring.userData.startScale + (ring.userData.maxScale - ring.userData.startScale) * progress;
-                        ring.scale.set(scale, scale, scale);
+                        if (locationType === 'moon' || locationType === 'mars') {
+                            // Flat scaling for planes (only X and Y, Z stays at 1)
+                            ring.scale.set(scale, scale, 1);
+                        } else {
+                            // 3D scaling for globe
+                            ring.scale.set(scale, scale, scale);
+                        }
                         
                         // Fade from inside out - more transparent at edges (higher progress)
                         // Use a smoother fade curve - more transparent as it expands outward
@@ -442,6 +534,11 @@ export class InteractionController {
                     return;
                 }
                 
+                // Skip pulse animation if marker is currently being animated (page transition)
+                if (marker.userData.isAnimating) {
+                    return;
+                }
+                
                 // Initialize pulse data if not exists
                 if (!marker.userData.pulseData) {
                     marker.userData.pulseData = {
@@ -461,7 +558,13 @@ export class InteractionController {
                 // Map from -1 to 1 range to minScale to maxScale
                 const scale = pulseData.baseScale + (pulse * (pulseData.maxScale - pulseData.baseScale) * 0.5);
                 
-                marker.scale.set(scale, scale, scale);
+                // For Moon/Mars markers on flat planes, scale only in X and Y (flat), keep Z at 1
+                const locationType = marker.userData ? marker.userData.locationType : 'earth';
+                if (locationType === 'moon' || locationType === 'mars') {
+                    marker.scale.set(scale, scale, 1);
+                } else {
+                    marker.scale.set(scale, scale, scale);
+                }
             }
         });
     }
@@ -513,6 +616,9 @@ export class InteractionController {
                 z: globe.rotation.z
             };
         }
+        
+        // Hide Moon/Mars planes when zooming to a marker
+        this.setPlanesVisibility(false);
         
         // Disable auto-rotate
         sceneModel.setAutoRotate(false);
@@ -599,6 +705,69 @@ export class InteractionController {
     }
 
     /**
+     * Reset camera to default view (for Moon/Mars events)
+     * Note: Planes should be visible for Moon/Mars events since they're on those panels
+     */
+    resetCameraToDefault() {
+        const sceneModel = this.sceneModel;
+        const camera = sceneModel.getCamera();
+        const globe = sceneModel.getGlobe();
+        
+        if (!camera || !globe) return;
+        
+        // Restore plane visibility for Moon/Mars events (they might have been hidden by Earth event zoom)
+        this.restorePlanesVisibility();
+        
+        // Disable auto-rotate
+        sceneModel.setAutoRotate(false);
+        if (sceneModel.autoRotateTimeout) {
+            clearTimeout(sceneModel.autoRotateTimeout);
+            sceneModel.autoRotateTimeout = null;
+        }
+        
+        // Default camera position and globe rotation
+        const targetPosition = new THREE.Vector3(0, 0, 3.5);
+        const targetRotation = { x: 0, y: 0, z: 0 };
+        
+        // Animate camera to default position
+        const startPosition = camera.position.clone();
+        const startRotation = {
+            x: globe.rotation.x,
+            y: globe.rotation.y,
+            z: globe.rotation.z
+        };
+        
+        const duration = 500; // 0.5 second animation
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (ease out)
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            
+            // Interpolate camera position
+            camera.position.lerpVectors(startPosition, targetPosition, easeProgress);
+            
+            // Interpolate globe rotation
+            globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+            globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+            globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
+            
+            // Camera always looks at origin
+            camera.lookAt(0, 0, 0);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+            // Note: Planes remain visible for Moon/Mars events, no need to restore
+        };
+        
+        animate();
+    }
+
+    /**
      * Handle marker click
      * @param {MouseEvent} event - Mouse event
      */
@@ -665,8 +834,15 @@ export class InteractionController {
                     return;
                 }
                 
-                // Zoom in and center on the marker
-                this.zoomToMarker(clickedMarker);
+                // Check if this is a Moon/Mars marker - use default camera view instead of zooming
+                const locationType = clickedMarker.userData ? clickedMarker.userData.locationType : 'earth';
+                if (locationType === 'moon' || locationType === 'mars') {
+                    // Reset camera to default view for Moon/Mars events
+                    this.resetCameraToDefault();
+                } else {
+                    // Zoom in and center on the marker (Earth events)
+                    this.zoomToMarker(clickedMarker);
+                }
                 // Open slide panel with event info
                 const eventData = clickedMarker.userData.event;
                 
@@ -813,6 +989,30 @@ export class InteractionController {
         const delta = event.deltaY * 0.001; // Original sensitivity
         camera.position.z += delta;
         camera.position.z = Math.max(1.5, Math.min(5, camera.position.z)); // Original limits
+    }
+
+    /**
+     * Zoom in (move camera closer)
+     */
+    zoomIn() {
+        const camera = this.sceneModel.getCamera();
+        if (camera) {
+            const delta = 0.2; // Zoom step size
+            camera.position.z -= delta;
+            camera.position.z = Math.max(1.5, Math.min(5, camera.position.z)); // Original limits
+        }
+    }
+
+    /**
+     * Zoom out (move camera farther)
+     */
+    zoomOut() {
+        const camera = this.sceneModel.getCamera();
+        if (camera) {
+            const delta = 0.2; // Zoom step size
+            camera.position.z += delta;
+            camera.position.z = Math.max(1.5, Math.min(5, camera.position.z)); // Original limits
+        }
     }
 
     /**

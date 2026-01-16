@@ -881,7 +881,17 @@ body.color-palette-gray .event-slide-close:hover {
     overflow: hidden; /* Prevent content from overflowing */
 }
 
-/* Scrollable area for title, location, and description */
+/* Top section - always visible, never scrolls (title, location, variant toggles) */
+.event-slide-top {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollable area for description, sources, and filters */
 .event-slide-scrollable {
     flex: 1;
     min-height: 0;
@@ -896,35 +906,46 @@ body.color-palette-gray .event-slide-close:hover {
     box-sizing: border-box;
 }
 
+.event-slide-top h2,
 .event-slide-content h2 {
     color: #2196F3; /* Light blue for default blue palette */
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    margin-top: 0;
     font-size: 1.8rem;
 }
 
+body.color-palette-gray .event-slide-top h2,
 body.color-palette-gray .event-slide-content h2 {
     color: #ff6600; /* Orange for gray palette */
 }
 
+.event-slide-top .event-slide-location,
 .event-slide-location {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
-    margin: -10px 0 0 0; /* No bottom margin - should immediately follow title */
+    margin: 0 0 0 0; /* No margin adjustments needed in top section */
     line-height: 1.4;
+    cursor: pointer;
+    transition: color 0.2s ease;
 }
 
+.event-slide-location:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.event-slide-scrollable p#eventSlideText,
 .event-slide-content p#eventSlideText {
     line-height: 1.6;
     color: #e0e0e0;
     font-size: 18px;
-    margin-top: 0; /* No top margin - should sit immediately below location */
+    margin-top: 0; /* No top margin - start of scrollable content */
     margin-bottom: 0;
     transition: opacity 0.2s ease;
     opacity: 1;
     word-wrap: break-word;
     word-break: break-word;
     overflow-wrap: break-word;
-    white-space: normal;
+    white-space: pre-line; /* Preserve line breaks and collapse multiple spaces */
     max-width: 100%;
     box-sizing: border-box;
 }
@@ -1107,14 +1128,11 @@ body.color-palette-gray .event-variant-header {
 }
 
 .event-filters-section {
-    margin: 0;
-    margin-top: 0;
-    margin-bottom: 10px;
+    margin: 20px 0 10px 0;
     padding: 15px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     border-left: 3px solid #2196F3; /* Light blue for default blue palette */
-    flex-shrink: 0; /* Don't shrink - always visible */
 }
 
 body.color-palette-gray .event-filters-section {
@@ -1180,14 +1198,11 @@ body.color-palette-gray .event-filter-tag {
 
 /* Event Sources Section */
 .event-sources-section {
-    margin: 0;
-    margin-top: 0;
-    margin-bottom: 10px;
+    margin: 20px 0 10px 0;
     padding: 15px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     border-left: 3px solid #2196F3; /* Light blue for default blue palette */
-    flex-shrink: 0; /* Don't shrink - always visible */
 }
 
 body.color-palette-gray .event-sources-section {
@@ -1648,6 +1663,8 @@ body.color-palette-gray main {
     border-radius: 8px;
     color: white;
     font-size: 16px;
+    z-index: 100; /* Higher than test-container to ensure buttons are clickable */
+    pointer-events: auto; /* Ensure buttons are clickable */
 }
 
 
@@ -1821,6 +1838,7 @@ body.color-palette-gray main {
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     line-height: 1;
+    opacity: 1;
 }
 
 .event-number-btn:hover:not(:disabled) {
@@ -1834,10 +1852,17 @@ body.color-palette-gray main {
     transform: scale(0.95);
 }
 
-.event-number-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
+/* Disabled/locked button styles - highest specificity */
+button.event-number-btn:disabled,
+button.event-number-btn.locked,
+.event-number-btn:disabled,
+.event-number-btn.locked {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    filter: brightness(0.5) !important; /* Darken the button */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+    pointer-events: none !important;
 }
 
 /* Gray palette: gray number buttons */
@@ -1847,6 +1872,12 @@ body.color-palette-gray .event-number-btn {
 
 body.color-palette-gray .event-number-btn:hover:not(:disabled) {
     background: rgba(74, 74, 74, 1) !important;
+}
+
+/* Disabled state for gray palette */
+body.color-palette-gray .event-number-btn:disabled,
+body.color-palette-gray .event-number-btn.locked {
+    filter: brightness(0.5) !important; /* Darken the button */
 }
 
 #rotateIcon {
@@ -3217,6 +3248,108 @@ body.color-palette-gray .events-list {
     scrollbar-color: rgba(255, 102, 0, 0.6) rgba(0, 0, 0, 0.2);
 }
 
+/* Events Pagination */
+.events-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.events-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.events-pagination-btn {
+    background: rgba(33, 150, 243, 0.3);
+    border: 1px solid rgba(33, 150, 243, 0.6);
+    border-radius: 6px;
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    min-width: 40px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.events-pagination-btn:hover:not(:disabled) {
+    background: rgba(33, 150, 243, 0.5);
+    border-color: rgba(33, 150, 243, 0.9);
+}
+
+.events-pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.events-pagination-page-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 8px;
+}
+
+.events-pagination-page-selector label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    user-select: none;
+}
+
+.events-pagination-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.6);
+    border-radius: 4px;
+    color: white;
+    padding: 6px 10px;
+    font-size: 14px;
+    width: 60px;
+    text-align: center;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.events-pagination-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(33, 150, 243, 0.9);
+}
+
+.events-pagination-total {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    user-select: none;
+}
+
+/* Gray palette pagination */
+body.color-palette-gray .events-pagination-btn {
+    background: rgba(255, 102, 0, 0.3);
+    border-color: rgba(255, 102, 0, 0.6);
+}
+
+body.color-palette-gray .events-pagination-btn:hover:not(:disabled) {
+    background: rgba(255, 102, 0, 0.5);
+    border-color: rgba(255, 102, 0, 0.9);
+}
+
+body.color-palette-gray .events-pagination-input {
+    border-color: rgba(255, 102, 0, 0.6);
+}
+
+body.color-palette-gray .events-pagination-input:focus {
+    border-color: rgba(255, 102, 0, 0.9);
+}
+
 .event-item {
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid rgba(255, 255, 255, 0.1);
@@ -3273,6 +3406,70 @@ body.color-palette-gray .event-item.multi-event {
 
 .multi-event-badge:hover {
     background: #1976D2;
+}
+
+/* Warning badge for events missing description - red trapezoid on top-right */
+.description-warning-badge {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    background: #f44336 !important; /* Red color */
+    color: white !important;
+    padding: 2px 6px 2px 10px !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    z-index: 11 !important; /* Higher than multi-event-badge (z-index: 10) */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    /* Left trapezoid shape - slanted left, straight right, top longer than bottom */
+    clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 30px !important;
+    line-height: 1 !important;
+    cursor: help !important;
+    transition: background 0.2s ease !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.description-warning-badge:hover {
+    background: #d32f2f !important; /* Darker red on hover */
+}
+
+/* Event number badge - bottom-right corner */
+.event-number-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(33, 150, 243, 0.9); /* Blue color */
+    color: white;
+    padding: 2px 6px 2px 10px;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    /* Left trapezoid shape - slanted left, straight right, top longer than bottom (like warning badge) */
+    clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    line-height: 1;
+    transition: background 0.2s ease;
+}
+
+.event-number-badge:hover {
+    background: rgba(25, 118, 210, 0.9); /* Darker blue on hover */
+}
+
+/* Gray palette: orange badge for event number */
+body.color-palette-gray .event-number-badge {
+    background: rgba(255, 102, 0, 0.9);
+}
+
+body.color-palette-gray .event-number-badge:hover {
+    background: rgba(229, 90, 0, 0.9);
 }
 
 /* Gray palette: orange badge for multi-event */
@@ -3588,6 +3785,68 @@ body.color-palette-gray .event-edit-modal-close:hover {
     flex: 1;
     overflow: visible;
     max-height: none;
+}
+
+/* Location Type Buttons */
+.location-type-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.location-type-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.location-type-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+.location-type-btn.active {
+    background: rgba(33, 150, 243, 0.8);
+    border-color: rgba(33, 150, 243, 1);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.4);
+}
+
+.location-type-btn.active:hover {
+    background: rgba(33, 150, 243, 0.9);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.6);
+}
+
+/* Gray palette support for location type buttons */
+body.color-palette-gray .location-type-btn {
+    background: rgba(112, 112, 112, 0.2);
+    border-color: rgba(112, 112, 112, 0.4);
+}
+
+body.color-palette-gray .location-type-btn:hover {
+    background: rgba(112, 112, 112, 0.3);
+    border-color: rgba(112, 112, 112, 0.6);
+}
+
+body.color-palette-gray .location-type-btn.active {
+    background: rgba(112, 112, 112, 0.8);
+    border-color: rgba(112, 112, 112, 1);
+    box-shadow: 0 2px 8px rgba(112, 112, 112, 0.4);
+}
+
+body.color-palette-gray .location-type-btn.active:hover {
+    background: rgba(112, 112, 112, 0.9);
+    box-shadow: 0 4px 12px rgba(112, 112, 112, 0.6);
 }
 
 .event-edit-field {

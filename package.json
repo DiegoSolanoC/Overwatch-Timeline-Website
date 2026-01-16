@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Timeline Overwatch Interactive Map",
   "scripts": {
-    "start": "node generate-manifest.js && python -m http.server 8000",
+    "start": "node generate-manifest.js && node server.js",
     "generate": "node generate-manifest.js",
-    "dev": "node generate-manifest.js && python -m http.server 8000"
+    "dev": "node generate-manifest.js && node server.js"
   },
   "dependencies": {}
 }

@@ -16,6 +16,41 @@ const loadedComponents = {
     biography: false
 };
 
+// Loading overlay helpers for test page
+let isRunOperation = false; // Flag to track if we're in a run operation
+
+function showLoadingOverlay() {
+    // Works for both test.html and main.html
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        // Force immediate visibility (no transition delay)
+        loadingOverlay.style.opacity = '1';
+        loadingOverlay.style.visibility = 'visible';
+        loadingOverlay.classList.add('active');
+        console.log('[Loading Overlay] Showing overlay');
+    } else {
+        console.warn('[Loading Overlay] Overlay element not found!');
+    }
+}
+
+function hideLoadingOverlay() {
+    // Don't hide overlay if we're in a run operation (let the run function handle it)
+    if (isRunOperation) {
+        console.log('[Loading Overlay] Skipping hide - run operation in progress');
+        return;
+    }
+    
+    // Works for both test.html and main.html
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('active');
+        // Reset inline styles to allow CSS transition
+        loadingOverlay.style.opacity = '';
+        loadingOverlay.style.visibility = '';
+        console.log('[Loading Overlay] Hiding overlay');
+    }
+}
+
 // Status tracking
 function updateStatus(message, type = 'info') {
     // Check if we're on main.html with overlay status
@@ -37,15 +72,15 @@ function updateStatus(message, type = 'info') {
         }
     } else {
         // Use regular test status (replace for test page)
-        const statusDiv = document.getElementById('testStatus');
+    const statusDiv = document.getElementById('testStatus');
         statusContent = document.getElementById('statusContent');
-        if (statusDiv && statusContent) {
-            statusDiv.style.display = 'block';
-            statusContent.innerHTML = ''; // Clear all previous messages
-            const item = document.createElement('div');
-            item.className = `test-status-item ${type}`;
-            item.textContent = message;
-            statusContent.appendChild(item);
+    if (statusDiv && statusContent) {
+        statusDiv.style.display = 'block';
+        statusContent.innerHTML = ''; // Clear all previous messages
+        const item = document.createElement('div');
+        item.className = `test-status-item ${type}`;
+        item.textContent = message;
+        statusContent.appendChild(item);
         }
     }
 }
@@ -185,7 +220,7 @@ function setupPaletteToggle() {
         const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
         if (!iconSpan) return;
         
-        const iconPath = palette === 'gray' ? 'Dark Palette Icon.png' : 'Blue Palette Icon.png';
+        const iconPath = palette === 'gray' ? 'Icons/Dark Palette Icon.png' : 'Icons/Blue Palette Icon.png';
         
         // Check if img already exists, update src; otherwise create new img
         let img = iconSpan.querySelector('img');
@@ -234,7 +269,7 @@ function setupPaletteToggle() {
         
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'MAP Black.png' : 'MAP.png';
+            const texturePath = isGray ? 'Maps/MAP Black.png' : 'Maps/MAP.png';
             window.globeController.globeView.changeGlobeTexture(texturePath);
         }
         
@@ -395,6 +430,7 @@ function setupPaletteToggle() {
     });
     
     // Close menu when clicking outside - only add once globally
+    // Use capture phase to ensure it runs before stopPropagation() in option buttons
     if (!window._paletteClickOutsideHandler) {
         window._paletteClickOutsideHandler = function(e) {
             const menu = document.getElementById('paletteMenu');
@@ -402,14 +438,17 @@ function setupPaletteToggle() {
             
             if (menu && menu.classList.contains('open')) {
                 // Check if click is outside both menu and toggle button
-                if (!menu.contains(e.target) && toggle && !toggle.contains(e.target)) {
+                // Also check if click is on a palette option button (which should close the menu via changePalette)
+                const isPaletteOption = e.target.closest('.palette-option-btn');
+                if (!menu.contains(e.target) && toggle && !toggle.contains(e.target) && !isPaletteOption) {
                     if (window._closePaletteMenu) {
                         window._closePaletteMenu();
                     }
                 }
             }
         };
-        document.addEventListener('click', window._paletteClickOutsideHandler);
+        // Use capture phase (true) to catch events before they're stopped by stopPropagation
+        document.addEventListener('click', window._paletteClickOutsideHandler, true);
     }
     
     // Make updatePaletteMenuActiveState available globally for state updates
@@ -452,12 +491,16 @@ async function unloadPalette() {
 }
 
 async function loadPalette() {
-    // If already loaded, unload it instead
+    // If already loaded, just return (don't toggle)
     if (loadedComponents.palette) {
-        await unloadPalette();
+        updateStatus('→ Palette already loaded!', 'info');
         return;
     }
     
+    // Only show overlay if not in a run operation (run operations handle their own overlay)
+    if (!isRunOperation) {
+        showLoadingOverlay();
+    }
     setButtonState('loadPaletteBtn', 'loading');
     updateStatus('Starting Palette load...', 'info');
     
@@ -471,7 +514,7 @@ async function loadPalette() {
             paletteBtn.title = 'Toggle Color Palette';
             paletteBtn.innerHTML = `
                 <span id="colorPaletteIcon">
-                    <img src="Palette Icon.png" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="Icons/Palette Icon.png" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(paletteBtn);
@@ -496,6 +539,8 @@ async function loadPalette() {
         console.error('Error loading Palette:', error);
         updateStatus(`✗ Error loading Palette: ${error.message}`, 'error');
         setButtonState('loadPaletteBtn', 'error');
+    } finally {
+        hideLoadingOverlay();
     }
 }
 
@@ -612,15 +657,27 @@ async function loadGlobeBase() {
         return;
     }
     
+    // Only show overlay if not in a run operation (run operations handle their own overlay)
+    if (!isRunOperation) {
+        showLoadingOverlay();
+    }
     setButtonState('loadGlobeBaseBtn', 'loading');
     updateStatus('Starting Globe Base load...', 'info');
     
     try {
-        // Show globe container
+        // Keep globe container invisible but allow it to exist for initialization
+        // The container needs to exist for the renderer to be created, but we hide it visually
         const container = document.getElementById('globe-container');
         if (container) {
-            container.style.display = 'block';
-            container.classList.add('loaded');
+            // Make it invisible but still allow rendering (opacity 0, not display none)
+            // This allows Three.js to properly initialize the renderer
+            container.style.opacity = '0';
+            container.style.pointerEvents = 'none';
+            container.style.position = 'absolute';
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.display = 'block'; // Must be block for Three.js to work
+            // Don't add 'loaded' class yet - will be added after all loading is complete
         }
         
         // Load GlobeController module
@@ -671,57 +728,28 @@ async function loadGlobeBase() {
             updateStatus('✓ Event markers removed', 'success');
         }
         
+        // Make globe container visible now that it's loaded (unless in a run operation - run will handle visibility)
+        if (!isRunOperation) {
+            const container = document.getElementById('globe-container');
+            if (container) {
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+                container.style.display = 'block';
+                container.classList.add('loaded');
+                updateStatus('✓ Globe container made visible', 'success');
+            }
+        }
+        
         loadedComponents.globeBase = true;
         setButtonState('loadGlobeBaseBtn', 'loaded');
         updateStatus('✓ Globe base components fully loaded!', 'success');
-        
-        // On main.html, make globe take full space immediately when Globe Base loads
-        if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
-            const globeContainer = document.getElementById('globe-container');
-            const mainElement = document.querySelector('main');
-            if (globeContainer && mainElement) {
-                // Make main element take full space
-                mainElement.style.display = 'block';
-                mainElement.style.position = 'relative';
-                mainElement.style.width = '100%';
-                mainElement.style.height = '100%';
-                mainElement.style.padding = '0';
-                mainElement.style.margin = '0';
-                
-                // Make globe container take full absolute space
-                globeContainer.style.position = 'absolute';
-                globeContainer.style.top = '0';
-                globeContainer.style.left = '0';
-                globeContainer.style.right = '0';
-                globeContainer.style.bottom = '0';
-                globeContainer.style.width = '100%';
-                globeContainer.style.height = '100%';
-                globeContainer.style.margin = '0';
-                globeContainer.style.padding = '0';
-                
-                // Resize renderer immediately to match new container size
-                setTimeout(() => {
-                    if (window.globeController && window.globeController.sceneModel && window.globeController.sceneModel.getRenderer) {
-                        const renderer = window.globeController.sceneModel.getRenderer();
-                        const camera = window.globeController.sceneModel.getCamera();
-                        if (renderer && camera) {
-                            const width = globeContainer.clientWidth;
-                            const height = globeContainer.clientHeight;
-                            if (width > 0 && height > 0) {
-                                camera.aspect = width / height;
-                                camera.updateProjectionMatrix();
-                                renderer.setSize(width, height);
-                            }
-                        }
-                    }
-                }, 100);
-            }
-        }
         
     } catch (error) {
         console.error('Error loading Globe Base:', error);
         updateStatus(`✗ Error loading Globe Base: ${error.message}`, 'error');
         setButtonState('loadGlobeBaseBtn', 'error');
+    } finally {
+        hideLoadingOverlay();
     }
 }
 
@@ -759,9 +787,9 @@ async function unloadTransport() {
 }
 
 async function loadTransport() {
-    // If already loaded, unload it instead
+    // If already loaded, just return (don't toggle)
     if (loadedComponents.transport) {
-        await unloadTransport();
+        updateStatus('→ Transport already loaded!', 'info');
         return;
     }
     
@@ -772,6 +800,10 @@ async function loadTransport() {
         return;
     }
     
+    // Only show overlay if not in a run operation (run operations handle their own overlay)
+    if (!isRunOperation) {
+        showLoadingOverlay();
+    }
     setButtonState('loadTransportBtn', 'loading');
     updateStatus('Starting Transport load...', 'info');
     
@@ -790,7 +822,7 @@ async function loadTransport() {
             transportBtn.title = 'Toggle Transport Systems';
             transportBtn.innerHTML = `
                 <span id="hyperloopIcon">
-                    <img src="Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="Icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(transportBtn);
@@ -825,6 +857,8 @@ async function loadTransport() {
         console.error('Error loading Transport:', error);
         updateStatus(`✗ Error loading Transport: ${error.message}`, 'error');
         setButtonState('loadTransportBtn', 'error');
+    } finally {
+        hideLoadingOverlay();
     }
 }
 
@@ -867,9 +901,9 @@ async function unloadControls() {
 }
 
 async function loadControls() {
-    // If already loaded, unload it instead
+    // If already loaded, just return (don't toggle)
     if (loadedComponents.controls) {
-        await unloadControls();
+        updateStatus('→ Controls already loaded!', 'info');
         return;
     }
     
@@ -880,6 +914,10 @@ async function loadControls() {
         return;
     }
     
+    // Only show overlay if not in a run operation (run operations handle their own overlay)
+    if (!isRunOperation) {
+        showLoadingOverlay();
+    }
     setButtonState('loadControlsBtn', 'loading');
     updateStatus('Starting Controls load...', 'info');
     
@@ -895,7 +933,7 @@ async function loadControls() {
             rotateBtn.title = 'Toggle Auto-Rotation';
             rotateBtn.innerHTML = `
                 <span id="rotateIcon">
-                    <img src="Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="Icons/Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(rotateBtn);
@@ -916,7 +954,7 @@ async function loadControls() {
             exitBtn.title = 'Exit to Main Menu';
             exitBtn.innerHTML = `
                 <span id="exitIcon">
-                    <img src="Home Button.png" alt="Exit" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="Icons/Home Button.png" alt="Exit" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(exitBtn);
@@ -924,8 +962,15 @@ async function loadControls() {
             
             // Setup exit button click handler
             exitBtn.addEventListener('click', async function() {
-                // Check if we're on main.html
-                const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
+                console.log('[Exit Button] Exit clicked, starting exit process...');
+                
+                // Set run operation flag FIRST to prevent individual functions from hiding overlay
+                isRunOperation = true;
+                console.log('[Exit Button] isRunOperation set to true');
+                
+                // Show loading overlay SYNCHRONOUSLY before any async operations
+                showLoadingOverlay();
+                console.log('[Exit Button] Overlay shown');
                 
                 // Play mode switch sound effect
                 if (window.SoundEffectsManager) {
@@ -943,37 +988,19 @@ async function loadControls() {
                 // Clear saved mode when exiting
                 localStorage.removeItem('currentMode');
                 
-                const loadingOverlay = document.getElementById('loadingOverlay');
-                
-                // Fade in the black overlay (if on main.html)
-                if (isMainPage && loadingOverlay) {
-                    loadingOverlay.classList.add('active');
-                    // Wait for fade transition to complete (0.5s)
-                    await new Promise(r => setTimeout(r, 500));
-                }
-                
                 updateStatus('Exiting to main menu...', 'info');
-                await killGlobeComponents();
                 
-                // On main.html, load menu components after killing globe components
-                if (isMainPage) {
-                    updateStatus('Loading menu components...', 'info');
-                    if (!loadedComponents.menu) {
-                        await loadMenu();
-                    } else {
-                        // Menu already loaded, just make sure it's visible
-                    const testContainer = document.querySelector('.test-container');
-                    if (testContainer) {
-                        testContainer.style.display = 'flex';
-                        testContainer.classList.remove('fading');
-                            testContainer.style.opacity = '1';
-                        }
-                    }
-                    
-                    // Fade out the black overlay
-                    if (loadingOverlay) {
-                        loadingOverlay.classList.remove('active');
-                    }
+                try {
+                    console.log('[Exit Button] Calling killGlobeComponents()...');
+                    await killGlobeComponents();
+                    console.log('[Exit Button] killGlobeComponents() completed');
+                } catch (error) {
+                    console.error('[Exit Button] Error in killGlobeComponents:', error);
+                } finally {
+                    console.log('[Exit Button] Finally block - resetting flag and hiding overlay');
+                    // Reset flag and fade out loading overlay after everything is done
+                    isRunOperation = false;
+                    hideLoadingOverlay();
                 }
             });
         }
@@ -999,6 +1026,8 @@ async function loadControls() {
         console.error('Error loading Controls:', error);
         updateStatus(`✗ Error loading Controls: ${error.message}`, 'error');
         setButtonState('loadControlsBtn', 'error');
+    } finally {
+        hideLoadingOverlay();
     }
 }
 
@@ -1050,12 +1079,17 @@ async function unloadMusic() {
  * - Related sound effects
  */
 async function loadMusic() {
-    // If already loaded, unload it instead
+    // If already loaded, just return (don't toggle)
     if (loadedComponents.music) {
-        await unloadMusic();
+        updateStatus('→ Music already loaded!', 'info');
         return;
     }
     
+    showLoadingOverlay();
+    // Only show overlay if not in a run operation (run operations handle their own overlay)
+    if (!isRunOperation) {
+        showLoadingOverlay();
+    }
     setButtonState('loadMusicBtn', 'loading');
     updateStatus('Starting Music load...', 'info');
     
@@ -1069,7 +1103,7 @@ async function loadMusic() {
             musicBtn.title = 'Music Options';
             musicBtn.innerHTML = `
                 <span id="musicIcon">
-                    <img src="Music Icon.png" alt="Music" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="Icons/Music Icon.png" alt="Music" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(musicBtn);
@@ -1098,16 +1132,16 @@ async function loadMusic() {
                             </div>
                             <div class="music-control-buttons">
                                 <button id="pauseBtn" class="music-control-btn">
-                                    <img id="pauseBtnIcon" src="Pause Icon.png" alt="Pause" class="control-icon">
+                                    <img id="pauseBtnIcon" src="Icons/Pause Icon.png" alt="Pause" class="control-icon">
                                 </button>
                                 <button id="skipBtn" class="music-control-btn">
-                                    <img id="skipBtnIcon" src="Skip Icon.png" alt="Skip" class="control-icon">
+                                    <img id="skipBtnIcon" src="Icons/Skip Icon.png" alt="Skip" class="control-icon">
                                 </button>
                                 <button id="muteBtn" class="music-control-btn">
-                                    <img id="muteBtnIcon" src="Unmuted Icon.png" alt="Mute" class="control-icon">
+                                    <img id="muteBtnIcon" src="Icons/Unmuted Icon.png" alt="Mute" class="control-icon">
                                 </button>
                                 <button id="shuffleBtn" class="music-control-btn">
-                                    <img id="shuffleBtnIcon" src="Shuffle Icon.png" alt="Shuffle" class="control-icon">
+                                    <img id="shuffleBtnIcon" src="Icons/Shuffle Icon.png" alt="Shuffle" class="control-icon">
                                 </button>
                             </div>
                         </div>
@@ -1163,6 +1197,8 @@ async function loadMusic() {
         console.error('Error loading Music:', error);
         updateStatus(`✗ Error loading Music: ${error.message}`, 'error');
         setButtonState('loadMusicBtn', 'error');
+    } finally {
+        hideLoadingOverlay();
     }
 }
 
@@ -1242,9 +1278,9 @@ async function unloadEvents() {
 }
 
 async function loadEvents() {
-    // If already loaded, unload it instead
+    // If already loaded, just return (don't toggle)
     if (loadedComponents.events) {
-        await unloadEvents();
+        updateStatus('→ Events already loaded!', 'info');
         return;
     }
     
@@ -1255,6 +1291,10 @@ async function loadEvents() {
         return;
     }
     
+    // Only show overlay if not in a run operation (run operations handle their own overlay)
+    if (!isRunOperation) {
+        showLoadingOverlay();
+    }
     setButtonState('loadEventsBtn', 'loading');
     updateStatus('Starting Events load...', 'info');
     
@@ -1372,7 +1412,7 @@ async function loadEvents() {
             filterBtn.title = 'Open Filters';
             filterBtn.innerHTML = `
                 <span id="filtersIcon">
-                    <img src="Filter Icon.png" alt="Filters" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="Icons/Filter Icon.png" alt="Filters" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(filterBtn);
@@ -1388,7 +1428,7 @@ async function loadEvents() {
             eventMgrBtn.title = 'Manage Events';
             eventMgrBtn.innerHTML = `
                 <span id="eventsManageIcon">
-                    <img src="Event Manager Icon.png" alt="Event Manager" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="Icons/Event Manager Icon.png" alt="Event Manager" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(eventMgrBtn);
@@ -1598,6 +1638,8 @@ async function loadEvents() {
         console.error('Error loading Events:', error);
         updateStatus(`✗ Error loading Events: ${error.message}`, 'error');
         setButtonState('loadEventsBtn', 'error');
+    } finally {
+        hideLoadingOverlay();
     }
 }
 
@@ -1638,12 +1680,16 @@ async function unloadMenu() {
  * - Main menu with 3 buttons (Global Timeline, Concept Glossary, Character Bios)
  */
 async function loadMenu() {
-    // If already loaded, unload it instead
+    // If already loaded, just return (don't toggle)
     if (loadedComponents.menu) {
-        await unloadMenu();
+        updateStatus('→ Menu already loaded!', 'info');
         return;
     }
     
+    // Only show overlay if not in a run operation (run operations handle their own overlay)
+    if (!isRunOperation) {
+        showLoadingOverlay();
+    }
     setButtonState('loadMenuBtn', 'loading');
     updateStatus('Starting Menu load...', 'info');
     
@@ -1665,6 +1711,10 @@ async function loadMenu() {
             loadedComponents.menu = true;
             setButtonState('loadMenuBtn', 'loaded');
             updateStatus('✓ Menu components already loaded!', 'success');
+            // Don't hide overlay if in a run operation (exit process)
+            if (!isRunOperation) {
+                hideLoadingOverlay();
+            }
             return;
         }
         
@@ -1672,6 +1722,14 @@ async function loadMenu() {
         updateStatus('Creating main menu buttons...', 'info');
         const menuButtons = document.createElement('div');
         menuButtons.className = 'main-menu-buttons';
+        
+        // Detect if running on GitHub Pages
+        const isGitHubPages = (() => {
+            const hostname = window.location.hostname;
+            return hostname.includes('github.io') || 
+                   hostname.includes('github.com') ||
+                   hostname === 'localhost' && window.location.port === ''; // Also check for localhost without port (GitHub Pages preview)
+        })();
         
         // Global Timeline button
         const globeBtn = document.createElement('button');
@@ -1688,39 +1746,43 @@ async function loadMenu() {
             </div>
         `;
         
-        // Concept Glossary button
-        const glossaryBtn = document.createElement('button');
-        glossaryBtn.id = 'runGlossaryBtn';
-        glossaryBtn.className = 'main-menu-btn';
-        glossaryBtn.title = 'Concept Glossary';
-        glossaryBtn.innerHTML = `
-            <div class="main-menu-image-container">
-                <img src="Main Menu Buttons/Concept Glossary.png" alt="Concept Glossary">
-            </div>
-            <div class="main-menu-label-container">
-                <div class="main-menu-label">Concept Glossary</div>
-                <div class="main-menu-description">Coming Soon...</div>
-            </div>
-        `;
-        
-        // Character Bios button
-        const biographyBtn = document.createElement('button');
-        biographyBtn.id = 'runBiographyBtn';
-        biographyBtn.className = 'main-menu-btn';
-        biographyBtn.title = 'Character Bios';
-        biographyBtn.innerHTML = `
-            <div class="main-menu-image-container">
-                <img src="Main Menu Buttons/Character Bios.png" alt="Character Bios">
-            </div>
-            <div class="main-menu-label-container">
-                <div class="main-menu-label">Character Bios</div>
-                <div class="main-menu-description">Coming Soon...</div>
-            </div>
-        `;
-        
         menuButtons.appendChild(globeBtn);
-        menuButtons.appendChild(glossaryBtn);
-        menuButtons.appendChild(biographyBtn);
+        
+        // Only show Concept Glossary and Character Bios if NOT on GitHub Pages
+        if (!isGitHubPages) {
+            // Concept Glossary button
+            const glossaryBtn = document.createElement('button');
+            glossaryBtn.id = 'runGlossaryBtn';
+            glossaryBtn.className = 'main-menu-btn';
+            glossaryBtn.title = 'Concept Glossary';
+            glossaryBtn.innerHTML = `
+                <div class="main-menu-image-container">
+                    <img src="Main Menu Buttons/Concept Glossary.png" alt="Concept Glossary">
+                </div>
+                <div class="main-menu-label-container">
+                    <div class="main-menu-label">Concept Glossary</div>
+                    <div class="main-menu-description">Coming Soon...</div>
+                </div>
+            `;
+            
+            // Character Bios button
+            const biographyBtn = document.createElement('button');
+            biographyBtn.id = 'runBiographyBtn';
+            biographyBtn.className = 'main-menu-btn';
+            biographyBtn.title = 'Character Bios';
+            biographyBtn.innerHTML = `
+                <div class="main-menu-image-container">
+                    <img src="Main Menu Buttons/Character Bios.png" alt="Character Bios">
+                </div>
+                <div class="main-menu-label-container">
+                    <div class="main-menu-label">Character Bios</div>
+                    <div class="main-menu-description">Coming Soon...</div>
+                </div>
+            `;
+            
+            menuButtons.appendChild(glossaryBtn);
+            menuButtons.appendChild(biographyBtn);
+        }
         
         testContainer.appendChild(menuButtons);
         updateStatus('✓ Menu buttons created', 'success');
@@ -1728,16 +1790,56 @@ async function loadMenu() {
         // Setup event listeners for menu buttons
         updateStatus('Setting up menu button listeners...', 'info');
         if (typeof runGlobeComponents === 'function') {
-            globeBtn.addEventListener('click', () => runGlobeComponents());
+            globeBtn.addEventListener('click', async function() {
+                // Show overlay SYNCHRONOUSLY before any async operations
+                isRunOperation = true;
+                showLoadingOverlay();
+                try {
+                    await runGlobeComponents();
+                } catch (error) {
+                    console.error('Error in runGlobeComponents:', error);
+                    isRunOperation = false;
+                    hideLoadingOverlay();
+                }
+            });
             updateStatus('✓ Global Timeline button listener added', 'success');
         }
-        if (typeof runGlossaryComponents === 'function') {
-            glossaryBtn.addEventListener('click', () => runGlossaryComponents());
-            updateStatus('✓ Concept Glossary button listener added', 'success');
-        }
-        if (typeof runBiographyComponents === 'function') {
-            biographyBtn.addEventListener('click', () => runBiographyComponents());
-            updateStatus('✓ Character Bios button listener added', 'success');
+        
+        // Only setup listeners for Glossary and Biography if buttons exist (not on GitHub Pages)
+        if (!isGitHubPages) {
+            const glossaryBtn = document.getElementById('runGlossaryBtn');
+            const biographyBtn = document.getElementById('runBiographyBtn');
+            
+            if (glossaryBtn && typeof runGlossaryComponents === 'function') {
+                glossaryBtn.addEventListener('click', async function() {
+                    // Show overlay SYNCHRONOUSLY before any async operations
+                    isRunOperation = true;
+                    showLoadingOverlay();
+                    try {
+                        await runGlossaryComponents();
+                    } catch (error) {
+                        console.error('Error in runGlossaryComponents:', error);
+                        isRunOperation = false;
+                        hideLoadingOverlay();
+                    }
+                });
+                updateStatus('✓ Concept Glossary button listener added', 'success');
+            }
+            if (biographyBtn && typeof runBiographyComponents === 'function') {
+                biographyBtn.addEventListener('click', async function() {
+                    // Show overlay SYNCHRONOUSLY before any async operations
+                    isRunOperation = true;
+                    showLoadingOverlay();
+                    try {
+                        await runBiographyComponents();
+                    } catch (error) {
+                        console.error('Error in runBiographyComponents:', error);
+                        isRunOperation = false;
+                        hideLoadingOverlay();
+                    }
+                });
+                updateStatus('✓ Character Bios button listener added', 'success');
+            }
         }
         
         loadedComponents.menu = true;
@@ -1748,6 +1850,49 @@ async function loadMenu() {
         console.error('Error loading Menu:', error);
         updateStatus(`✗ Error loading Menu: ${error.message}`, 'error');
         setButtonState('loadMenuBtn', 'error');
+    } finally {
+        hideLoadingOverlay();
+    }
+}
+
+/**
+ * Run all Menu Components
+ * Simply ensures menu is loaded and visible
+ */
+async function runMenuComponents() {
+    // Note: isRunOperation and overlay should already be set by the button click handler
+    // But if called directly (not from button), set them here
+    if (!isRunOperation) {
+        isRunOperation = true;
+        showLoadingOverlay();
+    }
+    updateStatus('🚀 Running Menu Components...', 'info');
+    
+    try {
+        // If menu is not loaded, load it first
+        if (!loadedComponents.menu) {
+            updateStatus('→ Menu not loaded, loading now...', 'info');
+            await loadMenu();
+        } else {
+            updateStatus('→ Menu already loaded', 'info');
+        }
+        
+        // Ensure menu is visible
+        const testContainer = document.querySelector('.test-container');
+        const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
+        
+        if (menuButtons) {
+            menuButtons.style.display = 'flex';
+            updateStatus('✓ Menu Components are running!', 'success');
+        } else {
+            updateStatus('⚠ Menu buttons not found', 'error');
+        }
+    } catch (error) {
+        console.error('Error running Menu Components:', error);
+        updateStatus(`✗ Error running Menu Components: ${error.message}`, 'error');
+    } finally {
+        isRunOperation = false;
+        hideLoadingOverlay();
     }
 }
 
@@ -1761,6 +1906,12 @@ async function runUniversalFeatures() {
         runBtn.disabled = true;
     }
     
+    // Note: isRunOperation and overlay should already be set by the button click handler
+    // But if called directly (not from button), set them here
+    if (!isRunOperation) {
+        isRunOperation = true;
+        showLoadingOverlay();
+    }
     updateStatus('🚀 Starting Universal Features auto-load...', 'info');
     
     try {
@@ -1787,20 +1938,33 @@ async function runUniversalFeatures() {
         console.error('Error in Universal Features auto-load:', error);
         updateStatus(`✗ Error in Universal Features auto-load: ${error.message}`, 'error');
     } finally {
+        isRunOperation = false;
+        hideLoadingOverlay();
         if (runBtn) {
             runBtn.disabled = false;
         }
     }
 }
 
-// Make runUniversalFeatures available globally for main.html
+// Make runUniversalFeatures, runMenuComponents, and runGlobeComponents available globally
 window.runUniversalFeatures = runUniversalFeatures;
+window.runMenuComponents = runMenuComponents;
+window.runGlobeComponents = runGlobeComponents;
 
 /**
  * Run all Globe Components sequentially
  * Loads: Globe Base, then Transport, then Controls, then Events
  */
 async function runGlobeComponents(isAutoLoad = false) {
+    // Note: isRunOperation and overlay should already be set by the button click handler
+    // But if called directly (not from button), set them here
+    if (!isRunOperation) {
+        isRunOperation = true;
+        showLoadingOverlay();
+        // Small delay to ensure overlay is rendered before starting loads
+        await new Promise(r => setTimeout(r, 50));
+    }
+    
     // Play mode switch sound effect only if manually triggered (not auto-load)
     if (!isAutoLoad && window.SoundEffectsManager) {
         if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
@@ -1825,25 +1989,20 @@ async function runGlobeComponents(isAutoLoad = false) {
     // Reset progress
     resetGlobeComponentsProgress();
     
-    // On main.html, fade component loading to black and show loading overlay
-    if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
-        const testContainer = document.querySelector('.test-container');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        
-        if (testContainer) {
-            // Fade out the component loading menu
-            testContainer.classList.add('fading');
-        }
-        
-        if (loadingOverlay) {
-            // Fade in the black overlay
-            setTimeout(() => {
-                loadingOverlay.classList.add('active');
-            }, 100);
-            
-            // Wait for fade transition to complete (0.5s) before starting actual loading
-            await new Promise(r => setTimeout(r, 600)); // 100ms delay + 500ms transition
-        }
+    // Hide the test-container completely (which contains the main menu buttons)
+    const testContainer = document.querySelector('.test-container');
+    if (testContainer) {
+        testContainer.style.display = 'none';
+        updateStatus('→ Hiding menu container...', 'info');
+    }
+    
+    // Hide globe container initially - we'll show it after everything is loaded
+    const globeContainer = document.getElementById('globe-container');
+    if (globeContainer) {
+        globeContainer.style.display = 'none';
+        globeContainer.style.width = '100%';
+        globeContainer.style.height = '100%';
+        updateStatus('→ Preparing globe container...', 'info');
     }
     
     updateStatus('🚀 Starting Globe Components auto-load...', 'info');
@@ -1853,11 +2012,25 @@ async function runGlobeComponents(isAutoLoad = false) {
         if (!loadedComponents.globeBase) {
             updateStatus('→ Loading Globe Base...', 'info');
             await loadGlobeBase();
+            // Show globe container immediately after Globe Base loads
+            if (globeContainer) {
+                globeContainer.style.opacity = '1';
+                globeContainer.style.pointerEvents = 'auto';
+                globeContainer.style.display = 'block';
+                globeContainer.classList.add('loaded');
+            }
             updateGlobeComponentsProgress(1);
             // Small delay between loads
             await new Promise(r => setTimeout(r, 300));
         } else {
             updateStatus('→ Globe Base already loaded, skipping...', 'info');
+            // If already loaded, make sure globe is visible
+            if (globeContainer) {
+                globeContainer.style.opacity = '1';
+                globeContainer.style.pointerEvents = 'auto';
+                globeContainer.style.display = 'block';
+                globeContainer.classList.add('loaded');
+            }
             updateGlobeComponentsProgress(1);
         }
         
@@ -1895,51 +2068,37 @@ async function runGlobeComponents(isAutoLoad = false) {
         
         updateStatus('✓ Globe Components auto-load complete!', 'success');
         
-        // On main.html, fade out black overlay and hide test container
-        if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const testContainer = document.querySelector('.test-container');
-            
-            // Fade out the black overlay
-            if (loadingOverlay) {
-                loadingOverlay.classList.remove('active');
-            }
-            
-            // Hide test container after overlay fades out (globe already took full space when Globe Base loaded)
-            if (testContainer) {
-                setTimeout(() => {
-                    testContainer.style.display = 'none';
-                    testContainer.style.opacity = '0';
-                    testContainer.style.visibility = 'hidden';
-                    
-                    // Resize renderer one more time to ensure it matches final layout
-                    const globeContainer = document.getElementById('globe-container');
-                    if (globeContainer && window.globeController && window.globeController.sceneModel && window.globeController.sceneModel.getRenderer) {
-                        setTimeout(() => {
-                            const renderer = window.globeController.sceneModel.getRenderer();
-                            const camera = window.globeController.sceneModel.getCamera();
-                            if (renderer && camera) {
-                                const width = globeContainer.clientWidth;
-                                const height = globeContainer.clientHeight;
-                                if (width > 0 && height > 0) {
-                                    camera.aspect = width / height;
-                                    camera.updateProjectionMatrix();
-                                    renderer.setSize(width, height);
-                                }
-                            }
-                        }, 100);
-                    }
-                }, 500); // Wait for overlay fade out (0.5s transition)
-            }
+        // Globe container should already be visible (shown after Globe Base loaded)
+        // Just ensure it's still visible
+        if (globeContainer) {
+            globeContainer.style.opacity = '1';
+            globeContainer.style.pointerEvents = 'auto';
+            globeContainer.style.display = 'block';
+            globeContainer.classList.add('loaded');
         }
     } catch (error) {
         console.error('Error in Globe Components auto-load:', error);
         updateStatus(`✗ Error in Globe Components auto-load: ${error.message}`, 'error');
     } finally {
+        isRunOperation = false;
+        hideLoadingOverlay();
         if (runBtn) {
             runBtn.disabled = false;
         }
     }
+}
+
+/**
+ * Kill all Menu Components
+ */
+async function killMenuComponents() {
+    updateStatus('Killing all Menu Components...', 'info');
+    
+    if (loadedComponents.menu) {
+        await unloadMenu();
+    }
+    
+    updateStatus('✓ All Menu Components killed!', 'success');
 }
 
 /**
@@ -1960,66 +2119,58 @@ async function killUniversalFeatures() {
 }
 
 /**
- * Restore main menu on main.html (show test-container, hide globe)
+ * Restore main menu (show test-container, hide globe)
  * Make it globally accessible
  */
 window.restoreMainMenu = async function restoreMainMenu() {
-    if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
-        const testContainer = document.querySelector('.test-container');
-        const globeContainer = document.getElementById('globe-container');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        
-        // Ensure menu is loaded (menu is already in HTML on main.html, just mark it as loaded)
-        if (!loadedComponents.menu) {
-            const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
-            if (menuButtons) {
-                // Menu is already in HTML, just mark it as loaded
-                loadedComponents.menu = true;
-                updateStatus('Menu components detected in HTML', 'info');
-            } else {
-                updateStatus('Menu not loaded, loading menu components...', 'info');
-                await loadMenu();
-            }
-        }
-        
-        // Restore menu visibility - ensure it's fully visible
-        if (testContainer) {
-            testContainer.style.display = 'flex';
-            testContainer.classList.remove('fading');
-            testContainer.style.opacity = '1';
-            testContainer.style.visibility = 'visible';
-            // Force visibility with important styles
-            testContainer.style.setProperty('display', 'flex', 'important');
-            testContainer.style.setProperty('opacity', '1', 'important');
-            testContainer.style.setProperty('visibility', 'visible', 'important');
-        }
-        
-        // Hide globe
-        if (globeContainer) {
-            globeContainer.style.display = 'none';
-            globeContainer.classList.remove('loaded');
-        }
-        
-        // Hide loading overlay if visible
-        if (loadingOverlay) {
-            loadingOverlay.classList.remove('active');
-        }
-        
-        // Close any open panels
-        const eventSlide = document.getElementById('eventSlide');
-        const eventsManagePanel = document.getElementById('eventsManagePanel');
-        const filtersPanel = document.getElementById('filtersPanel');
-        
-        if (eventSlide) eventSlide.classList.remove('open');
-        if (eventsManagePanel) eventsManagePanel.classList.remove('open');
-        if (filtersPanel) filtersPanel.classList.remove('open');
-        
-        // Remove active states from buttons
-        const eventsManageToggle = document.getElementById('eventsManageToggle');
-        const filtersToggle = document.getElementById('filtersToggle');
-        if (eventsManageToggle) eventsManageToggle.classList.remove('active');
-        if (filtersToggle) filtersToggle.classList.remove('active');
+    const testContainer = document.querySelector('.test-container');
+    const globeContainer = document.getElementById('globe-container');
+    
+    // Ensure menu is loaded (reload if it was killed)
+    if (!loadedComponents.menu) {
+        updateStatus('Loading menu components...', 'info');
+        await loadMenu();
     }
+    
+    // Restore menu visibility - ensure it's fully visible
+    const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
+    if (testContainer) {
+        testContainer.style.display = 'flex';
+        testContainer.classList.remove('fading');
+        testContainer.style.opacity = '1';
+        testContainer.style.visibility = 'visible';
+    }
+    
+    // Restore menu buttons visibility
+    if (menuButtons) {
+        menuButtons.style.display = 'flex';
+        menuButtons.style.visibility = 'visible';
+        menuButtons.style.opacity = '1';
+    }
+    
+    // Hide globe and reset its positioning
+    if (globeContainer) {
+        globeContainer.style.display = 'none';
+        globeContainer.classList.remove('loaded');
+        globeContainer.style.position = '';
+        globeContainer.style.top = '';
+        globeContainer.style.left = '';
+    }
+    
+    // Close any open panels
+    const eventSlide = document.getElementById('eventSlide');
+    const eventsManagePanel = document.getElementById('eventsManagePanel');
+    const filtersPanel = document.getElementById('filtersPanel');
+    
+    if (eventSlide) eventSlide.classList.remove('open');
+    if (eventsManagePanel) eventsManagePanel.classList.remove('open');
+    if (filtersPanel) filtersPanel.classList.remove('open');
+    
+    // Remove active states from buttons
+    const eventsManageToggle = document.getElementById('eventsManageToggle');
+    const filtersToggle = document.getElementById('filtersToggle');
+    if (eventsManageToggle) eventsManageToggle.classList.remove('active');
+    if (filtersToggle) filtersToggle.classList.remove('active');
 }
 
 /**
@@ -2045,7 +2196,7 @@ async function killGlobeComponents() {
         await unloadGlobeBase();
     }
     
-    // On main.html, restore the menu (test-container) when killing globe components
+    // Restore the menu (test-container) when killing globe components
     // This will also load menu if not already loaded
     await restoreMainMenu();
     
@@ -2078,6 +2229,12 @@ async function runGlossaryComponents(isAutoLoad = false) {
         runBtn.disabled = true;
     }
     
+    // Note: isRunOperation and overlay should already be set by the button click handler
+    // But if called directly (not from button), set them here
+    if (!isRunOperation) {
+        isRunOperation = true;
+        showLoadingOverlay();
+    }
     updateStatus('🚀 Starting Glossary Components auto-load...', 'info');
     
     try {
@@ -2090,6 +2247,8 @@ async function runGlossaryComponents(isAutoLoad = false) {
         console.error('Error in Glossary Components auto-load:', error);
         updateStatus(`✗ Error in Glossary Components auto-load: ${error.message}`, 'error');
     } finally {
+        isRunOperation = false;
+        hideLoadingOverlay();
         if (runBtn) {
             runBtn.disabled = false;
         }
@@ -2134,6 +2293,12 @@ async function runBiographyComponents(isAutoLoad = false) {
         runBtn.disabled = true;
     }
     
+    // Note: isRunOperation and overlay should already be set by the button click handler
+    // But if called directly (not from button), set them here
+    if (!isRunOperation) {
+        isRunOperation = true;
+        showLoadingOverlay();
+    }
     updateStatus('🚀 Starting Biography Components auto-load...', 'info');
     
     try {
@@ -2146,6 +2311,8 @@ async function runBiographyComponents(isAutoLoad = false) {
         console.error('Error in Biography Components auto-load:', error);
         updateStatus(`✗ Error in Biography Components auto-load: ${error.message}`, 'error');
     } finally {
+        isRunOperation = false;
+        hideLoadingOverlay();
         if (runBtn) {
             runBtn.disabled = false;
         }
@@ -2167,60 +2334,6 @@ async function killBiographyComponents() {
 // Setup button event listeners
 document.addEventListener('DOMContentLoaded', function() {
     console.log('test-loader.js: DOMContentLoaded fired, setting up button listeners...');
-    
-    // Check if we're on main.html and initialize menu as loaded (since it's already in HTML)
-    const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
-    if (isMainPage) {
-        const testContainer = document.querySelector('.test-container');
-        const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
-        
-        // Check if there's a saved mode - if not, ensure menu is visible
-        const savedMode = localStorage.getItem('currentMode');
-        if (!savedMode && testContainer) {
-            // No saved mode - ensure menu is visible
-            testContainer.style.display = 'flex';
-            testContainer.style.opacity = '1';
-            testContainer.style.visibility = 'visible';
-        }
-        
-        if (menuButtons && !loadedComponents.menu) {
-            // Menu is already in HTML, mark it as loaded
-            loadedComponents.menu = true;
-            console.log('Menu components detected in HTML (already loaded)');
-            
-            // Wire up the Global Timeline button if it exists
-            const runGlobeBtn = document.getElementById('runGlobeBtn');
-            if (runGlobeBtn && !runGlobeBtn.hasAttribute('data-listener-attached')) {
-                runGlobeBtn.setAttribute('data-listener-attached', 'true');
-                runGlobeBtn.addEventListener('click', function() {
-                    runGlobeComponents();
-                });
-                console.log('Global Timeline button wired up');
-            }
-            
-            // Wire up the Concept Glossary button if it exists
-            const runGlossaryBtn = document.getElementById('runGlossaryBtn');
-            if (runGlossaryBtn && !runGlossaryBtn.hasAttribute('data-listener-attached')) {
-                runGlossaryBtn.setAttribute('data-listener-attached', 'true');
-                runGlossaryBtn.addEventListener('click', function() {
-                    runGlossaryComponents();
-                });
-                console.log('Concept Glossary button wired up');
-            }
-            
-            // Wire up the Character Bios button if it exists
-            const runBiographyBtn = document.getElementById('runBiographyBtn');
-            if (runBiographyBtn && !runBiographyBtn.hasAttribute('data-listener-attached')) {
-                runBiographyBtn.setAttribute('data-listener-attached', 'true');
-                runBiographyBtn.addEventListener('click', function() {
-                    runBiographyComponents();
-                });
-                console.log('Character Bios button wired up');
-            }
-        } else if (!menuButtons) {
-            console.warn('Menu buttons not found in HTML on main.html');
-        }
-    }
     
     // Universal features
     const loadPaletteBtn = document.getElementById('loadPaletteBtn');
@@ -2245,7 +2358,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (runUniversalBtn) {
-        runUniversalBtn.addEventListener('click', runUniversalFeatures);
+        runUniversalBtn.addEventListener('click', async function() {
+            // Show overlay SYNCHRONOUSLY before any async operations
+            isRunOperation = true;
+            showLoadingOverlay();
+            try {
+                await runUniversalFeatures();
+            } catch (error) {
+                console.error('Error in runUniversalFeatures:', error);
+                isRunOperation = false;
+                hideLoadingOverlay();
+            }
+        });
     }
     
     if (killUniversalBtn) {
@@ -2263,23 +2387,46 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (runMenuBtn) {
         console.log('test-loader.js: Wiring up runMenuBtn');
-        runMenuBtn.addEventListener('click', function() {
+        runMenuBtn.addEventListener('click', async function() {
             console.log('runMenuBtn clicked');
-            runMenuComponents();
+            // Show overlay SYNCHRONOUSLY before any async operations
+            isRunOperation = true;
+            showLoadingOverlay();
+            try {
+                await runMenuComponents();
+            } catch (error) {
+                console.error('Error in runMenuComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+                isRunOperation = false;
+                hideLoadingOverlay();
+            }
         });
     } else {
         console.warn('test-loader.js: runMenuBtn not found!');
     }
     
     if (killMenuBtn) {
-        killMenuBtn.addEventListener('click', killMenuComponents);
+        killMenuBtn.addEventListener('click', async function() {
+            console.log('killMenuBtn clicked');
+            try {
+                await killMenuComponents();
+            } catch (error) {
+                console.error('Error in killMenuComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
+        });
     }
     
     if (loadGlobeBaseBtn) {
         console.log('test-loader.js: Wiring up loadGlobeBaseBtn');
-        loadGlobeBaseBtn.addEventListener('click', function() {
+        loadGlobeBaseBtn.addEventListener('click', async function() {
             console.log('loadGlobeBaseBtn clicked');
-            loadGlobeBase();
+            try {
+                await loadGlobeBase();
+            } catch (error) {
+                console.error('Error in loadGlobeBase:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
         });
     } else {
         console.warn('test-loader.js: loadGlobeBaseBtn not found!');
@@ -2287,9 +2434,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (loadTransportBtn) {
         console.log('test-loader.js: Wiring up loadTransportBtn');
-        loadTransportBtn.addEventListener('click', function() {
+        loadTransportBtn.addEventListener('click', async function() {
             console.log('loadTransportBtn clicked');
-            loadTransport();
+            try {
+                await loadTransport();
+            } catch (error) {
+                console.error('Error in loadTransport:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
         });
     } else {
         console.warn('test-loader.js: loadTransportBtn not found!');
@@ -2297,9 +2449,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (loadControlsBtn) {
         console.log('test-loader.js: Wiring up loadControlsBtn');
-        loadControlsBtn.addEventListener('click', function() {
+        loadControlsBtn.addEventListener('click', async function() {
             console.log('loadControlsBtn clicked');
-            loadControls();
+            try {
+                await loadControls();
+            } catch (error) {
+                console.error('Error in loadControls:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
         });
     } else {
         console.warn('test-loader.js: loadControlsBtn not found!');
@@ -2307,93 +2464,120 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (loadEventsBtn) {
         console.log('test-loader.js: Wiring up loadEventsBtn');
-        loadEventsBtn.addEventListener('click', function() {
+        loadEventsBtn.addEventListener('click', async function() {
             console.log('loadEventsBtn clicked');
-            loadEvents();
+            try {
+                await loadEvents();
+            } catch (error) {
+                console.error('Error in loadEvents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
         });
     } else {
         console.warn('test-loader.js: loadEventsBtn not found!');
     }
     
-    // Only wire up if not already wired (main.html buttons are wired earlier)
+    // Only wire up if not already wired
     if (runGlobeBtn && !runGlobeBtn.hasAttribute('data-listener-attached')) {
         runGlobeBtn.setAttribute('data-listener-attached', 'true');
-        runGlobeBtn.addEventListener('click', runGlobeComponents);
+        runGlobeBtn.addEventListener('click', async function() {
+            console.log('runGlobeBtn clicked');
+            // Show overlay SYNCHRONOUSLY before any async operations
+            isRunOperation = true;
+            showLoadingOverlay();
+            try {
+                await runGlobeComponents();
+            } catch (error) {
+                console.error('Error in runGlobeComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+                isRunOperation = false;
+                hideLoadingOverlay();
+            }
+        });
     }
     
     if (killGlobeBtn) {
-        killGlobeBtn.addEventListener('click', killGlobeComponents);
+        killGlobeBtn.addEventListener('click', async function() {
+            console.log('killGlobeBtn clicked');
+            try {
+                await killGlobeComponents();
+            } catch (error) {
+                console.error('Error in killGlobeComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
+        });
     }
     
     // Glossary components
     const runGlossaryBtn = document.getElementById('runGlossaryBtn');
     const killGlossaryBtn = document.getElementById('killGlossaryBtn');
     
-    // Only wire up if not already wired (main.html buttons are wired earlier)
+    // Only wire up if not already wired
     if (runGlossaryBtn && !runGlossaryBtn.hasAttribute('data-listener-attached')) {
         runGlossaryBtn.setAttribute('data-listener-attached', 'true');
-        runGlossaryBtn.addEventListener('click', runGlossaryComponents);
+        runGlossaryBtn.addEventListener('click', async function() {
+            console.log('runGlossaryBtn clicked');
+            // Show overlay SYNCHRONOUSLY before any async operations
+            isRunOperation = true;
+            showLoadingOverlay();
+            try {
+                await runGlossaryComponents();
+            } catch (error) {
+                console.error('Error in runGlossaryComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+                isRunOperation = false;
+                hideLoadingOverlay();
+            }
+        });
     }
     
     if (killGlossaryBtn) {
-        killGlossaryBtn.addEventListener('click', killGlossaryComponents);
+        killGlossaryBtn.addEventListener('click', async function() {
+            console.log('killGlossaryBtn clicked');
+            try {
+                await killGlossaryComponents();
+            } catch (error) {
+                console.error('Error in killGlossaryComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
+        });
     }
     
     // Biography components
     const runBiographyBtn = document.getElementById('runBiographyBtn');
     const killBiographyBtn = document.getElementById('killBiographyBtn');
     
-    // Wire up Character Bios button (works on both test.html and main.html)
+    // Wire up Character Bios button
     if (runBiographyBtn && !runBiographyBtn.hasAttribute('data-listener-attached')) {
         runBiographyBtn.setAttribute('data-listener-attached', 'true');
-        runBiographyBtn.addEventListener('click', function() {
-            runBiographyComponents();
+        runBiographyBtn.addEventListener('click', async function() {
+            console.log('runBiographyBtn clicked');
+            // Show overlay SYNCHRONOUSLY before any async operations
+            isRunOperation = true;
+            showLoadingOverlay();
+            try {
+                await runBiographyComponents();
+            } catch (error) {
+                console.error('Error in runBiographyComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+                isRunOperation = false;
+                hideLoadingOverlay();
+            }
         });
     }
     
     if (killBiographyBtn) {
-        killBiographyBtn.addEventListener('click', killBiographyComponents);
+        killBiographyBtn.addEventListener('click', async function() {
+            console.log('killBiographyBtn clicked');
+            try {
+                await killBiographyComponents();
+            } catch (error) {
+                console.error('Error in killBiographyComponents:', error);
+                updateStatus(`✗ Error: ${error.message}`, 'error');
+            }
+        });
     }
     
     updateStatus('Test loader ready. Click buttons to load components.', 'info');
-    
-    // Auto-run Universal Features on main.html
-    if (window.location.pathname.includes('main.html') || window.location.href.includes('main.html')) {
-        // Check for saved mode first - hide menu immediately if mode exists
-        const savedMode = localStorage.getItem('currentMode');
-        if (savedMode) {
-            console.log('Main page: Found saved mode:', savedMode, '- Hiding menu immediately');
-            // Hide the test container immediately to prevent brief flash
-            const testContainer = document.querySelector('.test-container');
-            if (testContainer) {
-                testContainer.style.display = 'none';
-                testContainer.style.opacity = '0';
-            }
-        }
-        
-        console.log('Main page detected: Auto-running Universal Features...');
-        // Small delay to ensure everything is ready
-        setTimeout(function() {
-            runUniversalFeatures();
-        }, 100);
-        
-        // Check for saved mode and auto-load it (without sound)
-        if (savedMode) {
-            console.log('Main page: Auto-loading saved mode:', savedMode);
-            // Wait a bit longer to ensure all components are ready
-            setTimeout(function() {
-                if (savedMode === 'globe') {
-                    console.log('Main page: Auto-loading Globe mode (silent)...');
-                    runGlobeComponents(true); // Pass true to indicate auto-load
-                } else if (savedMode === 'glossary') {
-                    console.log('Main page: Auto-loading Glossary mode (silent)...');
-                    runGlossaryComponents(true); // Pass true to indicate auto-load
-                } else if (savedMode === 'biography') {
-                    console.log('Main page: Auto-loading Biography mode (silent)...');
-                    runBiographyComponents(true); // Pass true to indicate auto-load
-                }
-            }, 500); // Wait 500ms after Universal Features start
-        }
-    }
 });
 
