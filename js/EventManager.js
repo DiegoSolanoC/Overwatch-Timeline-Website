@@ -1579,10 +1579,95 @@ class EventManager {
             openEventAfterPageChange();
         }
         
+<<<<<<< HEAD
         // Clear flag if something goes wrong (safety net)
         setTimeout(() => {
             this.isOpeningEvent = false;
         }, 2000);
+=======
+        // Close the event manager panel
+        const panel = document.getElementById('eventsManagePanel');
+        if (panel) {
+            panel.classList.remove('open');
+        }
+        const toggleBtn = document.getElementById('eventsManageToggle');
+        if (toggleBtn) {
+            toggleBtn.classList.remove('active');
+        }
+        
+        // Find the corresponding marker on the globe
+        if (window.globeController && window.globeController.globeView) {
+            const markers = window.globeController.sceneModel.getMarkers();
+            const eventMarker = markers.find(m => {
+                if (m.userData && m.userData.isEventMarker) {
+                    const markerEvent = m.userData.event;
+                    // Match by index or by lat/lon
+                    return (markerEvent === event) || 
+                           (Math.abs(markerEvent.lat - event.lat) < 0.0001 && 
+                            Math.abs(markerEvent.lon - event.lon) < 0.0001);
+                }
+                return false;
+            });
+            
+            if (eventMarker && window.globeController.uiView) {
+                // Check if this is a multi-event
+                const isMultiEvent = event.variants && event.variants.length > 0;
+                
+                // Get the currently previewed variant index (default to 0)
+                let variantIndex = 0;
+                if (isMultiEvent) {
+                    const itemKey = `event-${index}`;
+                    variantIndex = this.eventItemVariantIndices.get(itemKey) || 0;
+                }
+                
+                const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
+                
+                // For multi-events, find the marker for the specific variant
+                let targetMarker = eventMarker;
+                if (isMultiEvent && variantIndex > 0) {
+                    // Look for the variant marker
+                    const variantMarker = markers.find(m => {
+                        if (m.userData && m.userData.isEventMarker && 
+                            m.userData.event === event &&
+                            m.userData.variantIndex === variantIndex) {
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (variantMarker) {
+                        targetMarker = variantMarker;
+                    }
+                }
+                
+                const eventName = displayEvent.name || eventMarker.userData.eventName;
+                const eventDescription = displayEvent.description;
+                const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
+                
+                // Zoom to marker or reset to default view (for Moon/Mars) and show event slide
+                if (window.globeController.interactionController) {
+                    const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
+                    if (locationType === 'moon' || locationType === 'mars') {
+                        // Reset camera to default view for Moon/Mars events
+                        window.globeController.interactionController.resetCameraToDefault();
+                    } else {
+                        // Zoom in and center on the marker (Earth events)
+                        window.globeController.interactionController.zoomToMarker(targetMarker);
+                    }
+                }
+                
+                window.globeController.uiView.showEventSlide(
+                    eventName,
+                    imagePath,
+                    eventDescription,
+                    targetMarker,
+                    event
+                );
+                
+                // Reset all multi-variant events to first variant after opening (for next time manager opens)
+                this.resetAllEventVariants();
+            }
+        }
+>>>>>>> origin/main
     }
 
     /**

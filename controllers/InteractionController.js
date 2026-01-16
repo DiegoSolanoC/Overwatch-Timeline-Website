@@ -9,13 +9,18 @@ export class InteractionController {
     }
 
     /**
+<<<<<<< HEAD
      * Set Moon/Mars plane visibility with animation
+=======
+     * Set Moon/Mars plane visibility
+>>>>>>> origin/main
      * @param {boolean} visible - Whether planes should be visible
      */
     setPlanesVisibility(visible) {
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
         const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
         
+<<<<<<< HEAD
         // Use GlobeController's animatePlaneScale for smooth squash/stretch animation
         if (window.globeController && typeof window.globeController.animatePlaneScale === 'function') {
             if (moonPlane) {
@@ -32,6 +37,13 @@ export class InteractionController {
             if (marsPlane) {
                 marsPlane.visible = visible;
             }
+=======
+        if (moonPlane) {
+            moonPlane.visible = visible;
+        }
+        if (marsPlane) {
+            marsPlane.visible = visible;
+>>>>>>> origin/main
         }
     }
 

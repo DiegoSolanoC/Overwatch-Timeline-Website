@@ -123,4 +123,9 @@ export function xyToPlanePosition(x, y, planeWidth, planeHeight, planeCenter, pl
     const localPosition = new THREE.Vector3(localX, localY, localZ);
     
     return localPosition;
+<<<<<<< HEAD
 }
+=======
+}
+
+>>>>>>> origin/main

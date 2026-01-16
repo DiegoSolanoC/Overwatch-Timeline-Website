@@ -10,6 +10,7 @@
         /* Ensure main element properly contains containers */
         main#content {
             position: relative;
+<<<<<<< HEAD
         }
         
         /* Test container styling - for Menu Components */
@@ -37,6 +38,28 @@
             pointer-events: auto;
         }
         
+=======
+        }
+        
+        /* Test container styling - for Menu Components */
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+>>>>>>> origin/main
         /* Globe container should take full space when visible */
         #globe-container {
             position: absolute;
@@ -284,6 +307,7 @@
                 font-size: 16px;
             }
         }
+<<<<<<< HEAD
         
         /* Zoom Controls */
         .zoom-controls {
@@ -367,6 +391,8 @@
         .zoom-controls .zoom-btn {
             pointer-events: auto; /* Buttons are clickable */
         }
+=======
+>>>>>>> origin/main
     </style>
 </head>
 <body>
@@ -377,11 +403,14 @@
     <div class="layout-container">
         <main id="content">
             <div id="globe-container"></div>
+<<<<<<< HEAD
             <!-- Zoom Controls -->
             <div class="zoom-controls" id="zoomControls">
                 <button class="zoom-btn zoom-in-btn" id="zoomInBtn" title="Zoom In">+</button>
                 <button class="zoom-btn zoom-out-btn" id="zoomOutBtn" title="Zoom Out">−</button>
             </div>
+=======
+>>>>>>> origin/main
         </main>
 
         <nav class="sidebar" id="sidebar">
@@ -482,10 +511,13 @@
                         <label for="eventEditName">Event Title:</label>
                         <input type="text" id="eventEditName" class="event-edit-input" autocomplete="off" required>
                     </div>
+<<<<<<< HEAD
                     <div class="event-edit-field">
                         <label for="eventEditNumber">Event Number:</label>
                         <input type="number" id="eventEditNumber" class="event-edit-input" autocomplete="off" min="1" step="1">
                     </div>
+=======
+>>>>>>> origin/main
                     <div class="event-edit-field event-edit-field-full">
                         <label for="eventEditCity">City Name (for location lookup):</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
@@ -686,6 +718,7 @@
                 }, 500); // Small delay after Universal Features start
             }, 500); // Small delay to ensure test-loader.js is loaded
         });
+<<<<<<< HEAD
         
         // Cleanup on page unload to prevent memory leaks and freezing
         window.addEventListener('beforeunload', () => {
@@ -784,6 +817,8 @@
         
         // Clear interval after 10 seconds to avoid infinite checking
         setTimeout(() => clearInterval(checkGlobeAndSetupZoom), 10000);
+=======
+>>>>>>> origin/main
     </script>
 </body>
 </html>

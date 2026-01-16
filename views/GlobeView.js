@@ -100,6 +100,7 @@ export class GlobeView {
             console.log('Preloaded and cached alternate texture:', otherTexturePath);
         });
         
+<<<<<<< HEAD
         // Use MeshStandardMaterial for normal map (needs lighting)
         const material = new THREE.MeshStandardMaterial({
             map: earthTexture,
@@ -108,6 +109,12 @@ export class GlobeView {
             opacity: 1.0,
             metalness: 0.1,
             roughness: 0.9
+=======
+        const material = new THREE.MeshBasicMaterial({
+            map: earthTexture,
+            transparent: false,
+            opacity: 1.0
+>>>>>>> origin/main
         });
         
         const globe = new THREE.Mesh(geometry, material);
@@ -123,22 +130,33 @@ export class GlobeView {
             texture.magFilter = THREE.LinearFilter;
         });
         
+<<<<<<< HEAD
         const moonMaterial = new THREE.MeshStandardMaterial({
+=======
+        const moonMaterial = new THREE.MeshBasicMaterial({
+>>>>>>> origin/main
             map: moonTexture,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.75, // Semi-transparent
+<<<<<<< HEAD
             alphaTest: 0.1, // Respect transparent background
             emissive: 0x88aaff, // Blue glow for Moon
             emissiveIntensity: 0.3, // Subtle glow intensity
             emissiveMap: moonTexture, // Use texture for emission pattern
             metalness: 0.0,
             roughness: 0.5
+=======
+            alphaTest: 0.1 // Respect transparent background
+>>>>>>> origin/main
         });
         const moonPlane = new THREE.Mesh(moonGeometry, moonMaterial);
         moonPlane.position.set(1.5, 0.3, 0); // To the right, slightly above center
         moonPlane.visible = false; // Hidden by default, shown only if current page has Moon events
+<<<<<<< HEAD
         moonPlane.scale.set(1, 0, 1); // Start with Y scale at 0 (squashed)
+=======
+>>>>>>> origin/main
         // Rotate plane to face the camera (which is at 0, 0, 3.5)
         // Use lookAt to make plane face camera position
         moonPlane.lookAt(0, 0, 3.5);
@@ -149,6 +167,41 @@ export class GlobeView {
         }
         scene.add(moonPlane);
         console.log('Moon plane created at:', moonPlane.position, 'rotation:', moonPlane.quaternion);
+<<<<<<< HEAD
+=======
+
+        // Mars plane - smaller, to the right of globe
+        const marsGeometry = new THREE.PlaneGeometry(0.4, 0.4);
+        const marsTexture = textureLoader.load('Misc/Mars.png', (texture) => {
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+        });
+        const marsMaterial = new THREE.MeshBasicMaterial({
+            map: marsTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.75, // Semi-transparent
+            alphaTest: 0.1 // Respect transparent background
+        });
+        const marsPlane = new THREE.Mesh(marsGeometry, marsMaterial);
+        marsPlane.position.set(1.5, -0.3, 0); // To the right, slightly below center
+        marsPlane.visible = false; // Hidden by default, shown only if current page has Mars events
+        // Rotate plane to face the camera (which is at 0, 0, 3.5)
+        // Use lookAt to make plane face camera position
+        marsPlane.lookAt(0, 0, 3.5);
+        if (this.sceneModel.setMarsPlane) {
+            this.sceneModel.setMarsPlane(marsPlane);
+        } else {
+            this.sceneModel.marsPlane = marsPlane;
+        }
+        scene.add(marsPlane);
+        console.log('Mars plane created at:', marsPlane.position, 'rotation:', marsPlane.quaternion);
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+>>>>>>> origin/main
 
         // Mars plane - smaller, to the right of globe
         const marsGeometry = new THREE.PlaneGeometry(0.4, 0.4);
@@ -306,6 +359,7 @@ export class GlobeView {
                 texture.magFilter = THREE.LinearFilter;
             }
         );
+<<<<<<< HEAD
         const moonMaterial = new THREE.MeshStandardMaterial({
             map: moonTexture,
             side: THREE.DoubleSide,
@@ -317,6 +371,11 @@ export class GlobeView {
             emissiveMap: moonTexture, // Use texture for emission pattern
             metalness: 0.0,
             roughness: 0.5
+=======
+        const moonMaterial = new THREE.MeshBasicMaterial({
+            map: moonTexture,
+            side: THREE.DoubleSide
+>>>>>>> origin/main
         });
         const moonPlane = new THREE.Mesh(moonGeometry, moonMaterial);
         moonPlane.position.set(0, 0.6, 0); // Above center
@@ -333,6 +392,7 @@ export class GlobeView {
                 texture.magFilter = THREE.LinearFilter;
             }
         );
+<<<<<<< HEAD
         const marsMaterial = new THREE.MeshStandardMaterial({
             map: marsTexture,
             side: THREE.DoubleSide,
@@ -344,6 +404,11 @@ export class GlobeView {
             emissiveMap: marsTexture, // Use texture for emission pattern
             metalness: 0.0,
             roughness: 0.5
+=======
+        const marsMaterial = new THREE.MeshBasicMaterial({
+            map: marsTexture,
+            side: THREE.DoubleSide
+>>>>>>> origin/main
         });
         const marsPlane = new THREE.Mesh(marsGeometry, marsMaterial);
         marsPlane.position.set(0, -0.6, 0); // Below center
@@ -475,8 +540,13 @@ export class GlobeView {
                         }
                     } else {
                         // Earth: use lat/lon coordinates
+<<<<<<< HEAD
                     const lat = variant.lat !== undefined ? variant.lat : event.lat;
                     const lon = variant.lon !== undefined ? variant.lon : event.lon;
+=======
+                        const lat = variant.lat !== undefined ? variant.lat : event.lat;
+                        const lon = variant.lon !== undefined ? variant.lon : event.lon;
+>>>>>>> origin/main
                         position = latLonToVector3(lat, lon, 1.02);
                         targetParent = globe;
                     }
@@ -562,11 +632,14 @@ export class GlobeView {
                     const markers = this.sceneModel.getMarkers();
                     markers.push(marker);
 
+<<<<<<< HEAD
                     // Collect marker for animation (only main variants that are visible)
                     if (isMainVariant && marker.visible) {
                         newMarkers.push(marker);
                     }
 
+=======
+>>>>>>> origin/main
                     // Add pin line for all location types
                     if (isMainVariant) {
                         let linePoints;
@@ -577,9 +650,15 @@ export class GlobeView {
                             const lat = variant.lat !== undefined ? variant.lat : event.lat;
                             const lon = variant.lon !== undefined ? variant.lon : event.lon;
                             linePoints = [
+<<<<<<< HEAD
                             latLonToVector3(lat, lon, 1.0),
                             position
                         ];
+=======
+                                latLonToVector3(lat, lon, 1.0),
+                                position
+                            ];
+>>>>>>> origin/main
                             lineParent = globe;
                         } else if (variantLocationType === 'moon' && moonPlane) {
                             // Moon: line from plane surface (Z=0 in local space) to marker (Z=0.03)
@@ -606,6 +685,7 @@ export class GlobeView {
                         }
                         
                         if (linePoints && lineParent) {
+<<<<<<< HEAD
                             // Set pin line color based on locked state
                             const lineColor = shouldBeLocked ? 0x331100 : markerColor;
                         const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
@@ -624,6 +704,15 @@ export class GlobeView {
                             if (isMainVariant) {
                                 newPinLines.push(line);
                             }
+=======
+                            const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                            const lineMaterial = new THREE.LineBasicMaterial({ color: markerColor });
+                            const line = new THREE.Line(lineGeometry, lineMaterial);
+                            line.userData.isEventMarkerPin = true;
+                            line.userData.marker = marker; // Link line to marker
+                            marker.userData.pinLine = line; // Store pin line reference
+                            lineParent.add(line);
+>>>>>>> origin/main
                         }
                     }
                 });
@@ -727,9 +816,12 @@ export class GlobeView {
                 const markers = this.sceneModel.getMarkers();
                 markers.push(marker);
 
+<<<<<<< HEAD
                 // Collect marker for animation
                 newMarkers.push(marker);
 
+=======
+>>>>>>> origin/main
                 // Add pin line for all location types
                 let linePoints;
                 let lineParent;
@@ -737,9 +829,15 @@ export class GlobeView {
                 if (eventLocationType === 'earth') {
                     // Earth: line from globe surface to marker
                     linePoints = [
+<<<<<<< HEAD
                     latLonToVector3(event.lat, event.lon, 1.0),
                     position
                 ];
+=======
+                        latLonToVector3(event.lat, event.lon, 1.0),
+                        position
+                    ];
+>>>>>>> origin/main
                     lineParent = globe;
                 } else if (eventLocationType === 'moon' && moonPlane) {
                     // Moon: line from plane surface (Z=0 in local space) to marker (Z=0.03)
@@ -766,6 +864,7 @@ export class GlobeView {
                 }
                 
                 if (linePoints && lineParent) {
+<<<<<<< HEAD
                     // Set pin line color based on locked state
                     const lineColor = shouldBeLocked ? 0x331100 : 0xff6600;
                 const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
@@ -782,6 +881,15 @@ export class GlobeView {
                     
                     // Collect pin line for animation
                     newPinLines.push(line);
+=======
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff6600 }); // Orange color
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    line.userData.isEventMarkerPin = true;
+                    line.userData.marker = marker; // Link line to marker
+                    marker.userData.pinLine = line; // Store pin line reference
+                    lineParent.add(line);
+>>>>>>> origin/main
                 }
             }
         });
@@ -929,10 +1037,15 @@ export class GlobeView {
             return Promise.resolve();
         }
         
+<<<<<<< HEAD
         // Collect event markers and their pin lines
         const eventMarkers = [];
         const pinLines = [];
         
+=======
+        // Remove event markers and their pin lines from globe
+        const toRemove = [];
+>>>>>>> origin/main
         globe.traverse((child) => {
             if (child.userData && child.userData.isEventMarker) {
                 eventMarkers.push(child);
@@ -946,7 +1059,11 @@ export class GlobeView {
         if (moonPlane) {
             moonPlane.traverse((child) => {
                 if (child.userData && child.userData.isEventMarker) {
+<<<<<<< HEAD
                     eventMarkers.push(child);
+=======
+                    toRemove.push(child);
+>>>>>>> origin/main
                 }
             });
         }
@@ -955,11 +1072,16 @@ export class GlobeView {
         if (marsPlane) {
             marsPlane.traverse((child) => {
                 if (child.userData && child.userData.isEventMarker) {
+<<<<<<< HEAD
                     eventMarkers.push(child);
+=======
+                    toRemove.push(child);
+>>>>>>> origin/main
                 }
             });
         }
         
+<<<<<<< HEAD
         // If no markers to remove, return immediately
         if (eventMarkers.length === 0 && pinLines.length === 0) {
             return Promise.resolve();
@@ -1036,6 +1158,13 @@ export class GlobeView {
                             if (obj.parent) {
                                 obj.parent.remove(obj);
                             }
+=======
+        // Remove all found markers
+        toRemove.forEach(obj => {
+            if (obj.parent) {
+                obj.parent.remove(obj);
+            }
+>>>>>>> origin/main
             if (obj.geometry) obj.geometry.dispose();
             if (obj.material) obj.material.dispose();
         });
@@ -1114,12 +1243,20 @@ export class GlobeView {
             // Filters are already applied during addEventMarkers, but call applyFilters
             // to ensure consistency and update number buttons
         this.applyFilters();
+<<<<<<< HEAD
             
             // Update plane visibility based on current page events
             if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
                 window.globeController.updatePlaneVisibility();
             }
         });
+=======
+        
+        // Update plane visibility based on current page events
+        if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
+            window.globeController.updatePlaneVisibility();
+        }
+>>>>>>> origin/main
     }
     
     /**
@@ -1634,7 +1771,11 @@ export class GlobeView {
             
             const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
             tube.userData.isSeaportConnectionLine = true;
+<<<<<<< HEAD
             tube.visible = false; // Hide seaport connection lines
+=======
+            tube.visible = false; // Hide red lines (debug only)
+>>>>>>> origin/main
             globe.add(tube);
         });
     }

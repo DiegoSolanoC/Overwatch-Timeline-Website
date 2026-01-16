@@ -201,9 +201,15 @@ export class TransportView {
         // Toggle connection lines and marker pins visibility
         scene.traverse((object) => {
             if (object.userData) {
+<<<<<<< HEAD
                 // Seaport connection lines, markers, and pins always hidden
                 if (object.userData.isSeaportConnectionLine || object.userData.isSeaportMarker || object.userData.isSeaportMarkerPin) {
                     object.visible = false;
+=======
+                // Keep seaport markers, pins, and connection lines always hidden (debug only)
+                if (object.userData.isSeaportMarker || object.userData.isSeaportMarkerPin || object.userData.isSeaportConnectionLine) {
+                    object.visible = false; // Always hidden
+>>>>>>> origin/main
                 } else if (object.userData.isEventMarkerPin) {
                     // Event marker pins should always be visible
                     object.visible = true;

@@ -676,8 +676,14 @@
       "lon": 6.1288847
     },
     {
+<<<<<<< HEAD
       "name": "Upgrades",
       "locationType": "earth",
+=======
+      "name": "Callsign Sojourn",
+      "lat": 43.6534817,
+      "lon": -79.3839347,
+>>>>>>> origin/main
       "cityDisplayName": "Toronto, Canada",
       "description": "Vivian went on to live a turbulent life due to her many cybernetics. While the technology was miraculous, and had become fairly common, it was still met with discrimination and backlash from many over the years. Notoriously, cybernetics would be outright banned from major athletic competitions, due to the very clear advantage these gave to their users.\n\nConversely, cybernetics also opened doors for many, as the enhance abilities and modifications to equipment made cybernetics very appealing to armed forces around the world. Dr. Esat herself objected against the weaponizing of her technology, as she intended for it to save lives, but that did not stop the Canadian Military from admitting enhanced soldiers into their ranks.\n\n Vivian enlisted at the age of 16, coming from a family of veterans, she developed a fascination for the military. She served in the primary reserves and graduated with a BA in Psychology and a MA in Political Science, later pursuing the Canadian Special Forces",
       "image": "",
@@ -790,7 +796,11 @@
       "name": "Tekhartha Zenyatta is Made",
       "locationType": "earth",
       "cityDisplayName": "Detroit, United States",
+<<<<<<< HEAD
       "description": "On July 14TH of 2025, Tekhartha Zenyatta would be created. As Omnica corporation ramped up production into domestic and public use Omnic Units, the machines became more and more multi purpose and standarized. Little is known about Zenyatta's past before the crisis, his many jobs or factory of origin often change between each time the tale is told, but as it is the case for many of his fellow Omnics, his true life would not quite start yet, until the day of the Awakening",
+=======
+      "description": "",
+>>>>>>> origin/main
       "image": "",
       "filters": [
         "Zenyatta"
@@ -833,6 +843,7 @@
       "filters": [
         "Sombra"
       ],
+<<<<<<< HEAD
       "factions": [],
       "sources": [
         {
@@ -842,12 +853,19 @@
       ],
       "lat": 18,
       "lon": -95
+=======
+      "factions": []
+>>>>>>> origin/main
     },
     {
       "name": "Specimen 28 is Born",
       "locationType": "earth",
       "cityDisplayName": "Congo Basin, Democratic Republic of the Congo",
+<<<<<<< HEAD
       "description": "On June 6th of 2047, Specimen 28, later known as Winston was Born. He was selected, alongside other Silverback Gorillas to joing a captive colony of varied primates, that was to live on the Horizon Lunar Colony to aid in research and genetic experimentation. Specimen 28 displayed rapid brain development following the procedures, far more than any of their peers, and was taken under the wing of Dr. Harold Winston, who would  teach him of science and tales of humanity, nurishing the gorilla's young developing mind with an inmense curiosity for the blue marble outside of his habitat window.",
+=======
+      "description": "",
+>>>>>>> origin/main
       "image": "",
       "filters": [
         "Winston"
@@ -864,9 +882,16 @@
     },
     {
       "name": "The Ironclad Guild",
+<<<<<<< HEAD
       "locationType": "earth",
       "cityDisplayName": "Gothenburg, Sweden",
       "description": "Following his involvement in the STT Laboratories, Torbjörn would join many of his fellow engineers  and found the Ironclad Guild, a Workshop meant for inventors to come together, and discuss their craft openly, sharing resources, techniques and tools to later develop their fields independently. Their mission was to create invantions that would improve the world, and become available to anyone who needs them, without restrictive patents.\n\nOvertime however the guildwould attract many politically minded members, Torbjörn himself included. During his time on Ironclad Lindholm wouldwork on the Titan units, meant for peacekeeping and defense, much like his previous work on the Bastion units. But following his work on these robots, he would begin to speak publicly against the growing relliance on Omnics and God AI, highlighting that robots were merely tools, and that needless complication could risk humanity's future. Lindholm wasn't alone, as many other members of the guild felt the same and advocated for lobbying against Omnica Corporation, while more moderates argued for better guardrails, Lindholm was particularly pasionate about the topic. and his words would become poison for his career.\n\nMany members of the guild would become ostracized from their fields over theri views, and siding with Lindholm was seen as career suicide. Torbjörn would return home, to decicate himself to raising his family with his now wife, Ingrid. As the world moved forward into developing Omnics, away from his warnings",
+=======
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "",
+>>>>>>> origin/main
       "image": "",
       "filters": [
         "Torbjörn",
@@ -880,15 +905,23 @@
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
+<<<<<<< HEAD
       ],
       "lat": 57.7072326,
       "lon": 11.9670171
+=======
+      ]
+>>>>>>> origin/main
     },
     {
       "name": "Odessa Stone is Born",
       "locationType": "earth",
       "cityDisplayName": "The Outback, Australia",
+<<<<<<< HEAD
       "description": "On June 14th of 2047, Odessa Stone was Born in a small outback settlement. She was one of six children, often fighting to prove her dominance. The life of the Stones would be marked by the crisis, and specially by the events that followed with the Australian government.",
+=======
+      "description": "",
+>>>>>>> origin/main
       "image": "",
       "filters": [],
       "factions": [],
@@ -903,9 +936,16 @@
     },
     {
       "name": "Genesis",
+<<<<<<< HEAD
       "locationType": "earth",
       "cityDisplayName": "Detroit, United States",
       "description": "Over the years Omnica Corporation had been caught underfire for many issues. bewtween the heavy criticism of the Ironclad guild, to the massive spending and broken promises that came with many Omniums, and to top it off, they had reached a point of near perfection with their Omnic designs, where their models would barely every break down and most of the public willing to buy an omnic already owned them.  The company was in need for a big idea,one that oculd get save them from collapse, and the answer to their troubles seemed to be Mina Liao.\n\n\nDr. Mina Liao was a prodigy and pioneer of neuroplastic artificial intelligence that had built continous innovations in the field. She was selected by Omnica to  develop the most advance AI the world had ever seen. Liao's work was both revolutionary and controversial, as many feared this was pushing boundaries too far, but in the end she would reveal Omnica's crowning achievement, with the birth of Aurora.\n\nLiao argued that their newest Omnic was fully sentient, and capable of human level cognition. While there were many skeptics, the robot passed every test they could think of. Confident in their discovery and understanding the moral issues with monetizing it, Liao tookit upon herself to not just proof her sentient, but to pursue personhood.\n\nAfter a long legal battle and international controversy, an international court would declare Aurora as sentient, and grand her full civil rights. Liao helped to cement Omnica's dominance as the unstopable leader in robotic innovation but in doing so, she brought even more negative press and expenses for the company, ultimately being the cause of their downfall",
+=======
+      "lat": 42.3315509,
+      "lon": -83.0466403,
+      "cityDisplayName": "Detroit, United States",
+      "description": "",
+>>>>>>> origin/main
       "image": "",
       "filters": [
         "Echo"
@@ -919,14 +959,19 @@
           "text": "Overwatch Genesis, Part one: Dawn",
           "url": "https://www.youtube.com/watch?v=PIYMn8eDskg"
         }
+<<<<<<< HEAD
       ],
       "lat": 42.3315509,
       "lon": -83.0466403
+=======
+      ]
+>>>>>>> origin/main
     },
     {
       "name": "New Horizons",
       "locationType": "moon",
       "cityDisplayName": "Horizon Lunar Colony",
+<<<<<<< HEAD
       "description": "At last, after years of development and research, Lucheng was able to finish the construction of the fully funcitonal Horizon Lunar Colony. The base became the home of a colony of primates and other animals, to use for the study of long term effects of low gravity, hoping this would prepare humanity for future trips into the stars.\n\nThe Apes underwent many genetic treatments that would increase their size, and along it their strenght and intelligence, and a group of scientists in the base dedicated themselves to observing and teaching the primates to solve complex problems far beyond the capabilities of their counterparts back on Earth.\n\nIn its heyday, many prominent scientists would become temporary residents at Horizon, including Dr. Siebren de Kuiper, who spent whole year at the base continuing his studies on gravity and providing advice for the staff. De Kuiper credits his time at the colony for much of his reseach's findings.\nSiebre's time at Horizon overlapped with Victoria Naughton, a geneticist later responsible for the Soldier Enhancement Program. Other Scientists like Dr Ainar Omarov visited the colony, whose optical technologies are still used in monitoring systems.",
       "image": "",
       "filters": [
@@ -942,6 +987,12 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+=======
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "x": 60,
       "y": 70
     },
@@ -951,6 +1002,7 @@
       "variants": [
         {
           "name": "Answers",
+<<<<<<< HEAD
           "description": "After gaining personhood Aurora was let go into the world. She was a curious soul who wondered from place to place, learning of humanity, their history and the way people across the planet behave. But deep down Aurora always had questions about her own existance. \n\nBeing born alone, unlike anybody else in the world was a heavy thought in her mind, and that existentialism let her to a path of meditation. She traveled throught the Himalayan mountains and found the Ancient monk temple of Shambali, where she hoped to find peace with herself",
           "filters": [],
           "factions": [
@@ -966,6 +1018,11 @@
               "url": "https://www.youtube.com/watch?v=PIYMn8eDskg"
             }
           ],
+=======
+          "description": "",
+          "filters": [],
+          "factions": [],
+>>>>>>> origin/main
           "image": "",
           "locationType": "earth",
           "lat": 28.3949,
@@ -974,12 +1031,18 @@
         },
         {
           "name": "Collaterate Damage",
+<<<<<<< HEAD
           "description": "Following Aurora's trials and the many controversies they had found themselves in, from acussations of fraud and many protests from locals who were affected by the Omniums, as well as critics of Aurora's research, Omnica found itself with no other option, than bankrupcy.\n\nThe Company shut down all operations, but decided to keep ownership of their Omnium factories. Full decomissioning of the factories proved to be a logistical nightmare, and many people at the Company remained hopeful that one day they would be able to use them again, so in the end Omnica left the world with giant empty shells, ghostly facilities that went unsued for years\n\nBy Humans, anyway",
           "filters": [],
           "factions": [
             "05Omnica",
             "06Crisis"
           ],
+=======
+          "description": "",
+          "filters": [],
+          "factions": [],
+>>>>>>> origin/main
           "image": "",
           "locationType": "earth",
           "lat": 42.3315509,
@@ -991,6 +1054,7 @@
       "lon": 84.124
     },
     {
+<<<<<<< HEAD
       "name": "A Grasping Talon",
       "locationType": "earth",
       "cityDisplayName": "Venice, Italy",
@@ -1016,6 +1080,12 @@
       "locationType": "earth",
       "cityDisplayName": "Chiang Mai City, Thailand",
       "description": "On April 28 of 2048, Niran Pruksamanee is Born in the city of Chiang Mai. As the middle child of a wealthy family, he had his life planned and high expectations to fullfill, although the young Niran would resist this structure by wondering through their compound's gardens and mending plants alongside their gardeners\n\nHe was too intelligent for the expensive schools his family chose for him, completing assignments more thoroughly than needed and annoying his teachers, which caused his parents to get frustrated and continue to attempt to install order in his life",
+=======
+      "name": "Niran Pruksamanee is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Chiang Mai City, Thailand",
+      "description": "",
+>>>>>>> origin/main
       "image": "",
       "filters": [],
       "factions": [],
@@ -1032,6 +1102,7 @@
       "name": "Knights in Shining Armor",
       "locationType": "earth",
       "cityDisplayName": "Berlin, Germany",
+<<<<<<< HEAD
       "description": "As robotics took over most forms of labor, Germany wanted to prevent unemployment, so they began developing sector yet touched by AI. One of these areas was marine exploration, as the government began backing the develpoing of exoskeletal diving suits developed by Leon Honisch, an Oceanologist that dedicated to explore the North Sea. This invention caught the attention of the  military.\n\nMajor Greta Klein approached Honish with an initiative, to modify his  Robo-Tauchanzug design into equipment for their soldiers, as the suits were design to withstand heavy pressures and damage. Alongside them, Emillia Fischer was called to improve the design for combat use. Fischer was one of the early hard-light architects, one of many that took Vishkar's technology into new boundaries. Fischer had used it before to enahnce the shildings of fusion reactors, and when called into the initiative, she adapted this technolgy into hardlight barriers, capable of taking consistent damage, and regenerating after breaking, with the pair on board, the Crusader armors were born.\n\nWhile he had been lured into the project, Honisch argued that the move might not be taken kindly abroad, given the country's military history, although Fischer argued that in spite of the controversy that re militarization could cause, Germany needed a means to defend itself if it came to it. During development the pair found a compromise, and with it the Crusaders were reframed as defenders of the country, rather than a weapon of war.\n\nThey redesigned their armors to resemble that of fabled knights, and with the help of local artisans, heavily decorated them to be used in parades and boost support among the public. The Crusaders became a source of cultural pride for Germany, even if it meant they would be on stand by for the time being",
       "image": "",
       "filters": [
@@ -1044,6 +1115,12 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+=======
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": 52.5173885,
       "lon": 13.3951309
     },
@@ -1051,7 +1128,11 @@
       "name": "Satya Vaswani is Born",
       "locationType": "earth",
       "cityDisplayName": "Hyderabad, India",
+<<<<<<< HEAD
       "description": "On October 2nd of 2048, Satya Vaswani was born, growing in poverty in the slums of Hyderbad, living in a crowded village where hunger was a constant issue, feeling powerless, and afraid, she often found refuge in dancing, to calm her anxiety.",
+=======
+      "description": "",
+>>>>>>> origin/main
       "image": "",
       "filters": [],
       "factions": [],
@@ -1068,6 +1149,7 @@
       "name": "To Build a Better Soldier",
       "locationType": "earth",
       "cityDisplayName": "Camp Hale, United States",
+<<<<<<< HEAD
       "description": "Following her return form the Lunar Colony, Victoria Naughton was chosen to spearhead America's Soldier Enhancement program. The Australian marine evolutionary biologist focused on gene therapy, looking to enhance the mental progresison, speed and strenght of the test subjects, which caught attention of the government, and with that came more funding. Her research with the apes at the Lunar Colony was showing promising results, which lead to the approval of codename: Project Naughton, and an expanded laboratory in Camp Hale. The project was highly classified and didn't see human testings until years later during the crisis, as the moral questions and public preference to cybernetics prevented Naughton from reachingresults faster",
       "image": "",
       "filters": [
@@ -1081,12 +1163,19 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+=======
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": 39.475518,
       "lon": -106.1177077
     },
     {
       "name": "Aleksandra Zaryanova is Born",
       "locationType": "earth",
+<<<<<<< HEAD
       "cityDisplayName": "Novoanskoye, Russia",
       "description": "On December 4th of 2048. Aleksandra Zaryanova is born in the small Siberian village of Novoanskoye. near the shadow of a remote Omnium. Her father would sadly die during the Omnic Crisis, which made Aleksandra determine to gain the strengh needed to protect her love ones. Her resolve would lead her to pursue body building and become a professional weightlifter, with the talen and strength to compete internationally an become a record shadering star in the field, and a source of pride to all of Russia",
       "image": "",
@@ -1100,6 +1189,13 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/zarya/"
         }
       ],
+=======
+      "cityDisplayName": "Novanskoye, Russia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": 60,
       "lon": 100
     },
@@ -1107,6 +1203,7 @@
       "name": "Lena Oxton is Born",
       "locationType": "earth",
       "cityDisplayName": "London, England",
+<<<<<<< HEAD
       "description": "On February 17th of 2049, Lena Oxton was Born. to a working class family in london, raised to know her enemies and her worth in equal measure and to never conform to what people believed she was supposed to be like. From an early age she would develop a love for rock music and a rebellious, party going personality, always on the move. Chasing adrenaline and a way to put it to use, she enrolled as a pilot in training at a young age with the help of her father, and eventually went on to enlist on the Royal Air Force",
       "image": "",
       "filters": [
@@ -1119,6 +1216,12 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/tracer/"
         }
       ],
+=======
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": 51.5074456,
       "lon": -0.1277653
     },
@@ -1126,6 +1229,7 @@
       "name": "Marzia Bartalotti is Born",
       "locationType": "earth",
       "cityDisplayName": "Rome, Italy",
+<<<<<<< HEAD
       "description": "On February 15th of 2050, Marzia Bartalotti was born to the promise of great power, being the sole daugther of Antonio Bartalotti, a notorious Arm dealer in Rome, and a key figure in the rising Talon council. Marzia found a sense of pride in her heritage and grew up expecting to take over her father, even if he wished a differnet life for her. Her temperament found her few friends when growing up, and constant clashes with his father's decisions and management, as his choices lead to the lost of her mother at an early age.\n\nFrustrated that her father's decisions and hubris could risk her own future, she dedicated her youth to studying the business, and preparing to take over his empire",
       "image": "",
       "filters": [
@@ -1138,6 +1242,12 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/vendetta/"
         }
       ],
+=======
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": 41.8933203,
       "lon": 12.4829321
     },
@@ -1145,6 +1255,7 @@
       "name": "Playing God",
       "locationType": "earth",
       "cityDisplayName": "Cairo, Egypt",
+<<<<<<< HEAD
       "description": "Over the years technology had made life much easier for people around the globe, and had helped reduce the impact of climate change, to a point most nations began to take their stability for granted. taking a step back in monitoring and funding of these enviromental programs. With this laxxed approach, much of the weight on the task of enviromentalism felt to the God Ais and the staff behind them that personified them almost as coworkers.\n\nAnubis, the God Ai in Cairo was in charge of life preservation, and was one of the most advance machines on the planet, Data studies of the team showed the AI had been consistently struggling to fullfill its tasks, and the recent international conferenceson the matter would often lead to further innaction. Two weeks after the conferences, there was a ventilation accident in the Cairo facility, cutting air circulation amd sealing the staff inside their facilities. With the entire team soffocated, Anubis was left entirely alone, to make decisions without human supervision.\n\nIn the months it spent free of any staff, the God AI reached the conclusion that preserving theenviroment and the survival of humanity were mutually exclusive tasks, and chose to prioritize conservation over mankind. The God Program managed to infiltrate pass the security of multiple abandoned Omniums across the globe, and began the mass production of war machines, preparing to enact his genocide",
       "image": "",
       "filters": [],
@@ -1157,6 +1268,12 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+=======
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": 30.0443879,
       "lon": 31.2357257
     },
@@ -1164,6 +1281,7 @@
       "name": "Lúcio Correia Dos Santos",
       "locationType": "earth",
       "cityDisplayName": "Rio de Janeiro, Brazil",
+<<<<<<< HEAD
       "description": "On March 20th of 2051, Lúcio Correia dos Santos  is born in Rio de Janeiro, growing up in a poor and crowded favela that would be hit had by the financial upheaval of the Crisis. As his country recovered, he would often try to lift people's spirits through the power of music, using it to bring people together and make them forget their troubles, even if only for a short time. The young man would often perform in the streets, and at block parties, eventually growing up to beocme an underground celebrity, hosting larger shows",
       "image": "",
       "filters": [
@@ -1176,12 +1294,19 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/lucio/"
         }
       ],
+=======
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": -22.9110137,
       "lon": -43.2093727
     },
     {
       "name": "The Lagos Attack",
       "locationType": "earth",
+<<<<<<< HEAD
       "cityDisplayName": "Lagos, Nigeria",
       "description": "Before the full on war began, Anubis first tested his plan on a smaller scale. On the first day of the crisis, Anubis launched a coordinated attack on Lagos, coming form the Nigerian Omnium. As the attack pushed further in, domestic Omnic units began to attack civilians, and since most of the services and communications were handled by machines, the flow of information to the outside world was nearly non existent.\n\nThe international community turned its eyes on Nigeria with fear and confusion, only to be caught by surprise the same way soon after. Many believed this to be an isolated attack and thus humanity was completely unprepared for what came next. Within eighteen hours of the initial attack, Anubis began to seize control of domestic robots across the planet, and deployed massive waves of warbots towards major population centers. Chaos reigned everywhere, and many nations began pointing fingers at each othe,r with at least five confirmed nuclear powers preparing counter attacks, the world was minutes away from nuclear obliteration before intelligence operatives realized the attacks were happening globally and not orchestrated by a single nation. \n\nAs the Omnics gained ground across rural and suburban areas, many of the world's wealthiest elites began to retreat into prebuilt doomsday bunkers, which  feed conspiracy theorist and distrust among the people. The bunkers themselves were largely innefective however, as a majority of them would sooner or later be destroyed by Anubis forces, and few of these structures remained strong by the end of the Crisis",
       "image": "",
@@ -1195,6 +1320,13 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+=======
+      "cityDisplayName": "Lagos, Lagos Island, Lagos State, 100242, Nigeria",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+>>>>>>> origin/main
       "lat": 6.4550575,
       "lon": 3.3941795
     },

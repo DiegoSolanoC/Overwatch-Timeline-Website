@@ -487,7 +487,10 @@ export class GlobeController {
     /**
      * Update Moon/Mars plane visibility based on current page events
      * Planes are shown only if the current page has at least one event on that plane
+<<<<<<< HEAD
      * Animates panels with vertical scaling (squash/stretch effect)
+=======
+>>>>>>> origin/main
      */
     updatePlaneVisibility() {
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
@@ -498,9 +501,14 @@ export class GlobeController {
         }
         
         if (!this.dataModel) {
+<<<<<<< HEAD
             // Animate out if no data model
             this.animatePlaneScale(moonPlane, false);
             this.animatePlaneScale(marsPlane, false);
+=======
+            moonPlane.visible = false;
+            marsPlane.visible = false;
+>>>>>>> origin/main
             return;
         }
         
@@ -532,6 +540,7 @@ export class GlobeController {
             }
         });
         
+<<<<<<< HEAD
         // Animate planes based on whether they have events on current page
         this.animatePlaneScale(moonPlane, hasMoonEvent);
         this.animatePlaneScale(marsPlane, hasMarsEvent);
@@ -645,6 +654,15 @@ export class GlobeController {
         };
         
         requestAnimationFrame(animate);
+=======
+        // Show/hide planes based on whether they have events on current page
+        moonPlane.visible = hasMoonEvent;
+        marsPlane.visible = hasMarsEvent;
+        
+        // Force update (sometimes needed for Three.js)
+        moonPlane.updateMatrix();
+        marsPlane.updateMatrix();
+>>>>>>> origin/main
     }
 
     /**

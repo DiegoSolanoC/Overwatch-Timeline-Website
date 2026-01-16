@@ -1804,6 +1804,7 @@ async function loadMenu() {
             });
             updateStatus('✓ Global Timeline button listener added', 'success');
         }
+<<<<<<< HEAD
         
         // Only setup listeners for Glossary and Biography if buttons exist (not on GitHub Pages)
         if (!isGitHubPages) {
@@ -1840,6 +1841,37 @@ async function loadMenu() {
                 });
                 updateStatus('✓ Character Bios button listener added', 'success');
             }
+=======
+        if (typeof runGlossaryComponents === 'function') {
+            glossaryBtn.addEventListener('click', async function() {
+                // Show overlay SYNCHRONOUSLY before any async operations
+                isRunOperation = true;
+                showLoadingOverlay();
+                try {
+                    await runGlossaryComponents();
+                } catch (error) {
+                    console.error('Error in runGlossaryComponents:', error);
+                    isRunOperation = false;
+                    hideLoadingOverlay();
+                }
+            });
+            updateStatus('✓ Concept Glossary button listener added', 'success');
+        }
+        if (typeof runBiographyComponents === 'function') {
+            biographyBtn.addEventListener('click', async function() {
+                // Show overlay SYNCHRONOUSLY before any async operations
+                isRunOperation = true;
+                showLoadingOverlay();
+                try {
+                    await runBiographyComponents();
+                } catch (error) {
+                    console.error('Error in runBiographyComponents:', error);
+                    isRunOperation = false;
+                    hideLoadingOverlay();
+                }
+            });
+            updateStatus('✓ Character Bios button listener added', 'success');
+>>>>>>> origin/main
         }
         
         loadedComponents.menu = true;

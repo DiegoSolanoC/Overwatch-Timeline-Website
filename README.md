@@ -66,6 +66,7 @@ Make sure these files are in your repository root:
 - `styles.css` - Main stylesheet
 
 ### 3. Access Your Site
+<<<<<<< HEAD
 
 After enabling GitHub Pages, your site will be available at:
 ```
@@ -132,5 +133,72 @@ Original work by Blizzard Entertainment. This project is for educational/non-com
 
 - **Three.js**: 3D graphics library
 - **Overwatch**: Original game and lore by Blizzard Entertainment
+=======
 
+After enabling GitHub Pages, your site will be available at:
+```
+https://<your-username>.github.io/<repository-name>/
+```
+
+For example:
+```
+https://username.github.io/Timeline-Overwatch/
+```
+
+### 4. Important Notes for GitHub Pages
+
+- **Edit Mode**: The application automatically detects when running on GitHub Pages and disables edit/delete functionality for events. This prevents users from modifying data on the live site.
+- **Local Storage**: User preferences (color palette, music state) are saved in browser localStorage and will persist across sessions.
+- **Event Data**: Events are loaded from `data/events.json`. On GitHub Pages, users can view events but cannot edit them (edit buttons are hidden).
+- **File Paths**: All file paths are relative, so they work correctly on both localhost and GitHub Pages.
+
+## Project Structure
+
+```
+Timeline-Overwatch/
+├── index.html          # Main entry point (GitHub Pages)
+├── main.html           # Main application page
+├── test.html           # Test/development page
+├── map.html            # Map view
+├── 404.html            # GitHub Pages 404 handler
+├── styles.css          # Main stylesheet
+├── script.js           # Main application script
+├── test-loader.js      # Component loader
+├── server.js            # Local development server
+├── package.json         # Node.js dependencies
+├── data/                # JSON data files
+│   ├── events.json
+│   ├── locations.json
+│   └── connections.json
+├── controllers/         # Application controllers
+├── models/              # Data models
+├── views/               # View components
+├── utils/               # Utility functions
+├── js/                  # Additional JavaScript
+├── Music/               # Music files
+├── Music Icons/         # Music icons
+├── Event Images/        # Event images
+├── Icons/               # Application icons
+├── Misc/                # Miscellaneous assets
+└── Models3D/            # 3D model files
+```
+
+## Browser Compatibility
+
+- Chrome/Edge (recommended)
+- Firefox
+- Safari
+- Opera
+
+Note: Some features may require modern browser support for ES6 modules and WebGL.
+
+## License
+
+Original work by Blizzard Entertainment. This project is for educational/non-commercial use.
+
+## Credits
+>>>>>>> origin/main
+
+- **Three.js**: 3D graphics library
+- **Overwatch**: Original game and lore by Blizzard Entertainment
 

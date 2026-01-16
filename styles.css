@@ -927,6 +927,13 @@ body.color-palette-gray .event-slide-content h2 {
     line-height: 1.4;
     cursor: pointer;
     transition: color 0.2s ease;
+<<<<<<< HEAD
+=======
+}
+
+.event-slide-location:hover {
+    color: rgba(255, 255, 255, 0.9);
+>>>>>>> origin/main
 }
 
 .event-slide-location:hover {

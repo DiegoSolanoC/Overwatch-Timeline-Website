@@ -28,6 +28,7 @@
             left: 0;
             right: 0;
             bottom: 0;
+<<<<<<< HEAD
             z-index: 1; /* Lower than buttons */
             pointer-events: none; /* Allow clicks to pass through to buttons */
         }
@@ -35,6 +36,8 @@
         /* Allow pointer events on test-container children */
         .test-container > * {
             pointer-events: auto;
+=======
+>>>>>>> origin/main
         }
         
         /* Globe container should take full space when visible */
@@ -321,6 +324,7 @@
         <div class="event-slide" id="eventSlide">
             <div class="event-slide-close" id="eventSlideClose">&times;</div>
             <div class="event-slide-content" id="eventSlideContent">
+<<<<<<< HEAD
                 <div class="event-slide-top" id="eventSlideTop">
                     <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
                     <h2 id="eventSlideTitle">Event</h2>
@@ -328,6 +332,15 @@
                 </div>
                 <div class="event-slide-scrollable" id="eventSlideScrollable">
                     <p id="eventSlideText">Placeholder text for event information.</p>
+=======
+                <div class="event-slide-scrollable" id="eventSlideScrollable">
+                    <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                    <h2 id="eventSlideTitle">Event</h2>
+                    <p id="eventSlideLocation" class="event-slide-location" style="display: none;"></p>
+                    <p id="eventSlideText">Placeholder text for event information.</p>
+                </div>
+                <div class="event-slide-bottom" id="eventSlideBottom">
+>>>>>>> origin/main
                     <div class="event-sources-section" id="eventSourcesSection" style="display: none;">
                         <h4 class="event-filter-header">Sources:</h4>
                         <div class="event-sources-list" id="eventSourcesList"></div>
@@ -335,8 +348,11 @@
                     <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
                         <div class="event-filters-list" id="eventFiltersList"></div>
                     </div>
+<<<<<<< HEAD
                 </div>
                 <div class="event-slide-bottom" id="eventSlideBottom">
+=======
+>>>>>>> origin/main
                     <div class="event-control-buttons">
                         <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
                         <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
