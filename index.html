@@ -284,6 +284,89 @@
                 font-size: 16px;
             }
         }
+        
+        /* Zoom Controls */
+        .zoom-controls {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 150; /* Above globe but below event slide (200) and overlays */
+            pointer-events: none; /* Allow clicks to pass through container */
+        }
+        
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(13, 71, 161, 0.9);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            pointer-events: auto; /* Enable clicks on buttons */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            user-select: none;
+            line-height: 1;
+        }
+        
+        .zoom-btn:hover:not(:disabled) {
+            background: rgba(13, 71, 161, 1);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .zoom-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        
+        .zoom-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Gray palette: gray zoom buttons */
+        body.color-palette-gray .zoom-btn {
+            background: rgba(74, 74, 74, 0.9) !important;
+        }
+        
+        body.color-palette-gray .zoom-btn:hover:not(:disabled) {
+            background: rgba(74, 74, 74, 1) !important;
+        }
+        
+        .zoom-in-btn {
+            order: 1; /* + button on top */
+        }
+        
+        .zoom-out-btn {
+            order: 2; /* - button on bottom */
+        }
+        
+        /* Hide zoom controls initially */
+        .zoom-controls {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Show zoom controls when visible */
+        .zoom-controls.visible {
+            opacity: 1;
+        }
+        
+        .zoom-controls .zoom-btn {
+            pointer-events: auto; /* Buttons are clickable */
+        }
     </style>
 </head>
 <body>
@@ -294,6 +377,11 @@
     <div class="layout-container">
         <main id="content">
             <div id="globe-container"></div>
+            <!-- Zoom Controls -->
+            <div class="zoom-controls" id="zoomControls">
+                <button class="zoom-btn zoom-in-btn" id="zoomInBtn" title="Zoom In">+</button>
+                <button class="zoom-btn zoom-out-btn" id="zoomOutBtn" title="Zoom Out">−</button>
+            </div>
         </main>
 
         <nav class="sidebar" id="sidebar">
@@ -596,6 +684,81 @@
                     }
                 }, 500); // Small delay after Universal Features start
             }, 500); // Small delay to ensure test-loader.js is loaded
+        });
+        
+        // Zoom controls visibility logic
+        window.addEventListener('DOMContentLoaded', () => {
+            const globeContainer = document.getElementById('globe-container');
+            const testContainer = document.getElementById('testContainer'); // Dynamically created by loadMenu()
+            const zoomControls = document.getElementById('zoomControls');
+            const zoomInBtn = document.getElementById('zoomInBtn');
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
+            
+            if (zoomInBtn && zoomOutBtn) {
+                zoomInBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.globeController && window.globeController.interactionController) {
+                        window.globeController.interactionController.zoomIn();
+                    }
+                });
+                zoomOutBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.globeController && window.globeController.interactionController) {
+                        window.globeController.interactionController.zoomOut();
+                    }
+                });
+            }
+            
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class' || mutation.attributeName === 'style') {
+                        const isGlobeLoaded = globeContainer && globeContainer.classList.contains('loaded');
+                        const isMenuHidden = testContainer && (testContainer.style.display === 'none' || testContainer.style.opacity === '0');
+                        
+                        if (zoomControls) {
+                            if (isGlobeLoaded && isMenuHidden) {
+                                zoomControls.classList.add('visible');
+                            } else {
+                                zoomControls.classList.remove('visible');
+                            }
+                        }
+                    }
+                });
+            });
+            
+            if (globeContainer) {
+                observer.observe(globeContainer, { attributes: true });
+            }
+            // Need to observe testContainer once it's created
+            const contentObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        const newTestContainer = document.getElementById('testContainer');
+                        if (newTestContainer) {
+                            observer.observe(newTestContainer, { attributes: true, attributeFilter: ['style'] });
+                            contentObserver.disconnect(); // Stop observing content once testContainer is found
+                        }
+                    }
+                });
+            });
+            const mainContent = document.getElementById('content');
+            if (mainContent) {
+                contentObserver.observe(mainContent, { childList: true });
+            }
+        });
+        
+        // Cleanup on page unload to prevent memory leaks and freezing
+        window.addEventListener('beforeunload', () => {
+            if (window.globeController) {
+                window.globeController.destroy();
+            }
+        });
+        
+        // Also handle pagehide (more reliable for mobile)
+        window.addEventListener('pagehide', () => {
+            if (window.globeController) {
+                window.globeController.destroy();
+            }
         });
     </script>
 </body>
