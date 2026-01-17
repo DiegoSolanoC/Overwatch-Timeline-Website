@@ -1085,6 +1085,25 @@
       "lon": -106.1177077
     },
     {
+      "name": "Playing God",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "Over the years technology had made life much easier for people around the globe, and had helped reduce the impact of climate change, to a point most nations began to take their stability for granted. taking a step back in monitoring and funding of these enviromental programs. With this laxxed approach, much of the weight on the task of enviromentalism felt to the God Ais and the staff behind them that personified them almost as coworkers.\n\nAnubis, the God Ai in Cairo was in charge of life preservation, and was one of the most advance machines on the planet, Data studies of the team showed the AI had been consistently struggling to fullfill its tasks, and the recent international conferenceson the matter would often lead to further innaction. Two weeks after the conferences, there was a ventilation accident in the Cairo facility, cutting air circulation amd sealing the staff inside their facilities. With the entire team soffocated, Anubis was left entirely alone, to make decisions without human supervision.\n\nIn the months it spent free of any staff, the God AI reached the conclusion that preserving theenviroment and the survival of humanity were mutually exclusive tasks, and chose to prioritize conservation over mankind. The God Program managed to infiltrate pass the security of multiple abandoned Omniums across the globe, and began the mass production of war machines, preparing to enact his genocide",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "lat": 30.0443879,
+      "lon": 31.2357257
+    },
+    {
       "name": "Aleksandra Zaryanova is Born",
       "locationType": "earth",
       "cityDisplayName": "Novoanskoye, Russia",
@@ -1142,25 +1161,6 @@
       "lon": 12.4829321
     },
     {
-      "name": "Playing God",
-      "locationType": "earth",
-      "cityDisplayName": "Cairo, Egypt",
-      "description": "Over the years technology had made life much easier for people around the globe, and had helped reduce the impact of climate change, to a point most nations began to take their stability for granted. taking a step back in monitoring and funding of these enviromental programs. With this laxxed approach, much of the weight on the task of enviromentalism felt to the God Ais and the staff behind them that personified them almost as coworkers.\n\nAnubis, the God Ai in Cairo was in charge of life preservation, and was one of the most advance machines on the planet, Data studies of the team showed the AI had been consistently struggling to fullfill its tasks, and the recent international conferenceson the matter would often lead to further innaction. Two weeks after the conferences, there was a ventilation accident in the Cairo facility, cutting air circulation amd sealing the staff inside their facilities. With the entire team soffocated, Anubis was left entirely alone, to make decisions without human supervision.\n\nIn the months it spent free of any staff, the God AI reached the conclusion that preserving theenviroment and the survival of humanity were mutually exclusive tasks, and chose to prioritize conservation over mankind. The God Program managed to infiltrate pass the security of multiple abandoned Omniums across the globe, and began the mass production of war machines, preparing to enact his genocide",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "06Crisis"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "lat": 30.0443879,
-      "lon": 31.2357257
-    },
-    {
       "name": "Lúcio Correia Dos Santos",
       "locationType": "earth",
       "cityDisplayName": "Rio de Janeiro, Brazil",
@@ -1202,12 +1202,70 @@
       "name": "Ramattra is Made",
       "locationType": "earth",
       "cityDisplayName": "Secret Omnium, Antartica?",
+      "description": "On Marth 29th of 2051, Ramattra was Made. The R-7000 Ravager Units were Anubis' crowning jewel in the Warbot army, built in a secret facility, somewhere cold and isolated. The Ravagers acted as batallion commanders and strategists, becoming one of the most dreaded units in the Crisis.",
+      "image": "",
+      "filters": [
+        "Ramattra"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Ramattra",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/ramattra/"
+        }
+      ],
+      "lat": -75.1,
+      "lon": 123.35
+    },
+    {
+      "name": "The Caribbean Coalition",
+      "locationType": "earth",
+      "cityDisplayName": "Havana, Cuba",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Baptiste"
+      ],
+      "factions": [],
+      "lat": 23.135305,
+      "lon": -82.3589631
+    },
+    {
+      "name": "Early Victories",
+      "locationType": "earth",
+      "cityDisplayName": "Moscow, Russia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "19Volskaya"
+      ],
+      "lat": 55.625578,
+      "lon": 37.6063916
+    },
+    {
+      "name": "To Hell With Them",
+      "locationType": "earth",
+      "cityDisplayName": "Manhattan, United States",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Torbjörn"
+      ],
+      "factions": [],
+      "lat": 40.7579554,
+      "lon": -73.9855319
+    },
+    {
+      "name": "Expanding the Wall",
+      "locationType": "earth",
+      "cityDisplayName": "Esperança, Portugal",
       "description": "",
       "image": "",
       "filters": [],
       "factions": [],
-      "lat": -75.1,
-      "lon": 123.35
+      "lat": 41.1579,
+      "lon": -8.6291
     },
     {
       "name": "Juno Teo Minh is Born",
@@ -1219,6 +1277,43 @@
       "factions": [],
       "x": 45,
       "y": 35
+    },
+    {
+      "name": "Call Sign Sojourn",
+      "locationType": "earth",
+      "cityDisplayName": "Toronto, Canada",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Sojourn"
+      ],
+      "factions": [],
+      "lat": 43.6532,
+      "lon": -79.3832
+    },
+    {
+      "name": "Swedish Engineering",
+      "locationType": "earth",
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Torbjörn"
+      ],
+      "factions": [],
+      "lat": 57.7072326,
+      "lon": 11.9670171
+    },
+    {
+      "name": "Expanding the Wall",
+      "locationType": "earth",
+      "cityDisplayName": "Esperança, Portugal",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.1579,
+      "lon": -8.6291
     }
   ]
 }
