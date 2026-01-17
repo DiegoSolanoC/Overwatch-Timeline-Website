@@ -110,6 +110,27 @@ class EventManager {
         this.eventItemVariantIndices.clear();
         this.unsavedEventIndices.clear();
         
+        // CRITICAL: On GitHub Pages, clear localStorage if it has outdated event count
+        // This prevents stale data from persisting across sessions
+        if (this.isGitHubPages()) {
+            const savedEvents = localStorage.getItem('timelineEvents');
+            if (savedEvents) {
+                try {
+                    const parsed = JSON.parse(savedEvents);
+                    if (Array.isArray(parsed) && parsed.length < 60) {
+                        // If localStorage has fewer than 60 events, it's likely outdated
+                        // Clear it to force fresh load from events.json
+                        console.warn(`EventManager [GitHub Pages]: Clearing outdated localStorage (${parsed.length} events, expected 60+)`);
+                        localStorage.removeItem('timelineEvents');
+                        this.updateStatus(`EventManager: Cleared outdated localStorage (${parsed.length} events)`, 'info');
+                    }
+                } catch (e) {
+                    // If corrupted, clear it
+                    localStorage.removeItem('timelineEvents');
+                }
+            }
+        }
+        
         const loadDataStartTime = performance.now();
         this.updateStatus('EventManager: Loading locations data (cities, airports, seaports)...', 'info');
         await this.loadLocationsData();
@@ -339,11 +360,11 @@ class EventManager {
                 const isGitHubPages = this.isGitHubPages();
                 
                 if (fileEvents && fileEventCount > 0) {
-                    // On GitHub Pages: Always use events.json (source of truth)
-                    // On localhost: Use file if it has more events (even just 1 more), otherwise prefer localStorage
-                    if (isGitHubPages || fileEventCount > localStorageCount) {
-                        console.log(`EventManager: Using events.json (${fileEventCount} events${isGitHubPages ? ' - GitHub Pages mode' : `, file has more than localStorage (${localStorageCount})`})`);
-                        this.updateStatus(`EventManager: Using events.json (${fileEventCount} events${isGitHubPages ? ' - GitHub Pages' : ''})`, 'info');
+                    // CRITICAL FIX: On GitHub Pages, ALWAYS use events.json if it exists (source of truth)
+                    // This ensures GitHub Pages never uses stale localStorage
+                    if (isGitHubPages) {
+                        console.log(`EventManager [GitHub Pages]: ALWAYS using events.json (${fileEventCount} events) - localStorage has ${localStorageCount} events (ignored)`);
+                        this.updateStatus(`EventManager: Using events.json (${fileEventCount} events) - GitHub Pages mode`, 'info');
                         this.events = fileEvents;
                         // Clear old localStorage and save fresh data
                         localStorage.removeItem('timelineEvents');
@@ -351,8 +372,21 @@ class EventManager {
                         this.syncEventsToGlobe();
                         return;
                     }
+                    
+                    // On localhost: Use file if it has more events (even just 1 more), otherwise prefer localStorage
+                    if (fileEventCount > localStorageCount) {
+                        console.log(`EventManager [Localhost]: Using events.json (${fileEventCount} events, file has more than localStorage (${localStorageCount}))`);
+                        this.updateStatus(`EventManager: Using events.json (${fileEventCount} events, file has more than localStorage)`, 'info');
+                        this.events = fileEvents;
+                        // Clear old localStorage and save fresh data
+                        localStorage.removeItem('timelineEvents');
+                        this.saveEvents();
+                        this.syncEventsToGlobe();
+                        return;
+                    }
+                    
                     // On localhost: localStorage has same or more events, prefer it (user's saved changes)
-                    console.log('EventManager: Using localStorage version (user\'s saved changes) -', localStorageCount, 'events');
+                    console.log('EventManager [Localhost]: Using localStorage version (user\'s saved changes) -', localStorageCount, 'events');
                     this.updateStatus(`EventManager: Using localStorage (${localStorageCount} events, user's saved changes)`, 'info');
                 }
                 
@@ -362,13 +396,31 @@ class EventManager {
                 console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                 this.updateStatus(`EventManager: Using ${this.events.length} events from localStorage`, 'success');
                 
-                // If localStorage has fewer events than expected (58) and file has more, use file instead
-                if (fileEvents && fileEventCount > 0 && this.events.length < 58 && fileEventCount >= 58) {
-                    console.warn(`EventManager: localStorage has ${this.events.length} events (expected 58), but events.json has ${fileEventCount}. Using events.json instead.`);
-                    this.updateStatus(`EventManager: Updating from events.json (${fileEventCount} events, localStorage had ${this.events.length})`, 'warning');
-                    this.events = fileEvents;
-                    localStorage.removeItem('timelineEvents');
-                    this.saveEvents();
+                // CRITICAL: On GitHub Pages, always prefer file if it has more events (even if localStorage exists)
+                // On localhost, update if file has significantly more events (5+ more) or localStorage is outdated
+                if (fileEvents && fileEventCount > 0) {
+                    if (isGitHubPages && fileEventCount > this.events.length) {
+                        // GitHub Pages: Always use file if it has more events
+                        console.warn(`EventManager [GitHub Pages]: localStorage has ${this.events.length} events, but events.json has ${fileEventCount}. Using events.json (source of truth).`);
+                        this.updateStatus(`EventManager: Updating from events.json (${fileEventCount} events, localStorage had ${this.events.length})`, 'warning');
+                        this.events = fileEvents;
+                        localStorage.removeItem('timelineEvents');
+                        this.saveEvents();
+                    } else if (!isGitHubPages && fileEventCount > this.events.length + 4) {
+                        // Localhost: Only update if file has 5+ more events (user might have local edits)
+                        console.warn(`EventManager [Localhost]: localStorage has ${this.events.length} events, but events.json has ${fileEventCount} (${fileEventCount - this.events.length} more). Using events.json.`);
+                        this.updateStatus(`EventManager: Updating from events.json (${fileEventCount} events, localStorage had ${this.events.length})`, 'warning');
+                        this.events = fileEvents;
+                        localStorage.removeItem('timelineEvents');
+                        this.saveEvents();
+                    } else if (!isGitHubPages && this.events.length < 58 && fileEventCount >= 58) {
+                        // Localhost: Update if localStorage is clearly outdated (< 58) and file has current data
+                        console.warn(`EventManager: localStorage has ${this.events.length} events (outdated), but events.json has ${fileEventCount}. Using events.json.`);
+                        this.updateStatus(`EventManager: Updating from events.json (${fileEventCount} events, localStorage had ${this.events.length})`, 'warning');
+                        this.events = fileEvents;
+                        localStorage.removeItem('timelineEvents');
+                        this.saveEvents();
+                    }
                 }
                 
                 // Sync with DataModel and refresh markers
@@ -398,12 +450,12 @@ class EventManager {
                     console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                     this.updateStatus(`EventManager: Using ${this.events.length} events from events.json`, 'success');
                     
-                    // Check if we have the expected number of events (58)
+                    // Check if we have a reasonable number of events (at least 50)
                     // If not, clear localStorage to force fresh load
-                    if (this.events.length < 58) {
-                        console.warn('EventManager: Event count is less than expected (58). Clearing localStorage to force fresh load.');
+                    if (this.events.length < 50) {
+                        console.warn(`EventManager: Event count is less than expected (${this.events.length} < 50). Clearing localStorage to force fresh load.`);
                         localStorage.removeItem('timelineEvents');
-                        this.updateStatus(`EventManager: Cleared localStorage (found ${this.events.length} events, expected 58)`, 'warning');
+                        this.updateStatus(`EventManager: Cleared localStorage (found ${this.events.length} events, expected at least 50)`, 'warning');
                     }
                     
                     // Save to localStorage for future use
