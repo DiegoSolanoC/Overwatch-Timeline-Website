@@ -277,8 +277,10 @@ class EventManager {
         try {
             // Add timeout protection
             const fetchWithTimeout = (url, timeout = 10000) => {
+                // Check if URL already has query parameters
+                const separator = url.includes('?') ? '&' : '?';
                 return Promise.race([
-                    fetch(url + '?' + Date.now()).then(res => {
+                    fetch(url + separator + Date.now()).then(res => {
                         if (!res.ok) {
                             throw new Error(`HTTP ${res.status}: ${res.statusText}`);
                         }
@@ -290,9 +292,10 @@ class EventManager {
                 ]);
             };
             
-            // Add cache-busting query parameter to ensure latest version is loaded
-            const cacheBuster = `?v=${Date.now()}`;
-            const data = await fetchWithTimeout('data/events.json' + cacheBuster);
+            // fetchWithTimeout already adds cache-busting, but we add extra parameters for GitHub Pages
+            // Use both timestamp and random value to prevent any caching
+            const extraCacheBuster = `&v=${Date.now()}&_=${Math.random().toString(36).substr(2, 9)}&nocache=true`;
+            const data = await fetchWithTimeout('data/events.json' + extraCacheBuster);
             const fetchTime = performance.now() - fetchStartTime;
             this.updateStatus(`EventManager: events.json fetch completed (${fetchTime.toFixed(0)}ms)`, 'info');
             
@@ -380,6 +383,14 @@ class EventManager {
                     console.log('EventManager: Loaded', this.events.length, 'events from data/events.json');
                     console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                     this.updateStatus(`EventManager: Using ${this.events.length} events from events.json`, 'success');
+                    
+                    // Check if we have the expected number of events (58)
+                    // If not, clear localStorage to force fresh load
+                    if (this.events.length < 58) {
+                        console.warn('EventManager: Event count is less than expected (58). Clearing localStorage to force fresh load.');
+                        localStorage.removeItem('timelineEvents');
+                        this.updateStatus(`EventManager: Cleared localStorage (found ${this.events.length} events, expected 58)`, 'warning');
+                    }
                     
                     // Save to localStorage for future use
                     this.saveEvents();
