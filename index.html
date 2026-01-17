@@ -689,7 +689,6 @@
         // Zoom controls visibility logic
         window.addEventListener('DOMContentLoaded', () => {
             const globeContainer = document.getElementById('globe-container');
-            const testContainer = document.getElementById('testContainer'); // Dynamically created by loadMenu()
             const zoomControls = document.getElementById('zoomControls');
             const zoomInBtn = document.getElementById('zoomInBtn');
             const zoomOutBtn = document.getElementById('zoomOutBtn');
@@ -709,42 +708,58 @@
                 });
             }
             
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.attributeName === 'class' || mutation.attributeName === 'style') {
-                        const isGlobeLoaded = globeContainer && globeContainer.classList.contains('loaded');
-                        const isMenuHidden = testContainer && (testContainer.style.display === 'none' || testContainer.style.opacity === '0');
-                        
-                        if (zoomControls) {
-                            if (isGlobeLoaded && isMenuHidden) {
-                                zoomControls.classList.add('visible');
-                            } else {
-                                zoomControls.classList.remove('visible');
-                            }
-                        }
-                    }
-                });
-            });
-            
-            if (globeContainer) {
-                observer.observe(globeContainer, { attributes: true });
+            // Function to update zoom controls visibility
+            function updateZoomControlsVisibility() {
+                if (!zoomControls) return;
+                
+                const globeContainer = document.getElementById('globe-container');
+                const testContainer = document.querySelector('.test-container');
+                
+                // Show zoom controls only when globe is loaded and menu is hidden
+                const globeLoaded = globeContainer && globeContainer.classList.contains('loaded');
+                const menuVisible = testContainer && 
+                    testContainer.style.display !== 'none' && 
+                    testContainer.style.opacity !== '0' &&
+                    window.getComputedStyle(testContainer).display !== 'none' &&
+                    parseFloat(window.getComputedStyle(testContainer).opacity) > 0;
+                
+                if (globeLoaded && !menuVisible) {
+                    zoomControls.classList.add('visible');
+                } else {
+                    zoomControls.classList.remove('visible');
+                }
             }
-            // Need to observe testContainer once it's created
+            
+            // Update visibility initially and on changes
+            updateZoomControlsVisibility();
+            
+            // Watch for changes to globe container and test container
+            const observer = new MutationObserver(updateZoomControlsVisibility);
+            if (globeContainer) {
+                observer.observe(globeContainer, { attributes: true, attributeFilter: ['class', 'style'] });
+            }
+            
+            // Watch for testContainer creation and changes
             const contentObserver = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                        const newTestContainer = document.getElementById('testContainer');
-                        if (newTestContainer) {
-                            observer.observe(newTestContainer, { attributes: true, attributeFilter: ['style'] });
-                            contentObserver.disconnect(); // Stop observing content once testContainer is found
+                        const testContainer = document.querySelector('.test-container');
+                        if (testContainer) {
+                            observer.observe(testContainer, { attributes: true, attributeFilter: ['style', 'class'] });
+                            updateZoomControlsVisibility();
                         }
                     }
                 });
+                updateZoomControlsVisibility();
             });
+            
             const mainContent = document.getElementById('content');
             if (mainContent) {
-                contentObserver.observe(mainContent, { childList: true });
+                contentObserver.observe(mainContent, { childList: true, subtree: true });
             }
+            
+            // Also check periodically (fallback for dynamic changes)
+            setInterval(updateZoomControlsVisibility, 500);
         });
         
         // Cleanup on page unload to prevent memory leaks and freezing

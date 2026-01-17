@@ -334,28 +334,42 @@ class EventManager {
                 console.log('EventManager: Found', localStorageCount, 'events in localStorage');
                 this.updateStatus(`EventManager: Found ${localStorageCount} events in localStorage`, 'success');
                 
-                // Prefer localStorage if it has user's saved changes (user edits take priority)
-                // Only use file if localStorage is empty or file has significantly more events (file was updated externally)
+                // On GitHub Pages, always prefer events.json (source of truth) since users can't edit
+                // On localhost, prefer localStorage if it has user's saved changes, but use file if file has more events
+                const isGitHubPages = this.isGitHubPages();
+                
                 if (fileEvents && fileEventCount > 0) {
-                    // If file has more events (likely updated externally), use file
-                    if (fileEventCount > localStorageCount + 5) {
-                        console.log('EventManager: events.json has significantly more events (' + fileEventCount + ' vs ' + localStorageCount + '), using file version');
-                        this.updateStatus(`EventManager: Using events.json (${fileEventCount} events, file has more than localStorage)`, 'info');
+                    // On GitHub Pages: Always use events.json (source of truth)
+                    // On localhost: Use file if it has more events (even just 1 more), otherwise prefer localStorage
+                    if (isGitHubPages || fileEventCount > localStorageCount) {
+                        console.log(`EventManager: Using events.json (${fileEventCount} events${isGitHubPages ? ' - GitHub Pages mode' : `, file has more than localStorage (${localStorageCount})`})`);
+                        this.updateStatus(`EventManager: Using events.json (${fileEventCount} events${isGitHubPages ? ' - GitHub Pages' : ''})`, 'info');
                         this.events = fileEvents;
+                        // Clear old localStorage and save fresh data
+                        localStorage.removeItem('timelineEvents');
                         this.saveEvents();
                         this.syncEventsToGlobe();
                         return;
                     }
-                    // Otherwise, prefer localStorage (user's saved changes)
+                    // On localhost: localStorage has same or more events, prefer it (user's saved changes)
                     console.log('EventManager: Using localStorage version (user\'s saved changes) -', localStorageCount, 'events');
                     this.updateStatus(`EventManager: Using localStorage (${localStorageCount} events, user's saved changes)`, 'info');
                 }
                 
-                // Use localStorage (user's saved changes take priority)
+                // Use localStorage (user's saved changes take priority on localhost)
                 this.events = localStorageEvents;
                 console.log('EventManager: Using localStorage version (', this.events.length, 'events)');
                 console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                 this.updateStatus(`EventManager: Using ${this.events.length} events from localStorage`, 'success');
+                
+                // If localStorage has fewer events than expected (58) and file has more, use file instead
+                if (fileEvents && fileEventCount > 0 && this.events.length < 58 && fileEventCount >= 58) {
+                    console.warn(`EventManager: localStorage has ${this.events.length} events (expected 58), but events.json has ${fileEventCount}. Using events.json instead.`);
+                    this.updateStatus(`EventManager: Updating from events.json (${fileEventCount} events, localStorage had ${this.events.length})`, 'warning');
+                    this.events = fileEvents;
+                    localStorage.removeItem('timelineEvents');
+                    this.saveEvents();
+                }
                 
                 // Sync with DataModel and refresh markers
                 this.syncEventsToGlobe();
