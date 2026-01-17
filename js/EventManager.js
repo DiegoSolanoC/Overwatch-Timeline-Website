@@ -110,26 +110,7 @@ class EventManager {
         this.eventItemVariantIndices.clear();
         this.unsavedEventIndices.clear();
         
-        // CRITICAL: On GitHub Pages, clear localStorage if it has outdated event count
-        // This prevents stale data from persisting across sessions
-        if (this.isGitHubPages()) {
-            const savedEvents = localStorage.getItem('timelineEvents');
-            if (savedEvents) {
-                try {
-                    const parsed = JSON.parse(savedEvents);
-                    if (Array.isArray(parsed) && parsed.length < 60) {
-                        // If localStorage has fewer than 60 events, it's likely outdated
-                        // Clear it to force fresh load from events.json
-                        console.warn(`EventManager [GitHub Pages]: Clearing outdated localStorage (${parsed.length} events, expected 60+)`);
-                        localStorage.removeItem('timelineEvents');
-                        this.updateStatus(`EventManager: Cleared outdated localStorage (${parsed.length} events)`, 'info');
-                    }
-                } catch (e) {
-                    // If corrupted, clear it
-                    localStorage.removeItem('timelineEvents');
-                }
-            }
-        }
+        // Note: localStorage clearing is now handled in loadEvents() after we verify events.json loads successfully
         
         const loadDataStartTime = performance.now();
         this.updateStatus('EventManager: Loading locations data (cities, airports, seaports)...', 'info');
@@ -321,15 +302,21 @@ class EventManager {
             this.updateStatus(`EventManager: events.json fetch completed (${fetchTime.toFixed(0)}ms)`, 'info');
             
             if (data && data.events && Array.isArray(data.events) && data.events.length > 0) {
-                    fileEvents = data.events;
-                    fileEventCount = data.events.length;
-                    console.log('EventManager: Found', fileEventCount, 'events in data/events.json');
+                fileEvents = data.events;
+                fileEventCount = data.events.length;
+                console.log('EventManager: ✓ Successfully loaded', fileEventCount, 'events from data/events.json');
                 this.updateStatus(`EventManager: Found ${fileEventCount} events in events.json`, 'success');
             } else {
-                this.updateStatus('EventManager: events.json has no events array or is empty', 'info');
+                console.warn('EventManager: events.json loaded but has no events array or is empty', data);
+                this.updateStatus('EventManager: events.json has no events array or is empty', 'warning');
             }
         } catch (error) {
-            console.log('EventManager: Could not load from data/events.json (file may not exist):', error.message);
+            console.error('EventManager: ✗ CRITICAL - Could not load from data/events.json:', error);
+            console.error('EventManager: Error details:', {
+                message: error.message,
+                stack: error.stack,
+                url: 'data/events.json'
+            });
             this.updateStatus(`EventManager: events.json fetch error: ${error.message}`, 'error');
             this.updateStatus('EventManager: Will try localStorage if available', 'info');
         }
@@ -446,30 +433,47 @@ class EventManager {
         // If no localStorage, use events.json if available
         if (fileEvents && fileEventCount > 0) {
             this.events = fileEvents;
-                    console.log('EventManager: Loaded', this.events.length, 'events from data/events.json');
-                    console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
-                    this.updateStatus(`EventManager: Using ${this.events.length} events from events.json`, 'success');
-                    
-                    // Check if we have a reasonable number of events (at least 50)
-                    // If not, clear localStorage to force fresh load
-                    if (this.events.length < 50) {
-                        console.warn(`EventManager: Event count is less than expected (${this.events.length} < 50). Clearing localStorage to force fresh load.`);
-                        localStorage.removeItem('timelineEvents');
-                        this.updateStatus(`EventManager: Cleared localStorage (found ${this.events.length} events, expected at least 50)`, 'warning');
-                    }
-                    
-                    // Save to localStorage for future use
-                    this.saveEvents();
-                    
-                    // Sync with DataModel and refresh markers
-                    this.syncEventsToGlobe();
-                    return;
+            console.log('EventManager: Loaded', this.events.length, 'events from data/events.json');
+            console.log('EventManager: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
+            this.updateStatus(`EventManager: Using ${this.events.length} events from events.json`, 'success');
+            
+            // Check if we have a reasonable number of events (at least 50)
+            // If not, clear localStorage to force fresh load
+            if (this.events.length < 50) {
+                console.warn(`EventManager: Event count is less than expected (${this.events.length} < 50). Clearing localStorage to force fresh load.`);
+                localStorage.removeItem('timelineEvents');
+                this.updateStatus(`EventManager: Cleared localStorage (found ${this.events.length} events, expected at least 50)`, 'warning');
+            }
+            
+            // Save to localStorage for future use
+            this.saveEvents();
+            
+            // Sync with DataModel and refresh markers
+            this.syncEventsToGlobe();
+            return;
         }
 
-        // No saved events - use empty array
+        // CRITICAL: If events.json failed to load, try localStorage as fallback (even on GitHub Pages)
+        // This prevents "No events" error if events.json has a temporary loading issue
+        if (savedEvents) {
+            try {
+                const fallbackEvents = JSON.parse(savedEvents);
+                if (Array.isArray(fallbackEvents) && fallbackEvents.length > 0) {
+                    console.warn('EventManager: events.json failed to load, using localStorage as fallback');
+                    this.updateStatus(`EventManager: Using localStorage fallback (${fallbackEvents.length} events) - events.json unavailable`, 'warning');
+                    this.events = fallbackEvents;
+                    this.syncEventsToGlobe();
+                    return;
+                }
+            } catch (e) {
+                console.error('EventManager: localStorage fallback also failed:', e);
+            }
+        }
+
+        // No events available from any source
         this.events = [];
-        console.log('EventManager: No saved events found, using empty array');
-        this.updateStatus('EventManager: No events found, starting with empty array', 'info');
+        console.error('EventManager: CRITICAL - No events found from events.json or localStorage!');
+        this.updateStatus('EventManager: ERROR - No events found. Check events.json file.', 'error');
         
         // Sync empty array with DataModel
         this.syncEventsToGlobe();
