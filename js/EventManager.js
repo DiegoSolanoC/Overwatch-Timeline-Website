@@ -277,12 +277,15 @@ class EventManager {
         this.updateStatus('EventManager: Fetching events.json file...', 'info');
         const fetchStartTime = performance.now();
         try {
-            // Add timeout protection
+            // Add timeout protection with proper cache-busting
             const fetchWithTimeout = (url, timeout = 10000) => {
-                // Check if URL already has query parameters
+                // Add cache-busting parameters properly
                 const separator = url.includes('?') ? '&' : '?';
+                const cacheBuster = `${separator}v=${Date.now()}&_=${Math.random().toString(36).substr(2, 9)}&nocache=true`;
+                const fullUrl = url + cacheBuster;
+                
                 return Promise.race([
-                    fetch(url + separator + Date.now()).then(res => {
+                    fetch(fullUrl).then(res => {
                         if (!res.ok) {
                             throw new Error(`HTTP ${res.status}: ${res.statusText}`);
                         }
@@ -294,10 +297,8 @@ class EventManager {
                 ]);
             };
             
-            // fetchWithTimeout already adds cache-busting, but we add extra parameters for GitHub Pages
-            // Use both timestamp and random value to prevent any caching
-            const extraCacheBuster = `&v=${Date.now()}&_=${Math.random().toString(36).substr(2, 9)}&nocache=true`;
-            const data = await fetchWithTimeout('data/events.json' + extraCacheBuster);
+            // Fetch events.json with cache-busting
+            const data = await fetchWithTimeout('data/events.json');
             const fetchTime = performance.now() - fetchStartTime;
             this.updateStatus(`EventManager: events.json fetch completed (${fetchTime.toFixed(0)}ms)`, 'info');
             
