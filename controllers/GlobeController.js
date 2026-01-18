@@ -413,6 +413,7 @@ export class GlobeController {
         if (this.interactionController) {
             this.interactionController.updatePulseRings();
             this.interactionController.updateMarkerPulse();
+            this.interactionController.updateStationPinLines();
         }
         
         // Check and auto-show image if conditions are met

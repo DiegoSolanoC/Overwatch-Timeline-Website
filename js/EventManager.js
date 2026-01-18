@@ -1247,9 +1247,11 @@ class EventManager {
             locationName = this.getLocationName(locationLat, locationLon);
         }
         
-        // For Moon/Mars events, display coordinates if no custom name
+        // For Moon/Mars/Station events, display coordinates if no custom name
         if (!locationName && locationType !== 'earth') {
-            if (locationX !== undefined && locationY !== undefined) {
+            if (locationType === 'station') {
+                locationName = 'Space Station (ISS)';
+            } else if (locationX !== undefined && locationY !== undefined) {
                 locationName = `${locationType === 'moon' ? 'Moon' : 'Mars'}: (${locationX.toFixed(1)}, ${locationY.toFixed(1)})`;
             } else {
                 locationName = locationType === 'moon' ? 'Moon' : 'Mars';
@@ -2130,6 +2132,29 @@ class EventManager {
             if (lonInput) lonInput.required = true;
             if (xInput) xInput.required = false;
             if (yInput) yInput.required = false;
+        } else if (locationType === 'station') {
+            // Station: hide coordinate fields (no coordinates needed - placed on ISS automatically)
+            if (latLonFields) latLonFields.style.display = 'none';
+            if (lonFields) lonFields.style.display = 'none';
+            if (xyFields) xyFields.style.display = 'none';
+            if (yFields) yFields.style.display = 'none';
+            if (cityLookupField) cityLookupField.style.display = 'none';
+            // Show city display name field for Station (like Moon/Mars)
+            if (cityDisplayNameField) cityDisplayNameField.style.display = '';
+            const latInput = document.getElementById('eventEditLat');
+            const lonInput = document.getElementById('eventEditLon');
+            const xInput = document.getElementById('eventEditX');
+            const yInput = document.getElementById('eventEditY');
+            const cityDisplayNameInput = document.getElementById('eventEditCityDisplayName');
+            if (latInput) latInput.required = false;
+            if (lonInput) lonInput.required = false;
+            if (xInput) xInput.required = false;
+            if (yInput) yInput.required = false;
+            
+            // Set default city display name if field is empty
+            if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
+                cityDisplayNameInput.value = 'Interstellar Journey Space Station';
+            }
         } else {
             // Moon or Mars
             if (latLonFields) latLonFields.style.display = 'none';
@@ -3294,7 +3319,14 @@ class EventManager {
                 alert('Please fill in Latitude and Longitude');
                 return;
             }
+        } else if (locationType === 'station') {
+            // Station events don't need coordinates - marker is placed on ISS automatically
+            lat = undefined;
+            lon = undefined;
+            x = undefined;
+            y = undefined;
         } else {
+            // Moon or Mars - require X and Y coordinates
             x = parseFloat(document.getElementById('eventEditX').value);
             y = parseFloat(document.getElementById('eventEditY').value);
             if (isNaN(x) || isNaN(y)) {
@@ -3382,6 +3414,9 @@ class EventManager {
                     if (variant.lon !== undefined) {
                         variantObj.lon = variant.lon;
                     }
+                } else if (variant.locationType === 'station') {
+                    // Station events don't need coordinates - marker is placed on ISS automatically
+                    // Don't add any coordinates
                 } else {
                     if (variant.x !== undefined) {
                         variantObj.x = variant.x;
@@ -3417,6 +3452,9 @@ class EventManager {
             if (firstVariantLocationType === 'earth') {
                 event.lat = firstVariant && firstVariant.lat !== undefined ? firstVariant.lat : lat;
                 event.lon = firstVariant && firstVariant.lon !== undefined ? firstVariant.lon : lon;
+            } else if (firstVariantLocationType === 'station') {
+                // Station events don't need coordinates - marker is placed on ISS automatically
+                // Don't add any coordinates
             } else {
                 event.x = firstVariant && firstVariant.x !== undefined ? firstVariant.x : x;
                 event.y = firstVariant && firstVariant.y !== undefined ? firstVariant.y : y;
@@ -3438,6 +3476,9 @@ class EventManager {
             if (locationType === 'earth') {
                 event.lat = lat;
                 event.lon = lon;
+            } else if (locationType === 'station') {
+                // Station events don't need coordinates - marker is placed on ISS automatically
+                // Don't add any coordinates
             } else {
                 event.x = x;
                 event.y = y;

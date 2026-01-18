@@ -60,7 +60,17 @@ export class SceneModel {
             0.1,
             1000
         );
-        this.camera.position.z = 3.5;
+        
+        // On mobile/vertical view, start more zoomed out to show Moon/Mars panels
+        const isMobile = window.innerWidth <= 768;
+        const isPortrait = container.clientHeight > container.clientWidth;
+        const isMobilePortrait = isMobile && isPortrait;
+        
+        // Default camera position: more zoomed out on mobile portrait to show panels
+        this.camera.position.z = isMobilePortrait ? 5.5 : 3.5;
+        
+        // Store mobile state for later use
+        this.isMobilePortrait = isMobilePortrait;
 
         // Renderer setup
         this.renderer = new THREE.WebGLRenderer({ antialias: true });

@@ -500,6 +500,11 @@ export class GlobeView {
         const newMarkers = [];
         const newPinLines = [];
 
+        // Get ISS satellite for station events
+        const issSatellite = window.globeController && window.globeController.transportController 
+            ? window.globeController.transportController.findISS() 
+            : null;
+        
         events.forEach(event => {
             const isMultiEvent = event.variants && event.variants.length > 0;
             const eventLocationType = event.locationType || 'earth';
@@ -513,7 +518,20 @@ export class GlobeView {
                     let position;
                     let targetParent;
                     
-                    if (variantLocationType === 'moon') {
+                    if (variantLocationType === 'station') {
+                        // Station: place marker on ISS satellite (moving model)
+                        // Marker will be positioned at the end of a pin line (outward from center)
+                        if (issSatellite) {
+                            // Start with marker at center, we'll move it outward when creating the pin line
+                            // The pin line will point along the normal (from globe center to marker)
+                            // For now, position at a default offset - will be updated dynamically
+                            position = new THREE.Vector3(0, 0, 0.03); // Slightly outward from center
+                            targetParent = issSatellite;
+                        } else {
+                            console.warn('ISS satellite not found, skipping station marker');
+                            return;
+                        }
+                    } else if (variantLocationType === 'moon') {
                         // Moon: use x/y coordinates (0-100, 0-100)
                         const x = variant.x !== undefined ? variant.x : (event.x !== undefined ? event.x : 50);
                         const y = variant.y !== undefined ? variant.y : (event.y !== undefined ? event.y : 50);
@@ -675,6 +693,18 @@ export class GlobeView {
                                 markerLocalPos
                             ];
                             lineParent = marsPlane;
+                        } else if (variantLocationType === 'station' && issSatellite) {
+                            // Station: pin line points along the normal (from globe center to marker)
+                            // Line goes from satellite center (0,0,0) to marker position
+                            // The marker position will be updated dynamically to follow the normal
+                            const lineStart = new THREE.Vector3(0, 0, 0); // Satellite center
+                            const lineEnd = marker.position.clone(); // Marker position (at end of pin)
+                            linePoints = [lineStart, lineEnd];
+                            lineParent = issSatellite;
+                            // Mark this line as needing dynamic updates
+                            if (linePoints && linePoints.length >= 2) {
+                                // Store reference for dynamic updates
+                            }
                         }
                         
                         if (linePoints && lineParent) {
@@ -734,6 +764,19 @@ export class GlobeView {
                         targetParent = marsPlane;
                     } else {
                         console.warn('Mars plane not found, skipping marker');
+                        return;
+                    }
+                } else if (eventLocationType === 'station') {
+                    // Station: place marker on ISS satellite (moving model)
+                    // Marker will be positioned at the end of a pin line (outward from center)
+                    if (issSatellite) {
+                        // Start with marker at center, we'll move it outward when creating the pin line
+                        // The pin line will point along the normal (from globe center to marker)
+                        // For now, position at a default offset - will be updated dynamically
+                        position = new THREE.Vector3(0, 0, 0.03); // Slightly outward from center
+                        targetParent = issSatellite;
+                    } else {
+                        console.warn('ISS satellite not found, skipping station marker');
                         return;
                     }
                 } else {
@@ -835,6 +878,14 @@ export class GlobeView {
                         markerLocalPos
                     ];
                     lineParent = marsPlane;
+                } else if (eventLocationType === 'station' && issSatellite) {
+                    // Station: pin line points along the normal (from globe center to marker)
+                    // Line goes from satellite center (0,0,0) to marker position
+                    // The marker position will be updated dynamically to follow the normal
+                    const lineStart = new THREE.Vector3(0, 0, 0); // Satellite center
+                    const lineEnd = marker.position.clone(); // Marker position (at end of pin)
+                    linePoints = [lineStart, lineEnd];
+                    lineParent = issSatellite;
                 }
                 
                 if (linePoints && lineParent) {

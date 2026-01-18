@@ -656,42 +656,34 @@ export class UIView {
             eventImage.classList.remove('fade-in', 'fade-out');
             
             if (imagePath) {
-                // Clear any previous error handlers first
+                // Clear any previous error handlers first to prevent false errors
                 eventImage.onerror = null;
                 eventImage.onload = null;
                 
-                // Set up error and load handlers BEFORE setting src
+                // Ensure path is relative (no leading slash) for proper resolution
+                const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+                
+                // Add cache busting to ensure latest images load
+                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const fullImagePath = `${normalizedPath}${cacheBuster}`;
+                
+                // Set up error and load handlers AFTER clearing handlers but BEFORE setting src
+                // This prevents false errors from src clearing
                 eventImage.onerror = () => {
-                    console.error(`Failed to load event image: ${imagePath}`);
-                    console.error(`Tried to load from: ${window.location.origin}/${imagePath}`);
+                    console.error(`Failed to load event image: ${fullImagePath}`);
                     eventImage.style.display = 'none';
                     // If image fails, show black overlay instead
                     eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
                 };
                 eventImage.onload = () => {
-                    console.log(`Successfully loaded event image: ${imagePath}`);
                     // Image loaded successfully - use transparent background so image shows
+                    eventImage.style.display = 'block';
                     eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
                 };
                 
-                // Ensure path is relative (no leading slash) for proper resolution
-                const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-                
-                // Force reload by clearing src first, then setting new src with cache busting
-                // This matches how preview images work but with cache busting for overlay
-                eventImage.src = '';
-                eventImage.style.display = 'none';
-                
-                // Use setTimeout to ensure browser processes the clear before setting new src
-                setTimeout(() => {
-                    // Add cache busting to ensure latest images load (different from previews which don't use it)
-                    const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    // Set the new image source (browser will load it fresh)
-                    eventImage.src = `${normalizedPath}${cacheBuster}`;
-                    eventImage.style.display = 'block';
-                    // Start with transparent background for image
-                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
-                }, 10); // Small delay to ensure src clear is processed
+                // Set image source directly (no need to clear first - browser handles cache busting)
+                eventImage.style.display = 'none'; // Hide while loading
+                eventImage.src = fullImagePath;
             } else {
                 console.log('No image path provided for event');
                 // Clear image src when no path
@@ -1369,36 +1361,33 @@ export class UIView {
             }
 
             if (imagePath) {
-                // Clear any previous error handlers first
+                // Clear any previous error handlers first to prevent false errors
                 eventImage.onerror = null;
                 eventImage.onload = null;
-                
-                // Set up error and load handlers
-                eventImage.onerror = () => {
-                    console.error(`Failed to load event image: ${imagePath}`);
-                    eventImage.style.display = 'none';
-                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
-                };
-                eventImage.onload = () => {
-                    console.log(`Successfully loaded event image: ${imagePath}`);
-                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
-                };
                 
                 // Ensure path is relative (no leading slash) for proper resolution
                 const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
                 
-                // Force reload by clearing src first, then setting new src with cache busting
-                eventImage.src = '';
-                eventImage.style.display = 'none';
+                // Add cache busting to ensure latest images load
+                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const fullImagePath = `${normalizedPath}${cacheBuster}`;
                 
-                // Use setTimeout to ensure browser processes the clear before setting new src
-                setTimeout(() => {
-                    // Add cache busting to ensure latest images load
-                    const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                    eventImage.src = `${normalizedPath}${cacheBuster}`;
+                // Set up error and load handlers AFTER clearing handlers but BEFORE setting src
+                // This prevents false errors from src clearing
+                eventImage.onerror = () => {
+                    console.error(`Failed to load event image: ${fullImagePath}`);
+                    eventImage.style.display = 'none';
+                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+                };
+                eventImage.onload = () => {
+                    // Image loaded successfully - use transparent background so image shows
                     eventImage.style.display = 'block';
                     eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
-                }, 10); // Small delay to ensure src clear is processed
+                };
+                
+                // Set image source directly (no need to clear first - browser handles cache busting)
+                eventImage.style.display = 'none'; // Hide while loading
+                eventImage.src = fullImagePath;
             } else {
                 eventImage.src = '';
                 eventImage.style.display = 'none';
@@ -2004,7 +1993,10 @@ export class UIView {
             const globe = this.sceneModel.getGlobe();
             
             if (camera) {
-                const defaultPosition = new THREE.Vector3(0, 0, 3.5);
+                // On mobile portrait, use more zoomed out position to show Moon/Mars panels
+                const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                const defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+                const defaultPosition = new THREE.Vector3(0, 0, defaultZoom);
                 this.animateCameraToPosition(camera, defaultPosition, globe);
             }
             return;
@@ -2650,15 +2642,21 @@ export class UIView {
                     }
                 }
                 
-                // Center the marker (zoom to it) or reset to default view for Moon/Mars
+                // Center the marker (zoom to it) or reset to default view for Moon/Mars/Station
                 // Note: zoomToMarker will store originalCameraPosition if it doesn't exist
                 if (window.globeController && window.globeController.interactionController) {
                     const locationType = marker.userData ? marker.userData.locationType : 'earth';
                     if (locationType === 'moon' || locationType === 'mars') {
                         // Reset camera to default view for Moon/Mars events
                         window.globeController.interactionController.resetCameraToDefault();
+                    } else if (locationType === 'station') {
+                        // For station events, hide Moon/Mars panels (like Earth events)
+                        window.globeController.interactionController.setPlanesVisibility(false);
+                        // Continuously follow the moving satellite
+                        window.globeController.interactionController.startFollowingStation(marker);
                     } else {
                         // Zoom in and center on the marker (Earth events)
+                        // zoomToMarker already hides the panels
                         window.globeController.interactionController.zoomToMarker(marker);
                     }
                 }
@@ -2680,6 +2678,17 @@ export class UIView {
             // Mouse leave: stop pulse, restore camera, resume auto rotation if enabled
             newBtn.addEventListener('mouseleave', (e) => {
                 const marker = getMarkerForPosition();
+                
+                // Stop following station if it was a station marker
+                if (window.globeController && window.globeController.interactionController) {
+                    const interactionController = window.globeController.interactionController;
+                    const locationType = marker && marker.userData ? marker.userData.locationType : 'earth';
+                    if (locationType === 'station') {
+                        interactionController.stopFollowingStation();
+                        // Restore plane visibility when leaving station marker (same as Earth events)
+                        interactionController.restorePlanesVisibility();
+                    }
+                }
                 
                 // Stop pulse effect
                 if (window.globeController && window.globeController.interactionController) {
@@ -2708,7 +2717,10 @@ export class UIView {
                                 targetRotation = this.originalGlobeRotation;
                             } else {
                                 // Default zoomed-out view
-                                targetPosition = new THREE.Vector3(0, 0, 3.5);
+                                // On mobile portrait, use more zoomed out position to show Moon/Mars panels
+                                const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                                const defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+                                targetPosition = new THREE.Vector3(0, 0, defaultZoom);
                                 targetRotation = { x: 0, y: 0, z: 0 };
                             }
                             

@@ -32,6 +32,7 @@ export class TransportModel {
         this.trainEndModelCache = null;
         this.trainMiddleModelCache = null;
         this.satelliteModelCache = null;
+        this.stationModelCache = null; // Separate cache for Station model (ISS)
     }
 
     /**
@@ -311,6 +312,22 @@ export class TransportModel {
      */
     getSatelliteModelCache() {
         return this.satelliteModelCache;
+    }
+
+    /**
+     * Set station model cache
+     * @param {Object} model - Cached station model
+     */
+    setStationModelCache(model) {
+        this.stationModelCache = model;
+    }
+
+    /**
+     * Get station model cache
+     * @returns {Object|null}
+     */
+    getStationModelCache() {
+        return this.stationModelCache;
     }
 
     /**
