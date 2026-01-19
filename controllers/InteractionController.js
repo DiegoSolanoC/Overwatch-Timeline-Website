@@ -1,6 +1,10 @@
 /**
  * InteractionController - Handles mouse/touch controls and marker interactions
  */
+import { MaterialFactory } from '../utils/MaterialFactory.js';
+import { TransportConfig } from './config/TransportConfig.js';
+import { ErrorLogger } from '../utils/ErrorLogger.js';
+
 export class InteractionController {
     constructor(sceneModel, uiView) {
         this.sceneModel = sceneModel;
@@ -148,143 +152,183 @@ export class InteractionController {
     
     /**
      * Check if mouse is hovering over an event marker and create pulse effect
+     * Refactored with guard clauses to reduce nesting
      */
     checkEventMarkerHover(event) {
-        // Disable hover effects on mobile/touch devices
+        // Guard: Disable hover effects on mobile/touch devices
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
             return;
         }
         
-        const sceneModel = this.sceneModel;
-        if (!sceneModel) return;
+        // Guard: Check required objects
+        if (!this.sceneModel) return;
         
-        const camera = sceneModel.getCamera();
+        const camera = this.sceneModel.getCamera();
         if (!camera) return;
         
         const container = document.getElementById('globe-container');
         if (!container) return;
         
+        // Calculate mouse position
         const rect = container.getBoundingClientRect();
         const mouse = new THREE.Vector2();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
+        // Setup raycaster
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
         
-        // Get all event markers from globe, Moon plane, Mars plane, and ISS satellite
-        const eventMarkers = [];
-        const globe = sceneModel.getGlobe();
-        if (globe) {
-            globe.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        // Also check Moon and Mars planes for event markers
-        const moonPlane = sceneModel.getMoonPlane ? sceneModel.getMoonPlane() : sceneModel.moonPlane;
-        if (moonPlane) {
-            moonPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        const marsPlane = sceneModel.getMarsPlane ? sceneModel.getMarsPlane() : sceneModel.marsPlane;
-        if (marsPlane) {
-            marsPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        // Also check ISS satellite for station markers
-        if (window.globeController && window.globeController.transportController) {
-            const issSatellite = window.globeController.transportController.findISS();
-            if (issSatellite) {
-                issSatellite.traverse((child) => {
-                    if (child.userData && child.userData.isEventMarker) {
-                        eventMarkers.push(child);
-                    }
-                });
-            }
-        }
-        
+        // Collect all event markers
+        const eventMarkers = this.collectAllEventMarkers();
         if (eventMarkers.length === 0) return;
         
+        // Check for intersections
         const intersects = raycaster.intersectObjects(eventMarkers);
         
-        // Don't allow hover interactions when event image overlay is visible
-        const eventImageOverlay = document.getElementById('eventImageOverlay');
-        if (eventImageOverlay && eventImageOverlay.classList.contains('open')) {
-            const opacity = parseFloat(window.getComputedStyle(eventImageOverlay).opacity);
-            if (opacity > 0.1) { // Image is visible (faded in)
-                // Stop any existing pulse when image becomes visible
-                if (this.hoveredEventMarker) {
-                    this.stopEventMarkerPulse(this.hoveredEventMarker);
-                    this.hoveredEventMarker = null;
-                }
-                return; // Block hover effects but allow globe movement
-            }
+        // Guard: Block hover when image overlay is visible
+        if (this.isImageOverlayVisible()) {
+            this.clearHoveredMarker();
+            return;
         }
         
+        // Handle hover state
         if (intersects.length > 0) {
-            const hoveredMarker = intersects[0].object;
-            
-            // Don't allow hover effects on non-interactive markers (variant markers)
-            if (hoveredMarker.userData && hoveredMarker.userData.isInteractive === false) {
-                // If we were hovering an interactive marker, stop it
-                if (this.hoveredEventMarker && this.hoveredEventMarker.userData.isInteractive !== false) {
-                    this.stopEventMarkerPulse(this.hoveredEventMarker);
-                    this.hoveredEventMarker = null;
-                }
-                return;
-            }
-            
-            // Don't allow hover effects on locked events
-            if (hoveredMarker.userData && hoveredMarker.userData.isLocked) {
-                // If we were hovering an unlocked marker, stop it
-                if (this.hoveredEventMarker && !this.hoveredEventMarker.userData.isLocked) {
-                    this.stopEventMarkerPulse(this.hoveredEventMarker);
-                    this.hoveredEventMarker = null;
-                }
-                return;
-            }
-            
-            // Stop auto-rotation while hovering
-            sceneModel.setAutoRotate(false);
-            if (sceneModel.autoRotateTimeout) {
-                clearTimeout(sceneModel.autoRotateTimeout);
-                sceneModel.autoRotateTimeout = null;
-            }
-            
-            // If hovering a different marker, stop previous pulse
-            if (this.hoveredEventMarker && this.hoveredEventMarker !== hoveredMarker) {
-                this.stopEventMarkerPulse(this.hoveredEventMarker);
-            }
-            
-            // Start pulse on new marker if not already pulsing
-            if (this.hoveredEventMarker !== hoveredMarker) {
-                this.startEventMarkerPulse(hoveredMarker);
-                this.hoveredEventMarker = hoveredMarker;
-            }
+            this.handleMarkerHover(intersects[0].object);
         } else {
-            // Not hovering any event marker - resume auto-rotate if enabled
-            if (this.hoveredEventMarker) {
-                this.stopEventMarkerPulse(this.hoveredEventMarker);
-                this.hoveredEventMarker = null;
-                
-                // Resume auto-rotate after a shorter delay
-                if (sceneModel.getAutoRotateEnabled() && !sceneModel.eventMarker) {
-                    sceneModel.autoRotateTimeout = setTimeout(() => {
-                        sceneModel.setAutoRotate(true);
-                    }, 500); // 0.5 second delay - faster resume
+            this.handleNoHover();
+        }
+    }
+    
+    /**
+     * Collect all event markers from globe, planes, and ISS
+     * @returns {Array} Array of event markers
+     */
+    collectAllEventMarkers() {
+        const eventMarkers = [];
+        
+        // Collect from globe
+        const globe = this.sceneModel.getGlobe();
+        if (globe) {
+            globe.traverse((child) => {
+                if (child.userData?.isEventMarker) {
+                    eventMarkers.push(child);
                 }
+            });
+        }
+        
+        // Collect from Moon plane
+        const moonPlane = this.sceneModel.getMoonPlane?.() || this.sceneModel.moonPlane;
+        if (moonPlane) {
+            moonPlane.traverse((child) => {
+                if (child.userData?.isEventMarker) {
+                    eventMarkers.push(child);
+                }
+            });
+        }
+        
+        // Collect from Mars plane
+        const marsPlane = this.sceneModel.getMarsPlane?.() || this.sceneModel.marsPlane;
+        if (marsPlane) {
+            marsPlane.traverse((child) => {
+                if (child.userData?.isEventMarker) {
+                    eventMarkers.push(child);
+                }
+            });
+        }
+        
+        // Collect from ISS satellite
+        const issSatellite = window.globeController?.transportController?.findISS();
+        if (issSatellite) {
+            issSatellite.traverse((child) => {
+                if (child.userData?.isEventMarker) {
+                    eventMarkers.push(child);
+                }
+            });
+        }
+        
+        return eventMarkers;
+    }
+    
+    /**
+     * Check if image overlay is visible
+     * @returns {boolean}
+     */
+    isImageOverlayVisible() {
+        const eventImageOverlay = document.getElementById('eventImageOverlay');
+        if (!eventImageOverlay?.classList.contains('open')) {
+            return false;
+        }
+        
+        const opacity = parseFloat(window.getComputedStyle(eventImageOverlay).opacity);
+        return opacity > 0.1;
+    }
+    
+    /**
+     * Clear currently hovered marker
+     */
+    clearHoveredMarker() {
+        if (this.hoveredEventMarker) {
+            this.stopEventMarkerPulse(this.hoveredEventMarker);
+            this.hoveredEventMarker = null;
+        }
+    }
+    
+    /**
+     * Handle hovering over a marker
+     * @param {THREE.Object3D} hoveredMarker - The marker being hovered
+     */
+    handleMarkerHover(hoveredMarker) {
+        // Guard: Don't allow hover on non-interactive markers
+        if (hoveredMarker.userData?.isInteractive === false) {
+            if (this.hoveredEventMarker?.userData.isInteractive !== false) {
+                this.clearHoveredMarker();
             }
+            return;
+        }
+        
+        // Guard: Don't allow hover on locked events
+        if (hoveredMarker.userData?.isLocked) {
+            if (this.hoveredEventMarker && !this.hoveredEventMarker.userData.isLocked) {
+                this.clearHoveredMarker();
+            }
+            return;
+        }
+        
+        // Stop auto-rotation while hovering
+        this.sceneModel.setAutoRotate(false);
+        if (this.sceneModel.autoRotateTimeout) {
+            clearTimeout(this.sceneModel.autoRotateTimeout);
+            this.sceneModel.autoRotateTimeout = null;
+        }
+        
+        // If hovering a different marker, stop previous pulse
+        if (this.hoveredEventMarker && this.hoveredEventMarker !== hoveredMarker) {
+            this.stopEventMarkerPulse(this.hoveredEventMarker);
+        }
+        
+        // Start pulse on new marker if not already pulsing
+        if (this.hoveredEventMarker !== hoveredMarker) {
+            this.startEventMarkerPulse(hoveredMarker);
+            this.hoveredEventMarker = hoveredMarker;
+        }
+    }
+    
+    /**
+     * Handle no marker being hovered
+     */
+    handleNoHover() {
+        if (!this.hoveredEventMarker) return;
+        
+        this.stopEventMarkerPulse(this.hoveredEventMarker);
+        this.hoveredEventMarker = null;
+        
+        // Resume auto-rotate after delay
+        const config = TransportConfig.AUTO_ROTATE;
+        if (this.sceneModel.getAutoRotateEnabled() && !this.sceneModel.eventMarker) {
+            this.sceneModel.autoRotateTimeout = setTimeout(() => {
+                this.sceneModel.setAutoRotate(true);
+            }, config.HOVER_RESUME_DELAY);
         }
     }
     
@@ -312,6 +356,8 @@ export class InteractionController {
             clearTimeout(marker.userData.pulseInterval);
         }
         
+        const config = TransportConfig.PULSE.RING;
+        
         // Schedule next pulse after current duration
         marker.userData.pulseInterval = setTimeout(() => {
             // Only create new pulse if still hovering this marker
@@ -333,7 +379,7 @@ export class InteractionController {
             } else {
                 marker.userData.pulseInterval = null;
             }
-        }, 1500); // Wait for current wave to finish (1200ms duration + buffer)
+        }, config.DELAY_BETWEEN); // Wait for current wave to finish
     }
     
     /**
@@ -360,7 +406,7 @@ export class InteractionController {
     }
     
     /**
-     * Create a pulse ring for event marker
+     * Create a pulse ring for event marker (using MaterialFactory)
      */
     createPulseRing(marker) {
         const globe = this.sceneModel.getGlobe();
@@ -386,22 +432,17 @@ export class InteractionController {
         }
         
         // Create filled circle geometry (not a ring)
-        const circleGeometry = new THREE.CircleGeometry(0.02, 32);
-        const ringMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffaa00, // More yellowish orange for wave
-            transparent: true,
-            opacity: 0.9, // Start more opaque in center
-            side: THREE.DoubleSide
-        });
-        
+        const config = TransportConfig.PULSE.RING;
+        const circleGeometry = new THREE.CircleGeometry(config.INITIAL_RADIUS, 32);
+        const ringMaterial = MaterialFactory.createPulseRingMaterial();
         const ring = new THREE.Mesh(circleGeometry, ringMaterial);
         
         // Store initial properties
         ring.userData.isPulseRing = true;
         ring.userData.startTime = Date.now();
         ring.userData.startScale = 1;
-        ring.userData.maxScale = 4; // Larger expansion
-        ring.userData.duration = 1200; // 1.2 seconds - faster wave
+        ring.userData.maxScale = config.MAX_SCALE;
+        ring.userData.duration = config.DURATION;
         ring.userData.marker = marker;
         
         // Position and orient the ring (will be updated in updatePulseRings)
@@ -600,6 +641,7 @@ export class InteractionController {
         
         const markers = this.sceneModel.getMarkers();
         const currentTime = Date.now();
+        const config = TransportConfig.PULSE.MARKER;
         
         markers.forEach(marker => {
             if (marker && marker.userData && marker.userData.isEventMarker) {
@@ -617,10 +659,10 @@ export class InteractionController {
                 if (!marker.userData.pulseData) {
                     marker.userData.pulseData = {
                         startTime: currentTime,
-                        baseScale: 1.0,
-                        minScale: 0.85, // More exaggerated - smaller
-                        maxScale: 1.20, // More exaggerated - bigger
-                        pulseSpeed: 0.008 // Much faster pulse speed
+                        baseScale: config.BASE_SCALE,
+                        minScale: config.MIN_SCALE,
+                        maxScale: config.MAX_SCALE,
+                        pulseSpeed: config.SPEED
                     };
                 }
                 
@@ -845,164 +887,238 @@ export class InteractionController {
     }
 
     /**
-     * Handle marker click
+     * Handle marker click (refactored with guard clauses)
      * @param {MouseEvent} event - Mouse event
      */
     onMarkerClick(event) {
-        // Don't register click if mouse was dragged
+        // Guard: Don't register click if mouse was dragged
         if (window.mouseMoved) return;
         
-        const sceneModel = this.sceneModel;
-        const camera = sceneModel.getCamera();
-        const renderer = sceneModel.getRenderer();
-        const markers = sceneModel.getMarkers();
+        // Setup raycasting
         const container = document.getElementById('globe-container');
-        const rect = container.getBoundingClientRect();
+        if (!container) return;
         
+        const rect = container.getBoundingClientRect();
         const mouse = new THREE.Vector2();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
+        const camera = this.sceneModel.getCamera();
+        if (!camera) return;
+        
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
         
+        // Collect clickable objects
+        const clickableObjects = this.collectClickableObjects();
+        const intersects = raycaster.intersectObjects(clickableObjects);
+        
+        // Handle click result
+        if (intersects.length > 0) {
+            this.handleMarkerClickEvent(intersects[0].object);
+        } else {
+            this.handleClickOutside();
+        }
+    }
+    
+    /**
+     * Collect all clickable objects (markers, seaports, events)
+     * @returns {Array}
+     */
+    collectClickableObjects() {
+        const markers = this.sceneModel.getMarkers();
         const clickableObjects = [...markers];
-        const globe = sceneModel.getGlobe();
+        
+        const globe = this.sceneModel.getGlobe();
         if (globe) {
             globe.traverse((child) => {
-                if (child.userData && (child.userData.isSeaportMarker || child.userData.isEventMarker)) {
+                if (child.userData?.isSeaportMarker || child.userData?.isEventMarker) {
                     clickableObjects.push(child);
                 }
             });
         }
         
-        const intersects = raycaster.intersectObjects(clickableObjects);
-        
-        if (intersects.length > 0) {
-            const clickedMarker = intersects[0].object;
-            const activeMarker = sceneModel.getActiveMarker();
-            
-            // Handle event marker click
-            if (clickedMarker.userData.isEventMarker) {
-                // Only allow clicks on interactive markers (main variant or single events)
-                if (clickedMarker.userData.isInteractive === false) {
-                    return; // Non-interactive variant markers cannot be clicked
-                }
-                
-                // Don't allow event marker clicks when image overlay is visible
-                const eventImageOverlay = document.getElementById('eventImageOverlay');
-                if (eventImageOverlay && eventImageOverlay.classList.contains('open')) {
-                    const opacity = parseFloat(window.getComputedStyle(eventImageOverlay).opacity);
-                    if (opacity > 0.1) { // Image is visible (faded in)
-                        return; // Block event marker clicks but allow globe dragging
-                    }
-                }
-                
-                // Don't allow clicks on locked events
-                if (clickedMarker.userData.isLocked) {
-                    return;
-                }
-                
-                // Check if this is the same event that's currently open
-                const currentEventMarker = this.uiView.currentEventMarker;
-                if (currentEventMarker === clickedMarker) {
-                    // Same event - close it instead of reopening
-                    this.uiView.hideEventSlide();
-                    return;
-                }
-                
-                // Check if this is a Moon/Mars/Station marker - use default camera view instead of zooming
-                const locationType = clickedMarker.userData ? clickedMarker.userData.locationType : 'earth';
-                if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
-                    // Reset camera to default view for Moon/Mars/Station events (station is moving, can't zoom to it)
-                    this.resetCameraToDefault();
-                } else {
-                    // Zoom in and center on the marker (Earth events)
-                    this.zoomToMarker(clickedMarker);
-                }
-                // Open slide panel with event info
-                const eventData = clickedMarker.userData.event;
-                
-                // Check if this is a multi-event
-                const isMultiEvent = eventData.variants && eventData.variants.length > 0;
-                const displayEvent = isMultiEvent ? eventData.variants[0] : eventData;
-                
-                const eventName = displayEvent.name || clickedMarker.userData.eventName;
-                const eventDescription = displayEvent.description || 'Placeholder text for event information.';
-                
-                // Get image path using EventManager's function (same as previews use)
-                let eventImage = null;
-                if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
-                    eventImage = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
-                    console.log(`[InteractionController] Image path for "${eventName}": ${eventImage}`);
-                } else {
-                    // Fallback: construct path manually (same logic as EventManager)
-                    eventImage = displayEvent.image || null;
-                    if (!eventImage || !eventImage.trim()) {
-                        // Auto-detect from Event Images folder
-                        const normalizedName = eventName.replace(/\s+/g, ' ').trim();
-                        const encodedFileName = encodeURIComponent(normalizedName);
-                        eventImage = `Event%20Images/${encodedFileName}.png`;
-                        console.log(`[InteractionController] Auto-detecting image for event "${eventName}": ${eventImage}`);
-                    } else {
-                        // Encode provided path to handle special characters
-                        eventImage = eventImage.trim();
-                        const encodeImagePath = (path) => {
-                            if (!path) return path;
-                            
-                            // Helper to decode multiple times until fully decoded
-                            const fullyDecode = (str) => {
-                                let previous = '';
-                                let current = str;
-                                while (current !== previous) {
-                                    previous = current;
-                                    try {
-                                        const decoded = decodeURIComponent(current);
-                                        if (decoded !== current) {
-                                            current = decoded;
-                                        } else {
-                                            break;
-                                        }
-                                    } catch (e) {
-                                        break; // Can't decode further
-                                    }
-                                }
-                                return current;
-                            };
-                            
-                            // If path already contains Event Images/, encode just the filename
-                            const folderPattern = /Event(?:%20| )Images\//;
-                            if (folderPattern.test(path)) {
-                                const parts = path.split(/Event(?:%20| )Images\//);
-                                if (parts.length === 2) {
-                                    let filename = fullyDecode(parts[1]);
-                                    return `Event%20Images/${encodeURIComponent(filename)}`;
-                                }
-                            }
-                            // If it's a full path, try to encode just the filename part
-                            const lastSlash = path.lastIndexOf('/');
-                            if (lastSlash !== -1) {
-                                const folder = path.substring(0, lastSlash + 1);
-                                let filename = fullyDecode(path.substring(lastSlash + 1));
-                                return folder + encodeURIComponent(filename);
-                            }
-                            // If no slash, decode first then encode
-                            const decoded = fullyDecode(path);
-                            return encodeURIComponent(decoded);
-                        };
-                        eventImage = encodeImagePath(eventImage);
-                    }
-                    console.log(`[InteractionController] Image path (fallback) for "${eventName}": ${eventImage}`);
-                }
-                
-                this.uiView.showEventSlide(eventName, eventImage, eventDescription, clickedMarker, eventData);
-            }
-            // Marker clicking disabled - labels no longer shown for cities/seaports
-        } else {
-            // Clicked elsewhere - hide label and close slide
-            this.uiView.hideCityLabel();
-            this.uiView.hideEventSlide();
+        return clickableObjects;
+    }
+    
+    /**
+     * Handle marker click event
+     * @param {THREE.Object3D} clickedMarker - The clicked marker
+     */
+    handleMarkerClickEvent(clickedMarker) {
+        // Handle event marker clicks
+        if (clickedMarker.userData?.isEventMarker) {
+            this.handleEventMarkerClick(clickedMarker);
         }
+        // Note: Seaport markers are no longer interactive
+    }
+    
+    /**
+     * Handle click outside markers
+     */
+    handleClickOutside() {
+        this.uiView.hideCityLabel();
+        this.uiView.hideEventSlide();
+    }
+    
+    /**
+     * Handle event marker click with guard clauses
+     * @param {THREE.Object3D} clickedMarker - The clicked event marker
+     */
+    handleEventMarkerClick(clickedMarker) {
+        // Guard: Only allow clicks on interactive markers
+        if (clickedMarker.userData?.isInteractive === false) {
+            return;
+        }
+        
+        // Guard: Don't allow clicks when image overlay is visible
+        if (this.isImageOverlayVisible()) {
+            return;
+        }
+        
+        // Guard: Don't allow clicks on locked events
+        if (clickedMarker.userData?.isLocked) {
+            return;
+        }
+        
+        // Guard: If clicking the same event, close it
+        if (this.uiView.currentEventMarker === clickedMarker) {
+            this.uiView.hideEventSlide();
+            return;
+        }
+        
+        // Handle camera positioning based on location type
+        this.positionCameraForEvent(clickedMarker);
+        
+        // Open event slide panel
+        const eventData = clickedMarker.userData.event;
+        
+        this.displayEventInfo(eventData, clickedMarker);
+    }
+    
+    /**
+     * Position camera based on event location type
+     * @param {THREE.Object3D} marker - Event marker
+     */
+    positionCameraForEvent(marker) {
+        const locationType = marker.userData?.locationType || 'earth';
+        
+        if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
+            // Reset camera for non-Earth events (station is moving, can't zoom to it)
+            this.resetCameraToDefault();
+        } else {
+            // Zoom in and center on Earth events
+            this.zoomToMarker(marker);
+        }
+    }
+    
+    /**
+     * Display event information in UI
+     * @param {Object} eventData - Event data
+     * @param {THREE.Object3D} marker - Event marker
+     */
+    displayEventInfo(eventData, marker) {
+        // Check if this is a multi-event
+        const isMultiEvent = eventData.variants && eventData.variants.length > 0;
+        const displayEvent = isMultiEvent ? eventData.variants[0] : eventData;
+        
+        const eventName = displayEvent.name || marker.userData.eventName;
+        const eventDescription = displayEvent.description || 'Placeholder text for event information.';
+        
+        // Get event image path
+        const eventImage = this.getEventImagePath(displayEvent, eventName);
+        
+        // Show event slide in UI
+        this.uiView.showEventSlide(eventName, eventImage, eventDescription, marker, eventData);
+    }
+    
+    /**
+     * Get event image path with proper encoding
+     * @param {Object} event - Event data
+     * @param {string} eventName - Event name
+     * @returns {string} - Image path
+     */
+    getEventImagePath(event, eventName) {
+        // Use EventManager's function if available
+        if (window.eventManager?.getEventImagePath) {
+            const path = window.eventManager.getEventImagePath(event.name, event.image);
+            console.log(`[InteractionController] Image path for "${eventName}": ${path}`);
+            return path;
+        }
+        
+        // Fallback: construct path manually
+        return this.constructEventImagePath(event, eventName);
+    }
+    
+    /**
+     * Construct event image path (fallback)
+     * @param {Object} event - Event data
+     * @param {string} eventName - Event name
+     * @returns {string} - Image path
+     */
+    constructEventImagePath(event, eventName) {
+        let imagePath = event.image || null;
+        
+        // Auto-detect from Event Images folder if no image specified
+        if (!imagePath || !imagePath.trim()) {
+            const normalizedName = eventName.replace(/\s+/g, ' ').trim();
+            const encodedFileName = encodeURIComponent(normalizedName);
+            imagePath = `Event%20Images/${encodedFileName}.png`;
+            console.log(`[InteractionController] Auto-detecting image for event "${eventName}": ${imagePath}`);
+            return imagePath;
+        }
+        
+        // Encode provided path to handle special characters
+        const encodedPath = this.encodeImagePath(imagePath.trim());
+        console.log(`[InteractionController] Image path (fallback) for "${eventName}": ${encodedPath}`);
+        return encodedPath;
+    }
+    
+    /**
+     * Encode image path handling multiple formats
+     * @param {string} path - Image path
+     * @returns {string} - Encoded path
+     */
+    encodeImagePath(path) {
+        if (!path) return path;
+        
+        // Helper to fully decode path
+        const fullyDecode = (str) => {
+            let previous = '';
+            let current = str;
+            while (current !== previous) {
+                previous = current;
+                try {
+                    const decoded = decodeURIComponent(current);
+                    if (decoded === current) break;
+                    current = decoded;
+                } catch (e) {
+                    break;
+                }
+            }
+            return current;
+        };
+        
+        // Handle Event Images folder paths
+        const folderPattern = /Event(?:%20| )Images\//;
+        if (folderPattern.test(path)) {
+            const parts = path.split(/Event(?:%20| )Images\//);
+            if (parts.length === 2) {
+                const filename = fullyDecode(parts[1]);
+                return `Event%20Images/${encodeURIComponent(filename)}`;
+            }
+        }
+        
+        // Handle full paths with folders
+        const lastSlash = path.lastIndexOf('/');
+        if (lastSlash !== -1) {
+            const folder = path.substring(0, lastSlash + 1);
+            const filename = fullyDecode(path.substring(lastSlash + 1));
+            return folder + encodeURIComponent(filename);
+        }
+        
+        // Handle simple filenames
+        return encodeURIComponent(fullyDecode(path));
     }
 
     /**

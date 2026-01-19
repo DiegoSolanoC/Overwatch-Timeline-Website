@@ -10,6 +10,9 @@ import { UIView } from '../views/UIView.js';
 import { RouteController } from './RouteController.js';
 import { TransportController } from './TransportController.js';
 import { InteractionController } from './InteractionController.js';
+import { TransportConfig } from './config/TransportConfig.js';
+import { EventBus, AppEvents } from '../utils/EventBus.js';
+import { ErrorLogger } from '../utils/ErrorLogger.js';
 
 export class GlobeController {
     constructor() {
@@ -60,25 +63,25 @@ export class GlobeController {
             await this.dataModel.loadData();
             
             // ALWAYS check for EventManager events (source of truth for user-created events)
-            // Check immediately and also wait a bit in case EventManager is still loading
+            // Check immediately and also listen for events loaded event
             if (window.eventManager && window.eventManager.events) {
                 this.dataModel.events = [...window.eventManager.events];
                 console.log('GlobeController: Using', window.eventManager.events.length, 'events from EventManager');
             } else {
-                // If EventManager not ready yet, wait a bit and check again
-                setTimeout(() => {
+                // If EventManager not ready yet, listen for events loaded event
+                EventBus.once(AppEvents.EVENTS_LOADED, () => {
                     if (window.eventManager && window.eventManager.events) {
                         this.dataModel.events = [...window.eventManager.events];
-                        console.log('GlobeController: Synced', window.eventManager.events.length, 'events from EventManager (delayed)');
+                        console.log('GlobeController: Synced', window.eventManager.events.length, 'events from EventManager (via EventBus)');
                         // Refresh markers if already added
                         if (this.globeView) {
                             this.globeView.refreshEventMarkers();
                         }
                     }
-                }, 200);
+                });
             }
         } catch (error) {
-            console.error('Failed to load data:', error);
+            ErrorLogger.fatal('GlobeController', 'Failed to load data', error);
             return;
         }
 
@@ -89,20 +92,22 @@ export class GlobeController {
         this.globeView.initGlobe(() => {
             // Start animation once texture is loaded
             this.animate();
+            
+            // Emit event when planes are ready (after they're added to scene)
+            EventBus.emit(AppEvents.PLANES_READY);
         });
         
-        // Position Moon/Mars panels immediately after globe initialization
-        // (planes are created synchronously in initGlobe, before texture load callback)
-        // Use setTimeout to ensure planes are fully added to scene
-        setTimeout(() => {
-            const isMobile = window.innerWidth <= 768;
+        // Position Moon/Mars panels when they're ready
+        // (planes are created synchronously in initGlobe)
+        EventBus.once(AppEvents.PLANES_READY, () => {
+            const isMobile = window.innerWidth <= TransportConfig.MOBILE.WIDTH_THRESHOLD;
             const isPortrait = container.clientHeight > container.clientWidth;
             const isMobilePortrait = isMobile && isPortrait;
             console.log('🌍 Initial panel positioning - Window:', window.innerWidth, 'x', window.innerHeight);
             console.log('🌍 Container:', container.clientWidth, 'x', container.clientHeight);
             console.log('🌍 Mobile:', isMobile, 'Portrait:', isPortrait, 'Mobile Portrait:', isMobilePortrait);
             this.interactionController.updatePlanesPosition(isMobilePortrait);
-        }, 50);
+        });
 
         // Add starfield
         this.globeView.addStarfield();
@@ -116,7 +121,7 @@ export class GlobeController {
         this.updatePlaneVisibility();
         
         // ALWAYS sync with EventManager after markers are added (final check)
-        // This ensures events from EventManager are always used, even if EventManager loaded after
+        // Listen for events loaded event for reliable synchronization
         const finalSync = () => {
             if (window.eventManager && window.eventManager.events) {
                 this.dataModel.events = [...window.eventManager.events];
@@ -125,8 +130,9 @@ export class GlobeController {
             }
         };
         finalSync(); // Try immediately
-        setTimeout(finalSync, 300); // Try again after a short delay
-        setTimeout(finalSync, 1000); // One more time after 1 second
+        
+        // Subscribe to events loaded event for future updates
+        EventBus.on(AppEvents.EVENTS_LOADED, finalSync);
 
         // Add connection lines (with callbacks to store route curves)
         this.globeView.addConnectionLines((routeData) => {
@@ -175,11 +181,11 @@ export class GlobeController {
         // Initialize satellites
         this.transportController.initializeSatellites();
         
-        // Add satellite markers after satellites are created
-        setTimeout(() => {
+        // Add satellite markers when transport is ready
+        EventBus.once(AppEvents.TRANSPORT_READY, () => {
             const satellites = this.transportModel.getSatellites();
             this.globeView.addSatelliteMarkers(satellites);
-        }, 100);
+        });
 
     }
 
@@ -242,7 +248,7 @@ export class GlobeController {
     }
 
     /**
-     * Main animation loop
+     * Main animation loop - delegates to smaller, focused methods
      */
     animate() {
         // Stop animation if cleanup has been called
@@ -259,181 +265,232 @@ export class GlobeController {
 
         if (!scene || !camera || !renderer || !globe || this.isCleanedUp) return;
         
-        // Delta time tracking to prevent catch-up when tab regains focus
+        // Check delta time and prevent catch-up
+        if (!this.handleDeltaTime()) {
+            return; // Skip frame if tab was hidden too long
+        }
+
+        // Update plane positions
+        this.updatePlanePositions(camera);
+
+        // Handle rotation (auto-rotate or momentum)
+        this.handleRotation(globe, camera);
+
+        // Update all transport systems
+        this.updateAllTransport();
+
+        // Update trails
+        this.updateTrails();
+
+        // Update UI elements
+        this.updateUIElements();
+
+        // Render scene
+        renderer.render(scene, camera);
+    }
+
+    /**
+     * Handle delta time tracking to prevent catch-up
+     * @returns {boolean} - false if frame should be skipped
+     */
+    handleDeltaTime() {
         const currentTime = performance.now();
         const deltaTime = currentTime - this.lastFrameTime;
         
         // If tab was hidden for more than 1 second, reset to prevent catch-up
-        // This prevents vehicles from spawning all at once when tab regains focus
         if (deltaTime > 1000) {
             this.lastFrameTime = currentTime;
-            // Skip this frame to prevent massive catch-up
-            return;
+            return false; // Skip this frame
         }
         
         this.lastFrameTime = currentTime;
+        return true;
+    }
 
-        // Update Moon/Mars plane positions to stay on camera's right side
-        this.updatePlanePositions(camera);
-
-        // Auto-rotate - if viewing event, recenter to it; otherwise normal rotation
+    /**
+     * Handle rotation (auto-rotate or momentum)
+     */
+    handleRotation(globe, camera) {
         if (this.sceneModel.getAutoRotate() && this.sceneModel.getAutoRotateEnabled()) {
-            const eventMarker = this.sceneModel.eventMarker;
-            if (eventMarker) {
-                // Recenter to event marker
-                const markerWorldPos = new THREE.Vector3();
-                eventMarker.getWorldPosition(markerWorldPos);
-                const targetDirection = markerWorldPos.clone().normalize();
-                
-                // Calculate current direction the camera is looking at (from globe center)
-                const cameraDirection = camera.position.clone().normalize();
-                
-                // Calculate rotation needed to face the marker
-                const currentLat = Math.asin(cameraDirection.y);
-                const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);
-                const targetLat = Math.asin(targetDirection.y);
-                const targetLon = Math.atan2(targetDirection.z, targetDirection.x);
-                
-                // Smoothly rotate globe to face marker
-                const latDiff = targetLat - currentLat;
-                const lonDiff = targetLon - currentLon;
-                
-                // Normalize lon difference to shortest path
-                let normalizedLonDiff = lonDiff;
-                if (normalizedLonDiff > Math.PI) normalizedLonDiff -= 2 * Math.PI;
-                if (normalizedLonDiff < -Math.PI) normalizedLonDiff += 2 * Math.PI;
-                
-                // Calculate total angle difference
-                const angleDiff = Math.abs(latDiff) + Math.abs(normalizedLonDiff);
-                
-                // Track initial angle difference when recentering starts
-                if (this.initialAngleDiff === null || angleDiff > this.initialAngleDiff * 1.1) {
-                    // Reset if we're starting a new recentering (angle increased, meaning we moved away)
-                    this.initialAngleDiff = angleDiff;
-                    this.fadeInTriggered = false;
-                }
-                
-                // Constant speed rotation (not proportional - moves fixed amount per frame)
-                const constantSpeed = 0.004; // Fixed rotation speed per frame (more gradual, slower)
-                
-                // Calculate 90% completion threshold (10% of initial angle remaining)
-                const fadeInThreshold = this.initialAngleDiff * 0.1; // 90% done = 10% remaining
-                const completeThreshold = 0.01; // Stop recentering when fully done
-                
-                // Check if we should start fading in (90% done) - only trigger once
-                if (!this.fadeInTriggered && angleDiff <= fadeInThreshold && angleDiff > completeThreshold) {
-                    // 90% done - start fading in image if it was hidden
-                    this.fadeInTriggered = true; // Mark as triggered to prevent multiple calls
-                    
-                    const eventImage = document.getElementById('eventImage');
-                    const eventImageOverlay = document.getElementById('eventImageOverlay');
-                    if (eventImage && eventImageOverlay && eventImageOverlay.classList.contains('open')) {
-                        // Check if image/overlay has fade-out class (was hidden during drag)
-                        const hasFadeOut = eventImage.classList.contains('fade-out') || 
-                                          eventImageOverlay.classList.contains('fade-out');
-                        
-                        if (hasFadeOut) {
-                            // Image was hidden, fade it back in with proper animation
-                            if (eventImage.src && eventImage.src !== window.location.href && eventImage.style.display !== 'none') {
-                                // Remove fade-out class
-                                eventImage.classList.remove('fade-out');
-                                eventImageOverlay.classList.remove('fade-out');
-                                
-                                // Set opacity to 0 to start fade-in from beginning
-                                eventImage.style.opacity = '0';
-                                eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)'; // Transparent for image
-                                
-                                // Force reflow to ensure opacity 0 is applied
-                                void eventImage.offsetHeight;
-                                
-                                // Add fade-in class to trigger CSS transition
-                                eventImage.classList.add('fade-in');
-                            } else {
-                                // No image - fade in black overlay
-                                eventImageOverlay.classList.remove('fade-out');
-                                eventImageOverlay.style.opacity = '0';
-                                eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)'; // Black background
-                                
-                                // Force reflow to ensure opacity 0 is applied
-                                void eventImageOverlay.offsetHeight;
-                                
-                                // Add fade-in class to trigger CSS transition
-                                eventImageOverlay.classList.add('fade-in');
-                            }
-                        }
-                    }
-                }
-                
-                if (angleDiff > completeThreshold) {
-                    // Still recentering - continue movement
-                    // Calculate direction vector
-                    const totalDiff = Math.sqrt(latDiff * latDiff + normalizedLonDiff * normalizedLonDiff);
-                    if (totalDiff > 0) {
-                        // Normalize direction and apply constant speed
-                        const dirX = latDiff / totalDiff;
-                        const dirY = normalizedLonDiff / totalDiff;
-                        
-                        // Move fixed amount in direction of target
-                        const moveAmount = Math.min(constantSpeed, totalDiff); // Don't overshoot
-                        globe.rotation.x += dirX * moveAmount;
-                        globe.rotation.y += dirY * moveAmount;
-                    }
-                } else {
-                    // Close enough - stop recentering
-                    this.sceneModel.setAutoRotate(false);
-                    // Reset tracking for next recentering
-                    this.initialAngleDiff = null;
-                    this.fadeInTriggered = false;
-                }
-                
-                // Limit vertical rotation
-                globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
-            } else {
-                // Normal auto-rotate
-                globe.rotation.y += 0.002;
-            }
+            this.handleAutoRotate(globe, camera);
         }
+        
+        this.applyRotationMomentum(globe);
+    }
 
-        // Apply rotation momentum
+    /**
+     * Handle auto-rotation logic
+     */
+    handleAutoRotate(globe, camera) {
+        const eventMarker = this.sceneModel.eventMarker;
+        const config = TransportConfig.AUTO_ROTATE;
+        
+        if (eventMarker) {
+            // Recenter to event marker
+            this.recenterToMarker(globe, camera, eventMarker, config);
+        } else {
+            // Normal auto-rotate
+            globe.rotation.y += config.SPEED;
+        }
+    }
+
+    /**
+     * Recenter globe to focus on event marker
+     */
+    recenterToMarker(globe, camera, eventMarker, config) {
+        const markerWorldPos = new THREE.Vector3();
+        eventMarker.getWorldPosition(markerWorldPos);
+        const targetDirection = markerWorldPos.clone().normalize();
+        
+        const cameraDirection = camera.position.clone().normalize();
+        
+        // Calculate rotation needed
+        const currentLat = Math.asin(cameraDirection.y);
+        const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);
+        const targetLat = Math.asin(targetDirection.y);
+        const targetLon = Math.atan2(targetDirection.z, targetDirection.x);
+        
+        const latDiff = targetLat - currentLat;
+        let lonDiff = targetLon - currentLon;
+        
+        // Normalize longitude difference to shortest path
+        if (lonDiff > Math.PI) lonDiff -= 2 * Math.PI;
+        if (lonDiff < -Math.PI) lonDiff += 2 * Math.PI;
+        
+        const angleDiff = Math.abs(latDiff) + Math.abs(lonDiff);
+        
+        // Track initial angle difference
+        if (this.initialAngleDiff === null || angleDiff > this.initialAngleDiff * 1.1) {
+            this.initialAngleDiff = angleDiff;
+            this.fadeInTriggered = false;
+        }
+        
+        // Check if we should fade in image (90% complete)
+        const fadeInThreshold = this.initialAngleDiff * config.FADE_IN_THRESHOLD;
+        if (!this.fadeInTriggered && angleDiff <= fadeInThreshold && angleDiff > config.COMPLETE_THRESHOLD) {
+            this.fadeInEventImage();
+            this.fadeInTriggered = true;
+        }
+        
+        // Continue recentering or stop when complete
+        if (angleDiff > config.COMPLETE_THRESHOLD) {
+            this.continueRecentering(globe, latDiff, lonDiff, config.RECENTER_SPEED);
+        } else {
+            this.stopRecentering();
+        }
+        
+        // Limit vertical rotation
+        globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
+    }
+
+    /**
+     * Continue recentering movement
+     */
+    continueRecentering(globe, latDiff, lonDiff, speed) {
+        const totalDiff = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
+        if (totalDiff > 0) {
+            const dirX = latDiff / totalDiff;
+            const dirY = lonDiff / totalDiff;
+            const moveAmount = Math.min(speed, totalDiff);
+            globe.rotation.x += dirX * moveAmount;
+            globe.rotation.y += dirY * moveAmount;
+        }
+    }
+
+    /**
+     * Stop recentering and reset tracking
+     */
+    stopRecentering() {
+        this.sceneModel.setAutoRotate(false);
+        this.initialAngleDiff = null;
+        this.fadeInTriggered = false;
+    }
+
+    /**
+     * Fade in event image after recentering is 90% complete
+     */
+    fadeInEventImage() {
+        const eventImage = document.getElementById('eventImage');
+        const eventImageOverlay = document.getElementById('eventImageOverlay');
+        
+        if (!eventImage || !eventImageOverlay || !eventImageOverlay.classList.contains('open')) {
+            return;
+        }
+        
+        const hasFadeOut = eventImage.classList.contains('fade-out') || 
+                          eventImageOverlay.classList.contains('fade-out');
+        
+        if (!hasFadeOut) return;
+        
+        // Remove fade-out classes
+        eventImage.classList.remove('fade-out');
+        eventImageOverlay.classList.remove('fade-out');
+        
+        if (eventImage.src && eventImage.src !== window.location.href && eventImage.style.display !== 'none') {
+            // Fade in image
+            eventImage.style.opacity = '0';
+            eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
+            void eventImage.offsetHeight; // Force reflow
+            eventImage.classList.add('fade-in');
+        } else {
+            // Fade in black overlay (no image)
+            eventImageOverlay.style.opacity = '0';
+            eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+            void eventImageOverlay.offsetHeight; // Force reflow
+            eventImageOverlay.classList.add('fade-in');
+        }
+    }
+
+    /**
+     * Apply rotation momentum (damping)
+     */
+    applyRotationMomentum(globe) {
         const velocity = this.sceneModel.getRotationVelocity();
+        
         if (Math.abs(velocity.x) > 0.001 || Math.abs(velocity.y) > 0.001) {
             globe.rotation.x += velocity.x;
             globe.rotation.y += velocity.y;
             globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
             
-            // Damping
+            // Damping (95% per frame)
             this.sceneModel.setRotationVelocity({
                 x: velocity.x * 0.95,
                 y: velocity.y * 0.95
             });
         }
+    }
 
-        // Update transport systems
+    /**
+     * Update all transport systems
+     */
+    updateAllTransport() {
         this.transportController.updateTrains();
         this.transportController.updatePlanes();
         this.transportController.updateBoats();
         this.transportController.updateSatellites();
-        // Satellite trails now use plane trail system, updated in updateTrailSegments
+    }
 
-        // Update trails
+    /**
+     * Update trail segments
+     */
+    updateTrails() {
         this.transportView.updateTrailSegments();
         this.transportView.updateBoatTrailSegments();
+    }
 
-        // Update label position
+    /**
+     * Update UI elements
+     */
+    updateUIElements() {
         this.uiView.updateLabelPosition();
         
-        // Update pulse rings for event markers
         if (this.interactionController) {
             this.interactionController.updatePulseRings();
             this.interactionController.updateMarkerPulse();
             this.interactionController.updateStationPinLines();
         }
         
-        // Check and auto-show image if conditions are met
         this.uiView.checkAndAutoShowImage();
-
-        // Render
-        renderer.render(scene, camera);
     }
 
 

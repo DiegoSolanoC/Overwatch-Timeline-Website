@@ -494,6 +494,12 @@ class EventManager {
                 console.log('EventManager: Refreshed event markers on globe');
             }
         }
+        
+        // Emit event that events have been loaded (for event-driven initialization)
+        if (window.EventBus && window.AppEvents) {
+            window.EventBus.emit(window.AppEvents.EVENTS_LOADED);
+            console.log('EventManager: Emitted EVENTS_LOADED event');
+        }
     }
 
     /**

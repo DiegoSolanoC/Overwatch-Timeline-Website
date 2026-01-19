@@ -1,6 +1,8 @@
 /**
  * RouteController - Handles route finding, graph building, and reservations
  */
+import { TransportConfig } from './config/TransportConfig.js';
+
 export class RouteController {
     constructor(transportModel) {
         this.transportModel = transportModel;
@@ -22,7 +24,7 @@ export class RouteController {
      * @returns {number}
      */
     calculateRouteDistance(curve) {
-        const points = curve.getPoints(50);
+        const points = curve.getPoints(TransportConfig.ROUTE.CURVE_POINTS);
         let distance = 0;
         for (let i = 1; i < points.length; i++) {
             distance += points[i].distanceTo(points[i - 1]);
@@ -94,7 +96,7 @@ export class RouteController {
      * @param {number} maxHops - Maximum hops
      * @returns {Array|null}
      */
-    findAlternateRoute(fromCity, toCity, previousCity, maxHops = 5) {
+    findAlternateRoute(fromCity, toCity, previousCity, maxHops = TransportConfig.ROUTE.MAX_HOPS) {
         const routeGraph = this.transportModel.getRouteGraph();
         const queue = [{ city: fromCity, path: [fromCity], routes: [] }];
         const visited = new Set([fromCity]);
@@ -143,7 +145,7 @@ export class RouteController {
     findMultiStopRoute(maxStops) {
         const routeGraph = this.transportModel.getRouteGraph();
         const allCities = Object.keys(routeGraph);
-        if (allCities.length < 2) return null;
+        if (allCities.length < TransportConfig.ROUTE.MIN_STOPS) return null;
         
         function selectWeightedCity() {
             const rand = Math.random();
@@ -161,10 +163,10 @@ export class RouteController {
         const validPaths = [];
         const visited = new Set();
         
-        while (queue.length > 0 && validPaths.length < 30) {
+        while (queue.length > 0 && validPaths.length < TransportConfig.ROUTE.MAX_VALID_PATHS) {
             const current = queue.shift();
             
-            if (current.routes.length >= 2 && current.path.length <= maxStops + 1) {
+            if (current.routes.length >= TransportConfig.ROUTE.MIN_PATH_LENGTH && current.path.length <= maxStops + 1) {
                 validPaths.push(current);
             }
             
@@ -265,17 +267,17 @@ export class RouteController {
     findMultiStopBoatRoute(maxStops) {
         const boatRouteGraph = this.transportModel.getBoatRouteGraph();
         const allPorts = Object.keys(boatRouteGraph);
-        if (allPorts.length < 2) return null;
+        if (allPorts.length < TransportConfig.ROUTE.MIN_STOPS) return null;
         
         const startPort = allPorts[Math.floor(Math.random() * allPorts.length)];
         const queue = [{ port: startPort, path: [startPort], routes: [] }];
         const validPaths = [];
         const visited = new Set();
         
-        while (queue.length > 0 && validPaths.length < 30) {
+        while (queue.length > 0 && validPaths.length < TransportConfig.ROUTE.MAX_VALID_PATHS) {
             const current = queue.shift();
             
-            if (current.routes.length >= 2 && current.path.length <= maxStops + 1) {
+            if (current.routes.length >= TransportConfig.ROUTE.MIN_PATH_LENGTH && current.path.length <= maxStops + 1) {
                 validPaths.push(current);
             }
             
