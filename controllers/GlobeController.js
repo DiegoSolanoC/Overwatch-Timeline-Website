@@ -90,6 +90,19 @@ export class GlobeController {
             // Start animation once texture is loaded
             this.animate();
         });
+        
+        // Position Moon/Mars panels immediately after globe initialization
+        // (planes are created synchronously in initGlobe, before texture load callback)
+        // Use setTimeout to ensure planes are fully added to scene
+        setTimeout(() => {
+            const isMobile = window.innerWidth <= 768;
+            const isPortrait = container.clientHeight > container.clientWidth;
+            const isMobilePortrait = isMobile && isPortrait;
+            console.log('🌍 Initial panel positioning - Window:', window.innerWidth, 'x', window.innerHeight);
+            console.log('🌍 Container:', container.clientWidth, 'x', container.clientHeight);
+            console.log('🌍 Mobile:', isMobile, 'Portrait:', isPortrait, 'Mobile Portrait:', isMobilePortrait);
+            this.interactionController.updatePlanesPosition(isMobilePortrait);
+        }, 50);
 
         // Add starfield
         this.globeView.addStarfield();

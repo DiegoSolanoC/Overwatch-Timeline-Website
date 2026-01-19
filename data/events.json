@@ -1303,6 +1303,23 @@
       "factions": [],
       "x": 45,
       "y": 35
+    },
+    {
+      "name": "Harnessing te Harness",
+      "locationType": "station",
+      "cityDisplayName": "Interstellar Journey Space Station",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Sigma"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Sigma Origin Story",
+          "url": "https://www.youtube.com/watch?v=onplsJSdp4A"
+        }
+      ]
     }
   ]
 }

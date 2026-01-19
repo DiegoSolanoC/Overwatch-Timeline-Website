@@ -367,6 +367,20 @@
         .zoom-controls .zoom-btn {
             pointer-events: auto; /* Buttons are clickable */
         }
+        
+        /* Mobile: Make zoom controls smaller and move them up */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .zoom-controls {
+                top: 25% !important; /* Move up from center */
+                left: 15px !important; /* Slightly closer to edge */
+            }
+            
+            .zoom-btn {
+                width: 42px !important;
+                height: 42px !important;
+                font-size: 28px !important;
+            }
+        }
     </style>
 </head>
 <body>

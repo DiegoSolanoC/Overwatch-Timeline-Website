@@ -1336,69 +1336,69 @@ export class TransportController {
         } else {
             // Use Satellite model for non-ISS satellites
             const satelliteModelCache = this.transportModel.getSatelliteModelCache();
+        
+        if (satelliteModelCache && gltfLoader) {
+            // Use cached model
+            const satelliteModel = satelliteModelCache.clone();
+            satelliteModel.scale.set(0.02, 0.02, 0.02);
+            satelliteModel.visible = true;
+            applySatelliteMaterial(satelliteModel);
             
-            if (satelliteModelCache && gltfLoader) {
-                // Use cached model
-                const satelliteModel = satelliteModelCache.clone();
-                satelliteModel.scale.set(0.02, 0.02, 0.02);
-                satelliteModel.visible = true;
-                applySatelliteMaterial(satelliteModel);
+            // Random rotation for small satellites (not ISS or Mars Ship)
+            if (!shouldAlignWithPath) {
+                satelliteModel.rotation.x = Math.random() * Math.PI * 2;
+                satelliteModel.rotation.y = Math.random() * Math.PI * 2;
+                satelliteModel.rotation.z = Math.random() * Math.PI * 2;
+            }
+            
+            satelliteGroup.add(satelliteModel);
+        } else if (gltfLoader) {
+            // Load model for first time
+            gltfLoader.load('Models3D/Satellite.glb', (gltf) => {
+                const model = gltf.scene;
+                const cached = model.clone();
+                this.transportModel.setSatelliteModelCache(cached);
+                
+                model.scale.set(0.02, 0.02, 0.02);
+                model.visible = true;
+                applySatelliteMaterial(model);
                 
                 // Random rotation for small satellites (not ISS or Mars Ship)
                 if (!shouldAlignWithPath) {
-                    satelliteModel.rotation.x = Math.random() * Math.PI * 2;
-                    satelliteModel.rotation.y = Math.random() * Math.PI * 2;
-                    satelliteModel.rotation.z = Math.random() * Math.PI * 2;
+                    model.rotation.x = Math.random() * Math.PI * 2;
+                    model.rotation.y = Math.random() * Math.PI * 2;
+                    model.rotation.z = Math.random() * Math.PI * 2;
                 }
                 
-                satelliteGroup.add(satelliteModel);
-            } else if (gltfLoader) {
-                // Load model for first time
-                gltfLoader.load('Models3D/Satellite.glb', (gltf) => {
-                    const model = gltf.scene;
-                    const cached = model.clone();
-                    this.transportModel.setSatelliteModelCache(cached);
-                    
-                    model.scale.set(0.02, 0.02, 0.02);
-                    model.visible = true;
-                    applySatelliteMaterial(model);
-                    
-                    // Random rotation for small satellites (not ISS or Mars Ship)
-                    if (!shouldAlignWithPath) {
-                        model.rotation.x = Math.random() * Math.PI * 2;
-                        model.rotation.y = Math.random() * Math.PI * 2;
-                        model.rotation.z = Math.random() * Math.PI * 2;
-                    }
-                    
-                    satelliteGroup.add(model);
-                }, undefined, (error) => {
-                    console.error('Error loading Satellite.glb:', error);
-                    // Fallback to simple box
+                satelliteGroup.add(model);
+            }, undefined, (error) => {
+                console.error('Error loading Satellite.glb:', error);
+                // Fallback to simple box
                     const size = type === 'MarsShip' ? 0.010 : 0.006;
-                    const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
-                    const material = new THREE.MeshPhongMaterial({
-                        color: color,
-                        emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
-                        emissiveIntensity: 0.3,
-                        transparent: true,
-                        opacity: 0.9
-                    });
-                    const satelliteMesh = new THREE.Mesh(geometry, material);
-                    satelliteGroup.add(satelliteMesh);
-                });
-            } else {
-                // Fallback to simple box if no loader
-                const size = type === 'MarsShip' ? 0.010 : 0.006;
                 const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
                 const material = new THREE.MeshPhongMaterial({
                     color: color,
-                    emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
+                        emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
                     emissiveIntensity: 0.3,
                     transparent: true,
                     opacity: 0.9
                 });
                 const satelliteMesh = new THREE.Mesh(geometry, material);
                 satelliteGroup.add(satelliteMesh);
+            });
+        } else {
+            // Fallback to simple box if no loader
+                const size = type === 'MarsShip' ? 0.010 : 0.006;
+            const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
+            const material = new THREE.MeshPhongMaterial({
+                color: color,
+                    emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
+                emissiveIntensity: 0.3,
+                transparent: true,
+                opacity: 0.9
+            });
+            const satelliteMesh = new THREE.Mesh(geometry, material);
+            satelliteGroup.add(satelliteMesh);
             }
         }
         

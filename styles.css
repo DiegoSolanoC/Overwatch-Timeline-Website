@@ -2329,11 +2329,50 @@ footer p {
         font-size: 1.2rem;
     }
     
-    /* Slightly reduce button sizes for mobile */
+    /* Reduce button sizes for mobile vertical displays */
     .globe-control-btn {
-        width: 70px;
-        height: 55px;
-        font-size: 14px;
+        width: 60px !important;
+        height: 50px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Make page buttons smaller on mobile */
+    .page-btn {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 18px !important;
+    }
+    
+    /* Make number buttons smaller on mobile */
+    .event-number-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Make top-left buttons smaller (event manager, filters) */
+    .top-left-btn {
+        width: 60px !important;
+        height: 50px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Make bottom-right buttons smaller (music, palette) */
+    .bottom-right-btn {
+        width: 60px !important;
+        height: 50px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Make palette option buttons smaller */
+    .palette-option-btn {
+        width: 38px !important;
+        height: 38px !important;
+    }
+    
+    /* Adjust palette menu position for smaller button */
+    .palette-menu {
+        bottom: 130px !important;
     }
     
     /* Make panels match globe container dimensions on mobile */

@@ -137,11 +137,13 @@ export class GlobeView {
             roughness: 0.5
         });
         const moonPlane = new THREE.Mesh(moonGeometry, moonMaterial);
-        moonPlane.position.set(1.5, 0.3, 0); // To the right, slightly above center
+        
+        // Position will be set by InteractionController.updatePlanesPosition after init
+        // Default to desktop position for now
+        moonPlane.position.set(1.5, 0.3, 0);
         moonPlane.visible = false; // Hidden by default, shown only if current page has Moon events
         moonPlane.scale.set(1, 0, 1); // Start with Y scale at 0 (squashed)
-        // Rotate plane to face the camera (which is at 0, 0, 3.5)
-        // Use lookAt to make plane face camera position
+        // Rotate plane to face the camera (will be updated by updatePlanesPosition)
         moonPlane.lookAt(0, 0, 3.5);
         if (this.sceneModel.setMoonPlane) {
             this.sceneModel.setMoonPlane(moonPlane);
@@ -172,11 +174,13 @@ export class GlobeView {
             roughness: 0.5
         });
         const marsPlane = new THREE.Mesh(marsGeometry, marsMaterial);
-        marsPlane.position.set(1.5, -0.3, 0); // To the right, slightly below center
+        
+        // Position will be set by InteractionController.updatePlanesPosition after init
+        // Default to desktop position for now
+        marsPlane.position.set(1.5, -0.3, 0);
         marsPlane.visible = false; // Hidden by default, shown only if current page has Mars events
         marsPlane.scale.set(1, 0, 1); // Start with Y scale at 0 (squashed)
-        // Rotate plane to face the camera (which is at 0, 0, 3.5)
-        // Use lookAt to make plane face camera position
+        // Rotate plane to face the camera (will be updated by updatePlanesPosition)
         marsPlane.lookAt(0, 0, 3.5);
         if (this.sceneModel.setMarsPlane) {
             this.sceneModel.setMarsPlane(marsPlane);

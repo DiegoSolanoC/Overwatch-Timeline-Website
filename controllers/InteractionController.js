@@ -1123,7 +1123,14 @@ export class InteractionController {
         if (container && sceneModel) {
             const isMobile = window.innerWidth <= 768;
             const isPortrait = container.clientHeight > container.clientWidth;
-            sceneModel.isMobilePortrait = isMobile && isPortrait;
+            const wasMobilePortrait = sceneModel.isMobilePortrait;
+            const isMobilePortrait = isMobile && isPortrait;
+            sceneModel.isMobilePortrait = isMobilePortrait;
+            
+            // If orientation changed, reposition Moon and Mars panels
+            if (wasMobilePortrait !== isMobilePortrait) {
+                this.updatePlanesPosition(isMobilePortrait);
+            }
         }
         
         if (container && camera && renderer) {
@@ -1131,6 +1138,52 @@ export class InteractionController {
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
         }
+    }
+    
+    /**
+     * Update Moon and Mars planes position based on viewport
+     * @param {boolean} isMobilePortrait - Whether in mobile portrait mode
+     */
+    updatePlanesPosition(isMobilePortrait) {
+        const moonPlane = this.sceneModel.getMoonPlane();
+        const marsPlane = this.sceneModel.getMarsPlane();
+        
+        console.log('updatePlanesPosition called with isMobilePortrait:', isMobilePortrait);
+        console.log('Moon plane exists:', !!moonPlane, 'Mars plane exists:', !!marsPlane);
+        
+        if (moonPlane) {
+            if (isMobilePortrait) {
+                // Mobile portrait: horizontal layout at the top
+                console.log('Setting Moon to mobile portrait position: (-0.8, 1.2, 0)');
+                moonPlane.position.set(-0.8, 1.2, 0); // Left side, at the top
+            } else {
+                // Desktop: vertical layout on the right
+                console.log('Setting Moon to desktop position: (1.5, 0.3, 0)');
+                moonPlane.position.set(1.5, 0.3, 0); // To the right, slightly above center
+            }
+            // Update lookAt direction
+            const cameraZ = isMobilePortrait ? 5.5 : 3.5;
+            moonPlane.lookAt(0, 0, cameraZ);
+            console.log('Moon plane final position:', moonPlane.position);
+        }
+        
+        if (marsPlane) {
+            if (isMobilePortrait) {
+                // Mobile portrait: horizontal layout at the top
+                console.log('Setting Mars to mobile portrait position: (0.3, 1.2, 0)');
+                marsPlane.position.set(0.3, 1.2, 0); // Right of Moon, at the top
+            } else {
+                // Desktop: vertical layout on the right
+                console.log('Setting Mars to desktop position: (1.5, -0.3, 0)');
+                marsPlane.position.set(1.5, -0.3, 0); // To the right, slightly below center
+            }
+            // Update lookAt direction
+            const cameraZ = isMobilePortrait ? 5.5 : 3.5;
+            marsPlane.lookAt(0, 0, cameraZ);
+            console.log('Mars plane final position:', marsPlane.position);
+        }
+        
+        console.log('Planes repositioned for', isMobilePortrait ? 'mobile portrait' : 'desktop');
     }
     
     /**
