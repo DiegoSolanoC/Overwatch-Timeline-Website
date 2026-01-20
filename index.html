@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Timeline Overwatch</title>
+    <link rel="icon" type="image/png" href="Icons/Icon.png">
+    <link rel="stylesheet" href="styles.css?v=5">
+    <style>
+        /* Ensure main element properly contains containers */
+        main#content {
+            position: relative;
+        }
+        
+        /* Test container styling - for Menu Components */
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1; /* Lower than buttons */
+            pointer-events: none; /* Allow clicks to pass through to buttons */
+        }
+        
+        /* Allow pointer events on test-container children */
+        .test-container > * {
+            pointer-events: auto;
+        }
+        
+        /* Globe container should take full space when visible */
+        #globe-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000; /* Fully black (100% opacity) */
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .loading-status-overlay {
+            background: transparent; /* Backgroundless */
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .loading-gif {
+            max-width: 200px;
+            max-height: 200px;
+            width: auto;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        
+        .loading-status-overlay h3 {
+            margin-top: 0;
+            color: #2196F3;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .loading-progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .loading-progress-bar {
+            height: 100%;
+            background: #ffffff;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .loading-status-overlay #overlayStatusContent {
+            width: 100%;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-status-overlay .test-status-item {
+            text-align: center;
+            padding: 10px;
+            background: transparent;
+        }
+        
+        /* Main menu button layout - for Menu Components */
+        .main-menu-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .main-menu-btn {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+            text-align: center;
+            box-sizing: border-box;
+            flex: 1;
+            max-width: 450px;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-menu-btn:hover {
+            transform: translateY(-2px) scale(1.08);
+            box-shadow: 
+                inset 0 0 50px 10px rgba(255, 255, 255, 0.7),
+                0 0 30px 5px rgba(255, 255, 255, 0.8),
+                0 0 60px 10px rgba(255, 255, 255, 0.4);
+        }
+        
+        .main-menu-image-container {
+            width: 100%;
+            background: #122E49;
+            border-radius: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        body.color-palette-gray .main-menu-image-container {
+            background: #383838;
+        }
+        
+        .main-menu-btn img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            object-position: top;
+            border-radius: 0;
+            display: block;
+        }
+        
+        .main-menu-label-container {
+            width: 100%;
+            background: #1D4A77;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 380px;
+            box-sizing: border-box;
+        }
+        
+        body.color-palette-gray .main-menu-label-container {
+            background: #707070;
+        }
+        
+        .main-menu-label {
+            width: 100%;
+            color: white;
+            font-size: 32px;
+            font-weight: 600;
+            padding: 16px 4px 2px 4px;
+            margin: 0;
+            border-radius: 0;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            letter-spacing: 0.5px;
+        }
+        
+        .main-menu-description {
+            width: 100%;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 20px;
+            font-weight: 400;
+            padding: 2px 12px 16px 12px;
+            margin: 0;
+            border-radius: 0;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            line-height: 1.5;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .main-menu-buttons {
+                flex-direction: row !important;
+                flex-wrap: wrap;
+                gap: 15px;
+                padding: 20px;
+                align-items: stretch;
+                justify-content: center;
+            }
+            
+            .main-menu-btn {
+                max-width: calc(50% - 7.5px);
+                min-width: 200px;
+                width: auto;
+                flex: 0 1 calc(50% - 7.5px);
+                min-height: 350px;
+                max-height: 450px;
+                aspect-ratio: 0.7;
+            }
+            
+            @media (max-width: 480px) {
+                .main-menu-buttons {
+                    flex-direction: column !important;
+                }
+                
+                .main-menu-btn {
+                    max-width: 100%;
+                    width: 100%;
+                    flex: 1 1 auto;
+                }
+            }
+            
+            .main-menu-label-container {
+                min-height: 200px;
+                flex: 1;
+            }
+            
+            .main-menu-label {
+                font-size: 24px;
+            }
+            
+            .main-menu-description {
+                font-size: 16px;
+            }
+        }
+        
+        /* Zoom Controls */
+        .zoom-controls {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 150; /* Above globe but below event slide (200) and overlays */
+            pointer-events: none; /* Allow clicks to pass through container */
+        }
+        
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(13, 71, 161, 0.9);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            pointer-events: auto; /* Enable clicks on buttons */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            user-select: none;
+            line-height: 1;
+        }
+        
+        .zoom-btn:hover:not(:disabled) {
+            background: rgba(13, 71, 161, 1);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .zoom-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        
+        .zoom-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Gray palette: gray zoom buttons */
+        body.color-palette-gray .zoom-btn {
+            background: rgba(74, 74, 74, 0.9) !important;
+        }
+        
+        body.color-palette-gray .zoom-btn:hover:not(:disabled) {
+            background: rgba(74, 74, 74, 1) !important;
+        }
+        
+        .zoom-in-btn {
+            order: 1; /* + button on top */
+        }
+        
+        .zoom-out-btn {
+            order: 2; /* - button on bottom */
+        }
+        
+        /* Hide zoom controls initially */
+        .zoom-controls {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Show zoom controls when visible */
+        .zoom-controls.visible {
+            opacity: 1;
+        }
+        
+        .zoom-controls .zoom-btn {
+            pointer-events: auto; /* Buttons are clickable */
+        }
+        
+        /* Mobile: Make zoom controls smaller and move them up */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .zoom-controls {
+                top: 25% !important; /* Move up from center */
+                left: 15px !important; /* Slightly closer to edge */
+            }
+            
+            .zoom-btn {
+                width: 42px !important;
+                height: 42px !important;
+                font-size: 28px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Timeline Overwatch - Main Page</h1>
+    </header>
+
+    <div class="layout-container">
+        <main id="content">
+            <div id="globe-container"></div>
+            <!-- Zoom Controls -->
+            <div class="zoom-controls" id="zoomControls">
+                <button class="zoom-btn zoom-in-btn" id="zoomInBtn" title="Zoom In">+</button>
+                <button class="zoom-btn zoom-out-btn" id="zoomOutBtn" title="Zoom Out">−</button>
+            </div>
+        </main>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-close" id="sidebarClose">&times;</div>
+            <button onclick="window.location.href='map.html'">Map</button>
+            <button onclick="window.location.href='test.html'">Test</button>
+            <button onclick="window.location.href='main.html'" class="active">Main</button>
+        </nav>
+
+        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
+        
+        <!-- Loading Overlay (fades in during Globe Components loading) -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-status-overlay">
+                <img src="Misc/loading.gif" alt="Loading" class="loading-gif" id="loadingGif">
+                <h3>Loading Status</h3>
+                <div class="loading-progress-container">
+                    <div class="loading-progress-bar" id="loadingProgressBar"></div>
+                </div>
+                <div id="overlayStatusContent"></div>
+            </div>
+        </div>
+        
+        <!-- Event Slide Panel (left side) -->
+        <div class="event-slide" id="eventSlide">
+            <div class="event-slide-close" id="eventSlideClose">&times;</div>
+            <div class="event-slide-content" id="eventSlideContent">
+                <div class="event-slide-top" id="eventSlideTop">
+                    <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                    <h2 id="eventSlideTitle">Event</h2>
+                    <p id="eventSlideLocation" class="event-slide-location" style="display: none;"></p>
+                </div>
+                <div class="event-slide-scrollable" id="eventSlideScrollable">
+                    <p id="eventSlideText">Placeholder text for event information.</p>
+                    <div class="event-sources-section" id="eventSourcesSection" style="display: none;">
+                        <h4 class="event-filter-header">Sources:</h4>
+                        <div class="event-sources-list" id="eventSourcesList"></div>
+                    </div>
+                    <div class="event-filters-section" id="eventFiltersSection" style="display: none;">
+                        <div class="event-filters-list" id="eventFiltersList"></div>
+                    </div>
+                </div>
+                <div class="event-slide-bottom" id="eventSlideBottom">
+                    <div class="event-control-buttons">
+                        <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+                        <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
+                    </div>
+                    <div class="event-navigation-buttons">
+                        <button id="eventPrevBtn" class="event-nav-btn" title="Previous Event">‹</button>
+                        <button id="eventAllEventsBtn" class="event-all-events-btn" title="View All Events">All Events</button>
+                        <button id="eventNextBtn" class="event-nav-btn" title="Next Event">›</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Image Overlay (over globe) -->
+        <div class="event-image-overlay" id="eventImageOverlay">
+            <div class="event-image-container" id="eventImageContainer">
+                <img id="eventImage" src="" alt="Event Image" style="display: none;">
+            </div>
+        </div>
+        
+        <!-- Event Manager Panel -->
+        <div class="events-manage-panel" id="eventsManagePanel">
+            <div class="events-manage-close" id="eventsManageClose">&times;</div>
+            <div class="events-manage-content">
+                <div class="events-manage-header">
+                    <div class="events-manage-title-section">
+                        <h2 class="events-manage-title">Event Management</h2>
+                        <p class="events-manage-count" id="eventsCount">0 Events</p>
+                    </div>
+                    <div class="events-manage-actions">
+                        <button id="addEventBtn" class="events-manage-action-btn">+ Add Event</button>
+                        <button id="saveEventsBtn" class="events-manage-action-btn save-btn">💾 Save</button>
+                        <button id="exportEventsBtn" class="events-manage-action-btn export-btn">📥 Export</button>
+                    </div>
+                </div>
+                <div class="events-list" id="eventsList">
+                    <!-- Events will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Edit Modal -->
+        <div class="event-edit-modal" id="eventEditModal">
+            <div class="event-edit-modal-content">
+                <div class="event-edit-modal-header">
+                    <h3 id="eventEditModalTitle">Edit Event</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="eventVariantTabs" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                        <button class="event-edit-modal-close" id="eventEditModalClose">&times;</button>
+                    </div>
+                </div>
+                <div class="event-edit-form">
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditName">Event Title:</label>
+                        <input type="text" id="eventEditName" class="event-edit-input" autocomplete="off" required>
+                    </div>
+                    <div class="event-edit-field">
+                        <label for="eventEditNumber">Event Number:</label>
+                        <input type="number" id="eventEditNumber" class="event-edit-input" autocomplete="off" min="1" step="1">
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditCity">City Name (for location lookup):</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="eventEditCity" class="event-edit-input" autocomplete="off" style="flex: 1;">
+                            <label style="display: flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px;">
+                                <input type="checkbox" id="useCodeLookup">
+                                Use Code Lookup
+                            </label>
+                        </div>
+                        <button type="button" id="lookupCityBtn" class="lookup-city-btn">🔍 Lookup</button>
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditCityDisplayName">City Display Name (shown in preview and info panel):</label>
+                        <input type="text" id="eventEditCityDisplayName" class="event-edit-input" autocomplete="off">
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label>Location Type:</label>
+                        <div class="location-type-buttons">
+                            <button type="button" class="location-type-btn active" data-location-type="earth" title="Earth (Latitude/Longitude)">🌍 Earth</button>
+                            <button type="button" class="location-type-btn" data-location-type="moon" title="Moon (X/Y Coordinates 0-100)">🌙 Moon</button>
+                            <button type="button" class="location-type-btn" data-location-type="mars" title="Mars (X/Y Coordinates 0-100)">🔴 Mars</button>
+                            <button type="button" class="location-type-btn" data-location-type="station" title="Space Station (ISS)">🛰️ Station</button>
+                        </div>
+                        <input type="hidden" id="eventEditLocationType" value="earth">
+                    </div>
+                    <div class="event-edit-field" id="latLonFields">
+                        <label for="eventEditLat">Latitude:</label>
+                        <input type="number" id="eventEditLat" class="event-edit-input" autocomplete="off" step="any" required>
+                    </div>
+                    <div class="event-edit-field" id="lonFields">
+                        <label for="eventEditLon">Longitude:</label>
+                        <input type="number" id="eventEditLon" class="event-edit-input" autocomplete="off" step="any" required>
+                    </div>
+                    <div class="event-edit-field" id="xyFields" style="display: none;">
+                        <label for="eventEditX">X (0-100):</label>
+                        <input type="number" id="eventEditX" class="event-edit-input" autocomplete="off" step="any" min="0" max="100" required>
+                    </div>
+                    <div class="event-edit-field" id="yFields" style="display: none;">
+                        <label for="eventEditY">Y (0-100):</label>
+                        <input type="number" id="eventEditY" class="event-edit-input" autocomplete="off" step="any" min="0" max="100" required>
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditDescription">Description:</label>
+                        <textarea id="eventEditDescription" class="event-edit-textarea" autocomplete="off" rows="4"></textarea>
+                    </div>
+                    <div class="event-edit-field">
+                        <label for="eventEditFilters">Hero Filters (comma-separated):</label>
+                        <input type="text" id="eventEditFilters" class="event-edit-input" autocomplete="off">
+                    </div>
+                    <div class="event-edit-field">
+                        <label for="eventEditFactions">Faction Filters (comma-separated):</label>
+                        <input type="text" id="eventEditFactions" class="event-edit-input" autocomplete="off">
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label>Sources:</label>
+                        <div id="eventSourcesContainer"></div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" id="addSourceBtn" class="event-edit-btn">+ Add Source</button>
+                            <button type="button" id="removeSourcePairBtn" class="event-edit-btn" style="display: none; background: rgba(244, 67, 54, 0.8);">- Remove Source</button>
+                        </div>
+                    </div>
+                    <div class="event-edit-actions">
+                        <button id="eventEditSave" class="event-edit-btn save-btn">Save</button>
+                        <button id="eventEditCancel" class="event-edit-btn cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Original Work by Blizzard Entertainment.</p>
+    </footer>
+
+    <!-- Load Three.js and GLTFLoader for globe -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- Load test-loader for component management -->
+    <script type="module" src="test-loader.js"></script>
+    
+    <!-- Load main script for sidebar and other UI -->
+    <script src="script.js"></script>
+    
+    <!-- Hide sidebar on GitHub Pages -->
+    <script>
+        // Check if we're on GitHub Pages
+        function isGitHubPages() {
+            const hostname = window.location.hostname;
+            return hostname.includes('github.io') || 
+                   hostname.includes('github.com') ||
+                   (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.') && !hostname.startsWith('10.') && window.location.protocol !== 'file:');
+        }
+        
+        // Hide sidebar on GitHub Pages
+        if (isGitHubPages()) {
+            document.addEventListener('DOMContentLoaded', function() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarIndicator = document.getElementById('sidebarIndicator');
+                if (sidebar) {
+                    sidebar.style.display = 'none';
+                    sidebar.style.visibility = 'hidden';
+                }
+                if (sidebarIndicator) {
+                    sidebarIndicator.style.display = 'none';
+                    sidebarIndicator.style.visibility = 'hidden';
+                }
+            });
+        }
+    </script>
+    
+    <!-- Auto-load Universal Features and Menu Components on index.html -->
+    <script>
+        // Wait for DOM and test-loader to be ready
+        window.addEventListener('DOMContentLoaded', function() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            // Show loading overlay immediately
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('active');
+            }
+            
+            // Update loading status using overlayStatusContent
+            function updateLoadingStatus(message) {
+                const overlayStatusContent = document.getElementById('overlayStatusContent');
+                if (overlayStatusContent) {
+                    overlayStatusContent.innerHTML = '';
+                    const item = document.createElement('div');
+                    item.className = 'test-status-item info';
+                    item.textContent = message;
+                    overlayStatusContent.appendChild(item);
+                }
+            }
+            
+            // Wait a bit for test-loader.js to initialize
+            setTimeout(async function() {
+                console.log('[index.html] Auto-loading Universal Features and Menu Components...');
+                updateLoadingStatus('Loading Universal Features...');
+                
+                // Auto-load Universal Features (Palette + Music)
+                if (typeof window.runUniversalFeatures === 'function') {
+                    try {
+                        await window.runUniversalFeatures();
+                        console.log('[index.html] ✓ Universal Features auto-loaded');
+                        updateLoadingStatus('Loading Menu Components...');
+                    } catch (error) {
+                        console.error('[index.html] Error auto-loading Universal Features:', error);
+                        updateLoadingStatus('Error loading Universal Features');
+                    }
+                } else {
+                    console.warn('[index.html] runUniversalFeatures not available yet, retrying...');
+                    setTimeout(async function() {
+                        if (typeof window.runUniversalFeatures === 'function') {
+                            updateLoadingStatus('Loading Universal Features...');
+                            await window.runUniversalFeatures();
+                            updateLoadingStatus('Loading Menu Components...');
+                        }
+                    }, 1000);
+                }
+                
+                // Auto-load Menu Components (after a short delay to ensure Universal Features are loaded)
+                setTimeout(async function() {
+                    if (typeof window.runMenuComponents === 'function') {
+                        try {
+                            await window.runMenuComponents();
+                            console.log('[index.html] ✓ Menu Components auto-loaded');
+                            updateLoadingStatus('Complete!');
+                            
+                            // Fade out loading overlay after a brief delay
+                            setTimeout(function() {
+                                if (loadingOverlay) {
+                                    loadingOverlay.classList.remove('active');
+                                }
+                            }, 300);
+                        } catch (error) {
+                            console.error('[index.html] Error auto-loading Menu Components:', error);
+                            updateLoadingStatus('Error loading Menu Components');
+                            // Still fade out after error
+                            setTimeout(function() {
+                                if (loadingOverlay) {
+                                    loadingOverlay.classList.remove('active');
+                                }
+                            }, 1000);
+                        }
+                    } else {
+                        console.warn('[index.html] runMenuComponents not available yet, retrying...');
+                        setTimeout(async function() {
+                            if (typeof window.runMenuComponents === 'function') {
+                                await window.runMenuComponents();
+                                updateLoadingStatus('Complete!');
+                                setTimeout(function() {
+                                    if (loadingOverlay) {
+                                        loadingOverlay.classList.remove('active');
+                                    }
+                                }, 300);
+                            }
+                        }, 1000);
+                    }
+                }, 500); // Small delay after Universal Features start
+            }, 500); // Small delay to ensure test-loader.js is loaded
+        });
+        
+        // Zoom controls visibility logic
+        window.addEventListener('DOMContentLoaded', () => {
+            const globeContainer = document.getElementById('globe-container');
+            const zoomControls = document.getElementById('zoomControls');
+            const zoomInBtn = document.getElementById('zoomInBtn');
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
+            
+            if (zoomInBtn && zoomOutBtn) {
+                zoomInBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.globeController && window.globeController.interactionController) {
+                        window.globeController.interactionController.zoomIn();
+                    }
+                });
+                zoomOutBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (window.globeController && window.globeController.interactionController) {
+                        window.globeController.interactionController.zoomOut();
+                    }
+                });
+            }
+            
+            // Function to update zoom controls visibility
+            function updateZoomControlsVisibility() {
+                if (!zoomControls) return;
+                
+                const globeContainer = document.getElementById('globe-container');
+                const testContainer = document.querySelector('.test-container');
+                
+                // Show zoom controls only when globe is loaded and menu is hidden
+                const globeLoaded = globeContainer && globeContainer.classList.contains('loaded');
+                const menuVisible = testContainer && 
+                    testContainer.style.display !== 'none' && 
+                    testContainer.style.opacity !== '0' &&
+                    window.getComputedStyle(testContainer).display !== 'none' &&
+                    parseFloat(window.getComputedStyle(testContainer).opacity) > 0;
+                
+                if (globeLoaded && !menuVisible) {
+                                zoomControls.classList.add('visible');
+                            } else {
+                                zoomControls.classList.remove('visible');
+                            }
+                        }
+            
+            // Update visibility initially and on changes
+            updateZoomControlsVisibility();
+            
+            // Watch for changes to globe container and test container
+            const observer = new MutationObserver(updateZoomControlsVisibility);
+            if (globeContainer) {
+                observer.observe(globeContainer, { attributes: true, attributeFilter: ['class', 'style'] });
+            }
+            
+            // Watch for testContainer creation and changes
+            const contentObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        const testContainer = document.querySelector('.test-container');
+                        if (testContainer) {
+                            observer.observe(testContainer, { attributes: true, attributeFilter: ['style', 'class'] });
+                            updateZoomControlsVisibility();
+                        }
+                    }
+                });
+                updateZoomControlsVisibility();
+            });
+            
+            const mainContent = document.getElementById('content');
+            if (mainContent) {
+                contentObserver.observe(mainContent, { childList: true, subtree: true });
+            }
+            
+            // Also check periodically (fallback for dynamic changes)
+            setInterval(updateZoomControlsVisibility, 500);
+        });
+        
+        // Cleanup on page unload to prevent memory leaks and freezing
+        window.addEventListener('beforeunload', () => {
+            if (window.globeController) {
+                window.globeController.destroy();
+            }
+        });
+        
+        // Also handle pagehide (more reliable for mobile)
+        window.addEventListener('pagehide', () => {
+            if (window.globeController) {
+                window.globeController.destroy();
+            }
+        });
+    </script>
+</body>
+</html>
+
