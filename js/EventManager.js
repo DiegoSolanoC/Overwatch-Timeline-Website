@@ -53,23 +53,6 @@ function getDisplayEventName(eventName) {
  * EventManager - Handles event management UI and operations
  */
 class EventManager {
-    // Constants
-    static EVENTS_PER_PAGE = 50;
-    static MINIMUM_EVENTS_THRESHOLD = 50;
-    static FETCH_TIMEOUT_MS = 10000;
-    static SAVE_SUCCESS_MESSAGE_DURATION_MS = 2000;
-    static EVENT_OPEN_DELAY_MS = 500;
-    static FORM_UPDATE_DELAY_MS = 100;
-    static INIT_DELAY_MS = 100;
-    static MARKER_READY_DELAY_MS = 200;
-    static ADDITIONAL_DELAY_MS = 100; // Additional delay for non-promise refresh
-    static LOCATION_COORDINATE_TOLERANCE = 0.01;
-    static LOCATION_COORDINATE_MATCH_TOLERANCE = 0.0001;
-    static COORDINATE_DISPLAY_PRECISION = 4;
-    static MOON_MARS_COORDINATE_PRECISION = 1;
-    static DEFAULT_LOCATION_TYPE = 'earth';
-    static SPACE_STATION_NAME = 'Space Station (ISS)';
-
     constructor() {
         this.events = [];
         this.cities = [];
@@ -85,7 +68,7 @@ class EventManager {
         this.locationCache = new Map(); // Cache for location names with countries
         this.displayNames = {}; // Mapping of location names to display names
         this.currentPage = 1; // Current page number (1-indexed)
-        this.eventsPerPage = EventManager.EVENTS_PER_PAGE;
+        this.eventsPerPage = 50; // Number of events per page
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
         this.eventItemVariantIndices = new Map(); // Track current variant index for each event item
@@ -208,7 +191,7 @@ class EventManager {
         const fetchStartTime = performance.now();
         
         // Add timeout protection to prevent hanging
-        const fetchWithTimeout = (url, timeout = EventManager.FETCH_TIMEOUT_MS) => {
+        const fetchWithTimeout = (url, timeout = 10000) => {
             return Promise.race([
                 fetch(url + '?' + Date.now()).then(res => {
                     if (!res.ok) {
@@ -295,7 +278,7 @@ class EventManager {
         const fetchStartTime = performance.now();
         try {
             // Add timeout protection with proper cache-busting
-            const fetchWithTimeout = (url, timeout = EventManager.FETCH_TIMEOUT_MS) => {
+            const fetchWithTimeout = (url, timeout = 10000) => {
                 // Add cache-busting parameters properly
                 const separator = url.includes('?') ? '&' : '?';
                 const cacheBuster = `${separator}v=${Date.now()}&_=${Math.random().toString(36).substr(2, 9)}&nocache=true`;
@@ -457,10 +440,10 @@ class EventManager {
                     
             // Check if we have a reasonable number of events (at least 50)
                     // If not, clear localStorage to force fresh load
-            if (this.events.length < EventManager.MINIMUM_EVENTS_THRESHOLD) {
-                console.warn(`EventManager: Event count is less than expected (${this.events.length} < ${EventManager.MINIMUM_EVENTS_THRESHOLD}). Clearing localStorage to force fresh load.`);
+            if (this.events.length < 50) {
+                console.warn(`EventManager: Event count is less than expected (${this.events.length} < 50). Clearing localStorage to force fresh load.`);
                         localStorage.removeItem('timelineEvents');
-                this.updateStatus(`EventManager: Cleared localStorage (found ${this.events.length} events, expected at least ${EventManager.MINIMUM_EVENTS_THRESHOLD})`, 'warning');
+                this.updateStatus(`EventManager: Cleared localStorage (found ${this.events.length} events, expected at least 50)`, 'warning');
                     }
                     
                     // Save to localStorage for future use
@@ -541,7 +524,7 @@ class EventManager {
             setTimeout(() => {
                 saveBtn.textContent = originalText;
                 saveBtn.style.background = '';
-            }, EventManager.SAVE_SUCCESS_MESSAGE_DURATION_MS);
+            }, 2000);
         }
         
         // Refresh event markers on globe
@@ -680,59 +663,55 @@ class EventManager {
     }
 
     /**
-     * Close other panels (music, filters) when opening event manager
+     * Setup event listeners
      */
-    closeOtherPanels() {
-        const musicPanel = document.getElementById('musicPanel');
-        const musicButton = document.getElementById('musicToggle');
-        if (musicPanel && musicPanel.classList.contains('open')) {
-            musicPanel.classList.remove('open');
-            if (musicButton) {
-                musicButton.classList.remove('active');
-            }
-        }
+    setupEventListeners() {
+        console.log('EventManager: setupEventListeners called');
         
-        const filtersPanel = document.getElementById('filtersPanel');
-        const filtersButton = document.getElementById('filtersToggle');
-        if (filtersPanel && filtersPanel.classList.contains('open')) {
-            filtersPanel.classList.remove('open');
-            if (filtersButton) {
-                filtersButton.classList.remove('active');
-            }
-        }
-    }
-
-    /**
-     * Setup panel toggle, close button, and outside click handlers
-     */
-    setupPanelToggle() {
+        // Toggle panel
         const toggleBtn = document.getElementById('eventsManageToggle');
         const panel = document.getElementById('eventsManagePanel');
         const closeBtn = document.getElementById('eventsManageClose');
-
+        
         if (!panel) {
-            return false;
+            console.error('EventManager: eventsManagePanel not found! Make sure the HTML panel exists in the page.');
+            console.error('EventManager: Current page:', window.location.pathname);
+            // Try again after a short delay in case DOM isn't ready
+            setTimeout(() => {
+                console.log('EventManager: Retrying setupEventListeners after delay...');
+                this.setupEventListeners();
+            }, 200);
+            return;
         }
+        
+        // If listeners already set up, skip (but allow re-setup if needed)
+        if (this.listenersSetup && toggleBtn && panel) {
+            console.log('EventManager: Listeners already set up, skipping...');
+            return;
+        }
+        
+        console.log('EventManager: Panel found, setting up listeners...');
+        console.log('EventManager: Toggle button found:', !!toggleBtn);
+        console.log('EventManager: Close button found:', !!closeBtn);
 
-        // Ensure toggle button is always visible
+        // Ensure button is always visible (never hide it)
         if (toggleBtn) {
             toggleBtn.style.display = '';
             toggleBtn.style.visibility = 'visible';
             toggleBtn.style.opacity = '1';
         }
 
-        // Setup toggle button
         if (toggleBtn && panel) {
             // Remove existing listener by cloning the button to prevent duplicates
             const toggleBtnClone = toggleBtn.cloneNode(true);
             toggleBtn.parentNode.replaceChild(toggleBtnClone, toggleBtn);
             const newToggleBtn = document.getElementById('eventsManageToggle');
             
-            // Re-get panel reference after button clone
+            // Re-get panel reference after button clone (in case DOM changed)
             const currentPanel = document.getElementById('eventsManagePanel');
             if (!currentPanel) {
                 console.error('EventManager: eventsManagePanel not found after button setup');
-                return false;
+                return;
             }
             
             newToggleBtn.addEventListener('click', (e) => {
@@ -741,15 +720,32 @@ class EventManager {
                 
                 console.log('EventManager: Toggle button clicked');
                 
-                // Close other panels
-                this.closeOtherPanels();
+                // Close music panel if open
+                const musicPanel = document.getElementById('musicPanel');
+                const musicButton = document.getElementById('musicToggle');
+                if (musicPanel && musicPanel.classList.contains('open')) {
+                    musicPanel.classList.remove('open');
+                    if (musicButton) {
+                        musicButton.classList.remove('active');
+                    }
+                }
+                
+                // Close filters panel if open
+                const filtersPanel = document.getElementById('filtersPanel');
+                const filtersButton = document.getElementById('filtersToggle');
+                if (filtersPanel && filtersPanel.classList.contains('open')) {
+                    filtersPanel.classList.remove('open');
+                    if (filtersButton) {
+                        filtersButton.classList.remove('active');
+                    }
+                }
                 
                 // Play event manager sound
                 if (window.SoundEffectsManager) {
                     window.SoundEffectsManager.play('eventManager');
                 }
                 
-                // Toggle event management panel
+                // Toggle event management panel (works normally on both localhost and GitHub Pages)
                 const wasOpen = currentPanel.classList.contains('open');
                 console.log('EventManager: Panel was open:', wasOpen);
                 currentPanel.classList.toggle('open');
@@ -767,9 +763,13 @@ class EventManager {
                     newToggleBtn.classList.remove('active');
                 }
             });
+        } else {
+            console.error('EventManager: setupEventListeners - toggleBtn or panel not found', {
+                toggleBtn: !!toggleBtn,
+                panel: !!panel
+            });
         }
 
-        // Setup close button
         if (closeBtn && panel) {
             closeBtn.addEventListener('click', () => {
                 // Play event manager sound when closing
@@ -788,7 +788,7 @@ class EventManager {
             });
         }
         
-        // Setup outside click handler
+        // Close panel when clicking outside
         document.addEventListener('click', (e) => {
             if (panel && panel.classList.contains('open')) {
                 // Don't close panel if we're in the process of opening an event
@@ -820,13 +820,7 @@ class EventManager {
             }
         });
 
-        return true;
-    }
-
-    /**
-     * Setup action buttons (Add, Save, Export, Import)
-     */
-    setupActionButtons() {
+        // Hide/lock management buttons on GitHub Pages
         const isGitHubPages = this.isGitHubPages();
         
         // Add event button
@@ -851,6 +845,7 @@ class EventManager {
             }
         } else {
             console.warn('EventManager: addEventBtn not found! Make sure events-manage-panel HTML exists.');
+            console.warn('EventManager: Panel exists:', !!panel, 'Panel ID:', panel?.id);
         }
 
         // Save events button
@@ -898,13 +893,8 @@ class EventManager {
                 });
             }
         }
-    }
 
-    /**
-     * Setup modal listeners (close, cancel, save, lookup, delete variant)
-     */
-    setupModalListeners() {
-        const isGitHubPages = this.isGitHubPages();
+        // Edit modal
         const modal = document.getElementById('eventEditModal');
         const modalClose = document.getElementById('eventEditModalClose');
         const modalCancel = document.getElementById('eventEditCancel');
@@ -912,7 +902,35 @@ class EventManager {
         const lookupBtn = document.getElementById('lookupCityBtn');
         const deleteVariantBtn = document.getElementById('eventEditDeleteVariant');
 
-        if (!isGitHubPages) {
+        // Hide/lock modal controls on GitHub Pages
+        if (isGitHubPages) {
+            if (modalSave) {
+                modalSave.style.display = 'none';
+                modalSave.style.visibility = 'hidden';
+                modalSave.style.pointerEvents = 'none';
+            }
+            if (lookupBtn) {
+                lookupBtn.style.display = 'none';
+                lookupBtn.style.visibility = 'hidden';
+                lookupBtn.style.pointerEvents = 'none';
+            }
+            if (deleteVariantBtn) {
+                deleteVariantBtn.style.display = 'none';
+                deleteVariantBtn.style.visibility = 'hidden';
+                deleteVariantBtn.style.pointerEvents = 'none';
+            }
+            // Make all form inputs read-only and disabled
+            const formInputs = modal?.querySelectorAll('input, textarea, select, button');
+            if (formInputs) {
+                formInputs.forEach(input => {
+                    if (input.id !== 'eventEditModalClose' && input.id !== 'eventEditCancel') {
+                        input.setAttribute('readonly', 'readonly');
+                        input.setAttribute('disabled', 'disabled');
+                        input.style.pointerEvents = 'none';
+                    }
+                });
+            }
+        } else {
             if (modalClose) {
                 modalClose.addEventListener('click', () => {
                     this.closeEditModal();
@@ -936,23 +954,19 @@ class EventManager {
                     this.lookupCity();
                 });
             }
+        }
 
-            // Delete variant button (only on localhost)
+        // Delete variant button (only on localhost)
+        if (!isGitHubPages) {
+            const deleteVariantBtn = document.getElementById('eventEditDeleteVariant');
             if (deleteVariantBtn) {
                 deleteVariantBtn.addEventListener('click', () => {
                     this.handleDeleteCurrentVariant();
                 });
             }
         }
-    }
-
-    /**
-     * Setup source pair buttons (add/remove)
-     */
-    setupSourceButtons() {
-        const isGitHubPages = this.isGitHubPages();
         
-        // Add source pair button
+        // Add source pair button (only on localhost)
         const addSourceBtn = document.getElementById('addSourceBtn');
         if (addSourceBtn) {
             if (isGitHubPages) {
@@ -966,7 +980,7 @@ class EventManager {
             }
         }
         
-        // Remove source pair button
+        // Remove source pair button (only on localhost)
         const removeSourcePairBtn = document.getElementById('removeSourcePairBtn');
         if (removeSourcePairBtn) {
             if (isGitHubPages) {
@@ -979,91 +993,9 @@ class EventManager {
                 });
             }
         }
-    }
-
-    /**
-     * Apply GitHub Pages restrictions to UI elements
-     */
-    setupGitHubPagesRestrictions() {
-        const isGitHubPages = this.isGitHubPages();
-        if (!isGitHubPages) {
-            return;
-        }
-
-        const modal = document.getElementById('eventEditModal');
-        const modalSave = document.getElementById('eventEditSave');
-        const lookupBtn = document.getElementById('lookupCityBtn');
-        const deleteVariantBtn = document.getElementById('eventEditDeleteVariant');
-
-        // Hide/lock modal controls
-        if (modalSave) {
-            modalSave.style.display = 'none';
-            modalSave.style.visibility = 'hidden';
-            modalSave.style.pointerEvents = 'none';
-        }
-        if (lookupBtn) {
-            lookupBtn.style.display = 'none';
-            lookupBtn.style.visibility = 'hidden';
-            lookupBtn.style.pointerEvents = 'none';
-        }
-        if (deleteVariantBtn) {
-            deleteVariantBtn.style.display = 'none';
-            deleteVariantBtn.style.visibility = 'hidden';
-            deleteVariantBtn.style.pointerEvents = 'none';
-        }
         
-        // Make all form inputs read-only and disabled
-        const formInputs = modal?.querySelectorAll('input, textarea, select, button');
-        if (formInputs) {
-            formInputs.forEach(input => {
-                if (input.id !== 'eventEditModalClose' && input.id !== 'eventEditCancel') {
-                    input.setAttribute('readonly', 'readonly');
-                    input.setAttribute('disabled', 'disabled');
-                    input.style.pointerEvents = 'none';
-                }
-            });
-        }
-    }
-
-    /**
-     * Setup event listeners
-     */
-    setupEventListeners() {
-        console.log('EventManager: setupEventListeners called');
-        
-        const panel = document.getElementById('eventsManagePanel');
-        const toggleBtn = document.getElementById('eventsManageToggle');
-        
-        if (!panel) {
-            console.error('EventManager: eventsManagePanel not found! Make sure the HTML panel exists in the page.');
-            console.error('EventManager: Current page:', window.location.pathname);
-            // Try again after a short delay in case DOM isn't ready
-            setTimeout(() => {
-                console.log('EventManager: Retrying setupEventListeners after delay...');
-                this.setupEventListeners();
-            }, 200);
-            return;
-        }
-        
-        // If listeners already set up, skip (but allow re-setup if needed)
-        if (this.listenersSetup && toggleBtn && panel) {
-            console.log('EventManager: Listeners already set up, skipping...');
-            return;
-        }
-        
-        console.log('EventManager: Panel found, setting up listeners...');
-        console.log('EventManager: Toggle button found:', !!toggleBtn);
-        console.log('EventManager: Close button found:', !!document.getElementById('eventsManageClose'));
-
-        // Setup all listeners using extracted methods
-        if (!this.setupPanelToggle()) {
-            return; // Panel setup failed
-        }
-        
-        this.setupActionButtons();
-        this.setupModalListeners();
-        this.setupSourceButtons();
-        this.setupGitHubPagesRestrictions();
+        // Don't close modal on outside click - only buttons can close it
+        // Removed the outside click handler
         
         // Mark listeners as set up
         this.listenersSetup = true;
@@ -1258,11 +1190,80 @@ class EventManager {
     }
 
     /**
-     * Get event item data (display event, image path, location name, etc.)
+     * Create event item element
      */
-    getEventItemData(event, index) {
-        const isMultiEvent = event.variants && event.variants.length > 0;
+    createEventItem(event, index) {
+        const item = document.createElement('div');
+        item.className = 'event-item';
+        const isGitHubPages = this.isGitHubPages();
         
+        // Disable drag and drop on GitHub Pages
+        if (!isGitHubPages) {
+            item.draggable = true;
+        }
+        item.dataset.index = index;
+
+        // Check if this event has unsaved changes
+        if (this.unsavedEventIndices.has(index)) {
+            item.classList.add('unsaved');
+        }
+
+        // Check if this is a multi-event
+        const isMultiEvent = event.variants && event.variants.length > 0;
+        if (isMultiEvent) {
+            item.classList.add('multi-event');
+        }
+
+        // Get location name - for multi-events, use first variant's cityDisplayName
+        // Otherwise use event's cityDisplayName or get from location lookup
+        let locationName = null;
+        const locationType = event.locationType || 'earth';
+        let locationLat = event.lat;
+        let locationLon = event.lon;
+        let locationX = event.x;
+        let locationY = event.y;
+        
+        if (isMultiEvent && event.variants && event.variants.length > 0) {
+            // Use first variant's cityDisplayName and location
+            const firstVariant = event.variants[0];
+            locationName = firstVariant.cityDisplayName || null;
+            const variantLocationType = firstVariant.locationType || locationType;
+            if (variantLocationType === 'earth') {
+                if (firstVariant.lat !== undefined) {
+                    locationLat = firstVariant.lat;
+                }
+                if (firstVariant.lon !== undefined) {
+                    locationLon = firstVariant.lon;
+                }
+            } else {
+                // Moon or Mars
+                if (firstVariant.x !== undefined) {
+                    locationX = firstVariant.x;
+                }
+                if (firstVariant.y !== undefined) {
+                    locationY = firstVariant.y;
+                }
+            }
+        } else {
+            locationName = event.cityDisplayName || null;
+        }
+        
+        // Only call getLocationName for Earth events with valid lat/lon
+        if (!locationName && locationType === 'earth' && locationLat !== undefined && locationLon !== undefined) {
+            locationName = this.getLocationName(locationLat, locationLon);
+        }
+        
+        // For Moon/Mars/Station events, display coordinates if no custom name
+        if (!locationName && locationType !== 'earth') {
+            if (locationType === 'station') {
+                locationName = 'Space Station (ISS)';
+            } else if (locationX !== undefined && locationY !== undefined) {
+                locationName = `${locationType === 'moon' ? 'Moon' : 'Mars'}: (${locationX.toFixed(1)}, ${locationY.toFixed(1)})`;
+            } else {
+                locationName = locationType === 'moon' ? 'Moon' : 'Mars';
+            }
+        }
+
         // For multi-events, track and use current variant index (default to 0)
         let currentVariantIndex = 0;
         if (isMultiEvent) {
@@ -1277,51 +1278,62 @@ class EventManager {
         const displayEvent = isMultiEvent ? event.variants[currentVariantIndex] : event;
         const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
         
-        // Get location name using centralized method
-        const locationName = this.getLocationDisplayName(displayEvent) || 
-            (displayEvent.lat !== undefined && displayEvent.lon !== undefined 
-                ? `${displayEvent.lat.toFixed(EventManager.COORDINATE_DISPLAY_PRECISION)}, ${displayEvent.lon.toFixed(EventManager.COORDINATE_DISPLAY_PRECISION)}`
-                : 'Unknown Location');
+        // Update location for current variant
+        if (isMultiEvent && event.variants[currentVariantIndex]) {
+            const currentVariant = event.variants[currentVariantIndex];
+            locationName = currentVariant.cityDisplayName || null;
+            if (currentVariant.lat !== undefined) {
+                locationLat = currentVariant.lat;
+            }
+            if (currentVariant.lon !== undefined) {
+                locationLon = currentVariant.lon;
+            }
+            // Only call getLocationName for Earth events with valid lat/lon
+            const currentVariantLocationType = currentVariant.locationType || locationType;
+            if (!locationName && currentVariantLocationType === 'earth' && locationLat !== undefined && locationLon !== undefined) {
+                locationName = this.getLocationName(locationLat, locationLon);
+            }
+            // For Moon/Mars events, display coordinates if no custom name
+            if (!locationName && currentVariantLocationType !== 'earth') {
+                const variantX = currentVariant.x !== undefined ? currentVariant.x : (event.x !== undefined ? event.x : undefined);
+                const variantY = currentVariant.y !== undefined ? currentVariant.y : (event.y !== undefined ? event.y : undefined);
+                if (variantX !== undefined && variantY !== undefined) {
+                    locationName = `${currentVariantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variantX.toFixed(1)}, ${variantY.toFixed(1)})`;
+                } else {
+                    locationName = currentVariantLocationType === 'moon' ? 'Moon' : 'Mars';
+                }
+            }
+        }
         
-        // Check if event is unfinished
+        // Don't use cache busting for initial loads - let browser cache work for performance
+        // Cache busting is only needed when we know an image has been updated
+        const imagePathWithCache = imagePath || null;
+        
+        // Warning icon for unfinished event - check if event is missing important information
+        // Positioned on the RIGHT side (top-right corner) to avoid overlap with multi-event badge on left
         const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
         const isUnfinished = !hasDescription;
-        
-        return {
-            isMultiEvent,
-            currentVariantIndex,
-            displayEvent,
-            imagePath: imagePath || null,
-            locationName,
-            isUnfinished
-        };
-    }
-
-    /**
-     * Generate HTML string for event item
-     */
-    generateEventItemHTML(event, index, data, isGitHubPages) {
-        const { isMultiEvent, currentVariantIndex, displayEvent, imagePath, locationName, isUnfinished } = data;
-        
-        // Warning icon for unfinished event
         const unfinishedWarning = isUnfinished 
             ? `<div class="description-warning-badge" title="Unfinished event: Missing description">!</div>`
             : '';
         
-        // Image HTML
-        const imageHtml = imagePath
-            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img src="${imagePath}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
+        // Always use the same container structure to maintain consistent sizing
+        // Use a wrapper div to ensure the square space is always shown
+        // Add loading="lazy" for better performance - images load as they come into view
+        // Include warning icon inside the image container for proper positioning
+        const imageHtml = imagePathWithCache
+            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img src="${imagePathWithCache}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
             : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">No Image</div>`;
-        
-        // Multi-event indicator badge
+
+        // Multi-event indicator badge - show current variant / total (e.g., "1/2")
         const multiEventBadge = isMultiEvent 
             ? `<div class="multi-event-badge" data-event-index="${index}" title="Click to cycle through variants">${currentVariantIndex + 1}/${event.variants.length}</div>`
             : '';
-        
-        // Event number badge
+
+        // Event number badge - show event number in chronological order (bottom-right)
         const eventNumberBadge = `<div class="event-number-badge" title="Event #${index + 1}">${index + 1}</div>`;
-        
-        // Action buttons
+
+        // On GitHub Pages, hide edit/delete buttons, but show View button
         const actionButtons = isGitHubPages ? `
             <div class="event-item-actions">
                 <div class="event-item-actions-row">
@@ -1339,8 +1351,8 @@ class EventManager {
                 </div>
             </div>
         `;
-        
-        return `
+
+        item.innerHTML = `
             <div style="position: relative;">
             ${imageHtml}
             ${multiEventBadge}
@@ -1349,16 +1361,12 @@ class EventManager {
             </div>
             <div class="event-item-info">
                 <h3 class="event-item-title">${getDisplayEventName(displayEvent.name)}</h3>
-                <p class="event-item-location"><img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}</p>
+                <p class="event-item-location"><img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
             </div>
             ${actionButtons}
         `;
-    }
 
-    /**
-     * Setup event listeners for event item buttons
-     */
-    setupEventItemListeners(item, event, index, isMultiEvent, isGitHubPages) {
+        // Add event listeners for buttons (View works on both, Edit/Delete only on localhost)
         const viewBtn = item.querySelector('.view-btn');
         const editBtn = item.querySelector('.edit-btn');
         const deleteBtn = item.querySelector('.delete-btn');
@@ -1413,40 +1421,6 @@ class EventManager {
                 });
             }
         }
-    }
-
-    /**
-     * Create event item element
-     */
-    createEventItem(event, index) {
-        const item = document.createElement('div');
-        item.className = 'event-item';
-        const isGitHubPages = this.isGitHubPages();
-        
-        // Disable drag and drop on GitHub Pages
-        if (!isGitHubPages) {
-            item.draggable = true;
-        }
-        item.dataset.index = index;
-
-        // Check if this event has unsaved changes
-        if (this.unsavedEventIndices.has(index)) {
-            item.classList.add('unsaved');
-        }
-
-        // Get event item data
-        const data = this.getEventItemData(event, index);
-        
-        // Add multi-event class if needed
-        if (data.isMultiEvent) {
-            item.classList.add('multi-event');
-        }
-        
-        // Generate and set HTML
-        item.innerHTML = this.generateEventItemHTML(event, index, data, isGitHubPages);
-        
-        // Setup event listeners
-        this.setupEventItemListeners(item, event, index, data.isMultiEvent, isGitHubPages);
 
         return item;
     }
@@ -1508,13 +1482,28 @@ class EventManager {
             titleElement.textContent = getDisplayEventName(variant.name);
         }
         
-        // Update location using centralized method
+        // Update location
         const locationElement = itemElement.querySelector('.event-item-location');
         if (locationElement) {
-            const locationName = this.getLocationDisplayName(variant) || 
-                (variant.lat !== undefined && variant.lon !== undefined 
-                    ? `${variant.lat.toFixed(EventManager.COORDINATE_DISPLAY_PRECISION)}, ${variant.lon.toFixed(EventManager.COORDINATE_DISPLAY_PRECISION)}`
-                    : null);
+            let locationName = variant.cityDisplayName || null;
+            const variantLocationType = variant.locationType || (event.locationType || 'earth');
+            
+            // Only call getLocationName for Earth events with valid lat/lon
+            if (!locationName && variantLocationType === 'earth' && variant.lat !== undefined && variant.lon !== undefined) {
+                locationName = this.getLocationName(variant.lat, variant.lon);
+            }
+            // Fallback to coordinates for Earth events
+            if (!locationName && variantLocationType === 'earth' && variant.lat !== undefined && variant.lon !== undefined) {
+                locationName = `${variant.lat.toFixed(4)}, ${variant.lon.toFixed(4)}`;
+            }
+            // For Moon/Mars events, display coordinates
+            if (!locationName && variantLocationType !== 'earth') {
+                if (variant.x !== undefined && variant.y !== undefined) {
+                    locationName = `${variantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variant.x.toFixed(1)}, ${variant.y.toFixed(1)})`;
+                } else {
+                    locationName = variantLocationType === 'moon' ? 'Moon' : 'Mars';
+                }
+            }
             locationElement.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || 'Unknown'}`;
         }
         
@@ -1547,200 +1536,145 @@ class EventManager {
             // Clear the flag after a short delay to allow event slide to open
             setTimeout(() => {
                 this.isOpeningEvent = false;
-            }, EventManager.EVENT_OPEN_DELAY_MS);
+            }, 500);
             
-            // Early return if globeController not available
-            if (!window.globeController || !window.globeController.globeView) {
-                return;
-            }
-            
-            const markers = window.globeController.sceneModel.getMarkers();
-            const eventMarker = markers.find(m => {
-                if (!m.userData || !m.userData.isEventMarker) {
-                    return false;
-                }
-                const markerEvent = m.userData.event;
-                // Match by index or by lat/lon
-                return (markerEvent === event) || 
-                        (Math.abs(markerEvent.lat - event.lat) < EventManager.LOCATION_COORDINATE_MATCH_TOLERANCE && 
-                        Math.abs(markerEvent.lon - event.lon) < EventManager.LOCATION_COORDINATE_MATCH_TOLERANCE);
-            });
-            
-            // Early return if no marker or uiView
-            if (!eventMarker || !window.globeController.uiView) {
-                return;
-            }
-            
-            // Check if this is a multi-event
-            const isMultiEvent = event.variants && event.variants.length > 0;
-            
-            // Get the currently previewed variant index (default to 0)
-            let variantIndex = 0;
-            if (isMultiEvent) {
-                const itemKey = `event-${index}`;
-                variantIndex = this.eventItemVariantIndices.get(itemKey) || 0;
-            }
-            
-            const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
-            
-            // For multi-events, find the marker for the specific variant
-            let targetMarker = eventMarker;
-            if (isMultiEvent && variantIndex > 0) {
-                // Look for the variant marker
-                const variantMarker = markers.find(m => {
-                    if (!m.userData || !m.userData.isEventMarker) {
-                        return false;
+            // Find the corresponding marker on the globe
+            if (window.globeController && window.globeController.globeView) {
+                const markers = window.globeController.sceneModel.getMarkers();
+                const eventMarker = markers.find(m => {
+                    if (m.userData && m.userData.isEventMarker) {
+                        const markerEvent = m.userData.event;
+                        // Match by index or by lat/lon
+                        return (markerEvent === event) || 
+                               (Math.abs(markerEvent.lat - event.lat) < 0.0001 && 
+                                Math.abs(markerEvent.lon - event.lon) < 0.0001);
                     }
-                    return m.userData.event === event && m.userData.variantIndex === variantIndex;
+                    return false;
                 });
-                if (variantMarker) {
-                    targetMarker = variantMarker;
+                
+                if (eventMarker && window.globeController.uiView) {
+                    // Check if this is a multi-event
+                    const isMultiEvent = event.variants && event.variants.length > 0;
+                    
+                    // Get the currently previewed variant index (default to 0)
+                    let variantIndex = 0;
+                    if (isMultiEvent) {
+                        const itemKey = `event-${index}`;
+                        variantIndex = this.eventItemVariantIndices.get(itemKey) || 0;
+                    }
+                    
+                    const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
+                    
+                    // For multi-events, find the marker for the specific variant
+                    let targetMarker = eventMarker;
+                    if (isMultiEvent && variantIndex > 0) {
+                        // Look for the variant marker
+                        const variantMarker = markers.find(m => {
+                            if (m.userData && m.userData.isEventMarker && 
+                                m.userData.event === event &&
+                                m.userData.variantIndex === variantIndex) {
+                                return true;
+                            }
+                            return false;
+                        });
+                        if (variantMarker) {
+                            targetMarker = variantMarker;
+                        }
+                    }
+                    
+                    const eventName = displayEvent.name || eventMarker.userData.eventName;
+                    const eventDescription = displayEvent.description;
+                    const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
+                    
+                    // Zoom to marker or reset to default view (for Moon/Mars) and show event slide
+                    if (window.globeController.interactionController) {
+                        const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
+                        if (locationType === 'moon' || locationType === 'mars') {
+                            // Reset camera to default view for Moon/Mars events
+                            window.globeController.interactionController.resetCameraToDefault();
+                        } else {
+                            // Zoom in and center on the marker (Earth events)
+                            window.globeController.interactionController.zoomToMarker(targetMarker);
+                        }
+                    }
+                    
+                    window.globeController.uiView.showEventSlide(
+                        eventName,
+                        imagePath,
+                        eventDescription,
+                        targetMarker,
+                        event
+                    );
+                    
+                    // Reset all multi-variant events to first variant after opening (for next time manager opens)
+                    this.resetAllEventVariants();
                 }
             }
-            
-            const eventName = displayEvent.name || eventMarker.userData.eventName;
-            const eventDescription = displayEvent.description;
-            const imagePath = this.getEventImagePath(displayEvent.name, displayEvent.image);
-            
-            // Zoom to marker or reset to default view (for Moon/Mars) and show event slide
-            if (window.globeController.interactionController) {
-                const locationType = targetMarker.userData ? targetMarker.userData.locationType : EventManager.DEFAULT_LOCATION_TYPE;
-                if (locationType === 'moon' || locationType === 'mars') {
-                    // Reset camera to default view for Moon/Mars events
-                    window.globeController.interactionController.resetCameraToDefault();
-                } else {
-                    // Zoom in and center on the marker (Earth events)
-                    window.globeController.interactionController.zoomToMarker(targetMarker);
-                }
-            }
-            
-            window.globeController.uiView.showEventSlide(
-                eventName,
-                imagePath,
-                eventDescription,
-                targetMarker,
-                event
-            );
-            
-            // Reset all multi-variant events to first variant after opening (for next time manager opens)
-            this.resetAllEventVariants();
         };
         
         // Check if event is on current page, if not switch to the correct page
-        // Early return if no globeController
-        if (!window.globeController || !window.globeController.dataModel) {
-            openEventAfterPageChange();
-            setTimeout(() => {
-                this.isOpeningEvent = false;
-            }, EventManager.SAVE_SUCCESS_MESSAGE_DURATION_MS);
-            return;
-        }
-        
-        const dataModel = window.globeController.dataModel;
-        const currentPage = dataModel.getCurrentEventPage();
-        const eventsPerPage = dataModel.eventsPerPage || 10;
-        const eventPage = Math.floor(index / eventsPerPage) + 1;
-        
-        // If event is on current page, open immediately
-        if (eventPage === currentPage) {
-            openEventAfterPageChange();
-            setTimeout(() => {
-                this.isOpeningEvent = false;
-            }, EventManager.SAVE_SUCCESS_MESSAGE_DURATION_MS);
-            return;
-        }
-        
-        // Switch to the correct page
-        dataModel.setCurrentEventPage(eventPage);
-        
-        // Re-render events list first
-        this.renderEvents();
-        
-        // Refresh markers and pagination, then open event after markers are ready
-        if (!window.globeController.globeView) {
-            // No globeView, just wait and open
-            setTimeout(() => {
-                openEventAfterPageChange();
-            }, EventManager.EVENT_OPEN_DELAY_MS);
-            setTimeout(() => {
-                this.isOpeningEvent = false;
-            }, EventManager.SAVE_SUCCESS_MESSAGE_DURATION_MS);
-            return;
-        }
-        
-        const refreshPromise = window.globeController.globeView.refreshEventMarkers();
-        if (refreshPromise && typeof refreshPromise.then === 'function') {
-            // refreshEventMarkers returns a promise
-            refreshPromise.then(() => {
-                // Wait a bit more for markers to be fully ready
-                setTimeout(() => {
-                    openEventAfterPageChange();
-                }, EventManager.FORM_UPDATE_DELAY_MS);
-            }).catch(() => {
-                // If promise rejects, just wait and try
-                setTimeout(() => {
-                    openEventAfterPageChange();
-                }, EventManager.EVENT_OPEN_DELAY_MS);
-            });
-        } else {
-            // refreshEventMarkers doesn't return a promise, just wait
-            setTimeout(() => {
-                openEventAfterPageChange();
-            }, EventManager.EVENT_OPEN_DELAY_MS + EventManager.ADDITIONAL_DELAY_MS);
-        }
-        
-        if (window.globeController.uiView) {
-            window.globeController.uiView.setupEventPagination(() => {
+        if (window.globeController && window.globeController.dataModel) {
+            const dataModel = window.globeController.dataModel;
+            const currentPage = dataModel.getCurrentEventPage();
+            const eventsPerPage = dataModel.eventsPerPage || 10;
+            const eventPage = Math.floor(index / eventsPerPage) + 1;
+            
+            if (eventPage !== currentPage) {
+                // Switch to the correct page
+                dataModel.setCurrentEventPage(eventPage);
+                
+                // Re-render events list first
+                this.renderEvents();
+                
+                // Refresh markers and pagination, then open event after markers are ready
                 if (window.globeController.globeView) {
-                    window.globeController.globeView.refreshEventMarkers();
+                    const refreshPromise = window.globeController.globeView.refreshEventMarkers();
+                    if (refreshPromise && typeof refreshPromise.then === 'function') {
+                        // refreshEventMarkers returns a promise
+                        refreshPromise.then(() => {
+                            // Wait a bit more for markers to be fully ready
+                            setTimeout(() => {
+                                openEventAfterPageChange();
+                            }, 100);
+                        }).catch(() => {
+                            // If promise rejects, just wait and try
+                            setTimeout(() => {
+                                openEventAfterPageChange();
+                            }, 300);
+                        });
+                    } else {
+                        // refreshEventMarkers doesn't return a promise, just wait
+                        setTimeout(() => {
+                            openEventAfterPageChange();
+                        }, 400);
+                    }
+                } else {
+                    // No globeView, just wait and open
+                    setTimeout(() => {
+                        openEventAfterPageChange();
+                    }, 300);
                 }
-            });
+                
+                if (window.globeController.uiView) {
+                    window.globeController.uiView.setupEventPagination(() => {
+                        if (window.globeController.globeView) {
+                            window.globeController.globeView.refreshEventMarkers();
+                        }
+                    });
+                }
+            } else {
+                // Event is on current page, open immediately
+                openEventAfterPageChange();
+            }
+        } else {
+            // No globeController, just try to open
+            openEventAfterPageChange();
         }
         
         // Clear flag if something goes wrong (safety net)
         setTimeout(() => {
             this.isOpeningEvent = false;
-        }, EventManager.SAVE_SUCCESS_MESSAGE_DURATION_MS);
-    }
-
-    /**
-     * Get location display name for an event or variant
-     * Handles Earth (lat/lon), Moon/Mars (x/y), and Station locations
-     * @param {Object} eventOrVariant - Event or variant object
-     * @param {string} locationType - Location type ('earth', 'moon', 'mars', 'station')
-     * @returns {string|null} Location display name
-     */
-    getLocationDisplayName(eventOrVariant, locationType = null) {
-        const locType = locationType || eventOrVariant.locationType || EventManager.DEFAULT_LOCATION_TYPE;
-        const cityDisplayName = eventOrVariant.cityDisplayName;
-        
-        // Return custom display name if provided
-        if (cityDisplayName) {
-            return cityDisplayName;
-        }
-        
-        // Handle Earth locations
-        if (locType === 'earth' && eventOrVariant.lat !== undefined && eventOrVariant.lon !== undefined) {
-            return this.getLocationName(eventOrVariant.lat, eventOrVariant.lon);
-        }
-        
-        // Handle Station
-        if (locType === 'station') {
-            return EventManager.SPACE_STATION_NAME;
-        }
-        
-        // Handle Moon/Mars
-        if ((locType === 'moon' || locType === 'mars') && eventOrVariant.x !== undefined && eventOrVariant.y !== undefined) {
-            const bodyName = locType === 'moon' ? 'Moon' : 'Mars';
-            return `${bodyName}: (${eventOrVariant.x.toFixed(EventManager.MOON_MARS_COORDINATE_PRECISION)}, ${eventOrVariant.y.toFixed(EventManager.MOON_MARS_COORDINATE_PRECISION)})`;
-        }
-        
-        // Fallback for Moon/Mars without coordinates
-        if (locType === 'moon' || locType === 'mars') {
-            return locType === 'moon' ? 'Moon' : 'Mars';
-        }
-        
-        return null;
+        }, 2000);
     }
 
     /**
@@ -1749,12 +1683,12 @@ class EventManager {
      */
     getLocationName(lat, lon) {
         // Check cache first
-        const cacheKey = `${lat.toFixed(EventManager.COORDINATE_DISPLAY_PRECISION)}_${lon.toFixed(EventManager.COORDINATE_DISPLAY_PRECISION)}`;
+        const cacheKey = `${lat.toFixed(4)}_${lon.toFixed(4)}`;
         if (this.locationCache.has(cacheKey)) {
             return this.locationCache.get(cacheKey);
         }
 
-        const tolerance = EventManager.LOCATION_COORDINATE_TOLERANCE;
+        const tolerance = 0.01; // Small tolerance for coordinate matching
 
         const allLocations = [
             ...this.cities.map(c => ({ ...c, type: 'city' })),
@@ -2522,7 +2456,7 @@ class EventManager {
         document.getElementById('eventEditFactions').value = displayFactions;
         
             // Load variant-specific location type and coordinates
-            this.setLocationType(variant.locationType || EventManager.DEFAULT_LOCATION_TYPE);
+            this.setLocationType(variant.locationType || 'earth');
         
         if (variant.locationType === 'earth') {
             if (variant.lat !== undefined) {
@@ -2768,7 +2702,7 @@ class EventManager {
                 filters: event.filters || [],
                 factions: event.factions || [],
                 sources: event.sources || [],
-                locationType: event.locationType || EventManager.DEFAULT_LOCATION_TYPE,
+                locationType: event.locationType || 'earth',
                 lat: event.lat !== undefined ? event.lat : undefined,
                 lon: event.lon !== undefined ? event.lon : undefined,
                 x: event.x !== undefined ? event.x : undefined,
@@ -2791,7 +2725,7 @@ class EventManager {
             document.getElementById('eventEditFactions').value = displayFactions;
             
             // Load variant-specific location type and coordinates
-            this.setLocationType(variant.locationType || EventManager.DEFAULT_LOCATION_TYPE);
+            this.setLocationType(variant.locationType || 'earth');
             
             if (variant.locationType === 'earth') {
                 if (variant.lat !== undefined) {
@@ -2851,8 +2785,8 @@ class EventManager {
             name: '',
             description: '',
             filters: [],
-            factions: []
-            // image field removed - auto-detected from Event Images folder
+            factions: [],
+            image: ''
         };
 
         const variantDiv = document.createElement('div');
@@ -3365,72 +3299,79 @@ class EventManager {
     }
 
     /**
-     * Validate event coordinates based on location type
-     * Returns { lat, lon, x, y } or null if validation fails
+     * Save event from modal
      */
-    validateEventCoordinates(locationType) {
+    saveEventFromModal() {
+        // Prevent saving on GitHub Pages
+        if (this.isGitHubPages()) {
+            console.log('Event saving is disabled on GitHub Pages');
+            return;
+        }
+        
+        // Save current variant before processing
+        this.saveCurrentVariantToMemory();
+        const isMultiEvent = this.variantData.length > 1;
+        
+        // Get location type
+        const locationTypeInput = document.getElementById('eventEditLocationType');
+        const locationType = locationTypeInput ? locationTypeInput.value : 'earth';
+        
+        // Validate coordinates based on location type
+        let lat, lon, x, y;
         if (locationType === 'earth') {
-            const lat = parseFloat(document.getElementById('eventEditLat').value);
-            const lon = parseFloat(document.getElementById('eventEditLon').value);
+            lat = parseFloat(document.getElementById('eventEditLat').value);
+            lon = parseFloat(document.getElementById('eventEditLon').value);
             if (isNaN(lat) || isNaN(lon)) {
                 alert('Please fill in Latitude and Longitude');
-                return null;
+                return;
             }
-            return { lat, lon, x: undefined, y: undefined };
         } else if (locationType === 'station') {
             // Station events don't need coordinates - marker is placed on ISS automatically
-            return { lat: undefined, lon: undefined, x: undefined, y: undefined };
+            lat = undefined;
+            lon = undefined;
+            x = undefined;
+            y = undefined;
         } else {
             // Moon or Mars - require X and Y coordinates
-            const x = parseFloat(document.getElementById('eventEditX').value);
-            const y = parseFloat(document.getElementById('eventEditY').value);
+            x = parseFloat(document.getElementById('eventEditX').value);
+            y = parseFloat(document.getElementById('eventEditY').value);
             if (isNaN(x) || isNaN(y)) {
                 alert('Please fill in X and Y coordinates (0-100)');
-                return null;
+                return;
             }
             if (x < 0 || x > 100 || y < 0 || y > 100) {
                 alert('X and Y coordinates must be between 0 and 100');
-                return null;
+                return;
             }
-            return { lat: undefined, lon: undefined, x, y };
         }
-    }
 
-    /**
-     * Validate event form (required fields)
-     * Returns true if valid, false otherwise
-     */
-    validateEventForm() {
+        // Process main event (or first variant if multi-event)
         const mainName = document.getElementById('eventEditName').value.trim();
+        const mainDescription = document.getElementById('eventEditDescription').value.trim();
+        const mainFiltersStr = document.getElementById('eventEditFilters').value.trim();
+        const mainFactionsStr = document.getElementById('eventEditFactions').value.trim();
+
         if (!mainName) {
             alert('Please fill in the required field (Title)');
-            return false;
+            return;
         }
-        return true;
-    }
 
-    /**
-     * Process filters and factions from comma-separated strings
-     * Returns { filters, factions }
-     */
-    processFiltersAndFactions(filtersStr, factionsStr) {
-        const filters = filtersStr ? filtersStr.split(',').map(f => f.trim()).filter(f => f) : [];
-        const factionDisplayNames = factionsStr ? factionsStr.split(',').map(f => f.trim()).filter(f => f) : [];
-        const factions = factionDisplayNames.map(displayName => {
-            const found = this.factions.find(f => 
-                f.displayName.toLowerCase() === displayName.toLowerCase()
-            );
-            return found ? found.filename : displayName;
-        });
-        return { filters, factions };
-    }
+        const processFiltersAndFactions = (filtersStr, factionsStr) => {
+            const filters = filtersStr ? filtersStr.split(',').map(f => f.trim()).filter(f => f) : [];
+            const factionDisplayNames = factionsStr ? factionsStr.split(',').map(f => f.trim()).filter(f => f) : [];
+            const factions = factionDisplayNames.map(displayName => {
+                const found = this.factions.find(f => 
+                    f.displayName.toLowerCase() === displayName.toLowerCase()
+                );
+                return found ? found.filename : displayName;
+            });
+            return { filters, factions };
+        };
 
-    /**
-     * Process sources from source pairs in the form
-     * Returns array of source objects
-     */
-    processEventSources() {
-        const sources = [];
+        const mainData = processFiltersAndFactions(mainFiltersStr, mainFactionsStr);
+        
+        // Process sources from all source pairs
+        const mainSources = [];
         const sourcePairs = document.querySelectorAll('.source-pair');
         sourcePairs.forEach((pair) => {
             const nameInput = pair.querySelector('.source-name-input');
@@ -3438,162 +3379,131 @@ class EventManager {
             const name = nameInput ? nameInput.value.trim() : '';
             const link = linkInput ? linkInput.value.trim() : '';
             if (name) {
-                sources.push({
+                mainSources.push({
                     text: name,
                     url: link || undefined
                 });
             }
         });
-        return sources;
-    }
 
-    /**
-     * Build variant objects from variantData for multi-events
-     * Returns array of variant objects
-     */
-    buildVariantObjects(locationType) {
-        return this.variantData.map(variant => {
-            const variantData = this.processFiltersAndFactions(
-                (variant.filters || []).join(', '),
-                (variant.factions || []).map(f => {
-                    const faction = this.factions.find(fac => fac.filename === f);
-                    return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
-                }).join(', ')
-            );
+        let event;
+        
+        if (isMultiEvent) {
+            // Save current variant before processing
+            this.saveCurrentVariantToMemory();
             
-            const variantObj = {
-                name: variant.name || '',
-                description: variant.description || '',
-                filters: variantData.filters,
-                factions: variantData.factions,
-                sources: variant.sources && variant.sources.length > 0 ? variant.sources : undefined,
-                // image field removed - auto-detected from Event Images folder
-                locationType: variant.locationType || EventManager.DEFAULT_LOCATION_TYPE
+            // Collect variants from variantData
+            const variants = this.variantData.map(variant => {
+                const variantData = processFiltersAndFactions(
+                    (variant.filters || []).join(', '),
+                    (variant.factions || []).map(f => {
+                        const faction = this.factions.find(fac => fac.filename === f);
+                        return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
+                    }).join(', ')
+                );
+                
+                const variantObj = {
+                    name: variant.name || '',
+                    description: variant.description || '',
+                    filters: variantData.filters,
+                    factions: variantData.factions,
+                    sources: variant.sources && variant.sources.length > 0 ? variant.sources : undefined,
+                    image: '', // Auto-detect
+                    locationType: variant.locationType || 'earth'
+                };
+                
+                // Include coordinates based on location type
+                if (variant.locationType === 'earth') {
+                    if (variant.lat !== undefined) {
+                        variantObj.lat = variant.lat;
+                    }
+                    if (variant.lon !== undefined) {
+                        variantObj.lon = variant.lon;
+                    }
+                } else if (variant.locationType === 'station') {
+                    // Station events don't need coordinates - marker is placed on ISS automatically
+                    // Don't add any coordinates
+                } else {
+                    if (variant.x !== undefined) {
+                        variantObj.x = variant.x;
+                    }
+                    if (variant.y !== undefined) {
+                        variantObj.y = variant.y;
+                    }
+                }
+                
+                // Include cityDisplayName if it exists for this variant
+                if (variant.cityDisplayName !== undefined) {
+                    variantObj.cityDisplayName = variant.cityDisplayName;
+                }
+                
+                return variantObj;
+            }).filter(v => v.name); // Only include variants with name (description is optional)
+
+            if (variants.length < 2) {
+                alert('Multi-events must have at least 2 variants');
+                return;
+            }
+
+            const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
+            // For multi-events, use first variant's location type and coordinates
+            const firstVariant = variants[0];
+            const firstVariantLocationType = firstVariant && firstVariant.locationType ? firstVariant.locationType : locationType;
+            event = {
+                locationType: firstVariantLocationType,
+                cityDisplayName: cityDisplayName || undefined,
+                variants: variants
             };
-            
-            // Include coordinates based on location type
-            if (variant.locationType === 'earth') {
-                if (variant.lat !== undefined) {
-                    variantObj.lat = variant.lat;
-                }
-                if (variant.lon !== undefined) {
-                    variantObj.lon = variant.lon;
-                }
-            } else if (variant.locationType === 'station') {
+            // Add coordinates for backward compatibility
+            if (firstVariantLocationType === 'earth') {
+                event.lat = firstVariant && firstVariant.lat !== undefined ? firstVariant.lat : lat;
+                event.lon = firstVariant && firstVariant.lon !== undefined ? firstVariant.lon : lon;
+            } else if (firstVariantLocationType === 'station') {
                 // Station events don't need coordinates - marker is placed on ISS automatically
                 // Don't add any coordinates
             } else {
-                if (variant.x !== undefined) {
-                    variantObj.x = variant.x;
-                }
-                if (variant.y !== undefined) {
-                    variantObj.y = variant.y;
-                }
+                event.x = firstVariant && firstVariant.x !== undefined ? firstVariant.x : x;
+                event.y = firstVariant && firstVariant.y !== undefined ? firstVariant.y : y;
             }
-            
-            // Include cityDisplayName if it exists for this variant
-            if (variant.cityDisplayName !== undefined) {
-                variantObj.cityDisplayName = variant.cityDisplayName;
+        } else {
+            // Regular single event
+            const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
+            event = {
+                name: mainName,
+                locationType: locationType,
+                cityDisplayName: cityDisplayName || undefined,
+                description: mainDescription,
+                image: '', // Auto-detect
+                filters: mainData.filters,
+                factions: mainData.factions,
+                sources: mainSources.length > 0 ? mainSources : undefined
+            };
+            // Add coordinates based on location type
+            if (locationType === 'earth') {
+                event.lat = lat;
+                event.lon = lon;
+            } else if (locationType === 'station') {
+                // Station events don't need coordinates - marker is placed on ISS automatically
+                // Don't add any coordinates
+            } else {
+                event.x = x;
+                event.y = y;
             }
-            
-            return variantObj;
-        }).filter(v => v.name); // Only include variants with name (description is optional)
-    }
-
-    /**
-     * Build single event object from form data
-     */
-    buildSingleEventObject(locationType, coordinates, filtersAndFactions, sources) {
-        const mainName = document.getElementById('eventEditName').value.trim();
-        const mainDescription = document.getElementById('eventEditDescription').value.trim();
-        const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
-        
-        const event = {
-            name: mainName,
-            locationType: locationType,
-            cityDisplayName: cityDisplayName || undefined,
-            description: mainDescription,
-            // image field removed - auto-detected from Event Images folder
-            filters: filtersAndFactions.filters,
-            factions: filtersAndFactions.factions,
-            sources: sources.length > 0 ? sources : undefined
-        };
-        
-        // Add coordinates based on location type
-        if (locationType === 'earth') {
-            event.lat = coordinates.lat;
-            event.lon = coordinates.lon;
-        } else if (locationType === 'station') {
-            // Station events don't need coordinates - marker is placed on ISS automatically
-            // Don't add any coordinates
-        } else {
-            event.x = coordinates.x;
-            event.y = coordinates.y;
-        }
-        
-        return event;
-    }
-
-    /**
-     * Build multi-event object from variant data
-     */
-    buildMultiEventObject(variants, locationType, coordinates) {
-        if (variants.length < 2) {
-            alert('Multi-events must have at least 2 variants');
-            return null;
         }
 
-        const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
-        // For multi-events, use first variant's location type and coordinates
-        const firstVariant = variants[0];
-        const firstVariantLocationType = firstVariant && firstVariant.locationType ? firstVariant.locationType : locationType;
-        
-        const event = {
-            locationType: firstVariantLocationType,
-            cityDisplayName: cityDisplayName || undefined,
-            variants: variants
-        };
-        
-        // Add coordinates for backward compatibility
-        if (firstVariantLocationType === 'earth') {
-            event.lat = firstVariant && firstVariant.lat !== undefined ? firstVariant.lat : coordinates.lat;
-            event.lon = firstVariant && firstVariant.lon !== undefined ? firstVariant.lon : coordinates.lon;
-        } else if (firstVariantLocationType === 'station') {
-            // Station events don't need coordinates - marker is placed on ISS automatically
-            // Don't add any coordinates
-        } else {
-            event.x = firstVariant && firstVariant.x !== undefined ? firstVariant.x : coordinates.x;
-            event.y = firstVariant && firstVariant.y !== undefined ? firstVariant.y : coordinates.y;
-        }
-        
-        return event;
-    }
-
-    /**
-     * Get target position from form input
-     * Returns 0-indexed position or null if not specified
-     */
-    getTargetPositionFromForm() {
+        // Get event number (position) from input
         const eventNumberInput = document.getElementById('eventEditNumber');
-        if (!eventNumberInput || !eventNumberInput.value) {
-            return null;
+        let targetPosition = null;
+        if (eventNumberInput && eventNumberInput.value) {
+            const eventNumber = parseInt(eventNumberInput.value);
+            if (!isNaN(eventNumber) && eventNumber >= 1) {
+                targetPosition = eventNumber - 1; // Convert to 0-indexed
+                // Clamp to valid range
+                const maxPosition = this.editingIndex === null ? this.events.length : this.events.length - 1;
+                targetPosition = Math.min(targetPosition, maxPosition);
+            }
         }
         
-        const eventNumber = parseInt(eventNumberInput.value);
-        if (isNaN(eventNumber) || eventNumber < 1) {
-            return null;
-        }
-        
-        const targetPosition = eventNumber - 1; // Convert to 0-indexed
-        // Clamp to valid range
-        const maxPosition = this.editingIndex === null ? this.events.length : this.events.length - 1;
-        return Math.min(targetPosition, maxPosition);
-    }
-
-    /**
-     * Save event to array (add new or update existing)
-     */
-    saveEventToArray(event, targetPosition) {
         if (this.editingIndex === null) {
             // Add new event
             if (targetPosition !== null && targetPosition <= this.events.length) {
@@ -3690,69 +3600,11 @@ class EventManager {
                 this.currentPage = eventPage;
             }
         }
-    }
 
-    /**
-     * Save event from modal
-     */
-    saveEventFromModal() {
-        // Prevent saving on GitHub Pages
-        if (this.isGitHubPages()) {
-            console.log('Event saving is disabled on GitHub Pages');
-            return;
-        }
-        
-        // Save current variant before processing
-        this.saveCurrentVariantToMemory();
-        const isMultiEvent = this.variantData.length > 1;
-        
-        // Get location type
-        const locationTypeInput = document.getElementById('eventEditLocationType');
-        const locationType = locationTypeInput ? locationTypeInput.value : EventManager.DEFAULT_LOCATION_TYPE;
-        
-        // Validate coordinates
-        const coordinates = this.validateEventCoordinates(locationType);
-        if (!coordinates) {
-            return; // Validation failed
-        }
-        
-        // Validate form
-        if (!this.validateEventForm()) {
-            return; // Validation failed
-        }
-        
-        // Process form data
-        const mainFiltersStr = document.getElementById('eventEditFilters').value.trim();
-        const mainFactionsStr = document.getElementById('eventEditFactions').value.trim();
-        const filtersAndFactions = this.processFiltersAndFactions(mainFiltersStr, mainFactionsStr);
-        const sources = this.processEventSources();
-        
-        // Build event object
-        let event;
-        if (isMultiEvent) {
-            // Save current variant before processing (again, in case it changed)
-            this.saveCurrentVariantToMemory();
-            
-            // Build variant objects
-            const variants = this.buildVariantObjects(locationType);
-            event = this.buildMultiEventObject(variants, locationType, coordinates);
-            if (!event) {
-                return; // Validation failed (not enough variants)
-            }
-        } else {
-            // Build single event object
-            event = this.buildSingleEventObject(locationType, coordinates, filtersAndFactions, sources);
-        }
-        
-        // Get target position and save to array
-        const targetPosition = this.getTargetPositionFromForm();
-        this.saveEventToArray(event, targetPosition);
-        
-        // Update UI
         this.renderEvents();
         this.closeEditModal();
         
-        // Refresh globe markers to reflect changes
+        // Refresh globe markers to reflect changes (remove old markers, add new ones)
         this.refreshGlobeEvents();
     }
 }

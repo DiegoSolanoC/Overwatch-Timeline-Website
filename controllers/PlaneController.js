@@ -161,7 +161,7 @@ export class PlaneController {
         plane.userData.isTransitioning = false;
         
         const journey = routes.map(r => `${r.from}->${r.to}`).join(' | ');
-        // console.log(`✈️ NEW MULTI-STOP PLANE [${plane.userData.planeId}]: ${journey}`);
+        console.log(`✈️ NEW MULTI-STOP PLANE [${plane.userData.planeId}]: ${journey}`);
         
         return plane;
     }
@@ -237,7 +237,7 @@ export class PlaneController {
                     data.hasLanded = false;
                     data.landingTimer = 0;
                     
-                    // console.log(`✈️ PLANE [${data.planeId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length})`);
+                    console.log(`✈️ PLANE [${data.planeId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length})`);
                 } else {
                     // Last stop - remove plane
                     globe.remove(plane);

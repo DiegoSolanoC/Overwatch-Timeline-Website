@@ -6,6 +6,7 @@
       "lon": 4.3113461,
       "cityDisplayName": "The Hague, Netherlands",
       "description": "On March 15th of 2015, Siebren de Kuiper was Born. Growing in the Netherlands fascinated by the universe and its mysteries, oblivious to the impact he would leave in the world, and the price he would ultimately pay for his hubris",
+      "image": "",
       "filters": [
         "Sigma"
       ],
@@ -27,6 +28,7 @@
       "lon": 9.1829,
       "cityDisplayName": "Stuttgrat, Germany",
       "description": "On June 26th of 2015, Reinhardt Wilhelm was born to a working class family in Stuttgrat, growing up dreaming of knights of old and their chivalry adventures. He would grew up to join the German Armed Forces to pursue his childhood dreams",
+      "image": "",
       "filters": [
         "Reinhardt"
       ],
@@ -48,6 +50,7 @@
       "lon": 31.2357,
       "cityDisplayName": "Cairo, Egypt",
       "description": "On January 1st of 2017, Ana Amari was born to a line of distinguished army Veterans in Cairo. Learning how to handle a rifle since very young and becoming a marksperson by high school. Once graduated she would join the El-Sa'ka forces",
+      "image": "",
       "filters": [
         "Ana"
       ],
@@ -69,6 +72,7 @@
       "lon": -119.2,
       "cityDisplayName": "Los Angeles, United States",
       "description": "On December 14th of 2018 Gabriel Reyes is born. Raised In Los Angeles by a family of hispanic descent, he would spend his early days helping the family in a convenience Store. He would go on to graduate in criminology and pursue law enforcment as part of the LAPD",
+      "image": "",
       "filters": [
         "Reaper"
       ],
@@ -90,6 +94,7 @@
       "lon": 11.9670171,
       "cityDisplayName": "Gothenburg, Sweden",
       "description": "On September 21st of 2019 Torbjörn Lindholm Is born in the city of Gothenburg. He was a bright mind since an early age and had a clear careeer path in mind, as he pursued multipled advanced degrees in university, where he met his later wife, a chemical engineer student, Ingrid Lindholm",
+      "image": "",
       "filters": [
         "Torbjörn"
       ],
@@ -113,6 +118,7 @@
       "lon": -79.3839347,
       "cityDisplayName": "Toronto, Canada",
       "description": "During the Early years of the 21st century, the rapid climate change and growing populations would lead to a series of pandemics across the World. From yellow fever to dengue, patogens were becoming an ever evolving problem. \nBut with hardship and challenges comes progress, and humanity was able to collaborate into speeding vaccine development, allowing for massive leaps in the medical field, and a period of utopian levels of health and life expectancy.\n\nAs technology Advanced, Dr. Elaine Esat would introduce the world to the marvels of cybernetics, empowering humans with mechanical organs and limbs that would later becoming a global stnadard, as companies such as Ogundimu Synergies Inc. and Omnica Corp quickly made a name for themselves in the global robotis sphere.",
+      "image": "",
       "filters": [
         "Sojourn",
         "Doomfist"
@@ -145,6 +151,7 @@
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
           ],
+          "image": "",
           "lat": -14.966969,
           "lon": 39.2707752,
           "cityDisplayName": "Nampula, Mozambique"
@@ -162,6 +169,7 @@
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
           ],
+          "image": "",
           "lat": 39.5,
           "lon": -116.5,
           "cityDisplayName": "Great Basin, United States"
@@ -174,6 +182,7 @@
       "lon": -86.5342881,
       "cityDisplayName": "Bloomington, United States",
       "description": "Born on January 27th of 2021, John \"Jack\" Francis Morrison was raised by farmers, and grw up to become a rambunctious teen. When he was not helping in the farm, he spent his time playing football, and by his eighteenth brithday he would choose to enlist in the army, Intending to put the stenght and discipline from his years of athletism into good use",
+      "image": "",
       "filters": [
         "Soldier 76"
       ],
@@ -195,6 +204,7 @@
       "lon": -73.6731282,
       "cityDisplayName": "Bogota, Colombia",
       "description": "As technology progressed, many fields of science quickly solved global issues such as illness and water scarcity, but it quickly becameclear that the worsening climate of the planet would become the next major obstacle to surpass. Scientists all over the globe scrambled for ideas to produce cost effective clean energy that could become a world wide standard. \n\nDr. Justina Borda was one of the first to tackle this issue. A phycologist specialized on genetics, who saught to improve energy equity on her home of Colombia. Borda developed a strain of algae capable of thriving in low oxygen waters, and photosynthesizing at disproportional speeds. and after many attempts, she was able to get the energy produced by the algae to work alongside a Goldilocks Generator, taking the excess of electricity fromthe algae and essentially transforming any body of water into a sola panel.\n\nBorda's invention spread across the world rapidly, as rural communities quickly standarized its used, to the point that even the most remote corners of the world have bodies of water where here creation managed to propagate. As her invention became the norm, the public moved away from fossil fuels for their daily energy conssumption.\n\nBorda kickstarted a green energy revolution, and as superstorms became all the more common, the wind energy industry followed, which ultimately lead to a decrease in carbon emissions of  more than 20 percent during this period, giving Humanity hope for a better tomorrow",
+      "image": "",
       "filters": [],
       "factions": [
         "09Lucheng"
@@ -226,6 +236,7 @@
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
           ],
+          "image": "",
           "lat": 21.304547,
           "lon": -157.855676,
           "cityDisplayName": "Honolulu, Hawaii"
@@ -245,6 +256,7 @@
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
           ],
+          "image": "",
           "lat": -20,
           "lon": 155,
           "cityDisplayName": "Coral Sea, Oceania"
@@ -257,6 +269,7 @@
       "lon": -79.3839347,
       "cityDisplayName": "Toronto, Canada",
       "description": "On January 12th of 2028, Vivian Chase and her twin Valentine sister were born, as daughters of ex military parents.  Unfortunately Vivian was born with a rare autoimmune disease that caused her body to attack her own organs, which would force her to spend most of her childhood and teen age years bedridden. The time in the hospital gave Vivian a lot of time to read books and play strategy games, as she quickly grew interest in the military like her parents.\n\nAs her condition worsen and threatened her life, her family made the hard choice of admitting her into Dr. Esat's experimental program, where they would replace a vast majority of her body with cybernetics over the years. Vivian lived on, but it would forther change the course of her life",
+      "image": "",
       "filters": [
         "Sojourn"
       ],
@@ -282,6 +295,7 @@
       "lon": 135,
       "cityDisplayName": "The Outback, Australia",
       "description": "On September 12th of 2028, somewhere in the middle of the Australian Outback, Mako Rutledge would be born to a humble family, surrounded by farmers and solar plants, like many others just hopping for a quiet life in the country, and to be left alone.",
+      "image": "",
       "filters": [
         "Roadhog"
       ],
@@ -299,6 +313,7 @@
       "lon": -8.6291,
       "cityDisplayName": "Esperança, Portugal",
       "description": "As Super Coral Grew in the Pacific, the people of the Atlantic faced similar problems as Polynesia once did. The coasts of Portugal were facing great erosition and violent waves as the ocean level rose and acidification worsen, but they would found a solution on their own thanks to the ingenuity of the Martins couple.\n\nCláudio Martins was a wealthy Portuguese Entrepeneur, married to a Venezuelan ecological activist, Hector Martins. The pair were known for their inventions and together they used their resources to propose to the Portuguese Government to begin the construciton of a giant sea wall.\n\nThe Wall was to be made out of Durovidro, a synthetic material Cláudio himself had invented years earlier. Not only was it nearly as tough as a diamond, but it also had the unique quality of neutralizing acidicy, which made it perfect to both solve the rising tides eroding the coast, and preserving the ecosystems around the area. The Durovidro Sea Wall was a massive sucess after its first prototype and it slowly expanded over the years.",
+      "image": "",
       "filters": [],
       "factions": [
         "03Ecopoints"
@@ -316,6 +331,7 @@
       "lon": -72.545,
       "cityDisplayName": "Runasapi, Peru",
       "description": "The people of the Andean Mountains came up with their own solutions to the clean energy, In the sacred valley of Peru, the Paraqina research group combined modern technology with the ancestral traditions and believes of the natives, funding heavy research into hydraulic  and wind energy as well as agricultural techniques.\n\nBut by far their biggest accomplishment would come with the invention of Solar threading. a unique way of harversting condensed solar energy into beams of light. This technology was so strong that it was capable of giving power nearly everything around the city of Runasapi and the surrounding areas. The group grew in numbers and research expanded into multiple other fields, eventually leading into cybernetics, where they found a way to engrave solar threads into human bodies, allowing people to directly harness the power of the sun onto themselves, and channel them into differnent tools. The few selected for this procedure would become the first of the mythical Inti Warriors, the protectors of the city, their technology and their new found way of life in the isolated mountains of Peru",
+      "image": "",
       "filters": [
         "Illari"
       ],
@@ -335,6 +351,7 @@
       "lon": -6.2605593,
       "cityDisplayName": "Dublin, Ireland",
       "description": "On April 4th of 2029, Moira O'Deorain is Born, growing up with a fascination for bugs and science, surrounded by several advancements in genetics at a very young age, it was not a surprise to anyone when she ended up in the University of Dublin, becoming a brilliant yet controversial geneticist",
+      "image": "",
       "filters": [
         "Moira"
       ],
@@ -352,6 +369,7 @@
       "lon": -83.0466403,
       "cityDisplayName": "Detroit, United States",
       "description": "While green energies were enough to substain small towns and daily activities for most households, Industry at large required a lot more power still, and to solve this they turned to a familiar solution, in nuclear power. While the infamous accidents from the previous decades like Chernobyl and Fukushima made it a hard sell, breakthroughs in fusion reactors allowed for the first Fusion plant to be brought up online, and after that it wouldn't be long before this became the standard for metropolitan areas, goverment research centers and large industri facilities. Omnica Corporation would use these nuclear reactors to facilitate the construction of their massive Omnium factories across the world",
+      "image": "",
       "filters": [],
       "factions": [
         "05Omnica"
@@ -369,6 +387,7 @@
       "lon": 3.5642897,
       "cityDisplayName": "Oyo, Nigeria",
       "description": "On May 25th, of 2031, Akande Ogundimu is Born in Oyo, Nigeria. He was the heir to Ogundimu Synergies Incorporated, which was making a name for itself in the field of cybernetics at the time. This background lead to a mentality of conquest and progress in the young man, as he soon found himself learning a wide spectrum of martial arts, hoping to pursue a professional career as a fighter",
+      "image": "",
       "filters": [
         "Doomfist"
       ],
@@ -386,6 +405,7 @@
       "lon": 108.9423363,
       "cityDisplayName": "Xi'an, China",
       "description": "On September 5th, 2036, Mei-Ling Zhou is born in Xi'an China. Growing up during such an enviromentally turbulent time period lead to her studying climatology, meeting a good friend, Jiayi Teo, on grad school.",
+      "image": "",
       "filters": [
         "Mei"
       ],
@@ -402,6 +422,7 @@
       "locationType": "earth",
       "cityDisplayName": "Detroit, United States",
       "description": "Omnica Corporation started from humble beginnings and quickly rose up as a multinational entity, with an annual budget larger than some nations. Thanks to their early support of Esat's cybernetic projects, alongside heavy investment into nuclear sciences, the company got a quick start on advanced robotics and quickly, innovating in manufacturing and automation for years until they were able to present the world with the first set of comercial Automated Robotic Assistance units, later colloquially known as \"Omnics\". \n\nOmnics where highly advance Ais that came in many forms, though largely humanoid, and  with enough capability for learning andadapting to many different situations, making them have mass appeal as domestic caretakers, companions and substitutes for all kinds of hard labor. Omnics started to appear everywhere, going from more crude, voiceless models first only affordable by the upper class, to fully personable voiced iterations, mass produces for people all over the world. \n\nAs the company grew, and their Omnics became more and more common, they started to comission their Omniums, massive fully automated factories designed to pump out units continously. Many cities were more than happy to welcome in the company, as they wanted to have the latest in Omnic technology available first. Omnica was on top of the world, and yet their biggest achievement would still await them.",
+      "image": "",
       "filters": [],
       "factions": [
         "05Omnica",
@@ -422,6 +443,7 @@
       "lon": -95.4588299,
       "cityDisplayName": "Bellaire, United States",
       "description": "On October 1st of 2037, Elizabeth Caledonia is born in the outsides of Bellarae. Elizabeth grew up in the Lead Rose Manor, coming from a privileged family of old money. Her family worked on many fields, consulting powerful CEOS around the world, but were mainly known for their ownership of the Arbalest Arms Company, an 19th century weapon manufacturer. \n\nBecause of their busy schedule, the adults in the house barely every paid attention to the little Elizabeth, leading to her often feeling alone and often getting into trouble to get back at her parents. The only one that was truly there for her was the famil's butler, B.O.B., a Bouncer Omnic Unit, one of the earliest in the market",
+      "image": "",
       "filters": [
         "Ashe"
       ],
@@ -439,6 +461,7 @@
       "lon": 104.063315,
       "cityDisplayName": "Chengdu, China",
       "description": "With all the new technologies that were arising, academic institutions were constantly growing, as more people wanted to get into the many new technological fields that were opening, and one of the Schools that quickly took a lead in the world would be Wuxing University. Acording to the academy's teaching's, centuries ago, a wise family had dedicated themselves to the understanding and application of the traditional Wuxing philosophy, and the study of the building blocks of the world. With the years of acumulated knowledge, they founded what later became the University, where traditional wisdom was to pioneer new science, for students to have all the knowledge of the past, available to guide their future.\n\nThe University, true to its name, splits its fields of study into five categories, relating to the phases of the Wuxing teachings. \nThe Fire College, for the study of martial arts and defensive strategies.\nThe Metal College, for robotics and technological engineering.\nThe Water College, for traditional medicine and applications into new medical advancements.\nThe Earth College, for agricultural and substainability studies.\nAnd Wood College, for civil and enviromental engineering.\nEach of these faculties played mayor roles into China's major advancements during the following decades, quickly increasing the College's prestige across the world.",
+      "image": "",
       "filters": [
         "Wuyang"
       ],
@@ -456,6 +479,7 @@
       "lon": 139.7638947,
       "cityDisplayName": "Hanamura, Japan",
       "description": "On November 3rd of 2038, Hanzo Shimada is Born. The firstborn heir of Sojiro, head of the Shimada clan in Hanamura. An ancient family and clan of assassins that grew a criminal empire across Japan through arms trafficking and protection services to the people they ruled over. \nDue to his position, he trained since very young to take his father's role as the leader of the clan, becoming very close to his father, specially after his mother abandoned the family",
+      "image": "",
       "filters": [
         "Hanzo"
       ],
@@ -475,6 +499,7 @@
       "lon": -73.9855319,
       "cityDisplayName": "New York City, United States",
       "description": "Climate Change heavily affected the agricultural industry, as many crops would stop being viable, leading to farmlands across the world to become desserted. As humanity risked famine across the board, GMOS seemed like the obvious solution, specially after the sucess of Borda's Algae and Taupega's Coral, which heavily reshaped public Opinion on artificially enhanced life. \n\nAs the first set of genetically modified crops began to solve the farming problem, it was precisely their mass appeal that caused harsher regulations to their use, for both safety and privatization reasons. Megacorporations leading this push for artificial crops kept a tight leash on their licensing, leading to multiple lawsuits and price fixing, as farmers couldn't compete with the improved crops, and yet also couldn't afford the seeds themselves.\nThis whole ordeal came to a stop in court, when Matthew Frank, a Manhattan Lawyer, convinced the Supreme Court that bioengineered seeds couldn't be held under a patent or copyright, because they were transformative works of an indigenous species. It also helped to his case that during the pandemics and outbreaks of the previous decades, the rush to get vaccines ready lead to a lot of patents getting dismissed for the sake of saving lives.\n\nThanks to this historic legal victory, the GMO crops became effectively open sourced, and with it effectively solving world hunger. The rise of  this highly effective crops lead to corporate farmers, who would partner with Omnica Corporation to use a robotic workforce, leading to more efficient, but larger Megafarms that quickly encomposed most of the world's arable lands",
+      "image": "",
       "filters": [
         "Cassidy"
       ],
@@ -492,6 +517,7 @@
       "lon": 4.3113461,
       "cityDisplayName": "The Hague, Netherlands",
       "description": "New sources of energy and pushes for cleaner solutions lead to many developments in the field of transportation, and the man leading the race would be Dr. Siebren De Kuiper, pioneer of gravitational research, as he believed that gravity was the greatest untapped resource humanity had, and one yet to conquer. For years his studies in the Hague pushed ideas to harness the power of gravity, and lead to many inventions that changed the world forever, most notoriously, the magnetic levitaitonal systems that most holocars and holobikes use in modern day, as well as the technology that would eventually lead to the creation of the Transcontintental Hyperloop.\n\nSiebren's work made flying cars not only a possiblity, but a very standard form of living across the world, closing the gap between fossil fuels and a trulyl substainable future",
+      "image": "",
       "filters": [
         "Sigma"
       ],
@@ -509,6 +535,7 @@
       "lon": 8.5410422,
       "cityDisplayName": "Zurich, Switzerland",
       "description": "On May 13th of 2039, Angela Zeigler is Born in Zurich. Medicine ran in the family, and during the Crisis, her parents would often serve as volunters in local hospitals to aid those in need. Sadly however,  both of them were killed in an Air strike during these visits. Orphaned in dire times and at such a young age, this gave angela a very strong and bocal distate for war.",
+      "image": "",
       "filters": [],
       "factions": [],
       "sources": [
@@ -524,6 +551,7 @@
       "lon": -97.7436995,
       "cityDisplayName": "Austin, United States",
       "description": "On July 31st of 2039, Cole Cassidy is Born. Records of his early life are scarse, and unrelliable, as the man enjoyed the mystery atmosphere he leaned onto. Its believed he came from Texas, and like many others, got orphaned by the Crisis at an early age. Due to this dire circumstnaces, he never finished formal schooling, leading him to job hoping in order to surivive, and eventually a life of crime",
+      "image": "",
       "filters": [],
       "factions": [],
       "sources": [
@@ -539,6 +567,7 @@
       "lon": 77.590082,
       "cityDisplayName": "Bengaluru, India",
       "description": "Dr. Vishwakarma Bhatt had worked for a long time on an ambitious project in  Bengaluru, trying to find a method to essentially solidify light. The project had taken years and many of those in his discipline moved on, but Bhatt persisted until he finally got a working prototype. His Photon Projectors were capable of altering photon reactivity, coaxing them into binding, creating crystaline structurues, capable of bonding with carbon, forming a durable physical object made out of carbon fibers, this would be known to the world as Hardlight.\n\nThe project was slow but promising, and thanks to the United Nations Global Recovery Program, he would get the grants needed to kickstar Vishkar, and lead his team in researching ways to use this technology in infrastructure. Bhatt envisioned a future where Hardlight would solve housing shortages, transporation issues and material inequity, he always wished for this technology to remain accessible for the public, as a gift to the world.\n\nUnfortunately, a tragic car accident would end his life, and the company would move on without him, away from his altruistic phylosophy. Exactly one year after Bhatt's death, Vishkar made its first public offerings.",
+      "image": "",
       "filters": [],
       "factions": [
         "12Vishkar"
@@ -556,6 +585,7 @@
       "lon": -72.785587,
       "cityDisplayName": "Tortuga Island, Haiti",
       "description": "On Marth 12th, 2041 Jean-Baptiste Augustin is Born. Baptiste was one of the 30 million children that the Crisis orphaned, growing in an orphanage at Port du Paix with his childhood friend, Roseline Mondésir. Dreaming that one day the two of them could build a clinic for their neighborhood",
+      "image": "",
       "filters": [
         "Baptiste"
       ],
@@ -572,6 +602,7 @@
       "locationType": "earth",
       "cityDisplayName": "Apia, Samoa",
       "description": "On August 19th, 2041, Maugaloa Malosi is born in Apia, Samoa. His childhood was defined by a love for his country's natural beauty, specially with the rise of Super Coral, as well as a heavy disrespect for the law, which he got from his father. From an early age, Mauga learned that charmisa opens doors, and violence gets answers",
+      "image": "",
       "filters": [
         "Mauga"
       ],
@@ -591,6 +622,7 @@
       "lon": 31.2357257,
       "cityDisplayName": "Cairo, Egypt",
       "description": "The world had overall become a better place, with more available food, miracle cures for all kinds of medical problems, cleaner energy solutions, highly advanced but complex transport systems, and an abundance of machinery helping on all kins of tasks around the world. But with these perks, came complexity, and with all of these resources available, the global population also grew imensely. Humanity would soon become overwhelmed by the taks of managing all of these sectors on a global scale the traditional way. It was here when the God Ais got conceptualized.\n\nHighly advance artificial intelligence systems would be set across the world. While most AIs were limited by their processing and resources, a God program was desined to have full global control and authority over specific aspects of industry in modern society. Among many otheres there was Xibalbá, in Mexico City, charged with the management of energy Equity across the region. Chernobog in Helsinki, Findland, with a high focus on global security and international affairs. Macaria from Brigeport, Connecticut, in charge of communication systems across the States, and the most imfamous of them all, Anubis from Cairo, Egypt, made to pursue ecological solutions for the preservation of life.\n\nOn a smaller scale, less complex AIs were also stablished to control local traffic, stocking stores, and managing public work projects, among other things, while on a glboal level the God Programs handled these resources and many more with an international perspective in mind, ensuring equity, efficiency and progress. \n\nWhile their power allowed humanity to take a back seat as the world moved forward, many skeptics worried that these god programs were given too much power, and had too much leeway to make decisions, and to calm these fears, each God Ai was under a constant feedback loop by the a dedicated team of programers that provided it mantainance and supervision, allowing humanity to catch any possible mistakes or concerning choices before it was too late.",
+      "image": "",
       "filters": [],
       "factions": [
         "05Omnica",
@@ -608,6 +640,7 @@
       "locationType": "earth",
       "cityDisplayName": "Hanamura, Japan",
       "description": "On October 28th of 2041, Genji Shimada was born in Hanamura, Japan. The second son of Sojiro Shimada, raised by the sword just like his older brother, Hanzo. Althought Genji never showed the same level of conviction as his older brother, often slacking off and indulging in a playboy lifestyle",
+      "image": "",
       "filters": [
         "Genji"
       ],
@@ -628,6 +661,7 @@
       "locationType": "earth",
       "cityDisplayName": "Annecy, France",
       "description": "On November 19th, 2043, Amélie Lacroix was born in Annecy, France. Part of an influential family, growing in the ancestral Chataeu Guillard in the rural areas of France, where the crumbling building accumulated cobwebs and spiders, which both fascinate and terrified her as a kid. \nAmelie's life was cold and filled with pressure from a conservative family, which expeted her to live by aristocratic traditions. She would go on to become a well accomplished balletdancer in Paris, and marry a diplomat by the name of Gérard Lacroix",
+      "image": "",
       "filters": [
         "Widowmaker"
       ],
@@ -646,6 +680,7 @@
       "locationType": "earth",
       "cityDisplayName": "Toronto, Canada",
       "description": "Vivian went on to live a turbulent life due to her many cybernetics. While the technology was miraculous, and had become fairly common, it was still met with discrimination and backlash from many over the years. Notoriously, cybernetics would be outright banned from major athletic competitions, due to the very clear advantage these gave to their users.\n\nConversely, cybernetics also opened doors for many, as the enhance abilities and modifications to equipment made cybernetics very appealing to armed forces around the world. Dr. Esat herself objected against the weaponizing of her technology, as she intended for it to save lives, but that did not stop the Canadian Military from admitting enhanced soldiers into their ranks.\n\n Vivian enlisted at the age of 16, coming from a family of veterans, she developed a fascination for the military. She served in the primary reserves and graduated with a BA in Psychology and a MA in Political Science, later pursuing the Canadian Special Forces",
+      "image": "",
       "filters": [
         "Sojourn"
       ],
@@ -668,6 +703,7 @@
       "locationType": "earth",
       "cityDisplayName": "Copenhagen, Denmark",
       "description": "On September 6th of 2044, Freja Skov is born in Copenhagen. As the daugther of a diplamat in Denmark, she would go on to see how her mother's choices and work saved hundreds of lives during the coming Crisis. While Freja admitred her mother, she always wanted to have a more active role in saving people, rather than siting behind a desk. As she grew older, she would pursue Criminology in university",
+      "image": "",
       "filters": [
         "Freja"
       ],
@@ -698,6 +734,7 @@
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
           ],
+          "image": "",
           "locationType": "earth",
           "lat": 23.2599,
           "lon": 77.4126,
@@ -716,6 +753,7 @@
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
           ],
+          "image": "",
           "locationType": "earth",
           "lat": 30.05518,
           "lon": 107.8748712,
@@ -730,6 +768,7 @@
       "locationType": "earth",
       "cityDisplayName": "Cairo, Egypt",
       "description": "On April of 15th, 2045, Fareeha Amari was Born. Years earlier, the now legendary Sniper, Ana Amari met a Sam English, a Canadian diplomat of Frist Nations descent, and dated casually in between their respective jobs, but would be caught by surprise when it turned out Ana was pregnant. The pair settled down in Cairo to take care of Fareeha",
+      "image": "",
       "filters": [
         "Pharah"
       ],
@@ -752,6 +791,7 @@
       "locationType": "earth",
       "cityDisplayName": "Detroit, United States",
       "description": "On July 14TH of 2025, Tekhartha Zenyatta would be created. As Omnica corporation ramped up production into domestic and public use Omnic Units, the machines became more and more multi purpose and standarized. Little is known about Zenyatta's past before the crisis, his many jobs or factory of origin often change between each time the tale is told, but as it is the case for many of his fellow Omnics, his true life would not quite start yet, until the day of the Awakening",
+      "image": "",
       "filters": [
         "Zenyatta"
       ],
@@ -770,6 +810,7 @@
       "locationType": "earth",
       "cityDisplayName": "Gothenburg, Sweden",
       "description": "Around the year 2046, the STT Laboratories would begin production of the Siege Automaton E54 Bastion Units. Designed in part by the great mind of Torbjörn Lindholm, these machines were originally created for peacekeeping, capable of reconfigurating themselves into many different modes. Their versatility and resilience would unknowingly make them the perfect choice for the bulk of the warbot army during the Omnic Crisis.\n\nAt an unknown day during these intial production batch, a faulty E54 unit nowadays simply known as Bastion, was made",
+      "image": "",
       "filters": [
         "Bastion",
         "Torbjörn"
@@ -788,6 +829,7 @@
       "name": "Olivia Colomar is Born",
       "locationType": "earth",
       "description": "On Decemebr 31st of 2046, Olivia Colomar is born. One of the millions orphaned by the crisis, left to fend of for herself in a country left to ruin and riddled with political scandals. From an early age, Olivia learned a constant truth in her life, if you have the information, you control everything.",
+      "image": "",
       "filters": [
         "Sombra"
       ],
@@ -806,6 +848,7 @@
       "locationType": "earth",
       "cityDisplayName": "Congo Basin, Democratic Republic of the Congo",
       "description": "On June 6th of 2047, Specimen 28, later known as Winston was Born. He was selected, alongside other Silverback Gorillas to joing a captive colony of varied primates, that was to live on the Horizon Lunar Colony to aid in research and genetic experimentation. Specimen 28 displayed rapid brain development following the procedures, far more than any of their peers, and was taken under the wing of Dr. Harold Winston, who would  teach him of science and tales of humanity, nurishing the gorilla's young developing mind with an inmense curiosity for the blue marble outside of his habitat window.",
+      "image": "",
       "filters": [
         "Winston"
       ],
@@ -824,6 +867,7 @@
       "locationType": "earth",
       "cityDisplayName": "Gothenburg, Sweden",
       "description": "Following his involvement in the STT Laboratories, Torbjörn would join many of his fellow engineers  and found the Ironclad Guild, a Workshop meant for inventors to come together, and discuss their craft openly, sharing resources, techniques and tools to later develop their fields independently. Their mission was to create invantions that would improve the world, and become available to anyone who needs them, without restrictive patents.\n\nOvertime however the guildwould attract many politically minded members, Torbjörn himself included. During his time on Ironclad Lindholm wouldwork on the Titan units, meant for peacekeeping and defense, much like his previous work on the Bastion units. But following his work on these robots, he would begin to speak publicly against the growing relliance on Omnics and God AI, highlighting that robots were merely tools, and that needless complication could risk humanity's future. Lindholm wasn't alone, as many other members of the guild felt the same and advocated for lobbying against Omnica Corporation, while more moderates argued for better guardrails, Lindholm was particularly pasionate about the topic. and his words would become poison for his career.\n\nMany members of the guild would become ostracized from their fields over theri views, and siding with Lindholm was seen as career suicide. Torbjörn would return home, to decicate himself to raising his family with his now wife, Ingrid. As the world moved forward into developing Omnics, away from his warnings",
+      "image": "",
       "filters": [
         "Torbjörn",
         "Bastion"
@@ -845,6 +889,7 @@
       "locationType": "earth",
       "cityDisplayName": "The Outback, Australia",
       "description": "On June 14th of 2047, Odessa Stone was Born in a small outback settlement. She was one of six children, often fighting to prove her dominance. The life of the Stones would be marked by the crisis, and specially by the events that followed with the Australian government.",
+      "image": "",
       "filters": [],
       "factions": [],
       "sources": [
@@ -861,6 +906,7 @@
       "locationType": "earth",
       "cityDisplayName": "Detroit, United States",
       "description": "Over the years Omnica Corporation had been caught underfire for many issues. bewtween the heavy criticism of the Ironclad guild, to the massive spending and broken promises that came with many Omniums, and to top it off, they had reached a point of near perfection with their Omnic designs, where their models would barely every break down and most of the public willing to buy an omnic already owned them.  The company was in need for a big idea,one that oculd get save them from collapse, and the answer to their troubles seemed to be Mina Liao.\n\n\nDr. Mina Liao was a prodigy and pioneer of neuroplastic artificial intelligence that had built continous innovations in the field. She was selected by Omnica to  develop the most advance AI the world had ever seen. Liao's work was both revolutionary and controversial, as many feared this was pushing boundaries too far, but in the end she would reveal Omnica's crowning achievement, with the birth of Aurora.\n\nLiao argued that their newest Omnic was fully sentient, and capable of human level cognition. While there were many skeptics, the robot passed every test they could think of. Confident in their discovery and understanding the moral issues with monetizing it, Liao tookit upon herself to not just proof her sentient, but to pursue personhood.\n\nAfter a long legal battle and international controversy, an international court would declare Aurora as sentient, and grand her full civil rights. Liao helped to cement Omnica's dominance as the unstopable leader in robotic innovation but in doing so, she brought even more negative press and expenses for the company, ultimately being the cause of their downfall",
+      "image": "",
       "filters": [
         "Echo"
       ],
@@ -882,6 +928,7 @@
       "locationType": "moon",
       "cityDisplayName": "Horizon Lunar Colony",
       "description": "At last, after years of development and research, Lucheng was able to finish the construction of the fully funcitonal Horizon Lunar Colony. The base became the home of a colony of primates and other animals, to use for the study of long term effects of low gravity, hoping this would prepare humanity for future trips into the stars.\n\nThe Apes underwent many genetic treatments that would increase their size, and along it their strenght and intelligence, and a group of scientists in the base dedicated themselves to observing and teaching the primates to solve complex problems far beyond the capabilities of their counterparts back on Earth.\n\nIn its heyday, many prominent scientists would become temporary residents at Horizon, including Dr. Siebren de Kuiper, who spent whole year at the base continuing his studies on gravity and providing advice for the staff. De Kuiper credits his time at the colony for much of his reseach's findings.\nSiebre's time at Horizon overlapped with Victoria Naughton, a geneticist later responsible for the Soldier Enhancement Program. Other Scientists like Dr Ainar Omarov visited the colony, whose optical technologies are still used in monitoring systems.",
+      "image": "",
       "filters": [
         "Winston",
         "Sigma"
@@ -919,6 +966,7 @@
               "url": "https://www.youtube.com/watch?v=PIYMn8eDskg"
             }
           ],
+          "image": "",
           "locationType": "earth",
           "lat": 28.3949,
           "lon": 84.124,
@@ -932,6 +980,7 @@
             "05Omnica",
             "06Crisis"
           ],
+          "image": "",
           "locationType": "earth",
           "lat": 42.3315509,
           "lon": -83.0466403,
@@ -946,6 +995,7 @@
       "locationType": "earth",
       "cityDisplayName": "Venice, Italy",
       "description": "A corrupt force began to rise from the shadows in the years nearing the crisis. The internationally designated Terrorist Organization known as Talon began to spread their influence across the world. The organization was a lose coalition of criminal groups around the world, as well as many corporations and political parties that wished to used their means to further their own influence. \n\nTalon was a decentralized organization, commanded by  an ever changing council of top contributors. It began spreading itself across Europe by installing puppet governments and supporting corporate power grabs, in order to impose their dominance in the global elite and satisfy the wishes of the benefactors. The organization would go under the radar of most regulatory agencies thanks to their subtle tactics and ever growing corruption of authority. But as their influence grew, the global political climate began to become more and more  tense",
+      "image": "",
       "filters": [
         "Vendetta"
       ],
@@ -966,6 +1016,7 @@
       "locationType": "earth",
       "cityDisplayName": "Chiang Mai City, Thailand",
       "description": "On April 28 of 2048, Niran Pruksamanee is Born in the city of Chiang Mai. As the middle child of a wealthy family, he had his life planned and high expectations to fullfill, although the young Niran would resist this structure by wondering through their compound's gardens and mending plants alongside their gardeners\n\nHe was too intelligent for the expensive schools his family chose for him, completing assignments more thoroughly than needed and annoying his teachers, which caused his parents to get frustrated and continue to attempt to install order in his life",
+      "image": "",
       "filters": [],
       "factions": [],
       "sources": [
@@ -982,6 +1033,7 @@
       "locationType": "earth",
       "cityDisplayName": "Berlin, Germany",
       "description": "As robotics took over most forms of labor, Germany wanted to prevent unemployment, so they began developing sector yet touched by AI. One of these areas was marine exploration, as the government began backing the develpoing of exoskeletal diving suits developed by Leon Honisch, an Oceanologist that dedicated to explore the North Sea. This invention caught the attention of the  military.\n\nMajor Greta Klein approached Honish with an initiative, to modify his  Robo-Tauchanzug design into equipment for their soldiers, as the suits were design to withstand heavy pressures and damage. Alongside them, Emillia Fischer was called to improve the design for combat use. Fischer was one of the early hard-light architects, one of many that took Vishkar's technology into new boundaries. Fischer had used it before to enahnce the shildings of fusion reactors, and when called into the initiative, she adapted this technolgy into hardlight barriers, capable of taking consistent damage, and regenerating after breaking, with the pair on board, the Crusader armors were born.\n\nWhile he had been lured into the project, Honisch argued that the move might not be taken kindly abroad, given the country's military history, although Fischer argued that in spite of the controversy that re militarization could cause, Germany needed a means to defend itself if it came to it. During development the pair found a compromise, and with it the Crusaders were reframed as defenders of the country, rather than a weapon of war.\n\nThey redesigned their armors to resemble that of fabled knights, and with the help of local artisans, heavily decorated them to be used in parades and boost support among the public. The Crusaders became a source of cultural pride for Germany, even if it meant they would be on stand by for the time being",
+      "image": "",
       "filters": [
         "Reinhardt"
       ],
@@ -1000,6 +1052,7 @@
       "locationType": "earth",
       "cityDisplayName": "Hyderabad, India",
       "description": "On October 2nd of 2048, Satya Vaswani was born, growing in poverty in the slums of Hyderbad, living in a crowded village where hunger was a constant issue, feeling powerless, and afraid, she often found refuge in dancing, to calm her anxiety.",
+      "image": "",
       "filters": [],
       "factions": [],
       "sources": [
@@ -1016,6 +1069,7 @@
       "locationType": "earth",
       "cityDisplayName": "Camp Hale, United States",
       "description": "Following her return form the Lunar Colony, Victoria Naughton was chosen to spearhead America's Soldier Enhancement program. The Australian marine evolutionary biologist focused on gene therapy, looking to enhance the mental progresison, speed and strenght of the test subjects, which caught attention of the government, and with that came more funding. Her research with the apes at the Lunar Colony was showing promising results, which lead to the approval of codename: Project Naughton, and an expanded laboratory in Camp Hale. The project was highly classified and didn't see human testings until years later during the crisis, as the moral questions and public preference to cybernetics prevented Naughton from reachingresults faster",
+      "image": "",
       "filters": [
         "Soldier 76",
         "Reaper"
@@ -1035,6 +1089,7 @@
       "locationType": "earth",
       "cityDisplayName": "Cairo, Egypt",
       "description": "Over the years technology had made life much easier for people around the globe, and had helped reduce the impact of climate change, to a point most nations began to take their stability for granted. taking a step back in monitoring and funding of these enviromental programs. With this laxxed approach, much of the weight on the task of enviromentalism felt to the God Ais and the staff behind them that personified them almost as coworkers.\n\nAnubis, the God Ai in Cairo was in charge of life preservation, and was one of the most advance machines on the planet, Data studies of the team showed the AI had been consistently struggling to fullfill its tasks, and the recent international conferenceson the matter would often lead to further innaction. Two weeks after the conferences, there was a ventilation accident in the Cairo facility, cutting air circulation amd sealing the staff inside their facilities. With the entire team soffocated, Anubis was left entirely alone, to make decisions without human supervision.\n\nIn the months it spent free of any staff, the God AI reached the conclusion that preserving theenviroment and the survival of humanity were mutually exclusive tasks, and chose to prioritize conservation over mankind. The God Program managed to infiltrate pass the security of multiple abandoned Omniums across the globe, and began the mass production of war machines, preparing to enact his genocide",
+      "image": "",
       "filters": [],
       "factions": [
         "06Crisis"
@@ -1053,6 +1108,7 @@
       "locationType": "earth",
       "cityDisplayName": "Novoanskoye, Russia",
       "description": "On December 4th of 2048. Aleksandra Zaryanova is born in the small Siberian village of Novoanskoye. near the shadow of a remote Omnium. Her father would sadly die during the Omnic Crisis, which made Aleksandra determine to gain the strengh needed to protect her love ones. Her resolve would lead her to pursue body building and become a professional weightlifter, with the talen and strength to compete internationally an become a record shadering star in the field, and a source of pride to all of Russia",
+      "image": "",
       "filters": [
         "Zarya"
       ],
@@ -1071,6 +1127,7 @@
       "locationType": "earth",
       "cityDisplayName": "London, England",
       "description": "On February 17th of 2049, Lena Oxton was Born. to a working class family in london, raised to know her enemies and her worth in equal measure and to never conform to what people believed she was supposed to be like. From an early age she would develop a love for rock music and a rebellious, party going personality, always on the move. Chasing adrenaline and a way to put it to use, she enrolled as a pilot in training at a young age with the help of her father, and eventually went on to enlist on the Royal Air Force",
+      "image": "",
       "filters": [
         "Tracer"
       ],
@@ -1089,6 +1146,7 @@
       "locationType": "earth",
       "cityDisplayName": "Rome, Italy",
       "description": "On February 15th of 2050, Marzia Bartalotti was born to the promise of great power, being the sole daugther of Antonio Bartalotti, a notorious Arm dealer in Rome, and a key figure in the rising Talon council. Marzia found a sense of pride in her heritage and grew up expecting to take over her father, even if he wished a differnet life for her. Her temperament found her few friends when growing up, and constant clashes with his father's decisions and management, as his choices lead to the lost of her mother at an early age.\n\nFrustrated that her father's decisions and hubris could risk her own future, she dedicated her youth to studying the business, and preparing to take over his empire",
+      "image": "",
       "filters": [
         "Vendetta"
       ],
@@ -1107,6 +1165,7 @@
       "locationType": "earth",
       "cityDisplayName": "Rio de Janeiro, Brazil",
       "description": "On March 20th of 2051, Lúcio Correia dos Santos  is born in Rio de Janeiro, growing up in a poor and crowded favela that would be hit had by the financial upheaval of the Crisis. As his country recovered, he would often try to lift people's spirits through the power of music, using it to bring people together and make them forget their troubles, even if only for a short time. The young man would often perform in the streets, and at block parties, eventually growing up to beocme an underground celebrity, hosting larger shows",
+      "image": "",
       "filters": [
         "Lúcio"
       ],
@@ -1125,6 +1184,7 @@
       "locationType": "earth",
       "cityDisplayName": "Lagos, Nigeria",
       "description": "Before the full on war began, Anubis first tested his plan on a smaller scale. On the first day of the crisis, Anubis launched a coordinated attack on Lagos, coming form the Nigerian Omnium. As the attack pushed further in, domestic Omnic units began to attack civilians, and since most of the services and communications were handled by machines, the flow of information to the outside world was nearly non existent.\n\nThe international community turned its eyes on Nigeria with fear and confusion, only to be caught by surprise the same way soon after. Many believed this to be an isolated attack and thus humanity was completely unprepared for what came next. Within eighteen hours of the initial attack, Anubis began to seize control of domestic robots across the planet, and deployed massive waves of warbots towards major population centers. Chaos reigned everywhere, and many nations began pointing fingers at each othe,r with at least five confirmed nuclear powers preparing counter attacks, the world was minutes away from nuclear obliteration before intelligence operatives realized the attacks were happening globally and not orchestrated by a single nation. \n\nAs the Omnics gained ground across rural and suburban areas, many of the world's wealthiest elites began to retreat into prebuilt doomsday bunkers, which  feed conspiracy theorist and distrust among the people. The bunkers themselves were largely innefective however, as a majority of them would sooner or later be destroyed by Anubis forces, and few of these structures remained strong by the end of the Crisis",
+      "image": "",
       "filters": [],
       "factions": [
         "06Crisis"
@@ -1143,6 +1203,7 @@
       "locationType": "earth",
       "cityDisplayName": "Secret Omnium, Antartica?",
       "description": "On Marth 29th of 2051, Ramattra was Made. The R-7000 Ravager Units were Anubis' crowning jewel in the Warbot army, built in a secret facility, somewhere cold and isolated. The Ravagers acted as batallion commanders and strategists, becoming one of the most dreaded units in the Crisis.",
+      "image": "",
       "filters": [
         "Ramattra"
       ],
@@ -1161,6 +1222,7 @@
       "locationType": "earth",
       "cityDisplayName": "Havana, Cuba",
       "description": "",
+      "image": "",
       "filters": [
         "Baptiste"
       ],
@@ -1173,6 +1235,7 @@
       "locationType": "earth",
       "cityDisplayName": "Moscow, Russia",
       "description": "",
+      "image": "",
       "filters": [],
       "factions": [
         "19Volskaya"
@@ -1185,6 +1248,7 @@
       "locationType": "earth",
       "cityDisplayName": "Manhattan, United States",
       "description": "",
+      "image": "",
       "filters": [
         "Torbjörn"
       ],
@@ -1197,6 +1261,7 @@
       "locationType": "earth",
       "cityDisplayName": "Esperança, Portugal",
       "description": "",
+      "image": "",
       "filters": [],
       "factions": [],
       "lat": 41.1579,
@@ -1207,6 +1272,7 @@
       "locationType": "earth",
       "cityDisplayName": "Toronto, Canada",
       "description": "",
+      "image": "",
       "filters": [
         "Sojourn"
       ],
@@ -1219,6 +1285,7 @@
       "locationType": "earth",
       "cityDisplayName": "Gothenburg, Sweden",
       "description": "",
+      "image": "",
       "filters": [
         "Torbjörn"
       ],
@@ -1231,6 +1298,7 @@
       "locationType": "mars",
       "cityDisplayName": "Red Promise Colony",
       "description": "",
+      "image": "",
       "filters": [],
       "factions": [],
       "x": 45,
@@ -1241,6 +1309,7 @@
       "locationType": "station",
       "cityDisplayName": "Interstellar Journey Space Station",
       "description": "",
+      "image": "",
       "filters": [
         "Sigma"
       ],

@@ -3,13 +3,6 @@
  * Loads data from JSON files and provides access methods
  */
 export class DataModel {
-    // Constants
-    static STORAGE_KEY = 'timelineEvents';
-    static DATA_PATHS = {
-        LOCATIONS: 'data/locations.json',
-        CONNECTIONS: 'data/connections.json'
-    };
-
     constructor() {
         this.events = [];
         this.cities = [];
@@ -26,114 +19,44 @@ export class DataModel {
     }
 
     /**
-     * Fetch JSON file with error handling and HTTP status checks
-     * @param {string} url - URL to fetch
-     * @returns {Promise<Object>} - Parsed JSON data
-     */
-    async fetchJSON(url) {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
-        }
-        return await response.json();
-    }
-
-    /**
-     * Validate and parse locations data structure
-     * @param {Object} data - Raw locations data
-     * @returns {Object} - Validated locations data
-     */
-    validateLocationsData(data) {
-        if (!data || typeof data !== 'object') {
-            throw new Error('Invalid locations data: expected object');
-        }
-        return {
-            cities: Array.isArray(data.cities) ? data.cities : [],
-            fictionalCities: Array.isArray(data.fictionalCities) ? data.fictionalCities : [],
-            airports: Array.isArray(data.airports) ? data.airports : [],
-            seaports: Array.isArray(data.seaports) ? data.seaports : []
-        };
-    }
-
-    /**
-     * Validate and parse connections data structure
-     * @param {Object} data - Raw connections data
-     * @returns {Object} - Validated connections data
-     */
-    validateConnectionsData(data) {
-        if (!data || typeof data !== 'object') {
-            throw new Error('Invalid connections data: expected object');
-        }
-        return {
-            trainConnections: Array.isArray(data.trainConnections) ? data.trainConnections : [],
-            secondaryConnections: Array.isArray(data.secondaryConnections) ? data.secondaryConnections : [],
-            seaportConnections: Array.isArray(data.seaportConnections) ? data.seaportConnections : []
-        };
-    }
-
-    /**
-     * Fetch and parse locations data
-     * @returns {Promise<Object>} - Validated locations data
-     */
-    async fetchLocationsData() {
-        const locationsData = await this.fetchJSON(DataModel.DATA_PATHS.LOCATIONS);
-        return this.validateLocationsData(locationsData);
-    }
-
-    /**
-     * Fetch and parse connections data
-     * @returns {Promise<Object>} - Validated connections data
-     */
-    async fetchConnectionsData() {
-        const connectionsData = await this.fetchJSON(DataModel.DATA_PATHS.CONNECTIONS);
-        return this.validateConnectionsData(connectionsData);
-    }
-
-    /**
-     * Load events from localStorage with fallback
-     * @param {Array} fallbackEvents - Fallback events if localStorage fails
-     * @returns {Array} - Loaded events
-     */
-    loadEventsFromStorage(fallbackEvents = []) {
-        const savedEvents = localStorage.getItem(DataModel.STORAGE_KEY);
-        if (savedEvents) {
-            try {
-                const events = JSON.parse(savedEvents);
-                console.log('DataModel: Loaded events from localStorage');
-                return events;
-            } catch (error) {
-                console.error('DataModel: Error parsing events from localStorage:', error);
-                console.log('DataModel: Using fallback events');
-                return fallbackEvents;
-            }
-        } else {
-            console.log('DataModel: No saved events in localStorage, using empty array');
-            return [];
-        }
-    }
-
-    /**
      * Load all data from JSON files
      * @returns {Promise<void>}
      */
     async loadData() {
         try {
-            // Load locations data
-            const locationsData = await this.fetchLocationsData();
-            this.cities = locationsData.cities;
-            this.fictionalCities = locationsData.fictionalCities;
-            this.airports = locationsData.airports;
-            this.seaports = locationsData.seaports;
-            this.allSeaports = [...locationsData.seaports]; // Store all seaports before filtering
+            // Load locations
+            const locationsResponse = await fetch('data/locations.json');
+            const locationsData = await locationsResponse.json();
+            
+            // Check localStorage first for events (user's saved events)
+            const savedEvents = localStorage.getItem('timelineEvents');
+            if (savedEvents) {
+                try {
+                    this.events = JSON.parse(savedEvents);
+                    console.log('DataModel: Loaded events from localStorage');
+                } catch (error) {
+                    console.error('DataModel: Error parsing events from localStorage:', error);
+                    // Fallback to locations.json if localStorage is corrupted
+                    this.events = locationsData.events || [];
+                }
+            } else {
+                // No saved events, use empty array (test events removed)
+                this.events = [];
+                console.log('DataModel: No saved events in localStorage, using empty array');
+            }
+            
+            this.cities = locationsData.cities || [];
+            this.fictionalCities = locationsData.fictionalCities || [];
+            this.airports = locationsData.airports || [];
+            this.seaports = locationsData.seaports || [];
+            this.allSeaports = [...(locationsData.seaports || [])]; // Store all seaports before filtering
 
-            // Load events from localStorage (with fallback to empty array)
-            this.events = this.loadEventsFromStorage([]);
-
-            // Load connections data
-            const connectionsData = await this.fetchConnectionsData();
-            this.trainConnections = connectionsData.trainConnections;
-            this.secondaryConnections = connectionsData.secondaryConnections;
-            this.seaportConnections = connectionsData.seaportConnections;
+            // Load connections
+            const connectionsResponse = await fetch('data/connections.json');
+            const connectionsData = await connectionsResponse.json();
+            this.trainConnections = connectionsData.trainConnections || [];
+            this.secondaryConnections = connectionsData.secondaryConnections || [];
+            this.seaportConnections = connectionsData.seaportConnections || [];
 
             // Filter out seaports with 0 connections (for transport system only)
             this.filterSeaports();
@@ -147,10 +70,9 @@ export class DataModel {
     }
 
     /**
-     * Count connections for each seaport
-     * @returns {Object} - Object mapping port names to connection counts
+     * Filter out seaports with no connections
      */
-    countSeaportConnections() {
+    filterSeaports() {
         const connectionCounts = {};
         this.seaports.forEach(port => {
             connectionCounts[port.name] = 0;
@@ -166,15 +88,7 @@ export class DataModel {
             }
         });
 
-        return connectionCounts;
-    }
-
-    /**
-     * Find seaports with no connections
-     * @param {Object} connectionCounts - Object mapping port names to connection counts
-     * @returns {Set<string>} - Set of port names to remove
-     */
-    findPortsToRemove(connectionCounts) {
+        // Find ports with 0 connections
         const portsToRemove = new Set();
         Object.keys(connectionCounts).forEach(portName => {
             if (connectionCounts[portName] === 0) {
@@ -182,14 +96,7 @@ export class DataModel {
                 console.log(`DataModel: Removing port with 0 connections: ${portName}`);
             }
         });
-        return portsToRemove;
-    }
 
-    /**
-     * Remove ports and their connections from arrays
-     * @param {Set<string>} portsToRemove - Set of port names to remove
-     */
-    removePortsAndConnections(portsToRemove) {
         // Filter seaports array
         this.seaports = this.seaports.filter(port => !portsToRemove.has(port.name));
 
@@ -197,15 +104,6 @@ export class DataModel {
         this.seaportConnections = this.seaportConnections.filter(conn => 
             !portsToRemove.has(conn.from) && !portsToRemove.has(conn.to)
         );
-    }
-
-    /**
-     * Filter out seaports with no connections
-     */
-    filterSeaports() {
-        const connectionCounts = this.countSeaportConnections();
-        const portsToRemove = this.findPortsToRemove(connectionCounts);
-        this.removePortsAndConnections(portsToRemove);
 
         console.log(`DataModel: Filtered seaports: ${this.seaports.length} ports remaining (removed ${portsToRemove.size})`);
     }

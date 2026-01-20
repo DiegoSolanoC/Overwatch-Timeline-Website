@@ -3,23 +3,6 @@
  * Version: 1.1.0 (Added xyToPlanePosition for Moon/Mars support)
  */
 
-// Constants for coordinate conversion and geometry calculations
-const GEOMETRY_CONSTANTS = {
-    DEGREES_TO_RADIANS: Math.PI / 180,
-    RADIANS_TO_DEGREES: 180 / Math.PI,
-    LATITUDE_OFFSET: 90,
-    LONGITUDE_OFFSET: 180,
-    LONGITUDE_NORMALIZATION: 360,
-    LONGITUDE_SHORT_WAY_ADJUSTMENT: 540,
-    ARC_HEIGHT_MAIN_CONNECTION: 0.03,
-    ARC_HEIGHT_SECONDARY_CONNECTION: 0.02,
-    ARC_HEIGHT_MIN_MAIN: 0.005,
-    ARC_HEIGHT_MIN_SECONDARY: 0.003,
-    COORDINATE_SYSTEM_MAX: 100,
-    COORDINATE_NORMALIZATION_FACTOR: 2,
-    MARKER_Z_OFFSET: 0.03
-};
-
 /**
  * Convert lat/lon to 3D coordinates on sphere
  * @param {number} lat - Latitude
@@ -28,8 +11,8 @@ const GEOMETRY_CONSTANTS = {
  * @returns {THREE.Vector3}
  */
 export function latLonToVector3(lat, lon, radius) {
-    const phi = (GEOMETRY_CONSTANTS.LATITUDE_OFFSET - lat) * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS;
-    const theta = (lon + GEOMETRY_CONSTANTS.LONGITUDE_OFFSET) * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS;
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (lon + 180) * (Math.PI / 180);
 
     const x = -(radius * Math.sin(phi) * Math.cos(theta));
     const z = (radius * Math.sin(phi) * Math.sin(theta));
@@ -50,75 +33,45 @@ export function latLonToVector3(lat, lon, radius) {
  * @param {boolean} forceLongWay - Force the long way around (opposite direction)
  * @returns {Array<THREE.Vector3>}
  */
-/**
- * Normalize longitude for long way calculation
- * @param {number} lon1 - Start longitude
- * @param {number} lon2 - End longitude
- * @returns {number} - Adjusted longitude in radians
- */
-function normalizeLongitudeForLongWay(lon1, lon2) {
-    // Normalize longitudes to 0-360 range
-    const lon1Norm = ((lon1 % GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION) + GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION) % GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION;
-    const lon2Norm = ((lon2 % GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION) + GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION) % GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION;
+export function createArcBetweenPoints(lat1, lon1, lat2, lon2, altitude, segments, isMainConnection = true, forceLongWay = false) {
+    const points = [];
     
-    // Calculate both directions
-    const dLonShort = ((lon2Norm - lon1Norm + GEOMETRY_CONSTANTS.LONGITUDE_SHORT_WAY_ADJUSTMENT) % GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION) - GEOMETRY_CONSTANTS.LONGITUDE_OFFSET;
-    const dLonLong = dLonShort > 0 ? dLonShort - GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION : dLonShort + GEOMETRY_CONSTANTS.LONGITUDE_NORMALIZATION;
+    const lat1Rad = lat1 * Math.PI / 180;
+    let lon1Rad = lon1 * Math.PI / 180;
+    const lat2Rad = lat2 * Math.PI / 180;
+    let lon2Rad = lon2 * Math.PI / 180;
     
-    // Use the long way
-    return (lon1 * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS) + (dLonLong * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS);
-}
-
-/**
- * Calculate angular distance between two points using haversine formula
- * @param {number} lat1Rad - Start latitude in radians
- * @param {number} lon1Rad - Start longitude in radians
- * @param {number} lat2Rad - End latitude in radians
- * @param {number} lon2Rad - End longitude in radians
- * @returns {number} - Angular distance in radians
- */
-function calculateAngularDistance(lat1Rad, lon1Rad, lat2Rad, lon2Rad) {
+    // If forcing long way, adjust longitude to go the opposite direction
+    if (forceLongWay) {
+        // Normalize longitudes to 0-360 range
+        const lon1Norm = ((lon1 % 360) + 360) % 360;
+        const lon2Norm = ((lon2 % 360) + 360) % 360;
+        
+        // Calculate both directions
+        const dLonShort = ((lon2Norm - lon1Norm + 540) % 360) - 180;
+        const dLonLong = dLonShort > 0 ? dLonShort - 360 : dLonShort + 360;
+        
+        // Use the long way
+        lon2Rad = lon1Rad + dLonLong * Math.PI / 180;
+    }
+    
     const dLon = lon2Rad - lon1Rad;
     const dLat = lat2Rad - lat1Rad;
     
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(lat1Rad) * Math.cos(lat2Rad) *
               Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const angularDistance = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     
-    return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-/**
- * Calculate arc height based on connection type and distance
- * @param {number} angularDistance - Angular distance in radians
- * @param {boolean} isMainConnection - Is main connection
- * @returns {number} - Final arc height
- */
-function calculateArcHeight(angularDistance, isMainConnection) {
     const distanceFactor = angularDistance / Math.PI;
-    const baseArcHeight = isMainConnection ? GEOMETRY_CONSTANTS.ARC_HEIGHT_MAIN_CONNECTION : GEOMETRY_CONSTANTS.ARC_HEIGHT_SECONDARY_CONNECTION;
+    const baseArcHeight = isMainConnection ? 0.03 : 0.02;
     const maxArcHeight = baseArcHeight * distanceFactor;
-    const minArcHeight = isMainConnection ? GEOMETRY_CONSTANTS.ARC_HEIGHT_MIN_MAIN : GEOMETRY_CONSTANTS.ARC_HEIGHT_MIN_SECONDARY;
-    return Math.max(minArcHeight, maxArcHeight);
-}
-
-/**
- * Generate arc points along the great circle path
- * @param {number} lat1Rad - Start latitude in radians
- * @param {number} lon1Rad - Start longitude in radians
- * @param {number} lat2Rad - End latitude in radians
- * @param {number} lon2Rad - End longitude in radians
- * @param {number} angularDistance - Angular distance in radians
- * @param {number} segments - Number of segments
- * @param {number} altitude - Base altitude
- * @param {number} finalArcHeight - Final arc height
- * @returns {Array<THREE.Vector3>} - Array of 3D points
- */
-function generateArcPoints(lat1Rad, lon1Rad, lat2Rad, lon2Rad, angularDistance, segments, altitude, finalArcHeight) {
-    const points = [];
+    const minArcHeight = isMainConnection ? 0.005 : 0.003;
+    const finalArcHeight = Math.max(minArcHeight, maxArcHeight);
     
     for (let i = 0; i <= segments; i++) {
         const t = i / segments;
+        const fraction = t * angularDistance;
         
         const A = Math.sin((1 - t) * angularDistance) / Math.sin(angularDistance);
         const B = Math.sin(t * angularDistance) / Math.sin(angularDistance);
@@ -127,8 +80,8 @@ function generateArcPoints(lat1Rad, lon1Rad, lat2Rad, lon2Rad, angularDistance, 
         const y = A * Math.cos(lat1Rad) * Math.sin(lon1Rad) + B * Math.cos(lat2Rad) * Math.sin(lon2Rad);
         const z = A * Math.sin(lat1Rad) + B * Math.sin(lat2Rad);
         
-        const lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * GEOMETRY_CONSTANTS.RADIANS_TO_DEGREES;
-        const lon = Math.atan2(y, x) * GEOMETRY_CONSTANTS.RADIANS_TO_DEGREES;
+        const lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * 180 / Math.PI;
+        const lon = Math.atan2(y, x) * 180 / Math.PI;
         
         const arcHeight = Math.sin(t * Math.PI) * finalArcHeight;
         const currentAltitude = altitude + arcHeight;
@@ -138,27 +91,6 @@ function generateArcPoints(lat1Rad, lon1Rad, lat2Rad, lon2Rad, angularDistance, 
     }
     
     return points;
-}
-
-export function createArcBetweenPoints(lat1, lon1, lat2, lon2, altitude, segments, isMainConnection = true, forceLongWay = false) {
-    const lat1Rad = lat1 * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS;
-    let lon1Rad = lon1 * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS;
-    const lat2Rad = lat2 * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS;
-    let lon2Rad = lon2 * GEOMETRY_CONSTANTS.DEGREES_TO_RADIANS;
-    
-    // If forcing long way, adjust longitude to go the opposite direction
-    if (forceLongWay) {
-        lon2Rad = normalizeLongitudeForLongWay(lon1, lon2);
-    }
-    
-    // Calculate angular distance
-    const angularDistance = calculateAngularDistance(lat1Rad, lon1Rad, lat2Rad, lon2Rad);
-    
-    // Calculate arc height
-    const finalArcHeight = calculateArcHeight(angularDistance, isMainConnection);
-    
-    // Generate arc points
-    return generateArcPoints(lat1Rad, lon1Rad, lat2Rad, lon2Rad, angularDistance, segments, altitude, finalArcHeight);
 }
 
 /**
@@ -175,15 +107,15 @@ export function xyToPlanePosition(x, y, planeWidth, planeHeight, planeCenter, pl
     // Convert from 0-100 coordinate system to -1 to 1 (centered)
     // (0,0) = top-left in image = (-width/2, height/2) in 3D
     // (100,100) = bottom-right in image = (width/2, -height/2) in 3D
-    const normalizedX = (x / GEOMETRY_CONSTANTS.COORDINATE_SYSTEM_MAX) * GEOMETRY_CONSTANTS.COORDINATE_NORMALIZATION_FACTOR - 1; // Convert 0-100 to -1 to 1
-    const normalizedY = 1 - (y / GEOMETRY_CONSTANTS.COORDINATE_SYSTEM_MAX) * GEOMETRY_CONSTANTS.COORDINATE_NORMALIZATION_FACTOR; // Convert 0-100 to 1 to -1 (flip Y)
+    const normalizedX = (x / 100) * 2 - 1; // Convert 0-100 to -1 to 1
+    const normalizedY = 1 - (y / 100) * 2; // Convert 0-100 to 1 to -1 (flip Y)
     
     // Calculate position on plane (plane default orientation: faces +Z axis)
     // Plane is positioned at planeCenter and faces camera (at z=3.5)
     // Since markers are added as children of the plane, we need LOCAL coordinates (relative to plane center)
-    const localX = normalizedX * (planeWidth / GEOMETRY_CONSTANTS.COORDINATE_NORMALIZATION_FACTOR);
-    const localY = normalizedY * (planeHeight / GEOMETRY_CONSTANTS.COORDINATE_NORMALIZATION_FACTOR);
-    const localZ = GEOMETRY_CONSTANTS.MARKER_Z_OFFSET; // Push marker further in front of plane surface to prevent clipping with hover waves
+    const localX = normalizedX * (planeWidth / 2);
+    const localY = normalizedY * (planeHeight / 2);
+    const localZ = 0.03; // Push marker further in front of plane surface to prevent clipping with hover waves
     
     // Plane default orientation: X is left-right, Y is up-down, Z is forward-back
     // Since markers are children of the plane, return LOCAL position (not world position)

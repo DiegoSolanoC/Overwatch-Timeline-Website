@@ -125,7 +125,7 @@ export class BoatController {
         this.routeController.reserveBoatRoute(firstRoute.from, firstRoute.to, boat.userData.boatId);
         
         const journey = routes.map(r => `${r.from}->${r.to}`).join(' | ');
-        // console.log(`🚢 NEW MULTI-STOP BOAT [${boat.userData.boatId}]: ${journey}`);
+        console.log(`🚢 NEW MULTI-STOP BOAT [${boat.userData.boatId}]: ${journey}`);
         
         return boat;
     }
@@ -159,7 +159,7 @@ export class BoatController {
         
         if (!this.routeController.isBoatRouteAvailable(nextRoute.from, nextRoute.to)) {
             if (!data.isWaiting) {
-                // console.log(`⏸️ BOAT [${data.boatId}] waiting at port ${currentTo}...`);
+                console.log(`⏸️ BOAT [${data.boatId}] waiting at port ${currentTo}...`);
                 data.isWaiting = true;
                 data.progress = 1.0;
             }
@@ -176,7 +176,7 @@ export class BoatController {
             
             this.routeController.reserveBoatRoute(nextRoute.from, nextRoute.to, data.boatId);
             data.currentRouteIndex++;
-            // console.log(`🚢 BOAT [${data.boatId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length})`);
+            console.log(`🚢 BOAT [${data.boatId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length})`);
             
             data.curve = nextRoute.curve;
             data.from = nextRoute.from;

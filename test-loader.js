@@ -656,108 +656,6 @@ async function unloadGlobeBase() {
     }
 }
 
-/**
- * Setup globe container for initialization
- * Makes container invisible but allows rendering for Three.js initialization
- */
-function setupGlobeContainer() {
-    const container = document.getElementById('globe-container');
-    if (container) {
-        // Make it invisible but still allow rendering (opacity 0, not display none)
-        // This allows Three.js to properly initialize the renderer
-        container.style.opacity = '0';
-        container.style.pointerEvents = 'none';
-        container.style.position = 'absolute';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.display = 'block'; // Must be block for Three.js to work
-        // Don't add 'loaded' class yet - will be added after all loading is complete
-    }
-}
-
-/**
- * Load and initialize GlobeController
- * @returns {Promise<Object>} - Initialized GlobeController instance
- */
-async function loadAndInitializeGlobe() {
-    // Load GlobeController module
-    updateStatus('Loading GlobeController module...', 'info');
-    const { GlobeController } = await import('../controllers/GlobeController.js');
-    
-    // Initialize GlobeController
-    updateStatus('Initializing GlobeController...', 'info');
-    const controller = new GlobeController();
-    window.globeController = controller;
-    
-    // Initialize the globe (this loads earth, textures, starfield, city markers, seaport markers)
-    updateStatus('Initializing globe scene...', 'info');
-    await controller.init();
-    
-    return controller;
-}
-
-/**
- * Clean up event markers if events aren't loaded yet
- * Event markers should only load with Events component
- * @param {Object} controller - GlobeController instance
- */
-function cleanupEventMarkers(controller) {
-    if (loadedComponents.events || !controller.globeView) {
-        return;
-    }
-    
-    updateStatus('Removing event markers (will load with Event Markers)...', 'info');
-    const markers = controller.sceneModel.getMarkers();
-    const scene = controller.sceneModel.getScene();
-    
-    // Remove event markers from scene
-    markers.forEach(marker => {
-        if (marker.userData && marker.userData.isEventMarker) {
-            scene.remove(marker);
-            const index = controller.sceneModel.getMarkers().indexOf(marker);
-            if (index > -1) {
-                controller.sceneModel.getMarkers().splice(index, 1);
-            }
-        }
-    });
-    
-    // Also remove event markers from globe children
-    const globe = controller.sceneModel.getGlobe();
-    if (globe) {
-        const toRemove = [];
-        globe.traverse((child) => {
-            if (child.userData && child.userData.isEventMarker) {
-                toRemove.push(child);
-            }
-        });
-        toRemove.forEach(child => {
-            if (child.parent) {
-                child.parent.remove(child);
-            }
-        });
-    }
-    
-    updateStatus('✓ Event markers removed', 'success');
-}
-
-/**
- * Make globe container visible after loading
- */
-function makeGlobeContainerVisible() {
-    if (isRunOperation) {
-        return; // Run operations handle visibility themselves
-    }
-    
-    const container = document.getElementById('globe-container');
-    if (container) {
-        container.style.opacity = '1';
-        container.style.pointerEvents = 'auto';
-        container.style.display = 'block';
-        container.classList.add('loaded');
-        updateStatus('✓ Globe container made visible', 'success');
-    }
-}
-
 async function loadGlobeBase() {
     // If already loaded, unload it instead
     if (loadedComponents.globeBase) {
@@ -773,17 +671,80 @@ async function loadGlobeBase() {
     updateStatus('Starting Globe Base load...', 'info');
     
     try {
-        // Setup container for initialization
-        setupGlobeContainer();
+        // Keep globe container invisible but allow it to exist for initialization
+        // The container needs to exist for the renderer to be created, but we hide it visually
+        const container = document.getElementById('globe-container');
+        if (container) {
+            // Make it invisible but still allow rendering (opacity 0, not display none)
+            // This allows Three.js to properly initialize the renderer
+            container.style.opacity = '0';
+            container.style.pointerEvents = 'none';
+            container.style.position = 'absolute';
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.display = 'block'; // Must be block for Three.js to work
+            // Don't add 'loaded' class yet - will be added after all loading is complete
+        }
         
-        // Load and initialize globe
-        const controller = await loadAndInitializeGlobe();
+        // Load GlobeController module
+        updateStatus('Loading GlobeController module...', 'info');
+        const { GlobeController } = await import('./controllers/GlobeController.js');
         
-        // Clean up event markers if events aren't loaded yet
-        cleanupEventMarkers(controller);
+        // Initialize GlobeController
+        updateStatus('Initializing GlobeController...', 'info');
+        const controller = new GlobeController();
+        window.globeController = controller;
         
-        // Make globe container visible now that it's loaded
-        makeGlobeContainerVisible();
+        // Initialize the globe (this loads earth, textures, starfield, city markers, seaport markers)
+        updateStatus('Initializing globe scene...', 'info');
+        await controller.init();
+        
+        // Remove event markers if events aren't loaded yet (they should only load with Events)
+        if (!loadedComponents.events && controller.globeView) {
+            updateStatus('Removing event markers (will load with Event Markers)...', 'info');
+            const markers = controller.sceneModel.getMarkers();
+            const scene = controller.sceneModel.getScene();
+            
+            // Remove event markers from scene
+            markers.forEach(marker => {
+                if (marker.userData && marker.userData.isEventMarker) {
+                    scene.remove(marker);
+                    const index = controller.sceneModel.getMarkers().indexOf(marker);
+                    if (index > -1) {
+                        controller.sceneModel.getMarkers().splice(index, 1);
+                    }
+                }
+            });
+            
+            // Also remove event markers from globe children
+            const globe = controller.sceneModel.getGlobe();
+            if (globe) {
+                const toRemove = [];
+                globe.traverse((child) => {
+                    if (child.userData && child.userData.isEventMarker) {
+                        toRemove.push(child);
+                    }
+                });
+                toRemove.forEach(child => {
+                    if (child.parent) {
+                        child.parent.remove(child);
+                    }
+                });
+            }
+            updateStatus('✓ Event markers removed', 'success');
+        }
+        
+        // Make globe container visible now that it's loaded (unless in a run operation - run will handle visibility)
+        if (!isRunOperation) {
+            const container = document.getElementById('globe-container');
+            if (container) {
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+                container.style.display = 'block';
+                container.classList.add('loaded');
+                updateStatus('✓ Globe container made visible', 'success');
+            }
+        }
         
         loadedComponents.globeBase = true;
         setButtonState('loadGlobeBaseBtn', 'loaded');
@@ -1322,393 +1283,6 @@ async function unloadEvents() {
     }
 }
 
-/**
- * Clean up existing EventManager instance
- * Clears listeners, state arrays, and removes the instance
- */
-function cleanupEventManager() {
-    if (!window.eventManager) {
-        return;
-    }
-    
-    updateStatus('Cleaning up existing EventManager instance...', 'info');
-    
-    // Clear any listeners or state if needed
-    if (window.eventManager.listenersSetup) {
-        window.eventManager.listenersSetup = false;
-    }
-    
-    // Clear all state arrays
-    const stateArrays = ['events', 'cities', 'airports', 'seaports'];
-    stateArrays.forEach(prop => {
-        if (window.eventManager[prop]) {
-            window.eventManager[prop] = [];
-        }
-    });
-    
-    window.eventManager = null;
-}
-
-/**
- * Load EventManager script dynamically if not already loaded
- * @returns {Promise<void>}
- */
-async function loadEventManagerScript() {
-    updateStatus('Loading EventManager...', 'info');
-    
-    // Check if EventManager is already available (loaded via script tag)
-    // Also check if script tag already exists to avoid duplicates
-    const existingScript = document.querySelector('script[src*="EventManager.js"]');
-    if (typeof EventManager === 'undefined' && !existingScript) {
-        // Load EventManager script dynamically
-        await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'js/EventManager.js?' + Date.now(); // Cache busting
-            script.onload = async () => {
-                try {
-                    // Wait a bit for EventManager to be available
-                    await new Promise(r => setTimeout(r, 50));
-                    
-                    if (typeof EventManager === 'undefined') {
-                        throw new Error('EventManager class not found after loading script');
-                    }
-                    
-                    resolve();
-                } catch (error) {
-                    console.error('EventManager script load error:', error);
-                    updateStatus(`✗ ${error.message}`, 'error');
-                    reject(error);
-                }
-            };
-            script.onerror = () => {
-                const error = new Error('Failed to load EventManager.js');
-                updateStatus(`✗ ${error.message}`, 'error');
-                reject(error);
-            };
-            document.head.appendChild(script);
-        });
-    }
-}
-
-/**
- * Wait for EventManager class to be available
- * @param {number} maxAttempts - Maximum number of attempts
- * @param {number} delayMs - Delay between attempts in milliseconds
- * @returns {Promise<void>}
- */
-async function waitForEventManagerClass(maxAttempts = 10, delayMs = 50) {
-    if (typeof EventManager !== 'undefined') {
-        return;
-    }
-    
-    updateStatus('Waiting for EventManager class to be available...', 'info');
-    let attempts = 0;
-    while (typeof EventManager === 'undefined' && attempts < maxAttempts) {
-        await new Promise(r => setTimeout(r, delayMs));
-        attempts++;
-    }
-    
-    if (typeof EventManager === 'undefined') {
-        throw new Error('EventManager class not available after waiting');
-    }
-}
-
-/**
- * Initialize EventManager instance
- * @returns {Promise<void>}
- */
-async function initializeEventManager() {
-    updateStatus('Creating new EventManager instance...', 'info');
-    const eventManager = new EventManager();
-    updateStatus('Initializing EventManager...', 'info');
-    
-    try {
-        await eventManager.init();
-        window.eventManager = eventManager;
-        updateStatus('✓ EventManager initialized', 'success');
-    } catch (error) {
-        console.error('EventManager initialization error:', error);
-        updateStatus(`✗ EventManager initialization failed: ${error.message}`, 'error');
-        throw error;
-    }
-}
-
-/**
- * Create filter button if not already present
- */
-function createFilterButton() {
-    if (document.getElementById('filtersToggle')) {
-        return;
-    }
-    
-    updateStatus('Adding filter button...', 'info');
-    const filterBtn = document.createElement('button');
-    filterBtn.id = 'filtersToggle';
-    filterBtn.className = 'globe-control-btn filters-btn top-left-btn';
-    filterBtn.title = 'Open Filters';
-    filterBtn.innerHTML = `
-        <span id="filtersIcon">
-            <img src="Icons/Filter Icon.png" alt="Filters" style="width: 100%; height: 100%; object-fit: contain;">
-        </span>
-    `;
-    document.getElementById('content').appendChild(filterBtn);
-    updateStatus('✓ Filter button added', 'success');
-}
-
-/**
- * Create event manager button if not already present
- */
-function createEventManagerButton() {
-    if (document.getElementById('eventsManageToggle')) {
-        return;
-    }
-    
-    updateStatus('Adding event manager button...', 'info');
-    const eventMgrBtn = document.createElement('button');
-    eventMgrBtn.id = 'eventsManageToggle';
-    eventMgrBtn.className = 'globe-control-btn events-manage-btn top-left-btn';
-    eventMgrBtn.title = 'Manage Events';
-    eventMgrBtn.innerHTML = `
-        <span id="eventsManageIcon">
-            <img src="Icons/Event Manager Icon.png" alt="Event Manager" style="width: 100%; height: 100%; object-fit: contain;">
-        </span>
-    `;
-    document.getElementById('content').appendChild(eventMgrBtn);
-    updateStatus('✓ Event manager button added', 'success');
-}
-
-/**
- * Create event pagination UI if not already present
- */
-function createEventPagination() {
-    if (document.getElementById('eventPagination')) {
-        return;
-    }
-    
-    updateStatus('Adding event pagination...', 'info');
-    const pagination = document.createElement('div');
-    pagination.id = 'eventPagination';
-    pagination.className = 'event-pagination';
-    pagination.innerHTML = `
-        <div class="page-controls-row">
-            <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
-            <div class="page-input-container">
-                <span class="page-label">Page</span>
-                <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
-                <span class="page-total" id="pageTotal">/ 1</span>
-            </div>
-            <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
-        </div>
-        <div class="event-number-buttons" id="eventNumberButtons">
-            <button class="event-number-btn" data-position="1" title="Event 1">1</button>
-            <button class="event-number-btn" data-position="2" title="Event 2">2</button>
-            <button class="event-number-btn" data-position="3" title="Event 3">3</button>
-            <button class="event-number-btn" data-position="4" title="Event 4">4</button>
-            <button class="event-number-btn" data-position="5" title="Event 5">5</button>
-            <button class="event-number-btn" data-position="6" title="Event 6">6</button>
-            <button class="event-number-btn" data-position="7" title="Event 7">7</button>
-            <button class="event-number-btn" data-position="8" title="Event 8">8</button>
-            <button class="event-number-btn" data-position="9" title="Event 9">9</button>
-            <button class="event-number-btn" data-position="10" title="Event 10">10</button>
-        </div>
-    `;
-    document.getElementById('content').appendChild(pagination);
-    
-    // Function to apply mobile positioning
-    const applyMobilePaginationPosition = () => {
-        const paginationEl = document.getElementById('eventPagination');
-        if (paginationEl && window.innerWidth <= 768) {
-            paginationEl.style.setProperty('position', 'fixed', 'important');
-            paginationEl.style.setProperty('bottom', '120px', 'important');
-            paginationEl.style.setProperty('left', '50%', 'important');
-            paginationEl.style.setProperty('right', 'auto', 'important');
-            paginationEl.style.setProperty('transform', 'translateX(-50%)', 'important');
-            paginationEl.style.setProperty('top', 'auto', 'important');
-        }
-    };
-    
-    // Apply immediately if on mobile
-    applyMobilePaginationPosition();
-    
-    // Also apply on window resize
-    window.addEventListener('resize', applyMobilePaginationPosition);
-    
-    updateStatus('✓ Event pagination added', 'success');
-}
-
-/**
- * Create filters panel if not already present
- */
-function createFiltersPanel() {
-    if (document.getElementById('filtersPanel')) {
-        return;
-    }
-    
-    updateStatus('Adding filters panel...', 'info');
-    const filtersPanel = document.createElement('div');
-    filtersPanel.id = 'filtersPanel';
-    filtersPanel.className = 'filters-panel';
-    filtersPanel.innerHTML = `
-        <div class="filters-panel-close" id="filtersPanelClose">&times;</div>
-        <div class="filters-panel-content">
-            <div class="filters-actions">
-                <h2 class="filters-title">Filters</h2>
-                <div class="filters-actions-buttons">
-                    <button id="clearFiltersBtn" class="filters-action-btn">Clear</button>
-                    <button id="confirmFiltersBtn" class="filters-action-btn filters-confirm-btn">Confirm</button>
-                </div>
-            </div>
-            <div class="filters-tabs">
-                <button id="heroesTab" class="filter-tab active">
-                    Heroes
-                    <span class="filter-count" id="heroesCount">0</span>
-                </button>
-                <button id="factionsTab" class="filter-tab">
-                    Factions
-                    <span class="filter-count" id="factionsCount">0</span>
-                </button>
-            </div>
-            <div class="filters-grid" id="filtersGrid"></div>
-        </div>
-    `;
-    document.body.appendChild(filtersPanel);
-    updateStatus('✓ Filters panel added', 'success');
-}
-
-/**
- * Verify required HTML panels exist
- */
-function verifyRequiredPanels() {
-    const requiredPanels = [
-        { id: 'eventSlide', name: 'Event slide panel' },
-        { id: 'eventImageOverlay', name: 'Event image overlay' },
-        { id: 'eventsManagePanel', name: 'Event manager panel' },
-        { id: 'eventEditModal', name: 'Event edit modal' }
-    ];
-    
-    requiredPanels.forEach(panel => {
-        const element = document.getElementById(panel.id);
-        if (!element) {
-            updateStatus(`⚠ ${panel.name} not found in HTML`, 'error');
-        } else {
-            updateStatus(`✓ ${panel.name} found`, 'success');
-        }
-    });
-}
-
-/**
- * Create all event-related UI elements
- */
-function createEventUIElements() {
-    createFilterButton();
-    createEventManagerButton();
-    createEventPagination();
-    createFiltersPanel();
-    verifyRequiredPanels();
-}
-
-/**
- * Load all event-related sound effects
- */
-function loadEventSoundEffects() {
-    if (!window.SoundEffectsManager) {
-        return;
-    }
-    
-    updateStatus('Loading event sound effects...', 'info');
-    const soundEffects = [
-        { name: 'filterPick', path: 'Sound Effects/Filter Pick.mp3' },
-        { name: 'filterOff', path: 'Sound Effects/Filter Off.mp3' },
-        { name: 'filterConfirm', path: 'Sound Effects/Filter Confirm.mp3' },
-        { name: 'filterClear', path: 'Sound Effects/Filter Clear.mp3' },
-        { name: 'filterButton', path: 'Sound Effects/Filter Button.mp3' },
-        { name: 'eventClick', path: 'Sound Effects/Event Click.mp3' },
-        { name: 'eventManager', path: 'Sound Effects/Event Manager.mp3' },
-        { name: 'switchEvent', path: 'Sound Effects/Switch Event.mp3' },
-        { name: 'page', path: 'Sound Effects/Page.mp3' }
-    ];
-    
-    soundEffects.forEach(sound => {
-        window.SoundEffectsManager.loadSound(sound.name, sound.path);
-    });
-    
-    updateStatus('✓ Event sound effects loaded', 'success');
-}
-
-/**
- * Setup event listeners for EventManager
- */
-function setupEventManagerListeners() {
-    if (!window.eventManager) {
-        return;
-    }
-    
-    updateStatus('Setting up event listeners for add/edit functionality...', 'info');
-    
-    // Verify button exists before setting up listeners
-    const toggleBtn = document.getElementById('eventsManageToggle');
-    const panel = document.getElementById('eventsManagePanel');
-    const addBtn = document.getElementById('addEventBtn');
-    
-    if (toggleBtn && panel && addBtn) {
-        // Small delay to ensure DOM is fully ready
-        setTimeout(() => {
-            window.eventManager.setupEventListeners();
-            updateStatus('✓ Event listeners set up - add/edit functionality ready', 'success');
-        }, 50);
-    } else {
-        updateStatus(`⚠ Some elements not found! Toggle: ${!!toggleBtn}, Panel: ${!!panel}, AddBtn: ${!!addBtn}`, 'error');
-        // Retry after a longer delay
-        setTimeout(() => {
-            if (window.eventManager) {
-                const retryToggleBtn = document.getElementById('eventsManageToggle');
-                const retryPanel = document.getElementById('eventsManagePanel');
-                const retryAddBtn = document.getElementById('addEventBtn');
-                if (retryToggleBtn && retryPanel && retryAddBtn) {
-                    window.eventManager.setupEventListeners();
-                    updateStatus('✓ Event listeners set up (retry successful)', 'success');
-                } else {
-                    updateStatus(`✗ Failed to set up event listeners - elements still missing`, 'error');
-                }
-            }
-        }, 200);
-    }
-}
-
-/**
- * Sync events with globe and add markers
- */
-function syncEventsWithGlobe() {
-    if (!window.globeController || !window.eventManager) {
-        return;
-    }
-    
-    updateStatus('Syncing events with globe...', 'info');
-    window.globeController.dataModel.events = [...window.eventManager.events];
-    
-    if (window.globeController.globeView) {
-        // Add event markers now that events are loaded
-        window.globeController.globeView.addEventMarkers();
-        window.globeController.globeView.refreshEventMarkers();
-    }
-    
-    if (window.globeController.uiView) {
-        window.globeController.uiView.setupEventPagination(() => {
-            if (window.globeController.globeView) {
-                window.globeController.globeView.refreshEventMarkers();
-            }
-        });
-        // Setup event number buttons
-        window.globeController.uiView.setupEventNumberButtons(() => {
-            if (window.globeController.globeView) {
-                window.globeController.globeView.refreshEventMarkers();
-            }
-        });
-    }
-    
-    updateStatus('✓ Events synced with globe and markers added', 'success');
-}
-
 async function loadEvents() {
     // If already loaded, just return (don't toggle)
     if (loadedComponents.events) {
@@ -1732,25 +1306,268 @@ async function loadEvents() {
     
     try {
         // Clean up any existing EventManager instance first
-        cleanupEventManager();
+        if (window.eventManager) {
+            updateStatus('Cleaning up existing EventManager instance...', 'info');
+            // Clear any listeners or state if needed
+            if (window.eventManager.listenersSetup) {
+                window.eventManager.listenersSetup = false;
+            }
+            // Clear all state
+            if (window.eventManager.events) {
+                window.eventManager.events = [];
+            }
+            if (window.eventManager.cities) {
+                window.eventManager.cities = [];
+            }
+            if (window.eventManager.airports) {
+                window.eventManager.airports = [];
+            }
+            if (window.eventManager.seaports) {
+                window.eventManager.seaports = [];
+            }
+            window.eventManager = null;
+        }
         
-        // Load EventManager script if needed
-        await loadEventManagerScript();
+        // Load EventManager (it's loaded via script tag, not ES6 module)
+        updateStatus('Loading EventManager...', 'info');
         
-        // Wait for EventManager class if script exists but class not ready
-        await waitForEventManagerClass();
+        // Check if EventManager is already available (loaded via script tag)
+        // Also check if script tag already exists to avoid duplicates
+        const existingScript = document.querySelector('script[src*="EventManager.js"]');
+        if (typeof EventManager === 'undefined' && !existingScript) {
+            // Load EventManager script dynamically
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'js/EventManager.js?' + Date.now(); // Cache busting
+                script.onload = async () => {
+                    try {
+                        // Wait a bit for EventManager to be available
+                        await new Promise(r => setTimeout(r, 50));
+                        
+                        if (typeof EventManager === 'undefined') {
+                            throw new Error('EventManager class not found after loading script');
+                        }
+                        
+                        // Initialize EventManager
+                        updateStatus('Initializing EventManager...', 'info');
+                        const eventManager = new EventManager();
+                        await eventManager.init();
+                        window.eventManager = eventManager;
+                        updateStatus('✓ EventManager initialized', 'success');
+                        
+                        resolve();
+                    } catch (error) {
+                        console.error('EventManager initialization error:', error);
+                        updateStatus(`✗ EventManager initialization failed: ${error.message}`, 'error');
+                        reject(error);
+                    }
+                };
+                script.onerror = () => {
+                    const error = new Error('Failed to load EventManager.js');
+                    updateStatus(`✗ ${error.message}`, 'error');
+                    reject(error);
+                };
+                document.head.appendChild(script);
+            });
+        } else {
+            // EventManager already loaded - create fresh instance
+            if (typeof EventManager === 'undefined') {
+                // Wait a bit more if script exists but class not ready
+                updateStatus('Waiting for EventManager class to be available...', 'info');
+                let attempts = 0;
+                while (typeof EventManager === 'undefined' && attempts < 10) {
+                    await new Promise(r => setTimeout(r, 50));
+                    attempts++;
+                }
+                if (typeof EventManager === 'undefined') {
+                    throw new Error('EventManager class not available after waiting');
+                }
+            }
+            updateStatus('Creating new EventManager instance...', 'info');
+            const eventManager = new EventManager();
+            updateStatus('Initializing EventManager...', 'info');
+            try {
+            await eventManager.init();
+            window.eventManager = eventManager;
+            updateStatus('✓ EventManager initialized', 'success');
+            } catch (error) {
+                console.error('EventManager initialization error:', error);
+                updateStatus(`✗ EventManager initialization failed: ${error.message}`, 'error');
+                throw error;
+            }
+        }
         
-        // Initialize EventManager
-        await initializeEventManager();
+        // Sync events with globe and add markers
+        if (window.globeController && window.eventManager) {
+            updateStatus('Syncing events with globe...', 'info');
+            window.globeController.dataModel.events = [...window.eventManager.events];
+            if (window.globeController.globeView) {
+                // Add event markers now that events are loaded
+                window.globeController.globeView.addEventMarkers();
+                window.globeController.globeView.refreshEventMarkers();
+            }
+            updateStatus('✓ Events synced with globe and markers added', 'success');
+        }
         
-        // Sync events with globe and add markers (first sync)
-        syncEventsWithGlobe();
+        // Add filter button (if not already present)
+        if (!document.getElementById('filtersToggle')) {
+            updateStatus('Adding filter button...', 'info');
+            const filterBtn = document.createElement('button');
+            filterBtn.id = 'filtersToggle';
+            filterBtn.className = 'globe-control-btn filters-btn top-left-btn';
+            filterBtn.title = 'Open Filters';
+            filterBtn.innerHTML = `
+                <span id="filtersIcon">
+                    <img src="Icons/Filter Icon.png" alt="Filters" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            `;
+            document.getElementById('content').appendChild(filterBtn);
+            updateStatus('✓ Filter button added', 'success');
+        }
         
-        // Create all UI elements
-        createEventUIElements();
+        // Add event manager button (if not already present)
+        if (!document.getElementById('eventsManageToggle')) {
+            updateStatus('Adding event manager button...', 'info');
+            const eventMgrBtn = document.createElement('button');
+            eventMgrBtn.id = 'eventsManageToggle';
+            eventMgrBtn.className = 'globe-control-btn events-manage-btn top-left-btn';
+            eventMgrBtn.title = 'Manage Events';
+            eventMgrBtn.innerHTML = `
+                <span id="eventsManageIcon">
+                    <img src="Icons/Event Manager Icon.png" alt="Event Manager" style="width: 100%; height: 100%; object-fit: contain;">
+                </span>
+            `;
+            document.getElementById('content').appendChild(eventMgrBtn);
+            updateStatus('✓ Event manager button added', 'success');
+        }
         
-        // Load sound effects
-        loadEventSoundEffects();
+        // Don't set up listeners here - wait until button is created
+        
+        // Add event pagination (if not already present)
+        if (!document.getElementById('eventPagination')) {
+            updateStatus('Adding event pagination...', 'info');
+            const pagination = document.createElement('div');
+            pagination.id = 'eventPagination';
+            pagination.className = 'event-pagination';
+            pagination.innerHTML = `
+                <div class="page-controls-row">
+                    <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
+                    <div class="page-input-container">
+                        <span class="page-label">Page</span>
+                        <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
+                        <span class="page-total" id="pageTotal">/ 1</span>
+                    </div>
+                    <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
+                </div>
+                <div class="event-number-buttons" id="eventNumberButtons">
+                    <button class="event-number-btn" data-position="1" title="Event 1">1</button>
+                    <button class="event-number-btn" data-position="2" title="Event 2">2</button>
+                    <button class="event-number-btn" data-position="3" title="Event 3">3</button>
+                    <button class="event-number-btn" data-position="4" title="Event 4">4</button>
+                    <button class="event-number-btn" data-position="5" title="Event 5">5</button>
+                    <button class="event-number-btn" data-position="6" title="Event 6">6</button>
+                    <button class="event-number-btn" data-position="7" title="Event 7">7</button>
+                    <button class="event-number-btn" data-position="8" title="Event 8">8</button>
+                    <button class="event-number-btn" data-position="9" title="Event 9">9</button>
+                    <button class="event-number-btn" data-position="10" title="Event 10">10</button>
+                </div>
+            `;
+            document.getElementById('content').appendChild(pagination);
+            
+            // Function to apply mobile positioning
+            const applyMobilePaginationPosition = () => {
+                const paginationEl = document.getElementById('eventPagination');
+                if (paginationEl && window.innerWidth <= 768) {
+                    paginationEl.style.setProperty('position', 'fixed', 'important');
+                    paginationEl.style.setProperty('bottom', '120px', 'important');
+                    paginationEl.style.setProperty('left', '50%', 'important');
+                    paginationEl.style.setProperty('right', 'auto', 'important');
+                    paginationEl.style.setProperty('transform', 'translateX(-50%)', 'important');
+                    paginationEl.style.setProperty('top', 'auto', 'important');
+                }
+            };
+            
+            // Apply immediately if on mobile
+            applyMobilePaginationPosition();
+            
+            // Also apply on window resize
+            window.addEventListener('resize', applyMobilePaginationPosition);
+            
+            updateStatus('✓ Event pagination added', 'success');
+        }
+        
+        // Add filters panel (if not already present)
+        if (!document.getElementById('filtersPanel')) {
+            updateStatus('Adding filters panel...', 'info');
+            const filtersPanel = document.createElement('div');
+            filtersPanel.id = 'filtersPanel';
+            filtersPanel.className = 'filters-panel';
+            filtersPanel.innerHTML = `
+                <div class="filters-panel-close" id="filtersPanelClose">&times;</div>
+                <div class="filters-panel-content">
+                    <div class="filters-actions">
+                        <h2 class="filters-title">Filters</h2>
+                        <div class="filters-actions-buttons">
+                            <button id="clearFiltersBtn" class="filters-action-btn">Clear</button>
+                            <button id="confirmFiltersBtn" class="filters-action-btn filters-confirm-btn">Confirm</button>
+                        </div>
+                    </div>
+                    <div class="filters-tabs">
+                        <button id="heroesTab" class="filter-tab active">
+                            Heroes
+                            <span class="filter-count" id="heroesCount">0</span>
+                        </button>
+                        <button id="factionsTab" class="filter-tab">
+                            Factions
+                            <span class="filter-count" id="factionsCount">0</span>
+                        </button>
+                    </div>
+                    <div class="filters-grid" id="filtersGrid"></div>
+                </div>
+            `;
+            document.body.appendChild(filtersPanel);
+            updateStatus('✓ Filters panel added', 'success');
+        }
+        
+        // Verify other panels exist (they should be in HTML)
+        if (!document.getElementById('eventSlide')) {
+            updateStatus('⚠ Event slide panel not found in HTML', 'error');
+        } else {
+            updateStatus('✓ Event slide panel found', 'success');
+        }
+        
+        if (!document.getElementById('eventImageOverlay')) {
+            updateStatus('⚠ Event image overlay not found in HTML', 'error');
+        } else {
+            updateStatus('✓ Event image overlay found', 'success');
+        }
+        
+        if (!document.getElementById('eventsManagePanel')) {
+            updateStatus('⚠ Event manager panel not found in HTML', 'error');
+        } else {
+            updateStatus('✓ Event manager panel found', 'success');
+        }
+        
+        if (!document.getElementById('eventEditModal')) {
+            updateStatus('⚠ Event edit modal not found in HTML', 'error');
+        } else {
+            updateStatus('✓ Event edit modal found', 'success');
+        }
+        
+        // Load all event-related sound effects
+        updateStatus('Loading event sound effects...', 'info');
+        if (window.SoundEffectsManager) {
+            window.SoundEffectsManager.loadSound('filterPick', 'Sound Effects/Filter Pick.mp3');
+            window.SoundEffectsManager.loadSound('filterOff', 'Sound Effects/Filter Off.mp3');
+            window.SoundEffectsManager.loadSound('filterConfirm', 'Sound Effects/Filter Confirm.mp3');
+            window.SoundEffectsManager.loadSound('filterClear', 'Sound Effects/Filter Clear.mp3');
+            window.SoundEffectsManager.loadSound('filterButton', 'Sound Effects/Filter Button.mp3');
+            window.SoundEffectsManager.loadSound('eventClick', 'Sound Effects/Event Click.mp3');
+            window.SoundEffectsManager.loadSound('eventManager', 'Sound Effects/Event Manager.mp3');
+            window.SoundEffectsManager.loadSound('switchEvent', 'Sound Effects/Switch Event.mp3');
+            window.SoundEffectsManager.loadSound('page', 'Sound Effects/Page.mp3');
+            updateStatus('✓ Event sound effects loaded', 'success');
+        }
         
         // Initialize filter panel functionality
         updateStatus('Initializing filter panel...', 'info');
@@ -1762,10 +1579,62 @@ async function loadEvents() {
         }
         
         // Setup event listeners AFTER all buttons and panels are created
-        setupEventManagerListeners();
+        // This is critical - setupEventListeners needs the button to exist
+        if (window.eventManager) {
+            updateStatus('Setting up event listeners for add/edit functionality...', 'info');
+            // Verify button exists before setting up listeners
+            const toggleBtn = document.getElementById('eventsManageToggle');
+            const panel = document.getElementById('eventsManagePanel');
+            const addBtn = document.getElementById('addEventBtn');
+            if (toggleBtn && panel && addBtn) {
+                // Small delay to ensure DOM is fully ready
+                setTimeout(() => {
+                window.eventManager.setupEventListeners();
+                    updateStatus('✓ Event listeners set up - add/edit functionality ready', 'success');
+                }, 50);
+            } else {
+                updateStatus(`⚠ Some elements not found! Toggle: ${!!toggleBtn}, Panel: ${!!panel}, AddBtn: ${!!addBtn}`, 'error');
+                // Retry after a longer delay
+                setTimeout(() => {
+                    if (window.eventManager) {
+                        const retryToggleBtn = document.getElementById('eventsManageToggle');
+                        const retryPanel = document.getElementById('eventsManagePanel');
+                        const retryAddBtn = document.getElementById('addEventBtn');
+                        if (retryToggleBtn && retryPanel && retryAddBtn) {
+                            window.eventManager.setupEventListeners();
+                            updateStatus('✓ Event listeners set up (retry successful)', 'success');
+                        } else {
+                            updateStatus(`✗ Failed to set up event listeners - elements still missing`, 'error');
+                        }
+                    }
+                }, 200);
+            }
+        }
         
-        // Sync events with globe again (after UI setup)
-        syncEventsWithGlobe();
+        // Sync events with globe and add markers
+        if (window.globeController && window.eventManager) {
+            updateStatus('Syncing events with globe...', 'info');
+            window.globeController.dataModel.events = [...window.eventManager.events];
+            if (window.globeController.globeView) {
+                // Add event markers now that events are loaded
+                window.globeController.globeView.addEventMarkers();
+                window.globeController.globeView.refreshEventMarkers();
+            }
+            if (window.globeController.uiView) {
+                window.globeController.uiView.setupEventPagination(() => {
+                    if (window.globeController.globeView) {
+                        window.globeController.globeView.refreshEventMarkers();
+                    }
+                });
+                // Setup event number buttons
+                window.globeController.uiView.setupEventNumberButtons(() => {
+                    if (window.globeController.globeView) {
+                        window.globeController.globeView.refreshEventMarkers();
+                    }
+                });
+            }
+            updateStatus('✓ Events synced with globe and markers added', 'success');
+        }
         
         loadedComponents.events = true;
         setButtonState('loadEventsBtn', 'loaded');
@@ -2083,12 +1952,6 @@ async function runUniversalFeatures() {
     }
 }
 
-// Make runUniversalFeatures available globally immediately after definition
-window.runUniversalFeatures = runUniversalFeatures;
-
-// Make runMenuComponents available globally immediately after definition
-window.runMenuComponents = runMenuComponents;
-
 /**
  * Run all Globe Components sequentially
  * Loads: Globe Base, then Transport, then Controls, then Events
@@ -2225,9 +2088,6 @@ async function runGlobeComponents(isAutoLoad = false) {
         }
     }
 }
-
-// Make runGlobeComponents available globally immediately after definition
-window.runGlobeComponents = runGlobeComponents;
 
 /**
  * Kill all Menu Components
@@ -2721,3 +2581,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateStatus('Test loader ready. Click buttons to load components.', 'info');
 });
+
+// Make runUniversalFeatures, runMenuComponents, and runGlobeComponents available globally
+// This must be at the end after all functions are defined
+window.runUniversalFeatures = runUniversalFeatures;
+window.runMenuComponents = runMenuComponents;
+window.runGlobeComponents = runGlobeComponents;

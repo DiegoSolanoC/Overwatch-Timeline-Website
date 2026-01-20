@@ -8,28 +8,11 @@
  * 2. Or use the function directly in your code
  * 
  * Example:
- *   createEventFromCity("Tokyo", "Tokyo Summit", "Description here", [], [])
+ *   createEventFromCity("Tokyo", "Tokyo Summit", "Description here", [], [], "image.jpg")
  */
 
 const fs = require('fs');
 const path = require('path');
-
-// Constants
-const LOCATIONS_FILE_PATH = path.join(__dirname, '../data/locations.json');
-
-/**
- * Load locations data from JSON file with error handling
- * @returns {Object} - Locations data object
- */
-function loadLocationsData() {
-    try {
-        return JSON.parse(fs.readFileSync(LOCATIONS_FILE_PATH, 'utf8'));
-    } catch (error) {
-        console.error(`❌ Failed to load locations.json: ${error.message}`);
-        console.error(`   Path: ${LOCATIONS_FILE_PATH}`);
-        process.exit(1);
-    }
-}
 
 /**
  * Find city coordinates by name (searches cities, airports, and seaports)
@@ -37,7 +20,8 @@ function loadLocationsData() {
  * @returns {Object|null} - { lat, lon } or null if not found
  */
 function findCityCoordinates(cityName) {
-    const locationsData = loadLocationsData();
+    const locationsPath = path.join(__dirname, '../data/locations.json');
+    const locationsData = JSON.parse(fs.readFileSync(locationsPath, 'utf8'));
     
     // Search in cities
     const city = locationsData.cities.find(c => 
@@ -82,15 +66,17 @@ function findCityCoordinates(cityName) {
  * @param {string} description - Event description paragraph
  * @param {Array<string>} filters - Array of hero names
  * @param {Array<string>} factions - Array of faction names
+ * @param {string} image - Image file path (optional, defaults to empty string)
  * @returns {Object|null} - Event object or null if city not found
  */
-function createEventFromCity(cityName, eventName, description, filters = [], factions = []) {
+function createEventFromCity(cityName, eventName, description, filters = [], factions = [], image = '') {
     const coords = findCityCoordinates(cityName);
     
     if (!coords) {
         console.error(`❌ City "${cityName}" not found in locations.json`);
         console.log('\nAvailable cities:');
-        const locationsData = loadLocationsData();
+        const locationsPath = path.join(__dirname, '../data/locations.json');
+        const locationsData = JSON.parse(fs.readFileSync(locationsPath, 'utf8'));
         locationsData.cities.forEach(c => console.log(`  - ${c.name}`));
         return null;
     }
@@ -100,7 +86,7 @@ function createEventFromCity(cityName, eventName, description, filters = [], fac
         lat: coords.lat,
         lon: coords.lon,
         description: description,
-        // image field removed - auto-detected from Event Images folder
+        image: image,
         filters: filters,
         factions: factions
     };
@@ -119,16 +105,18 @@ function createEventFromCity(cityName, eventName, description, filters = [], fac
  * @param {string} description - Event description paragraph
  * @param {Array<string>} filters - Array of hero names
  * @param {Array<string>} factions - Array of faction names
+ * @param {string} image - Image file path (optional)
  * @returns {boolean} - True if successful
  */
-function addEventToFile(cityName, eventName, description, filters = [], factions = []) {
-    const event = createEventFromCity(cityName, eventName, description, filters, factions);
+function addEventToFile(cityName, eventName, description, filters = [], factions = [], image = '') {
+    const event = createEventFromCity(cityName, eventName, description, filters, factions, image);
     
     if (!event) {
         return false;
     }
     
-    const locationsData = loadLocationsData();
+    const locationsPath = path.join(__dirname, '../data/locations.json');
+    const locationsData = JSON.parse(fs.readFileSync(locationsPath, 'utf8'));
     
     // Check if event with same name already exists
     const existingIndex = locationsData.events.findIndex(e => e.name === eventName);
@@ -140,16 +128,11 @@ function addEventToFile(cityName, eventName, description, filters = [], factions
     }
     
     // Write back to file with proper formatting
-    try {
-        fs.writeFileSync(
-            LOCATIONS_FILE_PATH,
-            JSON.stringify(locationsData, null, 2) + '\n',
-            'utf8'
-        );
-    } catch (error) {
-        console.error(`❌ Failed to write to locations.json: ${error.message}`);
-        return false;
-    }
+    fs.writeFileSync(
+        locationsPath,
+        JSON.stringify(locationsData, null, 2) + '\n',
+        'utf8'
+    );
     
     console.log('✅ Event added to locations.json');
     return true;
@@ -180,7 +163,8 @@ if (require.main === module) {
         'Event title/name: ',
         'Event description: ',
         'Hero filters (comma-separated, e.g., "Tracer, Soldier 76"): ',
-        'Faction filters (comma-separated, e.g., "00Overwatch, 01Overwatch 2"): '
+        'Faction filters (comma-separated, e.g., "00Overwatch, 01Overwatch 2"): ',
+        'Image file path (optional, press Enter to skip): '
     ];
     
     const answers = [];
@@ -193,9 +177,10 @@ if (require.main === module) {
             const description = answers[2];
             const filters = answers[3] ? answers[3].split(',').map(f => f.trim()).filter(f => f) : [];
             const factions = answers[4] ? answers[4].split(',').map(f => f.trim()).filter(f => f) : [];
+            const image = answers[5] || '';
             
             console.log('\n');
-            const success = addEventToFile(cityName, eventName, description, filters, factions);
+            const success = addEventToFile(cityName, eventName, description, filters, factions, image);
             
             if (success) {
                 console.log('\n✨ Event creation complete!');

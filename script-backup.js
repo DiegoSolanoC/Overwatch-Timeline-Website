@@ -353,18 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Music Panel (PRIORITY)');
         initMusicPanel();
         
-        // Then initialize Filters Panel (if elements exist - they may be created later when Events component loads)
+        // Then initialize Filters Panel
         if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Filters Panel');
-        // Only try to initialize if elements exist, otherwise it will be initialized when Events component loads
-        const filtersButton = document.getElementById('filtersToggle');
-        const filtersPanel = document.getElementById('filtersPanel');
-        const filtersGrid = document.getElementById('filtersGrid');
-        if (filtersButton && filtersPanel && filtersGrid) {
-            initFiltersPanel();
-        } else {
-            // Elements don't exist yet - they'll be created when Events component loads
-            // initFiltersPanel will be called again at that time
-        }
+        initFiltersPanel();
         
         // Log asset loading summary
         if (typeof logAssetLoad === 'function' && assetLoadOrder.length > 0) {
@@ -382,26 +373,33 @@ document.addEventListener('DOMContentLoaded', function() {
 // Track if music panel is already initialized to prevent double initialization
 let musicPanelInitialized = false;
 
-// Constants for music panel
-const MUSIC_PANEL_CONSTANTS = {
-    DEFAULT_VOLUME: 0.1, // Default 10%
-    FADE_DURATION_MS: 2000, // 2 seconds fade
-    FADE_STEPS: 20,
-    METADATA_CHECK_INTERVAL_MS: 100,
-    MAX_METADATA_CHECKS: 100, // Check for up to 10 seconds (100 * 100ms)
-    FADE_RESTART_DELAY_MS: 50,
-    RESTORE_POSITION_DELAY_MS: 100,
-    RESTORE_POSITION_FALLBACK_DELAY_MS: 1000
-};
-
-/**
- * Load saved music state from localStorage
- * @returns {{prioritySong: string|null, initialVolume: number}}
- */
-function loadMusicState() {
+function initMusicPanel() {
+    // Prevent double initialization
+    if (musicPanelInitialized) {
+        console.log('Music panel already initialized, skipping...');
+        return;
+    }
+    
+    const musicButton = document.getElementById('musicToggle');
+    const musicPanel = document.getElementById('musicPanel');
+    const musicPanelClose = document.getElementById('musicPanelClose');
+    const backgroundMusic = document.getElementById('backgroundMusic');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeValue = document.getElementById('volumeValue');
+    const muteBtn = document.getElementById('muteBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const musicGrid = document.getElementById('musicGrid');
+    
+    if (!musicButton || !musicPanel || !backgroundMusic || !musicGrid) return;
+    
+    // Mark as initialized
+    musicPanelInitialized = true;
+    
+    // PRIORITY: Load saved music state FIRST to get current song and volume
     const savedState = localStorage.getItem('musicState');
     let prioritySong = null;
-    let initialVolume = MUSIC_PANEL_CONSTANTS.DEFAULT_VOLUME;
+    let initialVolume = 0.1; // Default 10%
     
     if (savedState) {
         try {
@@ -419,23 +417,26 @@ function loadMusicState() {
         }
     }
     
-    return { prioritySong, initialVolume };
-}
-
-/**
- * Setup fade in/out effects for music playback
- * @param {HTMLAudioElement} backgroundMusic - Audio element
- * @param {Function} getCurrentTargetVolume - Function to get current target volume
- * @param {Function} getIsSeeking - Function to check if seeking
- * @param {Function} getIsDragging - Function to check if dragging
- * @param {Function} getIsShuffling - Function to check if shuffling
- * @returns {{fadeIn: Function, fadeOut: Function}} - Fade functions
- */
-function setupFadeEffects(backgroundMusic, getCurrentTargetVolume, getIsSeeking, getIsDragging, getIsShuffling) {
+    // Make prioritySong accessible to loadMusicFiles
+    window.prioritySong = prioritySong;
+    
+    let currentSong = null;
+    let musicFiles = [];
+    let isShuffling = false;
+    let shuffleQueue = [];
+    let currentSongIndex = 0;
+    let isDragging = false;
+    
+    backgroundMusic.volume = initialVolume;
+    currentTargetVolume = initialVolume;
+    if (volumeSlider) volumeSlider.value = Math.round(initialVolume * 100);
+    if (volumeValue) volumeValue.textContent = Math.round(initialVolume * 100) + '%';
+    
+    // Fade in/out variables
     let fadeInInterval = null;
     let fadeOutInterval = null;
-    const fadeDuration = MUSIC_PANEL_CONSTANTS.FADE_DURATION_MS;
-    const fadeSteps = MUSIC_PANEL_CONSTANTS.FADE_STEPS;
+    const fadeDuration = 2000; // 2 seconds fade
+    const fadeSteps = 20;
     const fadeStepTime = fadeDuration / fadeSteps;
     
     // Fade in function
@@ -445,7 +446,7 @@ function setupFadeEffects(backgroundMusic, getCurrentTargetVolume, getIsSeeking,
         
         backgroundMusic.volume = 0;
         let currentStep = 0;
-        const targetVolume = backgroundMusic.muted ? 0 : getCurrentTargetVolume();
+        const targetVolume = backgroundMusic.muted ? 0 : currentTargetVolume;
         
         fadeInInterval = setInterval(() => {
             if (backgroundMusic.muted) {
@@ -472,14 +473,14 @@ function setupFadeEffects(backgroundMusic, getCurrentTargetVolume, getIsSeeking,
         if (fadeInInterval) clearInterval(fadeInInterval);
         
         // Don't fade out if user is seeking
-        if (getIsSeeking() || getIsDragging()) return;
+        if (isSeeking || isDragging) return;
         
         const startVolume = backgroundMusic.volume;
         let currentStep = 0;
         
         fadeOutInterval = setInterval(() => {
             // Check again during fade - user might start seeking
-            if (getIsSeeking() || getIsDragging()) {
+            if (isSeeking || isDragging) {
                 clearInterval(fadeOutInterval);
                 fadeOutInterval = null;
                 // Restore volume if fade was interrupted
@@ -497,13 +498,13 @@ function setupFadeEffects(backgroundMusic, getCurrentTargetVolume, getIsSeeking,
                 backgroundMusic.volume = 0;
                 
                 // Only reset currentTime if we're looping (not shuffling) and not seeking
-                if (!getIsShuffling() && backgroundMusic.loop && !getIsSeeking() && !getIsDragging()) {
+                if (!isShuffling && backgroundMusic.loop && !isSeeking && !isDragging) {
                     backgroundMusic.currentTime = 0;
                     setTimeout(() => {
-                        if (!backgroundMusic.paused && !getIsSeeking() && !getIsDragging()) {
+                        if (!backgroundMusic.paused && !isSeeking && !isDragging) {
                             fadeIn();
                         }
-                    }, MUSIC_PANEL_CONSTANTS.FADE_RESTART_DELAY_MS);
+                    }, 50);
                 }
             }
         }, fadeStepTime);
@@ -512,145 +513,13 @@ function setupFadeEffects(backgroundMusic, getCurrentTargetVolume, getIsSeeking,
     // Check when music is about to end and fade out
     backgroundMusic.addEventListener('timeupdate', () => {
         // Don't trigger fade out if user is seeking or dragging
-        if (getIsSeeking() || getIsDragging()) return;
+        if (isSeeking || isDragging) return;
         
         const timeRemaining = backgroundMusic.duration - backgroundMusic.currentTime;
         if (timeRemaining <= (fadeDuration / 1000) && timeRemaining > 0.1 && !fadeOutInterval) {
             fadeOut();
         }
     });
-    
-    return { fadeIn, fadeOut };
-}
-
-/**
- * Setup metadata loading handlers for audio element
- * @param {HTMLAudioElement} backgroundMusic - Audio element
- * @param {string} songPath - Path to the song
- * @param {Function} updateProgressBar - Function to update progress bar
- */
-function setupMetadataHandlers(backgroundMusic, songPath, updateProgressBar) {
-    const progressBar = document.getElementById('musicProgressBar');
-    
-    // Handler for when metadata is loaded (multiple events for compatibility)
-    const handleMetadataLoaded = (eventType) => {
-        const duration = backgroundMusic.duration;
-        const readyState = backgroundMusic.readyState;
-        const songName = songPath.split('/').pop();
-        
-        console.log(`[DEBUG] ${eventType} event for ${songName}:`, {
-            duration: duration,
-            readyState: readyState,
-            isValid: duration && !isNaN(duration) && isFinite(duration) && duration > 0
-        });
-        
-        // Check if duration is valid
-        if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
-            console.log(`[DEBUG] Valid metadata loaded for ${songName}, duration: ${duration}s`);
-            // Update progress bar with correct duration
-            updateProgressBar();
-            
-            // Reset progress bar to start
-            if (progressBar) {
-                progressBar.value = 0;
-            }
-            
-            // Remove all listeners once we have valid metadata
-            backgroundMusic.removeEventListener('loadedmetadata', handleMetadataLoaded);
-            backgroundMusic.removeEventListener('canplay', handleMetadataLoaded);
-            backgroundMusic.removeEventListener('loadeddata', handleMetadataLoaded);
-            backgroundMusic.removeEventListener('canplaythrough', handleMetadataLoaded);
-        }
-    };
-    
-    // Listen for multiple events to catch metadata loading (some files trigger different events)
-    backgroundMusic.addEventListener('loadedmetadata', () => handleMetadataLoaded('loadedmetadata'));
-    backgroundMusic.addEventListener('canplay', () => handleMetadataLoaded('canplay'));
-    backgroundMusic.addEventListener('loadeddata', () => handleMetadataLoaded('loadeddata'));
-    backgroundMusic.addEventListener('canplaythrough', () => handleMetadataLoaded('canplaythrough'));
-    
-    // Fallback: Check periodically if metadata loaded (in case events don't fire)
-    let metadataCheckCount = 0;
-    const maxMetadataChecks = MUSIC_PANEL_CONSTANTS.MAX_METADATA_CHECKS;
-    const metadataCheckInterval = setInterval(() => {
-        metadataCheckCount++;
-        const duration = backgroundMusic.duration;
-        const readyState = backgroundMusic.readyState;
-        
-        if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
-            const songName = songPath.split('/').pop();
-            console.log(`[DEBUG] Metadata loaded via polling for ${songName} after ${metadataCheckCount * MUSIC_PANEL_CONSTANTS.METADATA_CHECK_INTERVAL_MS}ms:`, {
-                duration: duration,
-                readyState: readyState
-            });
-            updateProgressBar();
-            if (progressBar) {
-                progressBar.value = 0;
-            }
-            clearInterval(metadataCheckInterval);
-        } else if (metadataCheckCount >= maxMetadataChecks) {
-            // Give up after max checks
-            clearInterval(metadataCheckInterval);
-            const songName = songPath.split('/').pop();
-            console.warn(`[DEBUG] Metadata not loaded for ${songName} after ${maxMetadataChecks * MUSIC_PANEL_CONSTANTS.METADATA_CHECK_INTERVAL_MS}ms:`, {
-                duration: backgroundMusic.duration,
-                readyState: backgroundMusic.readyState,
-                networkState: backgroundMusic.networkState,
-                src: backgroundMusic.src
-            });
-        }
-    }, MUSIC_PANEL_CONSTANTS.METADATA_CHECK_INTERVAL_MS);
-}
-
-function initMusicPanel() {
-    // Prevent double initialization
-    if (musicPanelInitialized) {
-        console.log('Music panel already initialized, skipping...');
-        return;
-    }
-    
-    const musicButton = document.getElementById('musicToggle');
-    const musicPanel = document.getElementById('musicPanel');
-    const musicPanelClose = document.getElementById('musicPanelClose');
-    const backgroundMusic = document.getElementById('backgroundMusic');
-    const volumeSlider = document.getElementById('volumeSlider');
-    const volumeValue = document.getElementById('volumeValue');
-    const muteBtn = document.getElementById('muteBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const skipBtn = document.getElementById('skipBtn');
-    const musicGrid = document.getElementById('musicGrid');
-    
-    if (!musicButton || !musicPanel || !backgroundMusic || !musicGrid) return;
-    
-    // Mark as initialized
-    musicPanelInitialized = true;
-    
-    // PRIORITY: Load saved music state FIRST to get current song and volume
-    const { prioritySong, initialVolume } = loadMusicState();
-    
-    // Make prioritySong accessible to loadMusicFiles
-    window.prioritySong = prioritySong;
-    
-    let currentSong = null;
-    let musicFiles = [];
-    let isShuffling = false;
-    let shuffleQueue = [];
-    let currentSongIndex = 0;
-    let isDragging = false;
-    
-    backgroundMusic.volume = initialVolume;
-    currentTargetVolume = initialVolume;
-    if (volumeSlider) volumeSlider.value = Math.round(initialVolume * 100);
-    if (volumeValue) volumeValue.textContent = Math.round(initialVolume * 100) + '%';
-    
-    // Setup fade effects
-    const { fadeIn, fadeOut } = setupFadeEffects(
-        backgroundMusic,
-        () => currentTargetVolume,
-        () => isSeeking,
-        () => isDragging,
-        () => isShuffling
-    );
     
     // Play music function
     // Helper function to encode music file paths (handles special characters)
@@ -738,7 +607,7 @@ function initMusicPanel() {
             
             // Fallback: Check periodically if metadata loaded (in case events don't fire)
             let metadataCheckCount = 0;
-            const maxMetadataChecks = MUSIC_PANEL_CONSTANTS.MAX_METADATA_CHECKS;
+            const maxMetadataChecks = 100; // Check for up to 10 seconds (100 * 100ms)
             const metadataCheckInterval = setInterval(() => {
                 metadataCheckCount++;
                 const duration = backgroundMusic.duration;
@@ -746,7 +615,7 @@ function initMusicPanel() {
                 
                 if (duration && !isNaN(duration) && isFinite(duration) && duration > 0) {
                     const songName = songPath.split('/').pop();
-                    console.log(`[DEBUG] Metadata loaded via polling for ${songName} after ${metadataCheckCount * MUSIC_PANEL_CONSTANTS.METADATA_CHECK_INTERVAL_MS}ms:`, {
+                    console.log(`[DEBUG] Metadata loaded via polling for ${songName} after ${metadataCheckCount * 100}ms:`, {
                         duration: duration,
                         readyState: readyState
                     });
@@ -759,7 +628,7 @@ function initMusicPanel() {
                     // Give up after max checks
                     clearInterval(metadataCheckInterval);
                     const songName = songPath.split('/').pop();
-                    console.warn(`[DEBUG] Metadata not loaded for ${songName} after ${maxMetadataChecks * MUSIC_PANEL_CONSTANTS.METADATA_CHECK_INTERVAL_MS}ms:`, {
+                    console.warn(`[DEBUG] Metadata not loaded for ${songName} after ${maxMetadataChecks * 100}ms:`, {
                         duration: backgroundMusic.duration,
                         readyState: backgroundMusic.readyState,
                         networkState: backgroundMusic.networkState,
@@ -1225,7 +1094,7 @@ function initMusicPanel() {
                                             if (pauseBtn) pauseBtn.classList.add('active');
                                         });
                                     }
-                                }, MUSIC_PANEL_CONSTANTS.RESTORE_POSITION_DELAY_MS); // Small delay to prevent staggering on refresh
+                                }, 100); // Small delay to prevent staggering on refresh
                             }
                             
                             backgroundMusic.removeEventListener('loadedmetadata', restorePosition);
@@ -1254,7 +1123,7 @@ function initMusicPanel() {
                                 });
                             }
                         }
-                    }, MUSIC_PANEL_CONSTANTS.RESTORE_POSITION_FALLBACK_DELAY_MS);
+                    }, 1000);
                     
                     return true;
                 }
@@ -1341,13 +1210,13 @@ function initMusicPanel() {
                 console.log('To add music files:');
                 console.log('1. Add .mp3, .wav, or .ogg files to the Music folder');
                 console.log('2. Add matching .png images to the Music Icons folder (same name as music file)');
-                console.log('3. Run: node scripts/generate-manifest.js');
+                console.log('3. Run: node generate-manifest.js');
                 console.log('4. Refresh this page');
-                musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">No music files found.<br><br>1. Add files to Music folder<br>2. Add icons to Music Icons folder<br>3. Run: node scripts/generate-manifest.js<br>4. Refresh page</div>';
+                musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">No music files found.<br><br>1. Add files to Music folder<br>2. Add icons to Music Icons folder<br>3. Run: node generate-manifest.js<br>4. Refresh page</div>';
             }
         } catch (error) {
             console.error('Error loading manifest.json:', error);
-            musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">Error loading music. Run scripts/generate-manifest.js</div>';
+            musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">Error loading music. Run generate-manifest.js</div>';
         }
     }
     
@@ -1700,8 +1569,7 @@ function initFiltersPanel() {
     console.log('Filters grid:', filtersGrid);
     
     if (!filtersButton || !filtersPanel || !filtersGrid) {
-        // Elements not found - this is expected if Events component hasn't loaded yet
-        // Don't log as error, just return silently
+        console.error('Filters panel elements not found!');
         return;
     }
     
@@ -1785,7 +1653,7 @@ function initFiltersPanel() {
             }
         } catch (error) {
             console.error('Error loading manifest.json:', error);
-            console.log('Falling back to empty lists. Run scripts/generate-manifest.js to create manifest.json');
+            console.log('Falling back to empty lists. Run generate-manifest.js to create manifest.json');
             // Fallback to empty arrays if manifest doesn't exist
             heroes = [];
             factions = [];
@@ -2395,12 +2263,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.globeController && window.globeController.globeView) {
             const texturePath = isGray ? 'Maps/MAP Black.png' : 'Maps/MAP.png';
             window.globeController.globeView.changeGlobeTexture(texturePath);
-            
-            // Change Moon and Mars textures
-            const moonTexturePath = isGray ? 'Misc/Moon_Dark.png' : 'Misc/Moon.png';
-            const marsTexturePath = isGray ? 'Misc/Mars_Dark.png' : 'Misc/Mars.png';
-            window.globeController.globeView.changeMoonTexture(moonTexturePath);
-            window.globeController.globeView.changeMarsTexture(marsTexturePath);
         }
         
         // Change scene background color (starfield background) (only on pages with globe)
