@@ -64,7 +64,13 @@ export class MaterialFactory {
      * @returns {THREE.Mesh}
      */
     static createFallbackMesh(size, vehicleType) {
-        const { width = 0.03, height = 0.01, depth = 0.08 } = size;
+        // Default fallback geometry (matches ModelLoader.FALLBACK_GEOMETRIES.DEFAULT)
+        const DEFAULT_FALLBACK = { width: 0.03, height: 0.01, depth: 0.08 };
+        const { 
+            width = DEFAULT_FALLBACK.width, 
+            height = DEFAULT_FALLBACK.height, 
+            depth = DEFAULT_FALLBACK.depth 
+        } = size;
         const geometry = new THREE.BoxGeometry(width, height, depth);
         const material = this.createVehicleMaterial(vehicleType);
         return new THREE.Mesh(geometry, material);
