@@ -6,6 +6,85 @@ import { getModelScale } from '../controllers/config/TransportConfig.js';
 import { MaterialFactory } from './MaterialFactory.js';
 
 export class ModelLoader {
+    // Constants for fallback geometries
+    static FALLBACK_GEOMETRIES = {
+        DEFAULT: { width: 0.03, height: 0.01, depth: 0.08 },
+        MARS_SHIP: { width: 0.010, height: 0.010, depth: 0.015 },
+        SATELLITE: { width: 0.006, height: 0.006, depth: 0.009 },
+        STATION: { width: 0.015, height: 0.015, depth: 0.0225 }
+    };
+    /**
+     * Clone model from cache
+     * @param {THREE.Object3D} cache - Cached model
+     * @param {string} vehicleType - Type for material application
+     * @param {Object|null} scale - Scale override
+     * @param {boolean} applyMaterial - Whether to apply material
+     * @returns {THREE.Object3D} - Cloned model
+     */
+    static cloneCachedModel(cache, vehicleType, scale, applyMaterial) {
+        const clonedModel = cache.clone();
+        this.prepareModel(clonedModel, vehicleType, scale, applyMaterial);
+        return clonedModel;
+    }
+
+    /**
+     * Load model from file
+     * @param {Object} options - Loading options
+     * @returns {Promise<THREE.Object3D>} - Promise resolving to the model
+     */
+    static loadModelFromFile(options) {
+        const {
+            gltfLoader,
+            modelPath,
+            cacheCallback,
+            vehicleType,
+            scale,
+            applyMaterial,
+            onProgress
+        } = options;
+
+        return new Promise((resolve, reject) => {
+            gltfLoader.load(
+                modelPath,
+                (gltf) => {
+                    const model = gltf.scene;
+                    
+                    // Cache the model if callback provided
+                    if (cacheCallback) {
+                        const cached = model.clone();
+                        cacheCallback(cached);
+                    }
+                    
+                    // Prepare model
+                    this.prepareModel(model, vehicleType, scale, applyMaterial);
+                    resolve(model);
+                },
+                onProgress,
+                (error) => {
+                    reject(error);
+                }
+            );
+        });
+    }
+
+    /**
+     * Handle model load error and create fallback if available
+     * @param {Error} error - Load error
+     * @param {string} modelPath - Path to model
+     * @param {Object|null} fallbackGeometry - Fallback geometry
+     * @param {string} vehicleType - Vehicle type
+     * @returns {THREE.Object3D|null} - Fallback mesh or null
+     */
+    static handleModelLoadError(error, modelPath, fallbackGeometry, vehicleType) {
+        console.error(`Error loading ${modelPath}:`, error);
+        
+        if (fallbackGeometry) {
+            return MaterialFactory.createFallbackMesh(fallbackGeometry, vehicleType);
+        }
+        
+        return null;
+    }
+
     /**
      * Load or clone a model with caching
      * @param {Object} options - Loading options
@@ -24,48 +103,29 @@ export class ModelLoader {
             fallbackGeometry = null // Optional: Fallback geometry if loading fails
         } = options;
 
-        return new Promise((resolve, reject) => {
-            // Use cached model if available
-            if (cache) {
-                const clonedModel = cache.clone();
-                this.prepareModel(clonedModel, vehicleType, scale, applyMaterial);
-                resolve(clonedModel);
-                return;
-            }
+        // Use cached model if available
+        if (cache) {
+            return this.cloneCachedModel(cache, vehicleType, scale, applyMaterial);
+        }
 
-            // Load model
-            gltfLoader.load(
+        // Load model from file
+        try {
+            return await this.loadModelFromFile({
+                gltfLoader,
                 modelPath,
-                (gltf) => {
-                    const model = gltf.scene;
-                    
-                    // Cache the model if callback provided
-                    if (cacheCallback) {
-                        const cached = model.clone();
-                        cacheCallback(cached);
-                    }
-                    
-                    // Prepare model
-                    this.prepareModel(model, vehicleType, scale, applyMaterial);
-                    resolve(model);
-                },
-                onProgress,
-                (error) => {
-                    console.error(`Error loading ${modelPath}:`, error);
-                    
-                    // Create fallback if provided
-                    if (fallbackGeometry) {
-                        const fallbackMesh = MaterialFactory.createFallbackMesh(
-                            fallbackGeometry,
-                            vehicleType
-                        );
-                        resolve(fallbackMesh);
-                    } else {
-                        reject(error);
-                    }
-                }
-            );
-        });
+                cacheCallback,
+                vehicleType,
+                scale,
+                applyMaterial,
+                onProgress
+            });
+        } catch (error) {
+            const fallback = this.handleModelLoadError(error, modelPath, fallbackGeometry, vehicleType);
+            if (fallback) {
+                return fallback;
+            }
+            throw error;
+        }
     }
 
     /**
@@ -99,7 +159,7 @@ export class ModelLoader {
             ...options,
             modelPath: 'Models3D/TrainEnd.glb',
             vehicleType: 'train',
-            fallbackGeometry: { width: 0.03, height: 0.01, depth: 0.08 }
+            fallbackGeometry: ModelLoader.FALLBACK_GEOMETRIES.DEFAULT
         });
     }
 
@@ -113,7 +173,7 @@ export class ModelLoader {
             ...options,
             modelPath: 'Models3D/TrainMiddle.glb',
             vehicleType: 'train',
-            fallbackGeometry: { width: 0.03, height: 0.01, depth: 0.08 }
+            fallbackGeometry: ModelLoader.FALLBACK_GEOMETRIES.DEFAULT
         });
     }
 
@@ -127,7 +187,7 @@ export class ModelLoader {
             ...options,
             modelPath: 'Models3D/Plane.glb',
             vehicleType: 'plane',
-            fallbackGeometry: { width: 0.03, height: 0.01, depth: 0.08 }
+            fallbackGeometry: ModelLoader.FALLBACK_GEOMETRIES.DEFAULT
         });
     }
 
@@ -141,7 +201,7 @@ export class ModelLoader {
             ...options,
             modelPath: 'Models3D/Boat.glb',
             vehicleType: 'boat',
-            fallbackGeometry: { width: 0.03, height: 0.01, depth: 0.08 }
+            fallbackGeometry: ModelLoader.FALLBACK_GEOMETRIES.DEFAULT
         });
     }
 
@@ -157,15 +217,15 @@ export class ModelLoader {
             ...rest
         } = options;
         
+        const fallbackGeometry = vehicleType === 'mars_ship' 
+            ? ModelLoader.FALLBACK_GEOMETRIES.MARS_SHIP 
+            : ModelLoader.FALLBACK_GEOMETRIES.SATELLITE;
+        
         const model = await this.loadModel({
             ...rest,
             modelPath: 'Models3D/Satellite.glb',
             vehicleType: vehicleType,
-            fallbackGeometry: { 
-                width: vehicleType === 'mars_ship' ? 0.010 : 0.006,
-                height: vehicleType === 'mars_ship' ? 0.010 : 0.006,
-                depth: vehicleType === 'mars_ship' ? 0.015 : 0.009
-            }
+            fallbackGeometry: fallbackGeometry
         });
         
         // Apply random rotation if needed (for small satellites)
@@ -188,7 +248,7 @@ export class ModelLoader {
             ...options,
             modelPath: 'Models3D/Station.glb',
             vehicleType: 'iss',
-            fallbackGeometry: { width: 0.015, height: 0.015, depth: 0.0225 }
+            fallbackGeometry: ModelLoader.FALLBACK_GEOMETRIES.STATION
         });
     }
 

@@ -15,6 +15,11 @@ import { EventBus, AppEvents } from '../utils/EventBus.js';
 import { ErrorLogger } from '../utils/ErrorLogger.js';
 
 export class GlobeController {
+    // Constants for plane positioning
+    static PLANE_HORIZONTAL_OFFSET = 1.5; // Distance from globe center
+    static MOON_VERTICAL_OFFSET = 0.3; // Moon above center
+    static MARS_VERTICAL_OFFSET = -0.3; // Mars below center
+
     constructor() {
         // Initialize models
         this.dataModel = new DataModel();
@@ -51,14 +56,10 @@ export class GlobeController {
     /**
      * Initialize the globe application
      */
-    async init() {
-        const container = document.getElementById('globe-container');
-        if (!container) {
-            console.error('Globe container not found');
-            return;
-        }
-
-        // Load data
+    /**
+     * Load data and sync with EventManager
+     */
+    async loadDataAndSyncEvents() {
         try {
             await this.dataModel.loadData();
             
@@ -82,9 +83,14 @@ export class GlobeController {
             }
         } catch (error) {
             ErrorLogger.fatal('GlobeController', 'Failed to load data', error);
-            return;
+            throw error;
         }
+    }
 
+    /**
+     * Initialize scene and globe
+     */
+    initializeSceneAndGlobe(container) {
         // Initialize scene
         this.sceneModel.initScene(container);
 
@@ -108,7 +114,12 @@ export class GlobeController {
             console.log('🌍 Mobile:', isMobile, 'Portrait:', isPortrait, 'Mobile Portrait:', isMobilePortrait);
             this.interactionController.updatePlanesPosition(isMobilePortrait);
         });
+    }
 
+    /**
+     * Add visual elements (starfield, markers)
+     */
+    addVisualElements() {
         // Add starfield
         this.globeView.addStarfield();
 
@@ -133,7 +144,12 @@ export class GlobeController {
         
         // Subscribe to events loaded event for future updates
         EventBus.on(AppEvents.EVENTS_LOADED, finalSync);
+    }
 
+    /**
+     * Setup connection lines and route graphs
+     */
+    setupRoutesAndConnections() {
         // Add connection lines (with callbacks to store route curves)
         this.globeView.addConnectionLines((routeData) => {
             this.transportModel.addRouteCurve(routeData);
@@ -148,7 +164,12 @@ export class GlobeController {
         // Build route graphs
         this.routeController.buildRouteGraph();
         this.routeController.buildBoatRouteGraph();
+    }
 
+    /**
+     * Setup controls and UI
+     */
+    setupControlsAndUI(container) {
         // Setup controls
         this.interactionController.setupControls(container);
 
@@ -171,7 +192,12 @@ export class GlobeController {
 
         // Setup page visibility tracking
         this.setupPageVisibilityTracking();
+    }
 
+    /**
+     * Start transport systems
+     */
+    startTransportSystems() {
         // Start spawning transport systems
         this.transportController.spawnTrainsRandomly();
         this.trainSpawnInterval = this.transportController.trainSpawnInterval;
@@ -186,7 +212,32 @@ export class GlobeController {
             const satellites = this.transportModel.getSatellites();
             this.globeView.addSatelliteMarkers(satellites);
         });
+    }
 
+    async init() {
+        const container = document.getElementById('globe-container');
+        if (!container) {
+            console.error('Globe container not found');
+            return;
+        }
+
+        // Load data and sync with EventManager
+        await this.loadDataAndSyncEvents();
+
+        // Initialize scene and globe
+        this.initializeSceneAndGlobe(container);
+
+        // Add visual elements
+        this.addVisualElements();
+
+        // Setup routes and connections
+        this.setupRoutesAndConnections();
+
+        // Setup controls and UI
+        this.setupControlsAndUI(container);
+
+        // Start transport systems
+        this.startTransportSystems();
     }
 
     /**
@@ -531,18 +582,14 @@ export class GlobeController {
         forward.normalize();
         
         // Position planes to the right of the camera, offset from globe center
-        const horizontalOffset = 1.5; // Distance from globe center
-        const moonVerticalOffset = 0.3; // Moon above center
-        const marsVerticalOffset = -0.3; // Mars below center
-        
         // Calculate plane positions: origin + (right * horizontalOffset) + (cameraUp * verticalOffset)
         const moonPosition = new THREE.Vector3()
-            .addScaledVector(right, horizontalOffset)
-            .addScaledVector(cameraUp, moonVerticalOffset);
+            .addScaledVector(right, GlobeController.PLANE_HORIZONTAL_OFFSET)
+            .addScaledVector(cameraUp, GlobeController.MOON_VERTICAL_OFFSET);
         
         const marsPosition = new THREE.Vector3()
-            .addScaledVector(right, horizontalOffset)
-            .addScaledVector(cameraUp, marsVerticalOffset);
+            .addScaledVector(right, GlobeController.PLANE_HORIZONTAL_OFFSET)
+            .addScaledVector(cameraUp, GlobeController.MARS_VERTICAL_OFFSET);
         
         // Update plane positions
         moonPlane.position.copy(moonPosition);
