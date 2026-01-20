@@ -332,6 +332,132 @@ export class TrainController {
     /**
      * Update train positions and wagons
      */
+    /**
+     * Update train progress
+     */
+    updateTrainProgress(train, data) {
+        // Skip newly spawned trains for one frame
+        if (data.isNewlySpawned) {
+            data.isNewlySpawned = false;
+            return false; // Skip this train
+        }
+        
+        // Update progress
+        if (!data.isWaiting) {
+            data.progress += data.speed;
+        }
+        
+        // Clear transitioning flag
+        if (data.isMultiStop && data.progress > 0.1 && data.progress < 0.9 && data.isTransitioning) {
+            data.isTransitioning = false;
+        }
+        
+        return true; // Continue processing
+    }
+
+    /**
+     * Position train and wagons on the route
+     */
+    positionTrainAndWagons(train, data, hyperloopVisible) {
+        if (data.progress <= 0) {
+            train.visible = false;
+            return;
+        }
+
+        if (!data.curve || typeof data.curve.getPointAt !== 'function') {
+            train.visible = false;
+            return;
+        }
+        
+        try {
+            const trainProgress = Math.min(data.progress, 1.0);
+            const position = data.curve.getPointAt(trainProgress);
+            
+            if (!position || isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) {
+                train.visible = false;
+                return;
+            }
+            
+            // Validate position
+            const distanceFromCenter = position.length();
+            const validation = TransportConfig.VALIDATION;
+            if (distanceFromCenter < validation.MIN_DISTANCE_FROM_CENTER || 
+                distanceFromCenter > validation.MAX_DISTANCE_FROM_CENTER) {
+                train.visible = false;
+                return;
+            }
+            
+            train.position.copy(position);
+            
+            // Position wagons
+            const curveLength = data.curve.getLength();
+            const spacingProgress = data.wagonSpacing / curveLength;
+            let anyWagonVisible = false;
+            
+            data.wagons.forEach((wagon, index) => {
+                wagon.visible = false;
+                
+                if (data.isWaiting) {
+                    return;
+                }
+                
+                const wagonProgress = Math.max(0, data.progress - (spacingProgress * index));
+                
+                // Wagons appear when wagonProgress > 0, disappear when wagonProgress > 1
+                if (wagonProgress <= 0 || wagonProgress > 1) {
+                    return;
+                }
+                
+                wagon.userData = { train: train };
+                if (this.positionWagon(wagon, { ...data, train }, wagonProgress)) {
+                    wagon.visible = hyperloopVisible;
+                    anyWagonVisible = hyperloopVisible;
+                }
+            });
+            
+            train.visible = anyWagonVisible ? hyperloopVisible : false;
+        } catch (error) {
+            console.error('Error updating train:', error);
+            train.visible = false;
+        }
+    }
+
+    /**
+     * Clean up completed trains
+     */
+    cleanupCompletedTrain(train, data, globe) {
+        if (data.progress <= 1) {
+            return false; // Train not completed
+        }
+
+        if (!data.curve || typeof data.curve.getLength !== 'function') {
+            this.routeController.releaseRoute(data.from, data.to, data.trainId);
+            globe.remove(train);
+            this.transportModel.removeTrain(train);
+            return true; // Train removed
+        }
+        
+        const curveLength = data.curve.getLength();
+        const spacingProgress = data.wagonSpacing / curveLength;
+        let allWagonsFinished = true;
+        
+        data.wagons.forEach((wagon, index) => {
+            const wagonProgress = data.progress - (spacingProgress * index);
+            if (wagonProgress <= 1) {
+                allWagonsFinished = false;
+            }
+        });
+        
+        if (allWagonsFinished) {
+            this.routeController.releaseRoute(data.from, data.to, data.trainId);
+            globe.remove(train);
+            this.transportModel.removeTrain(train);
+            return true; // Train removed
+        }
+        
+        return false; // Train not removed
+    }
+
     updateTrains() {
         const globe = this.sceneModel.getGlobe();
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
@@ -341,115 +467,22 @@ export class TrainController {
             const train = trains[i];
             const data = train.userData;
             
-            // Skip newly spawned trains for one frame
-            if (data.isNewlySpawned) {
-                data.isNewlySpawned = false;
-                continue;
-            }
-            
             // Update progress
-            if (!data.isWaiting) {
-                data.progress += data.speed;
+            if (!this.updateTrainProgress(train, data)) {
+                continue; // Skip newly spawned trains
             }
             
             // Handle multi-stop transitions
             if (this.handleMultiStopTransition(train)) {
-                // Transition handled, continue to next train
-            }
-            
-            // Clear transitioning flag
-            if (data.isMultiStop && data.progress > 0.1 && data.progress < 0.9 && data.isTransitioning) {
-                data.isTransitioning = false;
+                continue; // Transition handled, continue to next train
             }
             
             // Position train and wagons
-            if (data.progress > 0) {
-                if (!data.curve || typeof data.curve.getPointAt !== 'function') {
-                    train.visible = false;
-                    continue;
-                }
-                
-                try {
-                    const trainProgress = Math.min(data.progress, 1.0);
-                    const position = data.curve.getPointAt(trainProgress);
-                    
-                    if (!position || isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) {
-                        train.visible = false;
-                        continue;
-                    }
-                    
-                    // Validate position
-                    const distanceFromCenter = position.length();
-                    const validation = TransportConfig.VALIDATION;
-                    if (distanceFromCenter < validation.MIN_DISTANCE_FROM_CENTER || 
-                        distanceFromCenter > validation.MAX_DISTANCE_FROM_CENTER) {
-                        train.visible = false;
-                        continue;
-                    }
-                    
-                    train.position.copy(position);
-                    
-                    // Position wagons
-                    const curveLength = data.curve.getLength();
-                    const spacingProgress = data.wagonSpacing / curveLength;
-                    let anyWagonVisible = false;
-                    
-                    data.wagons.forEach((wagon, index) => {
-                        wagon.visible = false;
-                        
-                        if (data.isWaiting) {
-                            return;
-                        }
-                        
-                        const wagonProgress = Math.max(0, data.progress - (spacingProgress * index));
-                        
-                        // Wagons appear when wagonProgress > 0, disappear when wagonProgress > 1
-                        if (wagonProgress <= 0 || wagonProgress > 1) {
-                            return;
-                        }
-                        
-                        wagon.userData = { train: train };
-                        if (this.positionWagon(wagon, { ...data, train }, wagonProgress)) {
-                            wagon.visible = hyperloopVisible;
-                            anyWagonVisible = hyperloopVisible;
-                        }
-                    });
-                    
-                    train.visible = anyWagonVisible ? hyperloopVisible : false;
-                } catch (error) {
-                    console.error('Error updating train:', error);
-                    train.visible = false;
-                    continue;
-                }
-            } else {
-                train.visible = false;
-            }
+            this.positionTrainAndWagons(train, data, hyperloopVisible);
             
             // Clean up completed trains
-            if (data.progress > 1) {
-                if (!data.curve || typeof data.curve.getLength !== 'function') {
-                    this.routeController.releaseRoute(data.from, data.to, data.trainId);
-                    globe.remove(train);
-                    this.transportModel.removeTrain(train);
-                    continue;
-                }
-                
-                const curveLength = data.curve.getLength();
-                const spacingProgress = data.wagonSpacing / curveLength;
-                let allWagonsFinished = true;
-                
-                data.wagons.forEach((wagon, index) => {
-                    const wagonProgress = data.progress - (spacingProgress * index);
-                    if (wagonProgress <= 1) {
-                        allWagonsFinished = false;
-                    }
-                });
-                
-                if (allWagonsFinished) {
-                    this.routeController.releaseRoute(data.from, data.to, data.trainId);
-                    globe.remove(train);
-                    this.transportModel.removeTrain(train);
-                }
+            if (this.cleanupCompletedTrain(train, data, globe)) {
+                continue; // Train was removed
             }
         }
     }
