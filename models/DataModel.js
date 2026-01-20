@@ -70,10 +70,9 @@ export class DataModel {
     }
 
     /**
-     * Count connections for each seaport
-     * @returns {Object} - Object mapping port names to connection counts
+     * Filter out seaports with no connections
      */
-    countSeaportConnections() {
+    filterSeaports() {
         const connectionCounts = {};
         this.seaports.forEach(port => {
             connectionCounts[port.name] = 0;
@@ -89,15 +88,7 @@ export class DataModel {
             }
         });
 
-        return connectionCounts;
-    }
-
-    /**
-     * Find seaports with no connections
-     * @param {Object} connectionCounts - Object mapping port names to connection counts
-     * @returns {Set<string>} - Set of port names to remove
-     */
-    findPortsToRemove(connectionCounts) {
+        // Find ports with 0 connections
         const portsToRemove = new Set();
         Object.keys(connectionCounts).forEach(portName => {
             if (connectionCounts[portName] === 0) {
@@ -105,14 +96,7 @@ export class DataModel {
                 console.log(`DataModel: Removing port with 0 connections: ${portName}`);
             }
         });
-        return portsToRemove;
-    }
 
-    /**
-     * Remove ports and their connections from arrays
-     * @param {Set<string>} portsToRemove - Set of port names to remove
-     */
-    removePortsAndConnections(portsToRemove) {
         // Filter seaports array
         this.seaports = this.seaports.filter(port => !portsToRemove.has(port.name));
 
@@ -120,15 +104,6 @@ export class DataModel {
         this.seaportConnections = this.seaportConnections.filter(conn => 
             !portsToRemove.has(conn.from) && !portsToRemove.has(conn.to)
         );
-    }
-
-    /**
-     * Filter out seaports with no connections
-     */
-    filterSeaports() {
-        const connectionCounts = this.countSeaportConnections();
-        const portsToRemove = this.findPortsToRemove(connectionCounts);
-        this.removePortsAndConnections(portsToRemove);
 
         console.log(`DataModel: Filtered seaports: ${this.seaports.length} ports remaining (removed ${portsToRemove.size})`);
     }

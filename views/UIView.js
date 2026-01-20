@@ -91,35 +91,6 @@ function getHeroDisplayName(heroName) {
  * UIView - Handles UI elements (labels, buttons, toggles)
  */
 export class UIView {
-    // Constants for event slide
-    static FADE_TRANSITION_DURATION_MS = 200;
-    static FADE_IN_DELAY_MS = 10;
-    static SLIDE_TRANSITION_DURATION_MS = 300;
-    static TEXT_RENDER_BUFFER_MS = 100;
-    static IMAGE_FADE_DURATION_MS = 600;
-    static ZOOM_COMPLETE_DELAY_MS = 600;
-    static MOBILE_BREAKPOINT = 768;
-    static MOBILE_LAYOUT_DELAY_MS = 50;
-    static SOURCES_FILTERS_UPDATE_DELAY_MS = 100;
-    static GLITCH_SOUND_DELAY_MS = 50;
-    static GLITCH_SOUND_PLAYBACK_RATE = 1.2;
-    static GLITCH_SOUND_FADE_DURATION_MS = 500;
-    static OVERLAY_BACKGROUND_OPACITY = 0.85;
-    static OVERLAY_TRANSPARENT_OPACITY = 0;
-    static LOCATION_ICON_SIZE = 14;
-    static LOCATION_ICON_MARGIN = 4;
-    static COORDINATE_PRECISION = 4;
-    static LOCATION_CACHE_PRECISION = 4;
-    static LOCATION_MATCH_THRESHOLD = 0.01;
-    static TITLE_Z_INDEX = 999;
-    static TITLE_TOP_POSITION = '10px';
-    static TITLE_LEFT_POSITION = '20px';
-    static TITLE_RIGHT_POSITION = '70px';
-    static TITLE_HEIGHT = '50px';
-    static CONTENT_PADDING_TOP = '70px';
-    static EVENT_IMAGES_FOLDER = 'Event Images/';
-    static EVENT_IMAGES_FOLDER_ENCODED = 'Event%20Images/';
-
     constructor(sceneModel, dataModel = null, globeView = null) {
         this.sceneModel = sceneModel;
         this.dataModel = dataModel; // Store reference to dataModel for pagination
@@ -289,422 +260,6 @@ export class UIView {
     }
 
     /**
-     * Process and normalize image path for event images
-     * @param {string} imagePath - Raw image path
-     * @returns {string|null} - Processed image path or null
-     */
-    processImagePath(imagePath) {
-        if (!imagePath || !imagePath.trim()) {
-            return null;
-        }
-        
-        imagePath = imagePath.trim();
-        
-        // If path already contains Event%20Images/ with encoded filename, use it as-is
-        if (imagePath.includes(UIView.EVENT_IMAGES_FOLDER_ENCODED)) {
-            return imagePath;
-        }
-        
-        // Only process if it has Event Images/ (with space) or needs normalization
-        if (imagePath.includes(UIView.EVENT_IMAGES_FOLDER) && !imagePath.includes(UIView.EVENT_IMAGES_FOLDER_ENCODED)) {
-            const folderPattern = new RegExp(UIView.EVENT_IMAGES_FOLDER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-            if (folderPattern.test(imagePath)) {
-                const parts = imagePath.split(folderPattern);
-                if (parts.length === 2) {
-                    let filename = parts[1];
-                    // Decode multiple times in case it's double/triple encoded
-                    let previousFilename = '';
-                    while (filename !== previousFilename) {
-                        previousFilename = filename;
-                        try {
-                            const decoded = decodeURIComponent(filename);
-                            if (decoded !== filename) {
-                                filename = decoded;
-                            } else {
-                                break;
-                            }
-                        } catch (e) {
-                            break; // Can't decode further
-                        }
-                    }
-                    imagePath = `${UIView.EVENT_IMAGES_FOLDER_ENCODED}${encodeURIComponent(filename)}`;
-                }
-            }
-        }
-        
-        return imagePath;
-    }
-
-    /**
-     * Update content element with fade transition
-     * @param {HTMLElement} element - Element to update
-     * @param {string} newContent - New content to set
-     * @param {boolean} isAlreadyOpen - Whether slide is already open
-     */
-    updateContentWithFade(element, newContent, isAlreadyOpen) {
-        if (!element) return;
-        
-        if (isAlreadyOpen) {
-            // Fade out
-            element.style.transition = `opacity ${UIView.FADE_TRANSITION_DURATION_MS / 1000}s ease`;
-            element.style.opacity = '0';
-            
-            setTimeout(() => {
-                // Update content
-                element.innerHTML = newContent;
-                
-                // Fade in
-                setTimeout(() => {
-                    element.style.opacity = '1';
-                }, UIView.FADE_IN_DELAY_MS);
-            }, UIView.FADE_TRANSITION_DURATION_MS);
-        } else {
-            // No transition needed, just update
-            element.innerHTML = newContent;
-            element.style.opacity = '1';
-        }
-    }
-
-    /**
-     * Setup variant toggle buttons for multi-events
-     * @param {HTMLElement} variantToggles - Container element for variant toggles
-     * @param {Object} eventData - Event data object
-     * @param {number} initialVariantIndex - Initial variant index to mark as active
-     */
-    setupVariantToggles(variantToggles, eventData, initialVariantIndex) {
-        if (!variantToggles || !eventData || !eventData.variants || eventData.variants.length === 0) {
-            if (variantToggles) {
-                variantToggles.style.display = 'none';
-                variantToggles.innerHTML = '';
-            }
-            return;
-        }
-        
-        variantToggles.style.display = 'flex';
-        variantToggles.innerHTML = '';
-        
-        // Create button for each variant
-        eventData.variants.forEach((variant, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'variant-toggle-btn';
-            btn.innerHTML = getDisplayEventName(variant.name) || `Variant ${index + 1}`;
-            btn.dataset.variantIndex = index;
-            if (index === initialVariantIndex) {
-                btn.classList.add('active');
-            }
-            btn.addEventListener('click', () => {
-                this.switchEventVariant(index, eventData);
-            });
-            variantToggles.appendChild(btn);
-        });
-    }
-
-    /**
-     * Get location data from event or variant
-     * @param {Object} eventData - Event data object
-     * @param {THREE.Object3D} marker - Event marker object
-     * @returns {Object} - {lat, lon, locationName, locationType}
-     */
-    getLocationDataFromEvent(eventData, marker) {
-        if (!eventData) {
-            return { lat: undefined, lon: undefined, locationName: null, locationType: 'earth' };
-        }
-        
-        const isMultiEvent = eventData.variants && eventData.variants.length > 0;
-        let lat, lon, locationName, locationType;
-        
-        if (isMultiEvent) {
-            const variantIndex = (marker && marker.userData && marker.userData.variantIndex !== undefined) 
-                ? marker.userData.variantIndex 
-                : 0;
-            const currentVariant = eventData.variants[variantIndex] || eventData.variants[0];
-            lat = currentVariant.lat !== undefined ? currentVariant.lat : eventData.lat;
-            lon = currentVariant.lon !== undefined ? currentVariant.lon : eventData.lon;
-            locationName = currentVariant.cityDisplayName || eventData.cityDisplayName || null;
-            locationType = currentVariant.locationType || eventData.locationType || 'earth';
-        } else {
-            lat = eventData.lat;
-            lon = eventData.lon;
-            locationName = eventData.cityDisplayName || null;
-            locationType = eventData.locationType || 'earth';
-        }
-        
-        return { lat, lon, locationName, locationType };
-    }
-
-    /**
-     * Create location click handler
-     * @param {THREE.Object3D} marker - Event marker object
-     * @param {string} locationType - Location type ('earth', 'moon', 'mars')
-     * @returns {Function} - Click handler function
-     */
-    createLocationClickHandler(marker, locationType) {
-        return (e) => {
-            e.stopPropagation();
-            if (marker && window.globeController && window.globeController.interactionController) {
-                if (locationType === 'moon' || locationType === 'mars') {
-                    window.globeController.interactionController.resetCameraToDefault();
-                } else {
-                    window.globeController.interactionController.zoomToMarker(marker);
-                }
-            }
-        };
-    }
-
-    /**
-     * Update event slide location display
-     * @param {HTMLElement} eventSlideLocation - Location element
-     * @param {Object} locationData - {lat, lon, locationName, locationType}
-     * @param {THREE.Object3D} marker - Event marker object
-     * @param {boolean} isAlreadyOpen - Whether slide is already open
-     */
-    updateEventSlideLocation(eventSlideLocation, locationData, marker, isAlreadyOpen) {
-        if (!eventSlideLocation) return;
-        
-        const { lat, lon, locationName: initialLocationName, locationType } = locationData;
-        
-        if (lat === undefined || lon === undefined || !window.eventManager) {
-            // Hide location if no data
-            if (isAlreadyOpen) {
-                eventSlideLocation.style.transition = `opacity ${UIView.FADE_TRANSITION_DURATION_MS / 1000}s ease`;
-                eventSlideLocation.style.opacity = '0';
-                setTimeout(() => {
-                    eventSlideLocation.style.display = 'none';
-                }, UIView.FADE_TRANSITION_DURATION_MS);
-            } else {
-                eventSlideLocation.style.display = 'none';
-            }
-            eventSlideLocation.onclick = null;
-            eventSlideLocation.style.cursor = '';
-            eventSlideLocation.title = '';
-            return;
-        }
-        
-        // Get location name from cache or API
-        let locationName = initialLocationName;
-        if (!locationName) {
-            const cacheKey = `${lat.toFixed(UIView.LOCATION_CACHE_PRECISION)}_${lon.toFixed(UIView.LOCATION_CACHE_PRECISION)}`;
-            if (window.eventManager.locationCache && window.eventManager.locationCache.has(cacheKey)) {
-                locationName = window.eventManager.locationCache.get(cacheKey);
-            }
-            if (!locationName) {
-                locationName = window.eventManager.getLocationName(lat, lon);
-            }
-        }
-        
-        // Create location content
-        const locationContent = locationName 
-            ? `<img src="Icons/Location Icon.png" alt="Location" style="width: ${UIView.LOCATION_ICON_SIZE}px; height: ${UIView.LOCATION_ICON_SIZE}px; vertical-align: middle; margin-right: ${UIView.LOCATION_ICON_MARGIN}px;"> ${locationName}`
-            : `<img src="Icons/Location Icon.png" alt="Location" style="width: ${UIView.LOCATION_ICON_SIZE}px; height: ${UIView.LOCATION_ICON_SIZE}px; vertical-align: middle; margin-right: ${UIView.LOCATION_ICON_MARGIN}px;"> ${lat.toFixed(UIView.COORDINATE_PRECISION)}, ${lon.toFixed(UIView.COORDINATE_PRECISION)}`;
-        
-        // Update with fade transition
-        if (isAlreadyOpen) {
-            eventSlideLocation.style.transition = `opacity ${UIView.FADE_TRANSITION_DURATION_MS / 1000}s ease`;
-            eventSlideLocation.style.opacity = '0';
-            setTimeout(() => {
-                eventSlideLocation.innerHTML = locationContent;
-                eventSlideLocation.style.display = 'block';
-                setTimeout(() => {
-                    eventSlideLocation.style.opacity = '1';
-                }, UIView.FADE_IN_DELAY_MS);
-            }, UIView.FADE_TRANSITION_DURATION_MS);
-        } else {
-            eventSlideLocation.innerHTML = locationContent;
-            eventSlideLocation.style.display = 'block';
-            eventSlideLocation.style.opacity = '1';
-        }
-        
-        // Make location clickable
-        const clickHandler = this.createLocationClickHandler(marker, locationType);
-        eventSlideLocation.style.cursor = 'pointer';
-        eventSlideLocation.title = 'Click to zoom to location';
-        eventSlideLocation.onclick = clickHandler;
-        
-        // Set up listener to update when location is enhanced with country
-        const updateLocationInSlide = (updatedLat, updatedLon, updatedLocationName) => {
-            if (Math.abs(updatedLat - lat) < UIView.LOCATION_MATCH_THRESHOLD && 
-                Math.abs(updatedLon - lon) < UIView.LOCATION_MATCH_THRESHOLD) {
-                eventSlideLocation.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: ${UIView.LOCATION_ICON_SIZE}px; height: ${UIView.LOCATION_ICON_SIZE}px; vertical-align: middle; margin-right: ${UIView.LOCATION_ICON_MARGIN}px;"> ${updatedLocationName}`;
-                eventSlideLocation.style.cursor = 'pointer';
-                eventSlideLocation.title = 'Click to zoom to location';
-                eventSlideLocation.onclick = clickHandler;
-            }
-        };
-        window.updateEventSlideLocation = updateLocationInSlide;
-    }
-
-    /**
-     * Setup image overlay and fade effects
-     * @param {HTMLElement} eventImageOverlay - Image overlay element
-     * @param {HTMLElement} eventImage - Image element
-     * @param {string} imagePath - Image path
-     */
-    setupImageOverlay(eventImageOverlay, eventImage, imagePath) {
-        if (!eventImageOverlay || !eventImage) {
-            this.imageOverlayVisible = false;
-            this.imageToggleState = false;
-            return;
-        }
-        
-        // Reset states
-        eventImageOverlay.classList.remove('fade-in', 'fade-out');
-        eventImage.classList.remove('fade-in', 'fade-out');
-        
-        if (imagePath) {
-            // Clear any previous error handlers
-            eventImage.onerror = null;
-            eventImage.onload = null;
-            
-            // Ensure path is relative (no leading slash)
-            const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-            
-            // Add cache busting
-            const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const fullImagePath = `${normalizedPath}${cacheBuster}`;
-            
-            // Set up error and load handlers
-            eventImage.onerror = () => {
-                console.error(`Failed to load event image: ${fullImagePath}`);
-                eventImage.style.display = 'none';
-                eventImageOverlay.style.background = `rgba(0, 0, 0, ${UIView.OVERLAY_BACKGROUND_OPACITY})`;
-            };
-            eventImage.onload = () => {
-                eventImage.style.display = 'block';
-                eventImageOverlay.style.background = `rgba(0, 0, 0, ${UIView.OVERLAY_TRANSPARENT_OPACITY})`;
-            };
-            
-            // Set image source
-            eventImage.style.display = 'none';
-            eventImage.src = fullImagePath;
-        } else {
-            eventImage.src = '';
-            eventImage.style.display = 'none';
-            eventImageOverlay.style.background = `rgba(0, 0, 0, ${UIView.OVERLAY_BACKGROUND_OPACITY})`;
-        }
-        
-        // Show overlay
-        this.imageOverlayVisible = true;
-        this.imageToggleState = true;
-        eventImageOverlay.classList.add('open');
-        
-        // Initial fade-in after zoom completes
-        setTimeout(() => {
-            if (imagePath) {
-                eventImage.classList.add('fade-in');
-                setTimeout(() => {
-                    this.disablePageNavigationButtons(true);
-                }, UIView.IMAGE_FADE_DURATION_MS);
-            } else {
-                eventImageOverlay.classList.add('fade-in');
-                setTimeout(() => {
-                    this.disablePageNavigationButtons(true);
-                }, UIView.IMAGE_FADE_DURATION_MS);
-            }
-        }, UIView.ZOOM_COMPLETE_DELAY_MS);
-        
-        // Store image path
-        this.pendingImagePath = imagePath;
-        
-        // Setup interaction handlers
-        this.setupImageOverlayHandlers(eventImageOverlay);
-    }
-
-    /**
-     * Setup glitch toggle button
-     * @param {HTMLElement} glitchToggleBtn - Glitch toggle button element
-     * @param {string} eventName - Event name
-     * @param {string} description - Event description
-     * @param {Object} eventData - Event data object
-     */
-    setupGlitchToggle(glitchToggleBtn, eventName, description, eventData) {
-        if (!glitchToggleBtn) {
-            console.error('Glitch toggle button not found!');
-            return;
-        }
-        
-        const hasOliviaColomar = (eventName && /Olivia Colomar/gi.test(eventName)) || 
-                                 (description && /Olivia Colomar/gi.test(description)) ||
-                                 (eventData && eventData.variants && eventData.variants.some(v => 
-                                     (v.name && /Olivia Colomar/gi.test(v.name)) || 
-                                     (v.description && /Olivia Colomar/gi.test(v.description))
-                                 ));
-        
-        if (hasOliviaColomar) {
-            glitchToggleBtn.style.display = 'block';
-            glitchToggleBtn.style.visibility = 'visible';
-            globalGlitchEnabled = true;
-            glitchToggleBtn.textContent = 'Disable Glitch';
-            glitchToggleBtn.onclick = () => this.toggleGlitchEffect();
-            
-            // Play hack on sound
-            setTimeout(() => {
-                if (globalGlitchEnabled && window.SoundEffectsManager && window.SoundEffectsManager.play) {
-                    try {
-                        window.SoundEffectsManager.play('hackOn', {
-                            playbackRate: UIView.GLITCH_SOUND_PLAYBACK_RATE,
-                            fadeOut: true,
-                            fadeOutDuration: UIView.GLITCH_SOUND_FADE_DURATION_MS
-                        });
-                    } catch (e) {
-                        console.error('Error playing hackOn sound:', e);
-                    }
-                }
-            }, UIView.GLITCH_SOUND_DELAY_MS);
-        } else {
-            glitchToggleBtn.style.display = 'none';
-        }
-    }
-
-    /**
-     * Setup mobile-specific layout adjustments
-     * @param {HTMLElement} eventSlide - Event slide element
-     */
-    setupEventSlideMobileLayout(eventSlide) {
-        const isMobile = window.innerWidth <= UIView.MOBILE_BREAKPOINT;
-        if (!isMobile || !eventSlide) return;
-        
-        const scrollableArea = document.getElementById('eventSlideScrollable');
-        const bottomSection = document.getElementById('eventSlideBottom');
-        const titleEl = document.getElementById('eventSlideTitle');
-        const contentEl = document.getElementById('eventSlideContent');
-        
-        // Move all children from bottom section to scrollable area
-        if (scrollableArea && bottomSection) {
-            while (bottomSection.firstChild) {
-                scrollableArea.appendChild(bottomSection.firstChild);
-            }
-        }
-        
-        // Fix title position on mobile
-        setTimeout(() => {
-            if (titleEl) {
-                titleEl.style.setProperty('position', 'fixed', 'important');
-                titleEl.style.setProperty('top', UIView.TITLE_TOP_POSITION, 'important');
-                titleEl.style.setProperty('left', UIView.TITLE_LEFT_POSITION, 'important');
-                titleEl.style.setProperty('right', UIView.TITLE_RIGHT_POSITION, 'important');
-                titleEl.style.setProperty('z-index', String(UIView.TITLE_Z_INDEX), 'important');
-                titleEl.style.setProperty('background', 'transparent', 'important');
-                titleEl.style.setProperty('padding', '0', 'important');
-                titleEl.style.setProperty('margin', '0', 'important');
-                titleEl.style.setProperty('box-shadow', 'none', 'important');
-                titleEl.style.setProperty('max-width', 'calc(100% - 90px)', 'important');
-                titleEl.style.setProperty('width', 'auto', 'important');
-                titleEl.style.setProperty('line-height', UIView.TITLE_HEIGHT, 'important');
-                titleEl.style.setProperty('height', UIView.TITLE_HEIGHT, 'important');
-            }
-            
-            if (contentEl) {
-                contentEl.style.setProperty('padding-top', UIView.CONTENT_PADDING_TOP, 'important');
-            }
-            
-            if (scrollableArea) {
-                scrollableArea.style.setProperty('margin-top', '0', 'important');
-                scrollableArea.style.setProperty('padding-top', '0', 'important');
-            }
-        }, UIView.MOBILE_LAYOUT_DELAY_MS);
-    }
-
-    /**
      * Show event slide panel
      * @param {string} eventName - Event name
      * @param {string} imagePath - Optional image path
@@ -717,8 +272,41 @@ export class UIView {
             window.SoundEffectsManager.play('eventClick');
         }
         
-        // Process image path if provided
-        imagePath = this.processImagePath(imagePath);
+        // Process image path if provided - but only if it needs processing
+        // If path comes from getEventImagePath, it's already properly formatted, so skip processing
+        if (imagePath && imagePath.trim()) {
+            imagePath = imagePath.trim();
+            // Only process if path doesn't look properly formatted already
+            // If path already contains Event%20Images/ with encoded filename, use it as-is
+            // Only process if it has Event Images/ (with space) or needs normalization
+            if (imagePath.includes('Event Images/') && !imagePath.includes('Event%20Images/')) {
+                // Handle "Event Images/" format (with space) - convert to URL-encoded
+                const folderPattern = /Event Images\//;
+                if (folderPattern.test(imagePath)) {
+                    const parts = imagePath.split(/Event Images\//);
+                    if (parts.length === 2) {
+                        let filename = parts[1];
+                        // Decode multiple times in case it's double/triple encoded
+                        let previousFilename = '';
+                        while (filename !== previousFilename) {
+                            previousFilename = filename;
+                            try {
+                                const decoded = decodeURIComponent(filename);
+                                if (decoded !== filename) {
+                                    filename = decoded;
+                                } else {
+                                    break;
+                                }
+                            } catch (e) {
+                                break; // Can't decode further
+                            }
+                        }
+                        imagePath = `Event%20Images/${encodeURIComponent(filename)}`;
+                    }
+                }
+            }
+            // If path already has Event%20Images/, use it as-is (already properly formatted)
+        }
         
         const eventSlide = document.getElementById('eventSlide');
         const eventSlideTitle = document.getElementById('eventSlideTitle');
@@ -754,30 +342,222 @@ export class UIView {
             this.currentVariantIndex = initialVariantIndex;
             
             // Setup variant toggle buttons for multi-events
-            this.setupVariantToggles(variantToggles, eventData, initialVariantIndex);
+            if (isMultiEvent && variantToggles) {
+                variantToggles.style.display = 'flex';
+                variantToggles.innerHTML = '';
+                
+                // Create button for each variant
+                eventData.variants.forEach((variant, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'variant-toggle-btn';
+                    btn.innerHTML = getDisplayEventName(variant.name) || `Variant ${index + 1}`;
+                    btn.dataset.variantIndex = index;
+                    if (index === initialVariantIndex) {
+                        btn.classList.add('active');
+                    }
+                    btn.addEventListener('click', () => {
+                        this.switchEventVariant(index, eventData);
+                    });
+                    variantToggles.appendChild(btn);
+                });
+            } else if (variantToggles) {
+                variantToggles.style.display = 'none';
+                variantToggles.innerHTML = '';
+            }
             
             // Check if event slide is already open (for fade transition)
             const isAlreadyOpen = eventSlide.classList.contains('open');
             
-            // Update title with fade
-            this.updateContentWithFade(eventSlideTitle, getDisplayEventName(eventName), isAlreadyOpen);
+            // Helper function to update content with fade transition
+            const updateContentWithFade = (element, newContent) => {
+                if (!element) return;
+                
+                if (isAlreadyOpen) {
+                    // Fade out
+                    element.style.transition = 'opacity 0.2s ease';
+                    element.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        // Update content
+                        element.innerHTML = newContent;
+                        
+                        // Fade in
+                        setTimeout(() => {
+                            element.style.opacity = '1';
+                        }, 10);
+                    }, 200);
+                } else {
+                    // No transition needed, just update
+                    element.innerHTML = newContent;
+                    element.style.opacity = '1';
+                }
+            };
             
-            // Update location display
+            // Update title with fade
+            updateContentWithFade(eventSlideTitle, getDisplayEventName(eventName));
+            
+            // Display location between title and description
             const eventSlideLocation = document.getElementById('eventSlideLocation');
             if (eventSlideLocation && eventData) {
-                const locationData = this.getLocationDataFromEvent(eventData, marker);
-                this.updateEventSlideLocation(eventSlideLocation, locationData, marker, isAlreadyOpen);
+                // For multi-events, get location from the current variant or event
+                const isMultiEvent = eventData.variants && eventData.variants.length > 0;
+                let lat, lon, locationName, locationType;
+                
+                if (isMultiEvent) {
+                    // Use the variant index from marker if available, otherwise default to 0
+                    const variantIndex = (marker && marker.userData && marker.userData.variantIndex !== undefined) 
+                        ? marker.userData.variantIndex 
+                        : 0;
+                    const currentVariant = eventData.variants[variantIndex] || eventData.variants[0];
+                    lat = currentVariant.lat !== undefined ? currentVariant.lat : eventData.lat;
+                    lon = currentVariant.lon !== undefined ? currentVariant.lon : eventData.lon;
+                    // Use variant's cityDisplayName if available, otherwise event's
+                    locationName = currentVariant.cityDisplayName || eventData.cityDisplayName || null;
+                    locationType = currentVariant.locationType || eventData.locationType || 'earth';
+                } else {
+                    lat = eventData.lat;
+                    lon = eventData.lon;
+                    locationName = eventData.cityDisplayName || null;
+                    locationType = eventData.locationType || 'earth';
+                }
+                
+                if (lat !== undefined && lon !== undefined && window.eventManager) {
+                    
+                    if (!locationName) {
+                        // Check cache first (same as preview does)
+                        const cacheKey = `${lat.toFixed(4)}_${lon.toFixed(4)}`;
+                        
+                        // Try to get from cache first (this will have the full "City, Country" format if enhanced)
+                        if (window.eventManager.locationCache && window.eventManager.locationCache.has(cacheKey)) {
+                            locationName = window.eventManager.locationCache.get(cacheKey);
+                        }
+                        
+                        // If not in cache, get location name (may return city only, will be enhanced later)
+                        if (!locationName) {
+                            locationName = window.eventManager.getLocationName(lat, lon);
+                        }
+                    }
+                    
+                    if (locationName) {
+                        // Use same format as preview: icon + location name (which should be "City, Country")
+                        const locationContent = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+                        if (isAlreadyOpen) {
+                            // Fade transition for location
+                            eventSlideLocation.style.transition = 'opacity 0.2s ease';
+                            eventSlideLocation.style.opacity = '0';
+                            setTimeout(() => {
+                                eventSlideLocation.innerHTML = locationContent;
+                                eventSlideLocation.style.display = 'block';
+                                setTimeout(() => {
+                                    eventSlideLocation.style.opacity = '1';
+                                }, 10);
+                            }, 200);
+                        } else {
+                            eventSlideLocation.innerHTML = locationContent;
+                            eventSlideLocation.style.display = 'block';
+                            eventSlideLocation.style.opacity = '1';
+                        }
+                        
+                        // Make location clickable to zoom to marker
+                        eventSlideLocation.style.cursor = 'pointer';
+                        eventSlideLocation.title = 'Click to zoom to location';
+                        eventSlideLocation.onclick = (e) => {
+                            e.stopPropagation();
+                            if (marker && window.globeController && window.globeController.interactionController) {
+                                if (locationType === 'moon' || locationType === 'mars') {
+                                    // Reset camera to default view for Moon/Mars events
+                                    window.globeController.interactionController.resetCameraToDefault();
+                                } else {
+                                    // Zoom in and center on the marker (Earth events)
+                                    window.globeController.interactionController.zoomToMarker(marker);
+                                }
+                            }
+                        };
+                        
+                        // Also set up listener to update when location is enhanced with country
+                        const updateLocationInSlide = (updatedLat, updatedLon, updatedLocationName) => {
+                            if (Math.abs(updatedLat - lat) < 0.01 && Math.abs(updatedLon - lon) < 0.01) {
+                                eventSlideLocation.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${updatedLocationName}`;
+                                // Re-attach click handler after updating innerHTML
+                                eventSlideLocation.style.cursor = 'pointer';
+                                eventSlideLocation.title = 'Click to zoom to location';
+                                eventSlideLocation.onclick = (e) => {
+                                    e.stopPropagation();
+                                    if (marker && window.globeController && window.globeController.interactionController) {
+                                        if (locationType === 'moon' || locationType === 'mars') {
+                                            window.globeController.interactionController.resetCameraToDefault();
+                                        } else {
+                                            window.globeController.interactionController.zoomToMarker(marker);
+                                        }
+                                    }
+                                };
+                            }
+                        };
+                        // Store update function to be called by EventManager when location is enhanced
+                        window.updateEventSlideLocation = updateLocationInSlide;
+                    } else {
+                        // Show coordinates as fallback
+                        const locationContent = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        if (isAlreadyOpen) {
+                            // Fade transition for location
+                            eventSlideLocation.style.transition = 'opacity 0.2s ease';
+                            eventSlideLocation.style.opacity = '0';
+                            setTimeout(() => {
+                                eventSlideLocation.innerHTML = locationContent;
+                                eventSlideLocation.style.display = 'block';
+                                setTimeout(() => {
+                                    eventSlideLocation.style.opacity = '1';
+                                }, 10);
+                            }, 200);
+                        } else {
+                            eventSlideLocation.innerHTML = locationContent;
+                            eventSlideLocation.style.display = 'block';
+                            eventSlideLocation.style.opacity = '1';
+                        }
+                        
+                        // Make location clickable to zoom to marker (even with coordinates)
+                        eventSlideLocation.style.cursor = 'pointer';
+                        eventSlideLocation.title = 'Click to zoom to location';
+                        eventSlideLocation.onclick = (e) => {
+                            e.stopPropagation();
+                            if (marker && window.globeController && window.globeController.interactionController) {
+                                if (locationType === 'moon' || locationType === 'mars') {
+                                    window.globeController.interactionController.resetCameraToDefault();
+                                } else {
+                                    window.globeController.interactionController.zoomToMarker(marker);
+                                }
+                            }
+                        };
+                    }
+                } else {
+                    if (isAlreadyOpen) {
+                        // Fade out location if hiding
+                        eventSlideLocation.style.transition = 'opacity 0.2s ease';
+                        eventSlideLocation.style.opacity = '0';
+                        setTimeout(() => {
+                            eventSlideLocation.style.display = 'none';
+                        }, 200);
+                    } else {
+                        eventSlideLocation.style.display = 'none';
+                    }
+                    // Remove click handler if no location data
+                    eventSlideLocation.onclick = null;
+                    eventSlideLocation.style.cursor = '';
+                    eventSlideLocation.title = '';
+                }
             }
             
             // Update description with fade
-            this.updateContentWithFade(eventSlideText, getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.'), isAlreadyOpen);
+            updateContentWithFade(eventSlideText, getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.'));
             
-            // Start glitch character animation
+            // Start glitch character animation for any glitchy text overlays (only if enabled)
             if (globalGlitchEnabled) {
                 this.startGlitchAnimation();
+                // Show hacked image overlay when opening event with glitch enabled
+                // Wait for slide animation to complete (300ms) + buffer for text rendering
                 setTimeout(() => {
                     this.showHackedOverlay();
-                }, UIView.SLIDE_TRANSITION_DURATION_MS + UIView.TEXT_RENDER_BUFFER_MS);
+                }, 400); // Wait for slide transition (300ms) + 100ms buffer for text rendering
             } else {
                 this.stopGlitchAnimation();
             }
@@ -785,7 +565,7 @@ export class UIView {
             // Get current variant or main event
             const currentEvent = isMultiEvent ? eventData.variants[this.currentVariantIndex] : eventData;
             
-            // Update sources and filters sections
+            // Update sources and filters sections (using shared helper functions)
             this.updateEventSources(currentEvent);
             this.updateEventFilters(currentEvent);
             
@@ -814,18 +594,144 @@ export class UIView {
                 eventImageOverlay.classList.add('slide-open');
             }
             
-            // Setup mobile layout
-            this.setupEventSlideMobileLayout(eventSlide);
+            // On mobile: move bottom section content into scrollable area and fix title position
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                const scrollableArea = document.getElementById('eventSlideScrollable');
+                const bottomSection = document.getElementById('eventSlideBottom');
+                const titleEl = document.getElementById('eventSlideTitle');
+                const contentEl = document.getElementById('eventSlideContent');
+                
+                // Move all children from bottom section to scrollable area
+                if (scrollableArea && bottomSection) {
+                    while (bottomSection.firstChild) {
+                        scrollableArea.appendChild(bottomSection.firstChild);
+                    }
+                    console.log('[DEBUG Mobile] Moved all bottom content into scrollable area');
+                }
+                
+                 // Fix title position on mobile - same row as close button
+                 setTimeout(() => {
+                     if (titleEl) {
+                         titleEl.style.setProperty('position', 'fixed', 'important');
+                         titleEl.style.setProperty('top', '10px', 'important'); // Same as close button
+                         titleEl.style.setProperty('left', '20px', 'important');
+                         titleEl.style.setProperty('right', '70px', 'important');
+                         titleEl.style.setProperty('z-index', '999', 'important');
+                         titleEl.style.setProperty('background', 'transparent', 'important'); // No background
+                         titleEl.style.setProperty('padding', '0', 'important');
+                         titleEl.style.setProperty('margin', '0', 'important');
+                         titleEl.style.setProperty('box-shadow', 'none', 'important');
+                         titleEl.style.setProperty('max-width', 'calc(100% - 90px)', 'important');
+                         titleEl.style.setProperty('width', 'auto', 'important');
+                         titleEl.style.setProperty('line-height', '50px', 'important'); // Match close button height
+                         titleEl.style.setProperty('height', '50px', 'important'); // Match close button height
+                         console.log('[DEBUG Mobile] Fixed title position on same row as close button');
+                     }
+                     
+                     // Adjust content padding for fixed title row
+                     if (contentEl) {
+                         contentEl.style.setProperty('padding-top', '70px', 'important'); // Space for title/close row
+                     }
+                     
+                     // Adjust scrollable area margin for fixed title - reduced spacing
+                     if (scrollableArea) {
+                         scrollableArea.style.setProperty('margin-top', '0', 'important'); // No extra margin
+                         scrollableArea.style.setProperty('padding-top', '0', 'important');
+                     }
+                 }, 50);
+            }
             
             // Call helper functions to update sources and filters
             setTimeout(() => {
                 this.updateEventSources(currentEvent);
                 this.updateEventFilters(currentEvent);
-            }, UIView.SOURCES_FILTERS_UPDATE_DELAY_MS);
+            }, 100);
         }
         
-        // Setup image overlay
-        this.setupImageOverlay(eventImageOverlay, eventImage, imagePath);
+        // Initialize image overlay state - show by default with fade sequence
+        if (eventImageOverlay && eventImage) {
+            // Reset states
+            eventImageOverlay.classList.remove('fade-in', 'fade-out');
+            eventImage.classList.remove('fade-in', 'fade-out');
+            
+            if (imagePath) {
+                // Clear any previous error handlers first to prevent false errors
+                eventImage.onerror = null;
+                eventImage.onload = null;
+                
+                // Ensure path is relative (no leading slash) for proper resolution
+                const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+                
+                // Add cache busting to ensure latest images load
+                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const fullImagePath = `${normalizedPath}${cacheBuster}`;
+                
+                // Set up error and load handlers AFTER clearing handlers but BEFORE setting src
+                // This prevents false errors from src clearing
+                eventImage.onerror = () => {
+                    console.error(`Failed to load event image: ${fullImagePath}`);
+                    eventImage.style.display = 'none';
+                    // If image fails, show black overlay instead
+                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+                };
+                eventImage.onload = () => {
+                    // Image loaded successfully - use transparent background so image shows
+                    eventImage.style.display = 'block';
+                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
+                };
+                
+                // Set image source directly (no need to clear first - browser handles cache busting)
+                eventImage.style.display = 'none'; // Hide while loading
+                eventImage.src = fullImagePath;
+            } else {
+                console.log('No image path provided for event');
+                // Clear image src when no path
+                eventImage.src = '';
+                eventImage.style.display = 'none';
+                // No image - use black background
+                eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+            }
+            
+            // Show overlay immediately but invisible
+            this.imageOverlayVisible = true;
+            this.imageToggleState = true; // Toggle is on by default
+            eventImageOverlay.classList.add('open');
+            
+            // Initial fade-in happens after zoom completes
+            // (Recentering delay only applies when dragging after event is already open)
+            setTimeout(() => {
+                if (imagePath) {
+                    // If there's an image, fade in the image directly (no black first)
+                    eventImage.classList.add('fade-in');
+                    // Disable page navigation buttons when image is fully visible
+                    // Wait for image fade-in to complete (600ms transition)
+                    setTimeout(() => {
+                        this.disablePageNavigationButtons(true);
+                    }, 600);
+                } else {
+                    // If no image, fade in black overlay
+                    eventImageOverlay.classList.add('fade-in');
+                    // Disable page navigation buttons when overlay is fully visible
+                    setTimeout(() => {
+                        this.disablePageNavigationButtons(true);
+                    }, 600);
+                }
+            }, 600); // Wait for zoom to complete (500ms) + small buffer
+            
+            // Store image path for later use
+            if (imagePath) {
+                this.pendingImagePath = imagePath;
+            } else {
+                this.pendingImagePath = null;
+            }
+            
+            // Setup image overlay interaction handlers
+            this.setupImageOverlayHandlers(eventImageOverlay);
+        } else {
+            this.imageOverlayVisible = false;
+            this.imageToggleState = false;
+        }
         
         // Update toggle button text
         if (imageToggleBtn) {
@@ -833,9 +739,58 @@ export class UIView {
             imageToggleBtn.onclick = () => this.toggleEventImage();
         }
         
-        // Setup glitch toggle button
+        // Setup glitch toggle button (only show if event contains "Olivia Colomar")
         const glitchToggleBtn = document.getElementById('eventGlitchToggle');
-        this.setupGlitchToggle(glitchToggleBtn, eventName, description, eventData);
+        const hasOliviaColomar = (eventName && /Olivia Colomar/gi.test(eventName)) || 
+                                 (description && /Olivia Colomar/gi.test(description)) ||
+                                 (eventData && eventData.variants && eventData.variants.some(v => 
+                                     (v.name && /Olivia Colomar/gi.test(v.name)) || 
+                                     (v.description && /Olivia Colomar/gi.test(v.description))
+                                 ));
+        
+        // Debug logging
+        console.log('Glitch detection:', {
+            eventName,
+            description,
+            hasOliviaColomar,
+            glitchToggleBtn: !!glitchToggleBtn,
+            globalGlitchEnabled,
+            soundManager: !!window.SoundEffectsManager
+        });
+        
+        if (glitchToggleBtn) {
+            if (hasOliviaColomar) {
+                glitchToggleBtn.style.display = 'block';
+                glitchToggleBtn.style.visibility = 'visible';
+                globalGlitchEnabled = true; // Reset to enabled when opening event
+                glitchToggleBtn.textContent = 'Disable Glitch';
+                glitchToggleBtn.onclick = () => this.toggleGlitchEffect();
+                
+                // Play hack on sound when opening event with glitch effect active (only if glitch is enabled)
+                // Use a small delay to ensure SoundEffectsManager is fully initialized
+                setTimeout(() => {
+                    if (globalGlitchEnabled && window.SoundEffectsManager && window.SoundEffectsManager.play) {
+                        console.log('Playing hackOn sound');
+                        try {
+                            window.SoundEffectsManager.play('hackOn', {
+                                playbackRate: 1.2, // Speed up by 20%
+                                fadeOut: true,
+                                fadeOutDuration: 500 // 500ms fade out
+                            });
+                        } catch (e) {
+                            console.error('Error playing hackOn sound:', e);
+                        }
+                        // Note: showHackedOverlay() is already called in showEventSlide(), no need to call it again here
+                    } else {
+                        console.log('Not playing sound - globalGlitchEnabled:', globalGlitchEnabled, 'SoundManager:', !!window.SoundEffectsManager, 'play method:', !!(window.SoundEffectsManager && window.SoundEffectsManager.play));
+                    }
+                }, 50);
+            } else {
+                glitchToggleBtn.style.display = 'none';
+            }
+        } else {
+            console.error('Glitch toggle button not found!');
+        }
         
         // Add close button handler (use addEventListener to avoid overwriting)
         const closeBtn = document.getElementById('eventSlideClose');

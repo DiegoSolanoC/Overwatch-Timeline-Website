@@ -3,23 +3,6 @@
  * Handles scene, camera, renderer, globe, markers, and UI state
  */
 export class SceneModel {
-    // Constants
-    static CAMERA_FOV = 45;
-    static CAMERA_NEAR = 0.1;
-    static CAMERA_FAR = 1000;
-    static MOBILE_BREAKPOINT = 768;
-    static CAMERA_POSITION_MOBILE_PORTRAIT = 5.5;
-    static CAMERA_POSITION_DEFAULT = 3.5;
-    static AMBIENT_LIGHT_COLOR = 0xffffff;
-    static AMBIENT_LIGHT_INTENSITY = 0.6;
-    static DIRECTIONAL_LIGHT_COLOR = 0xffffff;
-    static DIRECTIONAL_LIGHT_INTENSITY = 0.8;
-    static DIRECTIONAL_LIGHT_POSITION = { x: 5, y: 3, z: 5 };
-    static BACKGROUND_COLORS = {
-        GRAY: 0x0f0f0f,
-        BLUE: 0x050d18
-    };
-
     constructor() {
         // Three.js core objects
         this.scene = null;
@@ -66,25 +49,25 @@ export class SceneModel {
         // Check saved palette preference to set correct background color
         const savedPalette = localStorage.getItem('colorPalette');
         const isGray = savedPalette === 'gray';
-        const bgColor = isGray ? SceneModel.BACKGROUND_COLORS.GRAY : SceneModel.BACKGROUND_COLORS.BLUE;
+        const bgColor = isGray ? 0x0f0f0f : 0x050d18; // Darker gray/blue than panels for contrast
         console.log('Initializing scene with palette:', savedPalette || 'blue (default)', 'Background color:', '0x' + bgColor.toString(16));
         this.scene.background = new THREE.Color(bgColor);
 
         // Camera setup
         this.camera = new THREE.PerspectiveCamera(
-            SceneModel.CAMERA_FOV,
+            45,
             container.clientWidth / container.clientHeight,
-            SceneModel.CAMERA_NEAR,
-            SceneModel.CAMERA_FAR
+            0.1,
+            1000
         );
         
         // On mobile/vertical view, start more zoomed out to show Moon/Mars panels
-        const isMobile = window.innerWidth <= SceneModel.MOBILE_BREAKPOINT;
+        const isMobile = window.innerWidth <= 768;
         const isPortrait = container.clientHeight > container.clientWidth;
         const isMobilePortrait = isMobile && isPortrait;
         
         // Default camera position: more zoomed out on mobile portrait to show panels
-        this.camera.position.z = isMobilePortrait ? SceneModel.CAMERA_POSITION_MOBILE_PORTRAIT : SceneModel.CAMERA_POSITION_DEFAULT;
+        this.camera.position.z = isMobilePortrait ? 5.5 : 3.5;
         
         // Store mobile state for later use
         this.isMobilePortrait = isMobilePortrait;
@@ -97,22 +80,12 @@ export class SceneModel {
 
         // Add lighting for normal map visualization (MeshStandardMaterial needs lighting)
         // Ambient light for overall illumination
-        const ambientLight = new THREE.AmbientLight(
-            SceneModel.AMBIENT_LIGHT_COLOR,
-            SceneModel.AMBIENT_LIGHT_INTENSITY
-        );
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
         
         // Directional light to show normal map depth
-        const directionalLight = new THREE.DirectionalLight(
-            SceneModel.DIRECTIONAL_LIGHT_COLOR,
-            SceneModel.DIRECTIONAL_LIGHT_INTENSITY
-        );
-        directionalLight.position.set(
-            SceneModel.DIRECTIONAL_LIGHT_POSITION.x,
-            SceneModel.DIRECTIONAL_LIGHT_POSITION.y,
-            SceneModel.DIRECTIONAL_LIGHT_POSITION.z
-        );
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 3, 5);
         this.scene.add(directionalLight);
 
         // Initialize GLTF Loader
