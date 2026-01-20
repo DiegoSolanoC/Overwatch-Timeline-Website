@@ -688,7 +688,7 @@ async function loadGlobeBase() {
         
         // Load GlobeController module
         updateStatus('Loading GlobeController module...', 'info');
-        const { GlobeController } = await import('./controllers/GlobeController.js');
+        const { GlobeController } = await import('../controllers/GlobeController.js');
         
         // Initialize GlobeController
         updateStatus('Initializing GlobeController...', 'info');
@@ -984,7 +984,7 @@ async function loadControls() {
                         window.SoundEffectsManager.play('modeSwitch');
                     } else {
                         // Load and play if not already loaded
-                        window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+                        window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
                         setTimeout(() => {
                             window.SoundEffectsManager.play('modeSwitch');
                         }, 100);
@@ -1186,13 +1186,13 @@ async function loadMusic() {
             updateStatus('✓ Music sound effect loaded', 'success');
         }
         
-        // Initialize music panel (from script.js)
+        // Initialize music panel (using MusicManager service)
         updateStatus('Initializing music panel...', 'info');
-        if (typeof initMusicPanel === 'function') {
-            initMusicPanel();
+        if (window.MusicManager && typeof window.MusicManager.init === 'function') {
+            window.MusicManager.init();
             updateStatus('✓ Music panel initialized', 'success');
         } else {
-            updateStatus('⚠ initMusicPanel function not found - music panel may not work', 'error');
+            updateStatus('⚠ MusicManager not found - music panel may not work', 'error');
         }
         
         loadedComponents.music = true;
@@ -1338,7 +1338,7 @@ async function loadEvents() {
             // Load EventManager script dynamically
             await new Promise((resolve, reject) => {
                 const script = document.createElement('script');
-                script.src = 'js/EventManager.js?' + Date.now(); // Cache busting
+                script.src = 'src/managers/EventManager.js?' + Date.now(); // Cache busting
                 script.onload = async () => {
                     try {
                         // Wait a bit for EventManager to be available
@@ -1571,11 +1571,11 @@ async function loadEvents() {
         
         // Initialize filter panel functionality
         updateStatus('Initializing filter panel...', 'info');
-        if (typeof initFiltersPanel === 'function') {
-            initFiltersPanel();
+        if (window.FilterService && typeof window.FilterService.init === 'function') {
+            window.FilterService.init();
             updateStatus('✓ Filter panel initialized', 'success');
         } else {
-            updateStatus('⚠ initFiltersPanel function not found - filter panel may not work', 'error');
+            updateStatus('⚠ FilterService not found - filter panel may not work', 'error');
         }
         
         // Setup event listeners AFTER all buttons and panels are created
@@ -1972,7 +1972,7 @@ async function runGlobeComponents(isAutoLoad = false) {
             window.SoundEffectsManager.play('modeSwitch');
         } else {
             // Load and play if not already loaded
-            window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+            window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
             setTimeout(() => {
                 window.SoundEffectsManager.play('modeSwitch');
             }, 100);
@@ -2215,7 +2215,7 @@ async function runGlossaryComponents(isAutoLoad = false) {
             window.SoundEffectsManager.play('modeSwitch');
         } else {
             // Load and play if not already loaded
-            window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+            window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
             setTimeout(() => {
                 window.SoundEffectsManager.play('modeSwitch');
             }, 100);
@@ -2279,7 +2279,7 @@ async function runBiographyComponents(isAutoLoad = false) {
             window.SoundEffectsManager.play('modeSwitch');
         } else {
             // Load and play if not already loaded
-            window.SoundEffectsManager.loadSound('modeSwitch', 'Music/Mode Switch.mp3');
+            window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
             setTimeout(() => {
                 window.SoundEffectsManager.play('modeSwitch');
             }, 100);

@@ -1,80 +1,7 @@
 /**
- * Generate random glitch character (includes numbers)
+ * UIView - Handles UI elements (labels, buttons, toggles)
+ * Note: Glitch text functionality is now handled by GlitchTextService
  */
-function getRandomGlitchChar() {
-    const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`0123456789';
-    return chars[Math.floor(Math.random() * chars.length)];
-}
-
-/**
- * Helper function to apply display transformations to text
- * Maps normal text to glitchy text for display purposes
- * Works for both event names and descriptions
- * Returns HTML with glitchy text overlay effect
- */
-// Global glitch enabled state (can be accessed by UIView instance)
-let globalGlitchEnabled = true;
-
-function getDisplayText(text) {
-    if (!text) return text;
-    
-    // Convert newlines to <br> tags to preserve paragraph spacing
-    // First preserve line breaks by normalizing multiple newlines
-    let processedText = text;
-    
-    // Normalize multiple newlines to double newlines (paragraph breaks)
-    processedText = processedText.replace(/\n\n+/g, '\n\n');
-    
-    // Only apply glitch if enabled
-    if (!globalGlitchEnabled) {
-        // Convert newlines to <br> tags
-        processedText = processedText.replace(/\n/g, '<br>');
-        return processedText;
-    }
-    
-    // First, replace "Olivia Colomar" as a whole (full name together)
-    // Use a unique placeholder to mark already processed text
-    const placeholders = [];
-    let placeholderIndex = 0;
-    
-    // Replace full "Olivia Colomar" first (case-insensitive, with word boundaries to avoid partial matches)
-    processedText = processedText.replace(/\bOlivia\s+Colomar\b/gi, (match) => {
-        const placeholder = `__GLITCH_FULL_${placeholderIndex}__`;
-        const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
-        placeholders[placeholderIndex] = `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
-        placeholderIndex++;
-        return placeholder;
-    });
-    
-    // Then replace "Olivia" individually (word boundary ensures it's not part of "Olivia Colomar" which is already replaced)
-    processedText = processedText.replace(/\bOlivia\b/gi, (match) => {
-        const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
-        return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
-    });
-    
-    // Then replace "Colomar" individually (word boundary ensures it's not part of "Olivia Colomar" which is already replaced)
-    processedText = processedText.replace(/\bColomar\b/gi, (match) => {
-        const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
-        return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
-    });
-    
-    // Restore placeholders (full "Olivia Colomar" replacements)
-    placeholders.forEach((replacement, index) => {
-        processedText = processedText.replace(`__GLITCH_FULL_${index}__`, replacement);
-    });
-    
-    // Convert newlines to <br> tags after glitch processing
-    processedText = processedText.replace(/\n/g, '<br>');
-    
-    return processedText;
-}
-
-/**
- * Helper function for backward compatibility (event names)
- */
-function getDisplayEventName(eventName) {
-    return getDisplayText(eventName);
-}
 
 /**
  * Helper function to get hero display name (maps filename to display name)
@@ -106,7 +33,6 @@ export class UIView {
         this.lastGlobeRotation = null; // Track last globe rotation for stillness detection
         this.stillnessStartTime = null; // When camera/globe became still
         this.wasDragging = false; // Track previous dragging state to detect drag start
-        this.glitchInterval = null; // Interval for glitch animation
     }
 
     /**
@@ -350,7 +276,7 @@ export class UIView {
                 eventData.variants.forEach((variant, index) => {
                     const btn = document.createElement('button');
                     btn.className = 'variant-toggle-btn';
-                    btn.innerHTML = getDisplayEventName(variant.name) || `Variant ${index + 1}`;
+                    btn.innerHTML = (window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(variant.name) : variant.name) || `Variant ${index + 1}`;
                     btn.dataset.variantIndex = index;
                     if (index === initialVariantIndex) {
                         btn.classList.add('active');
@@ -394,7 +320,7 @@ export class UIView {
             };
             
             // Update title with fade
-            updateContentWithFade(eventSlideTitle, getDisplayEventName(eventName));
+            updateContentWithFade(eventSlideTitle, window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(eventName) : eventName);
             
             // Display location between title and description
             const eventSlideLocation = document.getElementById('eventSlideLocation');
@@ -548,18 +474,20 @@ export class UIView {
             }
             
             // Update description with fade
-            updateContentWithFade(eventSlideText, getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.'));
+            updateContentWithFade(eventSlideText, window.GlitchTextService ? window.GlitchTextService.getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.') : (description || 'Placeholder text for event information. This will be replaced with actual event details.'));
             
             // Start glitch character animation for any glitchy text overlays (only if enabled)
-            if (globalGlitchEnabled) {
-                this.startGlitchAnimation();
+            if (window.GlitchTextService && window.GlitchTextService.isEnabled()) {
+                window.GlitchTextService.startAnimation();
                 // Show hacked image overlay when opening event with glitch enabled
                 // Wait for slide animation to complete (300ms) + buffer for text rendering
                 setTimeout(() => {
                     this.showHackedOverlay();
                 }, 400); // Wait for slide transition (300ms) + 100ms buffer for text rendering
             } else {
-                this.stopGlitchAnimation();
+                if (window.GlitchTextService) {
+                    window.GlitchTextService.stopAnimation();
+                }
             }
             
             // Get current variant or main event
@@ -754,7 +682,7 @@ export class UIView {
             description,
             hasOliviaColomar,
             glitchToggleBtn: !!glitchToggleBtn,
-            globalGlitchEnabled,
+            glitchEnabled: window.GlitchTextService ? window.GlitchTextService.isEnabled() : false,
             soundManager: !!window.SoundEffectsManager
         });
         
@@ -762,14 +690,16 @@ export class UIView {
             if (hasOliviaColomar) {
                 glitchToggleBtn.style.display = 'block';
                 glitchToggleBtn.style.visibility = 'visible';
-                globalGlitchEnabled = true; // Reset to enabled when opening event
+                if (window.GlitchTextService) {
+                    window.GlitchTextService.setEnabled(true); // Reset to enabled when opening event
+                }
                 glitchToggleBtn.textContent = 'Disable Glitch';
                 glitchToggleBtn.onclick = () => this.toggleGlitchEffect();
                 
                 // Play hack on sound when opening event with glitch effect active (only if glitch is enabled)
                 // Use a small delay to ensure SoundEffectsManager is fully initialized
                 setTimeout(() => {
-                    if (globalGlitchEnabled && window.SoundEffectsManager && window.SoundEffectsManager.play) {
+                    if (window.GlitchTextService && window.GlitchTextService.isEnabled() && window.SoundEffectsManager && window.SoundEffectsManager.play) {
                         console.log('Playing hackOn sound');
                         try {
                             window.SoundEffectsManager.play('hackOn', {
@@ -782,7 +712,7 @@ export class UIView {
                         }
                         // Note: showHackedOverlay() is already called in showEventSlide(), no need to call it again here
                     } else {
-                        console.log('Not playing sound - globalGlitchEnabled:', globalGlitchEnabled, 'SoundManager:', !!window.SoundEffectsManager, 'play method:', !!(window.SoundEffectsManager && window.SoundEffectsManager.play));
+                        console.log('Not playing sound - glitchEnabled:', window.GlitchTextService ? window.GlitchTextService.isEnabled() : false, 'SoundManager:', !!window.SoundEffectsManager, 'play method:', !!(window.SoundEffectsManager && window.SoundEffectsManager.play));
                     }
                 }, 50);
             } else {
@@ -1291,10 +1221,10 @@ export class UIView {
         const eventSlideTitle = document.getElementById('eventSlideTitle');
         const eventSlideText = document.getElementById('eventSlideText');
         if (eventSlideTitle) {
-            eventSlideTitle.innerHTML = getDisplayEventName(variant.name) || `Variant ${variantIndex + 1}`;
+            eventSlideTitle.innerHTML = (window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(variant.name) : variant.name) || `Variant ${variantIndex + 1}`;
         }
         if (eventSlideText) {
-            eventSlideText.innerHTML = getDisplayText(variant.description || 'No description');
+            eventSlideText.innerHTML = window.GlitchTextService ? window.GlitchTextService.getDisplayText(variant.description || 'No description') : (variant.description || 'No description');
         }
         
         // Play switch event sound when switching variants
@@ -1303,10 +1233,12 @@ export class UIView {
         }
         
         // Start glitch character animation for any glitchy text overlays (only if enabled)
-        if (globalGlitchEnabled) {
-            this.startGlitchAnimation();
+        if (window.GlitchTextService && window.GlitchTextService.isEnabled()) {
+            window.GlitchTextService.startAnimation();
         } else {
-            this.stopGlitchAnimation();
+            if (window.GlitchTextService) {
+                window.GlitchTextService.stopAnimation();
+            }
         }
 
         // Update sources and filters sections (using shared helper functions)
@@ -1413,66 +1345,44 @@ export class UIView {
      * Toggle glitch effect for Olivia Colomar text
      */
     toggleGlitchEffect() {
-        const wasEnabled = globalGlitchEnabled;
-        globalGlitchEnabled = !globalGlitchEnabled;
+        if (!window.GlitchTextService) {
+            console.warn('GlitchTextService not available');
+            return;
+        }
+        
         const glitchToggleBtn = document.getElementById('eventGlitchToggle');
         const eventSlideTitle = document.getElementById('eventSlideTitle');
         const eventSlideText = document.getElementById('eventSlideText');
         
-        // Play appropriate hack sound when toggling glitch effect
-        if (window.SoundEffectsManager && window.SoundEffectsManager.play) {
-            try {
-                if (globalGlitchEnabled) {
-                    // Toggling ON
-                    console.log('Playing hackOn sound (toggle)');
-                    window.SoundEffectsManager.play('hackOn', {
-                        playbackRate: 1.2, // Speed up by 20%
-                        fadeOut: true,
-                        fadeOutDuration: 500 // 500ms fade out
-                    });
-                } else {
-                    // Toggling OFF
-                    console.log('Playing hackOff sound (toggle)');
-                    window.SoundEffectsManager.play('hackOff', {
-                        playbackRate: 1.2 // Speed up by 20%
-                    });
-                }
-            } catch (e) {
-                console.error('Error playing hack sound:', e);
+        // Get current event data for title and text
+        let titleText = null;
+        let textText = null;
+        
+        if (this.currentEventData) {
+            const isMultiEvent = this.currentEventData.variants && this.currentEventData.variants.length > 0;
+            const currentEvent = isMultiEvent ? this.currentEventData.variants[this.currentVariantIndex] : this.currentEventData;
+            if (currentEvent) {
+                titleText = currentEvent.name || (this.currentEventMarker ? this.currentEventMarker.userData.eventName : 'Event');
+                textText = currentEvent.description || 'Placeholder text for event information.';
             }
-        } else {
-            console.warn('SoundEffectsManager not available for toggle');
         }
         
-        if (glitchToggleBtn) {
-            glitchToggleBtn.textContent = globalGlitchEnabled ? 'Disable Glitch' : 'Enable Glitch';
-        }
-        
-        // Re-render title and description with updated glitch state
-        if (eventSlideTitle && this.currentEventData) {
-            const isMultiEvent = this.currentEventData.variants && this.currentEventData.variants.length > 0;
-            const currentEvent = isMultiEvent ? this.currentEventData.variants[this.currentVariantIndex] : this.currentEventData;
-            const eventName = currentEvent.name || (this.currentEventMarker ? this.currentEventMarker.userData.eventName : 'Event');
-            eventSlideTitle.innerHTML = getDisplayEventName(eventName);
-        }
-        
-        if (eventSlideText && this.currentEventData) {
-            const isMultiEvent = this.currentEventData.variants && this.currentEventData.variants.length > 0;
-            const currentEvent = isMultiEvent ? this.currentEventData.variants[this.currentVariantIndex] : this.currentEventData;
-            const description = currentEvent.description || 'Placeholder text for event information.';
-            eventSlideText.innerHTML = getDisplayText(description);
-        }
-        
-        // Update glitch animation based on state
-        if (globalGlitchEnabled) {
-            this.startGlitchAnimation();
-            // Show hacked image overlay after a brief delay to ensure glitchy text is rendered
-            setTimeout(() => {
-                this.showHackedOverlay();
-            }, 50);
-        } else {
-            this.stopGlitchAnimation();
-        }
+        // Use the service's toggle method
+        const newState = window.GlitchTextService.toggleEffect({
+            titleElement: eventSlideTitle,
+            textElement: eventSlideText,
+            titleText: titleText,
+            textText: textText,
+            toggleButton: glitchToggleBtn,
+            onToggle: (enabled, wasEnabled) => {
+                // Show hacked image overlay if enabled
+                if (enabled) {
+                    setTimeout(() => {
+                        this.showHackedOverlay();
+                    }, 50);
+                }
+            }
+        });
     }
     
     /**
@@ -1853,7 +1763,9 @@ export class UIView {
      */
     hideEventSlide() {
         // Stop glitch animation when hiding slide
-        this.stopGlitchAnimation();
+        if (window.GlitchTextService) {
+            window.GlitchTextService.stopAnimation();
+        }
         // Only play event click sound if an event was actually open
         if (this.currentEventMarker && window.SoundEffectsManager) {
             window.SoundEffectsManager.play('eventClick');
@@ -2913,36 +2825,21 @@ export class UIView {
      * Start glitch animation for glitchy text overlays
      * Constantly changes the random characters in the overlay
      */
+    /**
+     * Start glitch animation (delegates to GlitchTextService)
+     */
     startGlitchAnimation() {
-        // Clear any existing interval
-        if (this.glitchInterval) {
-            clearInterval(this.glitchInterval);
+        if (window.GlitchTextService) {
+            window.GlitchTextService.startAnimation();
         }
-        
-        // Update glitch characters every 100ms
-        this.glitchInterval = setInterval(() => {
-            const overlays = document.querySelectorAll('.glitchy-text-overlay');
-            overlays.forEach(overlay => {
-                const container = overlay.parentElement;
-                if (container && container.querySelector('.glitchy-text-base')) {
-                    const baseText = container.querySelector('.glitchy-text-base').textContent;
-                    // Generate new random characters - exactly matching the character count of base text
-                    const newGlitch = baseText.split('').map(() => getRandomGlitchChar()).join('');
-                    overlay.textContent = newGlitch;
-                    // Ensure overlay doesn't exceed base text width
-                    overlay.style.maxWidth = '100%';
-                }
-            });
-        }, 100);
     }
     
     /**
-     * Stop glitch animation
+     * Stop glitch animation (delegates to GlitchTextService)
      */
     stopGlitchAnimation() {
-        if (this.glitchInterval) {
-            clearInterval(this.glitchInterval);
-            this.glitchInterval = null;
+        if (window.GlitchTextService) {
+            window.GlitchTextService.stopAnimation();
         }
     }
     

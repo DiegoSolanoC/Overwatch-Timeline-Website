@@ -1,0 +1,136 @@
+﻿/* Sidebar Navigation */
+.sidebar {
+    position: fixed;
+    right: -200px;
+    top: 60px;
+    bottom: 52px;
+    width: 200px;
+    max-width: 90vw; /* Prevent full screen on mobile */
+    background: #0D47A1;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-shadow: none; /* Shadow removed */
+    transition: right 0.3s ease;
+    z-index: 50;
+    overflow-y: auto;
+    margin: 0;
+    border: none;
+    box-sizing: border-box;
+    /* Ensure no gaps - extend slightly to cover any shadow gaps */
+    margin-top: -1px;
+    margin-bottom: -1px;
+    /* Ensure sidebar is properly hidden when not visible */
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.sidebar.visible {
+    right: 0;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Sidebar Trigger Area - invisible hover zone */
+.sidebar-trigger {
+    position: fixed;
+    right: 0;
+    top: 60px;
+    bottom: 48px;
+    width: 20px;
+    z-index: 40;
+    cursor: pointer;
+}
+
+/* Visual indicator for sidebar */
+.sidebar-indicator {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 80px;
+    background: rgba(13, 71, 161, 0.6);
+    border-radius: 5px 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    z-index: 30;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Mobile: Keep sidebar button on the side like desktop */
+@media (max-width: 768px) {
+    .sidebar-indicator {
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 80px;
+        border-radius: 5px 0 0 5px;
+    }
+}
+
+.sidebar-indicator:hover {
+    background: rgba(13, 71, 161, 0.9);
+    width: 35px;
+}
+
+/* Keep indicator visible when sidebar is open, just move it */
+.sidebar.visible ~ .sidebar-indicator {
+    right: 200px;
+}
+
+@media (max-width: 768px) {
+    .sidebar.visible ~ .sidebar-indicator {
+        right: 200px; /* Move when sidebar opens, same as desktop */
+    }
+}
+
+/* Sidebar Close Button */
+.sidebar-close {
+    padding: 1rem;
+    text-align: right;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ff4444;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-right: 3px solid transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    font-size: 1rem;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.sidebar button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.sidebar button.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-right-color: #64B5F6;
+    font-weight: bold;
+}
+

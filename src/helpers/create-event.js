@@ -4,7 +4,7 @@
  * This script helps create events by looking up city coordinates automatically.
  * 
  * Usage:
- * 1. Run this script: node helpers/create-event.js
+ * 1. Run this script: node src/helpers/create-event.js
  * 2. Or use the function directly in your code
  * 
  * Example:

@@ -1,53 +1,7 @@
 /**
- * Generate random glitch character
+ * EventManager - Handles event management UI and operations
+ * Note: Glitch text functionality is now handled by GlitchTextService
  */
-function getRandomGlitchChar() {
-    const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`';
-    return chars[Math.floor(Math.random() * chars.length)];
-}
-
-/**
- * Helper function to apply display transformations to event names
- * Maps normal text to glitchy text for display purposes
- * Returns HTML with glitchy text overlay effect
- */
-function getDisplayEventName(eventName) {
-    if (!eventName) return eventName;
-    
-    // Use the same logic as getDisplayText - handle "Olivia Colomar" as whole first, then individual words
-    // First, replace "Olivia Colomar" as a whole (full name together)
-    let processedText = eventName;
-    const placeholders = [];
-    let placeholderIndex = 0;
-    
-    // Replace full "Olivia Colomar" first (case-insensitive, with word boundaries)
-    processedText = processedText.replace(/\bOlivia\s+Colomar\b/gi, (match) => {
-        const placeholder = `__GLITCH_FULL_${placeholderIndex}__`;
-        const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
-        placeholders[placeholderIndex] = `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
-        placeholderIndex++;
-        return placeholder;
-    });
-    
-    // Then replace "Olivia" individually
-    processedText = processedText.replace(/\bOlivia\b/gi, (match) => {
-            const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
-            return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
-        });
-    
-    // Then replace "Colomar" individually
-    processedText = processedText.replace(/\bColomar\b/gi, (match) => {
-        const glitchOverlay = match.split('').map(() => getRandomGlitchChar()).join('');
-        return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
-    });
-    
-    // Restore placeholders (full "Olivia Colomar" replacements)
-    placeholders.forEach((replacement, index) => {
-        processedText = processedText.replace(`__GLITCH_FULL_${index}__`, replacement);
-    });
-    
-    return processedText;
-}
 
 /**
  * EventManager - Handles event management UI and operations
@@ -1354,7 +1308,7 @@ class EventManager {
             ${eventNumberBadge}
             </div>
             <div class="event-item-info">
-                <h3 class="event-item-title">${getDisplayEventName(displayEvent.name)}</h3>
+                <h3 class="event-item-title">${window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(displayEvent.name) : displayEvent.name}</h3>
                 <p class="event-item-location"><img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
             </div>
             ${actionButtons}
@@ -1473,7 +1427,7 @@ class EventManager {
         // Update title
         const titleElement = itemElement.querySelector('.event-item-title');
         if (titleElement) {
-            titleElement.textContent = getDisplayEventName(variant.name);
+            titleElement.innerHTML = window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(variant.name) : variant.name;
         }
         
         // Update location

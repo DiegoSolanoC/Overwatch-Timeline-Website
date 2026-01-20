@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Main - Timeline Overwatch</title>
     <link rel="icon" type="image/png" href="assets/images/icons/Icon.png">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles/main.css?v=6">
     <style>
         /* Ensure main element properly contains containers */
         main#content {
@@ -577,14 +577,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     
-    <!-- Load test-loader for component management -->
-    <script type="module" src="test-loader.js"></script>
+    <!-- Load component loader for globe/menu/features -->
+    <script type="module" src="src/app/component-loader.js"></script>
+    
+    <!-- Load services -->
+    <script src="src/services/SoundEffectsManager.js"></script>
+    <script src="src/services/GlitchTextService.js"></script>
+    <script src="src/services/MusicManager.js"></script>
+    <script src="src/services/FilterService.js"></script>
+    <script src="src/services/SidebarService.js"></script>
     
     <!-- Load main script for sidebar and other UI -->
     <script src="script.js"></script>
     
     <!-- Shared page initialization (sidebar visibility, loader, zoom controls) -->
-    <script src="js/page-init.js"></script>
+    <script src="src/app/page-init.js"></script>
 </body>
 </html>
 
