@@ -19,6 +19,7 @@ export class SceneModel {
         // Interaction state
         this.isDragging = false;
         this.previousMousePosition = { x: 0, y: 0 };
+        this.initialTouchPosition = null; // Track initial touch position to detect drag vs tap
         this.rotationVelocity = { x: 0, y: 0 };
         this.autoRotate = true;
         this.activeMarker = null;

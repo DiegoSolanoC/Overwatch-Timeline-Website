@@ -58,9 +58,10 @@ export class InteractionController {
         container.addEventListener('mouseup', () => this.onMouseUp());
         container.addEventListener('mouseleave', () => this.onMouseUp());
         container.addEventListener('click', (e) => this.onMarkerClick(e));
-        container.addEventListener('touchstart', (e) => this.onTouchStart(e));
-        container.addEventListener('touchmove', (e) => this.onTouchMove(e));
-        container.addEventListener('touchend', () => this.onMouseUp());
+        // Use { passive: false } for touch events so we can preventDefault to stop page scrolling
+        container.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
+        container.addEventListener('touchmove', (e) => this.onTouchMove(e), { passive: false });
+        container.addEventListener('touchend', () => this.onMouseUp(), { passive: false });
         container.addEventListener('wheel', (e) => this.onWheel(e));
     }
 
@@ -650,6 +651,9 @@ export class InteractionController {
         const sceneModel = this.sceneModel;
         sceneModel.setDragging(false);
         
+        // Clear initial touch position
+        sceneModel.initialTouchPosition = null;
+        
         // Set timeout to resume auto-rotation after inactivity
         if (sceneModel.getAutoRotateEnabled() && sceneModel.autoRotateTimeout) {
             clearTimeout(sceneModel.autoRotateTimeout);
@@ -999,9 +1003,12 @@ export class InteractionController {
             }
             // Marker clicking disabled - labels no longer shown for cities/seaports
         } else {
-            // Clicked elsewhere - hide label and close slide
+            // Clicked elsewhere - hide label
             this.uiView.hideCityLabel();
-            this.uiView.hideEventSlide();
+            // Only close event slide if one is actually open (don't reset camera if user manually zoomed)
+            if (this.uiView.currentEventMarker) {
+                this.uiView.hideEventSlide();
+            }
         }
     }
 
@@ -1020,6 +1027,12 @@ export class InteractionController {
                 x: touch.clientX,
                 y: touch.clientY
             });
+            
+            // Track initial touch position to detect if it's a drag vs tap
+            sceneModel.initialTouchPosition = {
+                x: touch.clientX,
+                y: touch.clientY
+            };
             
             // Notify UI that dragging started (to hide image overlay if visible)
             if (this.uiView) {
@@ -1040,6 +1053,24 @@ export class InteractionController {
             const touch = event.touches[0];
             const deltaX = touch.clientX - sceneModel.getPreviousMousePosition().x;
             const deltaY = touch.clientY - sceneModel.getPreviousMousePosition().y;
+            
+            // Check if this is a significant movement (not just a tap)
+            const initialPos = sceneModel.initialTouchPosition;
+            if (initialPos) {
+                const totalDeltaX = Math.abs(touch.clientX - initialPos.x);
+                const totalDeltaY = Math.abs(touch.clientY - initialPos.y);
+                const totalMovement = Math.sqrt(totalDeltaX * totalDeltaX + totalDeltaY * totalDeltaY);
+                
+                // If movement is significant (more than 5px), prevent page scrolling
+                if (totalMovement > 5) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            } else {
+                // Fallback: always prevent if we don't have initial position
+                event.preventDefault();
+                event.stopPropagation();
+            }
             
             const globe = sceneModel.getGlobe();
             if (globe) {
@@ -1072,6 +1103,12 @@ export class InteractionController {
         
         camera.position.z += delta;
         camera.position.z = Math.max(minZoom, Math.min(maxZoom, camera.position.z));
+        
+        // Clear stored original position when manually zooming (so clicking globe doesn't reset)
+        if (this.uiView) {
+            this.uiView.originalCameraPosition = null;
+            this.uiView.originalGlobeRotation = null;
+        }
     }
 
     /**
@@ -1089,6 +1126,12 @@ export class InteractionController {
             
             camera.position.z -= delta;
             camera.position.z = Math.max(minZoom, Math.min(maxZoom, camera.position.z));
+            
+            // Clear stored original position when manually zooming (so clicking globe doesn't reset)
+            if (this.uiView) {
+                this.uiView.originalCameraPosition = null;
+                this.uiView.originalGlobeRotation = null;
+            }
         }
     }
 
@@ -1107,6 +1150,12 @@ export class InteractionController {
             
             camera.position.z += delta;
             camera.position.z = Math.max(minZoom, Math.min(maxZoom, camera.position.z));
+            
+            // Clear stored original position when manually zooming (so clicking globe doesn't reset)
+            if (this.uiView) {
+                this.uiView.originalCameraPosition = null;
+                this.uiView.originalGlobeRotation = null;
+            }
         }
     }
 

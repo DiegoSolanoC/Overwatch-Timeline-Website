@@ -1950,10 +1950,18 @@ export class UIView {
         
         // Clear current event data
         this.currentEventData = null;
+        const hadEventMarker = this.currentEventMarker !== null;
         this.currentEventMarker = null;
         
-        // Zoom out and restore camera position
-        this.zoomOutFromEvent();
+        // Only zoom out and restore camera position if we actually zoomed to an event
+        // (i.e., if originalCameraPosition was set from zoomToMarker)
+        if (hadEventMarker && this.originalCameraPosition) {
+            this.zoomOutFromEvent();
+        } else {
+            // Clear any stored original position if no event was open
+            this.originalCameraPosition = null;
+            this.originalGlobeRotation = null;
+        }
         
         // Clear event marker and restore previous auto-rotate state
         this.sceneModel.eventMarker = null;
