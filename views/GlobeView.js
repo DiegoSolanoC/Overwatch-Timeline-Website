@@ -27,14 +27,14 @@ export class GlobeView {
         // Check saved palette preference to load correct texture
         const savedPalette = localStorage.getItem('colorPalette');
         const isGray = savedPalette === 'gray';
-        const initialTexturePath = isGray ? 'Maps/MAP Black.png' : 'Maps/MAP.png';
+        const initialTexturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
         console.log('Initializing globe with palette:', savedPalette || 'blue (default)', 'Texture:', initialTexturePath);
         
         // Load Earth texture
         const textureLoader = new THREE.TextureLoader();
         
         // Load normal map
-        const normalMapPath = 'Maps/MAP Normal.png';
+        const normalMapPath = 'assets/images/maps/MAP Normal.png';
         const normalMap = textureLoader.load(
             normalMapPath,
             (texture) => {
@@ -87,7 +87,7 @@ export class GlobeView {
         );
         
         // Preload the other texture to avoid delay when switching palettes
-        const otherTexturePath = isGray ? 'Maps/MAP.png' : 'Maps/MAP Black.png';
+        const otherTexturePath = isGray ? 'assets/images/maps/MAP.png' : 'assets/images/maps/MAP Black.png';
         textureLoader.load(otherTexturePath, (texture) => {
             // Improve texture quality
             const renderer = this.sceneModel.getRenderer();
@@ -117,7 +117,7 @@ export class GlobeView {
         // Create Moon and Mars planes at the same time as globe
         // Moon plane - smaller, to the right of globe
         const moonGeometry = new THREE.PlaneGeometry(0.4, 0.4);
-        const moonTexturePath = isGray ? 'Misc/Moon_Dark.png' : 'Misc/Moon.png';
+        const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
         const moonTexture = textureLoader.load(moonTexturePath, (texture) => {
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
             texture.minFilter = THREE.LinearFilter;
@@ -155,7 +155,7 @@ export class GlobeView {
 
         // Mars plane - smaller, to the right of globe
         const marsGeometry = new THREE.PlaneGeometry(0.4, 0.4);
-        const marsTexturePath = isGray ? 'Misc/Mars_Dark.png' : 'Misc/Mars.png';
+        const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
         const marsTexture = textureLoader.load(marsTexturePath, (texture) => {
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
             texture.minFilter = THREE.LinearFilter;
@@ -375,7 +375,7 @@ export class GlobeView {
         // Create Moon plane - following same pattern as globe
         const moonGeometry = new THREE.PlaneGeometry(1.5, 1.5);
         const moonTexture = textureLoader.load(
-            'Misc/Moon.png',
+            'assets/images/misc/Moon.png',
             (texture) => {
                 texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
                 texture.minFilter = THREE.LinearFilter;
@@ -402,7 +402,7 @@ export class GlobeView {
         // Create Mars plane - following same pattern as globe
         const marsGeometry = new THREE.PlaneGeometry(1.5, 1.5);
         const marsTexture = textureLoader.load(
-            'Misc/Mars.png',
+            'assets/images/misc/Mars.png',
             (texture) => {
                 texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
                 texture.minFilter = THREE.LinearFilter;

@@ -1355,7 +1355,7 @@ class EventManager {
             </div>
             <div class="event-item-info">
                 <h3 class="event-item-title">${getDisplayEventName(displayEvent.name)}</h3>
-                <p class="event-item-location"><img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
+                <p class="event-item-location"><img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}`}</p>
             </div>
             ${actionButtons}
         `;
@@ -1498,7 +1498,7 @@ class EventManager {
                     locationName = variantLocationType === 'moon' ? 'Moon' : 'Mars';
                 }
             }
-            locationElement.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || 'Unknown'}`;
+            locationElement.innerHTML = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || 'Unknown'}`;
         }
         
         // Update badge text
@@ -1773,7 +1773,7 @@ class EventManager {
                     const event = this.events[itemIndex];
                     const tolerance = 0.01;
                     if (Math.abs(event.lat - lat) < tolerance && Math.abs(event.lon - lon) < tolerance) {
-                        locationEl.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+                        locationEl.innerHTML = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
                     }
                 }
             }
@@ -3129,13 +3129,13 @@ class EventManager {
                 return current;
             };
             
-            // If path already contains Event Images/, encode just the filename
+            // If path already contains Event Images/, normalize to assets/images/events and encode just the filename
             const folderPattern = /Event(?:%20| )Images\//;
             if (folderPattern.test(path)) {
                 const parts = path.split(/Event(?:%20| )Images\//);
                 if (parts.length === 2) {
                     let filename = fullyDecode(parts[1]);
-                    return `Event%20Images/${encodeURIComponent(filename)}`;
+                    return `assets/images/events/${encodeURIComponent(filename)}`;
                 }
             }
             // If it's a full path, try to encode just the filename part
@@ -3155,7 +3155,7 @@ class EventManager {
             return encodeImagePath(providedPath.trim());
         }
         
-        // Otherwise, try to find image in Event Images folder
+        // Otherwise, try to find image in events images folder
         // Use the exact event name (preserve all characters including glitchy text)
         // Only normalize multiple spaces to single space
         let normalizedName = eventName.replace(/\s+/g, ' ').trim();
@@ -3182,7 +3182,7 @@ class EventManager {
         // Encode the filename to handle spaces and special characters in URLs
         // Split the path so we only encode the filename, not the folder name
         const encodedFileName = encodeURIComponent(normalizedName);
-        const imagePath = `Event%20Images/${encodedFileName}.png`;
+        const imagePath = `assets/images/events/${encodedFileName}.png`;
         
         // Return the path (browser will handle 404 if image doesn't exist)
         // No console log to reduce noise - 404s are expected for missing images

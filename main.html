@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Main - Timeline Overwatch</title>
-    <link rel="icon" type="image/png" href="Icons/Icon.png">
+    <link rel="icon" type="image/png" href="assets/images/icons/Icon.png">
     <link rel="stylesheet" href="styles.css?v=5">
     <style>
         /* Ensure main element properly contains containers */
@@ -400,7 +400,6 @@
 
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-close" id="sidebarClose">&times;</div>
-            <button onclick="window.location.href='map.html'">Map</button>
             <button onclick="window.location.href='test.html'">Test</button>
             <button onclick="window.location.href='main.html'" class="active">Main</button>
         </nav>
@@ -410,7 +409,7 @@
         <!-- Loading Overlay (fades in during Globe Components loading) -->
         <div class="loading-overlay" id="loadingOverlay">
             <div class="loading-status-overlay">
-                <img src="Misc/loading.gif" alt="Loading" class="loading-gif" id="loadingGif">
+                <img src="assets/images/misc/loading.gif" alt="Loading" class="loading-gif" id="loadingGif">
                 <h3>Loading Status</h3>
                 <div class="loading-progress-container">
                     <div class="loading-progress-bar" id="loadingProgressBar"></div>
@@ -584,222 +583,8 @@
     <!-- Load main script for sidebar and other UI -->
     <script src="script.js"></script>
     
-    <!-- Hide sidebar on GitHub Pages -->
-    <script>
-        // Check if we're on GitHub Pages
-        function isGitHubPages() {
-            const hostname = window.location.hostname;
-            return hostname.includes('github.io') || 
-                   hostname.includes('github.com') ||
-                   (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.') && !hostname.startsWith('10.') && window.location.protocol !== 'file:');
-        }
-        
-        // Hide sidebar on GitHub Pages
-        if (isGitHubPages()) {
-            document.addEventListener('DOMContentLoaded', function() {
-                const sidebar = document.getElementById('sidebar');
-                const sidebarIndicator = document.getElementById('sidebarIndicator');
-                if (sidebar) {
-                    sidebar.style.display = 'none';
-                    sidebar.style.visibility = 'hidden';
-                }
-                if (sidebarIndicator) {
-                    sidebarIndicator.style.display = 'none';
-                    sidebarIndicator.style.visibility = 'hidden';
-                }
-            });
-        }
-    </script>
-    
-    <!-- Auto-load Universal Features and Menu Components on main.html -->
-    <script>
-        // Wait for DOM and test-loader to be ready
-        window.addEventListener('DOMContentLoaded', function() {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            
-            // Show loading overlay immediately
-            if (loadingOverlay) {
-                loadingOverlay.classList.add('active');
-            }
-            
-            // Update loading status using overlayStatusContent
-            function updateLoadingStatus(message) {
-                const overlayStatusContent = document.getElementById('overlayStatusContent');
-                if (overlayStatusContent) {
-                    overlayStatusContent.innerHTML = '';
-                    const item = document.createElement('div');
-                    item.className = 'test-status-item info';
-                    item.textContent = message;
-                    overlayStatusContent.appendChild(item);
-                }
-            }
-            
-            // Wait a bit for test-loader.js to initialize
-            setTimeout(async function() {
-                console.log('[main.html] Auto-loading Universal Features and Menu Components...');
-                updateLoadingStatus('Loading Universal Features...');
-                
-                // Auto-load Universal Features (Palette + Music)
-                if (typeof window.runUniversalFeatures === 'function') {
-                    try {
-                        await window.runUniversalFeatures();
-                        console.log('[main.html] ✓ Universal Features auto-loaded');
-                        updateLoadingStatus('Loading Menu Components...');
-                    } catch (error) {
-                        console.error('[main.html] Error auto-loading Universal Features:', error);
-                        updateLoadingStatus('Error loading Universal Features');
-                    }
-                } else {
-                    console.warn('[main.html] runUniversalFeatures not available yet, retrying...');
-                    setTimeout(async function() {
-                        if (typeof window.runUniversalFeatures === 'function') {
-                            updateLoadingStatus('Loading Universal Features...');
-                            await window.runUniversalFeatures();
-                            updateLoadingStatus('Loading Menu Components...');
-                        }
-                    }, 1000);
-                }
-                
-                // Auto-load Menu Components (after a short delay to ensure Universal Features are loaded)
-                setTimeout(async function() {
-                    if (typeof window.runMenuComponents === 'function') {
-                        try {
-                            await window.runMenuComponents();
-                            console.log('[main.html] ✓ Menu Components auto-loaded');
-                            updateLoadingStatus('Complete!');
-                            
-                            // Fade out loading overlay after a brief delay
-                            setTimeout(function() {
-                                if (loadingOverlay) {
-                                    loadingOverlay.classList.remove('active');
-                                }
-                            }, 300);
-                        } catch (error) {
-                            console.error('[main.html] Error auto-loading Menu Components:', error);
-                            updateLoadingStatus('Error loading Menu Components');
-                            // Still fade out after error
-                            setTimeout(function() {
-                                if (loadingOverlay) {
-                                    loadingOverlay.classList.remove('active');
-                                }
-                            }, 1000);
-                        }
-                    } else {
-                        console.warn('[main.html] runMenuComponents not available yet, retrying...');
-                        setTimeout(async function() {
-                            if (typeof window.runMenuComponents === 'function') {
-                                await window.runMenuComponents();
-                                updateLoadingStatus('Complete!');
-                                setTimeout(function() {
-                                    if (loadingOverlay) {
-                                        loadingOverlay.classList.remove('active');
-                                    }
-                                }, 300);
-                            }
-                        }, 1000);
-                    }
-                }, 500); // Small delay after Universal Features start
-            }, 500); // Small delay to ensure test-loader.js is loaded
-        });
-        
-        // Cleanup on page unload to prevent memory leaks and freezing
-        window.addEventListener('beforeunload', () => {
-            if (window.globeController) {
-                window.globeController.destroy();
-            }
-        });
-        
-        // Also handle pagehide (more reliable for mobile)
-        window.addEventListener('pagehide', () => {
-            if (window.globeController) {
-                window.globeController.destroy();
-            }
-        });
-        
-        // Setup zoom controls
-        function setupZoomControls() {
-            const zoomInBtn = document.getElementById('zoomInBtn');
-            const zoomOutBtn = document.getElementById('zoomOutBtn');
-            const zoomControls = document.getElementById('zoomControls');
-            
-            if (zoomInBtn && zoomOutBtn) {
-                zoomInBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (window.globeController && window.globeController.interactionController) {
-                        window.globeController.interactionController.zoomIn();
-                    }
-                });
-                
-                zoomOutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (window.globeController && window.globeController.interactionController) {
-                        window.globeController.interactionController.zoomOut();
-                    }
-                });
-            }
-            
-            // Function to update zoom controls visibility
-            function updateZoomControlsVisibility() {
-                if (!zoomControls) return;
-                
-                const globeContainer = document.getElementById('globe-container');
-                const testContainer = document.querySelector('.test-container');
-                
-                // Show zoom controls only when globe is loaded and menu is hidden
-                const globeLoaded = globeContainer && globeContainer.classList.contains('loaded');
-                const menuVisible = testContainer && 
-                    testContainer.style.display !== 'none' && 
-                    testContainer.style.opacity !== '0' &&
-                    window.getComputedStyle(testContainer).display !== 'none' &&
-                    parseFloat(window.getComputedStyle(testContainer).opacity) > 0;
-                
-                if (globeLoaded && !menuVisible) {
-                    zoomControls.classList.add('visible');
-                } else {
-                    zoomControls.classList.remove('visible');
-                }
-            }
-            
-            // Update visibility initially and on changes
-            updateZoomControlsVisibility();
-            
-            // Watch for changes to globe container and test container
-            const globeContainer = document.getElementById('globe-container');
-            const testContainer = document.querySelector('.test-container');
-            const observer = new MutationObserver(updateZoomControlsVisibility);
-            if (globeContainer) {
-                observer.observe(globeContainer, { attributes: true, attributeFilter: ['class', 'style'] });
-            }
-            if (testContainer) {
-                observer.observe(testContainer, { attributes: true, attributeFilter: ['style'] });
-            }
-            
-            // Also check periodically (fallback)
-            setInterval(updateZoomControlsVisibility, 500);
-        }
-        
-        // Setup zoom controls when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', setupZoomControls);
-        } else {
-            setupZoomControls();
-        }
-        
-        // Also setup after globe loads (in case it's not ready yet)
-        const checkGlobeAndSetupZoom = setInterval(() => {
-            if (window.globeController && window.globeController.interactionController) {
-                setupZoomControls();
-                clearInterval(checkGlobeAndSetupZoom);
-            }
-        }, 500);
-        
-        // Clear interval after 10 seconds to avoid infinite checking
-        setTimeout(() => clearInterval(checkGlobeAndSetupZoom), 10000);
-    </script>
+    <!-- Shared page initialization (sidebar visibility, loader, zoom controls) -->
+    <script src="js/page-init.js"></script>
 </body>
 </html>
 

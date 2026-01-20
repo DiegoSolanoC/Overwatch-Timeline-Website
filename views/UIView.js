@@ -273,14 +273,14 @@ export class UIView {
         }
         
         // Process image path if provided - but only if it needs processing
-        // If path comes from getEventImagePath, it's already properly formatted, so skip processing
+        // If path comes from getEventImagePath, it's already properly formatted to assets/images/events, so skip processing
         if (imagePath && imagePath.trim()) {
             imagePath = imagePath.trim();
             // Only process if path doesn't look properly formatted already
-            // If path already contains Event%20Images/ with encoded filename, use it as-is
-            // Only process if it has Event Images/ (with space) or needs normalization
+            // If path already contains assets/images/events/ with encoded filename, use it as-is
+            // Only process if it has legacy Event Images/ (with space) or needs normalization
             if (imagePath.includes('Event Images/') && !imagePath.includes('Event%20Images/')) {
-                // Handle "Event Images/" format (with space) - convert to URL-encoded
+                // Handle legacy "Event Images/" format (with space) - convert to assets/images/events with encoded filename
                 const folderPattern = /Event Images\//;
                 if (folderPattern.test(imagePath)) {
                     const parts = imagePath.split(/Event Images\//);
@@ -301,11 +301,11 @@ export class UIView {
                                 break; // Can't decode further
                             }
                         }
-                        imagePath = `Event%20Images/${encodeURIComponent(filename)}`;
+                        imagePath = `assets/images/events/${encodeURIComponent(filename)}`;
                     }
                 }
             }
-            // If path already has Event%20Images/, use it as-is (already properly formatted)
+            // If path already has assets/images/events/, use it as-is (already properly formatted)
         }
         
         const eventSlide = document.getElementById('eventSlide');
@@ -440,7 +440,7 @@ export class UIView {
                     
                     if (locationName) {
                         // Use same format as preview: icon + location name (which should be "City, Country")
-                        const locationContent = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+                        const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
                         if (isAlreadyOpen) {
                             // Fade transition for location
                             eventSlideLocation.style.transition = 'opacity 0.2s ease';
@@ -477,7 +477,7 @@ export class UIView {
                         // Also set up listener to update when location is enhanced with country
                         const updateLocationInSlide = (updatedLat, updatedLon, updatedLocationName) => {
                             if (Math.abs(updatedLat - lat) < 0.01 && Math.abs(updatedLon - lon) < 0.01) {
-                                eventSlideLocation.innerHTML = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${updatedLocationName}`;
+                                eventSlideLocation.innerHTML = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${updatedLocationName}`;
                                 // Re-attach click handler after updating innerHTML
                                 eventSlideLocation.style.cursor = 'pointer';
                                 eventSlideLocation.title = 'Click to zoom to location';
@@ -497,7 +497,7 @@ export class UIView {
                         window.updateEventSlideLocation = updateLocationInSlide;
                     } else {
                         // Show coordinates as fallback
-                        const locationContent = `<img src="Icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
                         if (isAlreadyOpen) {
                             // Fade transition for location
                             eventSlideLocation.style.transition = 'opacity 0.2s ease';
@@ -1017,7 +1017,7 @@ export class UIView {
                         if (!imagePath || !imagePath.trim()) {
                             const normalizedName = eventName.replace(/\s+/g, ' ').trim();
                             const encodedFileName = encodeURIComponent(normalizedName);
-                            imagePath = `Event%20Images/${encodedFileName}.png`;
+                            imagePath = `assets/images/events/${encodedFileName}.png`;
                         }
                         console.log(`[UIView] Image path (fallback) for "${eventName}": ${imagePath}`);
                     }
@@ -1329,7 +1329,7 @@ export class UIView {
                 if (!imagePath || !imagePath.trim()) {
                     const normalizedName = variant.name.replace(/\s+/g, ' ').trim();
                     const encodedFileName = encodeURIComponent(normalizedName);
-                    imagePath = `Event%20Images/${encodedFileName}.png`;
+                    imagePath = `assets/images/events/${encodedFileName}.png`;
                 } else {
                     // Encode provided path to handle special characters (but don't double-encode)
                     imagePath = imagePath.trim();
@@ -1353,7 +1353,7 @@ export class UIView {
                                     break; // Can't decode further
                                 }
                             }
-                            imagePath = `Event%20Images/${encodeURIComponent(filename)}`;
+                            imagePath = `assets/images/events/${encodeURIComponent(filename)}`;
                         }
                     }
                 }
@@ -2129,7 +2129,7 @@ export class UIView {
         
         // Ensure rotation icon always uses local image file
         if (rotateIcon) {
-            rotateIcon.innerHTML = '<img src="Icons/Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
+            rotateIcon.innerHTML = '<img src="assets/images/icons/Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
         }
         
         // Handle button click/touch - unified handler
@@ -2168,9 +2168,9 @@ export class UIView {
             }
             
             // Always keep the icon as an image, never change to emoji
-            if (rotateIcon) {
-                rotateIcon.innerHTML = '<img src="Icons/Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
-            }
+        if (rotateIcon) {
+            rotateIcon.innerHTML = '<img src="assets/images/icons/Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">';
+        }
         };
         
         // Prevent button from interfering with globe controls (mouse)
@@ -2220,7 +2220,7 @@ export class UIView {
         
         // Ensure hyperloop icon always uses local image file
         if (hyperloopIcon) {
-            hyperloopIcon.innerHTML = '<img src="Icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
+            hyperloopIcon.innerHTML = '<img src="assets/images/icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
         }
         
         // Handle button click/touch - unified handler
@@ -2248,7 +2248,7 @@ export class UIView {
             
             // Always keep the icon as an image, never change to emoji
             if (hyperloopIcon) {
-                hyperloopIcon.innerHTML = '<img src="Icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
+                hyperloopIcon.innerHTML = '<img src="assets/images/icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
             }
             
             if (onToggle) {
@@ -2877,7 +2877,7 @@ export class UIView {
                             if (!imagePath || !imagePath.trim()) {
                                 const normalizedName = eventName.replace(/\s+/g, ' ').trim();
                                 const encodedFileName = encodeURIComponent(normalizedName);
-                                imagePath = `Event%20Images/${encodedFileName}.png`;
+                                imagePath = `assets/images/events/${encodedFileName}.png`;
                             }
                             
                             // Zoom to marker or reset to default view (for Moon/Mars) and show event slide
@@ -3103,7 +3103,7 @@ export class UIView {
             hackedOverlay.dataset.index = index;
             
             const hackedImg = document.createElement('img');
-            hackedImg.src = 'Misc/Hacked.png';
+            hackedImg.src = 'assets/images/misc/Hacked.png';
             hackedImg.alt = 'Hacked';
             hackedOverlay.appendChild(hackedImg);
             

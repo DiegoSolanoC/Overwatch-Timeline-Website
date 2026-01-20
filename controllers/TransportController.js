@@ -102,7 +102,7 @@ export class TransportController {
                 applyTrainMaterial(model);
                 callback(model);
             } else {
-                gltfLoader.load('Models3D/TrainEnd.glb', (gltf) => {
+                gltfLoader.load('assets/models/TrainEnd.glb', (gltf) => {
                     const model = gltf.scene;
                     const cached = model.clone(); // Clone model (materials are cloned automatically)
                     this.transportModel.setTrainEndModelCache(cached);
@@ -132,7 +132,7 @@ export class TransportController {
                 applyTrainMaterial(model);
                 callback(model);
             } else {
-                gltfLoader.load('Models3D/TrainMiddle.glb', (gltf) => {
+                gltfLoader.load('assets/models/TrainMiddle.glb', (gltf) => {
                     const model = gltf.scene;
                     const cached = model.clone(); // Clone model (materials are cloned automatically)
                     this.transportModel.setTrainMiddleModelCache(cached);
@@ -332,7 +332,7 @@ export class TransportController {
             
             planeGroup.add(planeModel);
         } else {
-            gltfLoader.load('Models3D/Plane.glb', (gltf) => {
+            gltfLoader.load('assets/models/Plane.glb', (gltf) => {
                 const model = gltf.scene;
                     const cached = model.clone(); // Clone model (materials are cloned automatically)
                     this.transportModel.setPlaneModelCache(cached);
@@ -492,7 +492,7 @@ export class TransportController {
         const boatGroup = new THREE.Group();
         
         if (gltfLoader) {
-            gltfLoader.load('Models3D/Boat.glb', 
+            gltfLoader.load('assets/models/Boat.glb', 
                 (gltf) => {
                     const model = gltf.scene;
                     model.scale.set(0.02, 0.02, 0.02);
@@ -1295,7 +1295,7 @@ export class TransportController {
                 satelliteGroup.add(stationModel);
             } else if (gltfLoader) {
                 // Load Station model for first time
-                gltfLoader.load('Models3D/Station.glb', (gltf) => {
+                gltfLoader.load('assets/models/Station.glb', (gltf) => {
                     const model = gltf.scene;
                     const cached = model.clone();
                     this.transportModel.setStationModelCache(cached);
@@ -1354,7 +1354,7 @@ export class TransportController {
             satelliteGroup.add(satelliteModel);
         } else if (gltfLoader) {
             // Load model for first time
-            gltfLoader.load('Models3D/Satellite.glb', (gltf) => {
+            gltfLoader.load('assets/models/Satellite.glb', (gltf) => {
                 const model = gltf.scene;
                 const cached = model.clone();
                 this.transportModel.setSatelliteModelCache(cached);

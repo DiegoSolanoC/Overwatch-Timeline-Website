@@ -32,7 +32,7 @@ const mimeTypes = {
 const server = http.createServer((req, res) => {
     // Parse URL and decode it to handle spaces and special characters
     const parsedUrl = url.parse(req.url, true);
-    const decodedPath = decodeURIComponent(parsedUrl.pathname);
+    let decodedPath = decodeURIComponent(parsedUrl.pathname);
     
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${decodedPath}`);
     
@@ -51,6 +51,13 @@ const server = http.createServer((req, res) => {
     if (decodedPath === '/' || decodedPath === '/index' || decodedPath === '/index.html') {
         serveFile(res, './test.html', 'text/html');
         return;
+    }
+
+    // Legacy path compatibility: map old Event Images URLs to new assets location
+    // Requests like /Event%20Images/Foo.png → /assets/images/events/Foo.png
+    if (decodedPath.startsWith('/Event Images/')) {
+        const rest = decodedPath.substring('/Event Images/'.length);
+        decodedPath = '/assets/images/events/' + rest;
     }
     
     // Serve static files
@@ -104,8 +111,6 @@ server.listen(PORT, () => {
     console.log(`  - http://localhost:${PORT}/test.html → test.html`);
     console.log(`  - http://localhost:${PORT}/main      → main.html`);
     console.log(`  - http://localhost:${PORT}/main.html → main.html`);
-    console.log(`  - http://localhost:${PORT}/map       → map.html`);
-    console.log(`  - http://localhost:${PORT}/map.html  → map.html`);
     console.log(`\nPress Ctrl+C to stop the server\n`);
 });
 

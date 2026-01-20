@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Test - Timeline Overwatch</title>
-    <link rel="icon" type="image/png" href="Icons/Icon.png">
+    <link rel="icon" type="image/png" href="assets/images/icons/Icon.png">
     <link rel="stylesheet" href="styles.css?v=5">
     <script>
         // Asset loading order tracking for test.html
         console.log('[0.00ms] PAGE: test.html');
         console.log('[0.00ms] HTML: Document structure parsed');
         console.log('[0.00ms] CSS: styles.css (linked in <head>)');
-        console.log('[0.00ms] ICON: Icons/Icon.png (favicon)');
+        console.log('[0.00ms] ICON: assets/images/icons/Icon.png (favicon)');
         
         window.addEventListener('DOMContentLoaded', function() {
             console.log('[DOM] DOMContentLoaded event fired');
@@ -398,7 +398,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
                     <h3 style="color: #4caf50; margin: 0;">Universal Features</h3>
                     <button id="runUniversalBtn" class="test-run-button" title="Run all Universal Features">
-                        <img src="Icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                        <img src="assets/images/icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
                     </button>
                     <button id="killUniversalBtn" class="test-kill-button" title="Unload all Universal Features">
                         ×
@@ -415,7 +415,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
                     <h3 style="color: #e91e63; margin: 0;">Menu Components</h3>
                     <button id="runMenuBtn" class="test-run-button" title="Run all Menu Components">
-                        <img src="Icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                        <img src="assets/images/icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
                     </button>
                     <button id="killMenuBtn" class="test-kill-button" title="Unload all Menu Components">
                         ×
@@ -428,7 +428,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
                     <h3 style="color: #2196F3; margin: 0;">Globe Components</h3>
                     <button id="runGlobeBtn" class="test-run-button" title="Run all Globe Components">
-                        <img src="Icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                        <img src="assets/images/icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
                     </button>
                     <button id="killGlobeBtn" class="test-kill-button" title="Unload all Globe Components">
                         ×
@@ -453,7 +453,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
                     <h3 style="color: #ff9800; margin: 0;">Glossary Components</h3>
                     <button id="runGlossaryBtn" class="test-run-button" title="Run all Glossary Components">
-                        <img src="Icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                        <img src="assets/images/icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
                     </button>
                     <button id="killGlossaryBtn" class="test-kill-button" title="Unload all Glossary Components">
                         ×
@@ -463,7 +463,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
                     <h3 style="color: #9c27b0; margin: 0;">Biography Components</h3>
                     <button id="runBiographyBtn" class="test-run-button" title="Run all Biography Components">
-                        <img src="Icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
+                        <img src="assets/images/icons/Play Icon.png" alt="Run" style="width: 20px; height: 20px;">
                     </button>
                     <button id="killBiographyBtn" class="test-kill-button" title="Unload all Biography Components">
                         ×
@@ -479,7 +479,6 @@
 
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-close" id="sidebarClose">&times;</div>
-            <button onclick="window.location.href='map.html'">Map</button>
             <button onclick="window.location.href='test.html'" class="active">Test</button>
             <button onclick="window.location.href='main.html'">Main</button>
         </nav>

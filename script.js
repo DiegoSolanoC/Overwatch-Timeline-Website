@@ -41,7 +41,8 @@ window.onclick = function(event) {
 
 // Navigation functions (for single-page navigation if needed)
 function showHome() {
-    window.location.href = 'map.html';
+    // Legacy: previously navigated to map.html (now removed)
+    window.location.href = 'main.html';
 }
 
 function showAbout() {
@@ -193,42 +194,42 @@ window.SoundEffectsManager = {
     init() {
         // Load all sound effects
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Filter Pick.mp3');
-        this.loadSound('filterPick', 'Sound Effects/Filter Pick.mp3');
+        this.loadSound('filterPick', 'assets/audio/sfx/Filter Pick.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Filter Off.mp3');
-        this.loadSound('filterOff', 'Sound Effects/Filter Off.mp3');
+        this.loadSound('filterOff', 'assets/audio/sfx/Filter Off.mp3');
         // Filter confirm at reduced volume (50% of normal)
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Filter Confirm.mp3');
-        const filterConfirmAudio = new Audio('Sound Effects/Filter Confirm.mp3');
+        const filterConfirmAudio = new Audio('assets/audio/sfx/Filter Confirm.mp3');
         filterConfirmAudio.volume = this.volume * 0.5; // 50% of sound effects volume
         this.sounds['filterConfirm'] = filterConfirmAudio;
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Filter Clear.mp3');
-        this.loadSound('filterClear', 'Sound Effects/Filter Clear.mp3');
+        this.loadSound('filterClear', 'assets/audio/sfx/Filter Clear.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Radiate.mp3');
-        this.loadSound('radiate', 'Sound Effects/Radiate.mp3');
+        this.loadSound('radiate', 'assets/audio/sfx/Radiate.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Page.mp3');
-        this.loadSound('page', 'Sound Effects/Page.mp3');
+        this.loadSound('page', 'assets/audio/sfx/Page.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Event Click.mp3');
-        this.loadSound('eventClick', 'Sound Effects/Event Click.mp3');
+        this.loadSound('eventClick', 'assets/audio/sfx/Event Click.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Music.mp3');
-        this.loadSound('music', 'Sound Effects/Music.mp3');
+        this.loadSound('music', 'assets/audio/sfx/Music.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Hack On.mp3');
-        this.loadSound('hackOn', 'Sound Effects/Hack On.mp3');
+        this.loadSound('hackOn', 'assets/audio/sfx/Hack On.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Hack Off.mp3');
-        this.loadSound('hackOff', 'Sound Effects/Hack Off.mp3');
+        this.loadSound('hackOff', 'assets/audio/sfx/Hack Off.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Transport Toggle.mp3');
-        this.loadSound('transportToggle', 'Sound Effects/Transport Toggle.mp3');
+        this.loadSound('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Rotation Toggle.mp3');
-        this.loadSound('rotationToggle', 'Sound Effects/Rotation Toggle.mp3');
+        this.loadSound('rotationToggle', 'assets/audio/sfx/Rotation Toggle.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Event Manager.mp3');
-        this.loadSound('eventManager', 'Sound Effects/Event Manager.mp3');
+        this.loadSound('eventManager', 'assets/audio/sfx/Event Manager.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Switch Event.mp3');
-        this.loadSound('switchEvent', 'Sound Effects/Switch Event.mp3');
+        this.loadSound('switchEvent', 'assets/audio/sfx/Switch Event.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Filter Button.mp3');
-        this.loadSound('filterButton', 'Sound Effects/Filter Button.mp3');
+        this.loadSound('filterButton', 'assets/audio/sfx/Filter Button.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Color Change.mp3');
-        this.loadSound('colorChange', 'Sound Effects/Color Change.mp3');
+        this.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Mode Switch.mp3');
-        this.loadSound('modeSwitch', 'Sound Effects/Mode Switch.mp3');
+        this.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
         
         // Load saved volume and apply it
         const savedVolume = this.loadVolume();
@@ -253,7 +254,8 @@ window.SoundEffectsManager = {
 };
 
 function showContact() {
-    window.location.href = 'map.html';
+    // Legacy: previously navigated to map.html (now removed)
+    window.location.href = 'main.html';
 }
 
 // Contact form handling
@@ -682,16 +684,16 @@ function initMusicPanel() {
         if (isShuffling && shuffleQueue.length > 0) {
             // Play next in shuffle queue
             currentSongIndex = (currentSongIndex + 1) % shuffleQueue.length;
-            playMusic(`Music/${shuffleQueue[currentSongIndex].filename}`);
+            playMusic(`assets/audio/music/${shuffleQueue[currentSongIndex].filename}`);
         } else {
             // If not shuffling, play default music (Winston's Desk)
             if (musicFiles.length === 0) return;
             const winstonsDesk = musicFiles.find(s => s.name.toLowerCase().includes('winston') || s.name.toLowerCase().includes('desk'));
             if (winstonsDesk) {
-                playMusic(`Music/${winstonsDesk.filename}`);
+                playMusic(`assets/audio/music/${winstonsDesk.filename}`);
             } else {
                 // Fallback to first song
-                playMusic(`Music/${musicFiles[0].filename}`);
+                playMusic(`assets/audio/music/${musicFiles[0].filename}`);
             }
         }
     }
@@ -719,18 +721,18 @@ function initMusicPanel() {
             if (isShuffling) {
                 // Create shuffle queue
                 shuffleQueue = shuffleArray(musicFiles);
-                currentSongIndex = shuffleQueue.findIndex(s => `Music/${s.filename}` === currentSong);
+                currentSongIndex = shuffleQueue.findIndex(s => currentSong && currentSong.endsWith(`/${s.filename}`));
                 if (currentSongIndex === -1) currentSongIndex = 0;
                 this.classList.add('active');
                 // Update icon to show shuffle is on (if you have a Shuffle On icon, otherwise keep same)
                 if (shuffleBtnIcon) {
-                    shuffleBtnIcon.src = 'Icons/Shuffle Icon.png'; // Or 'Shuffle On Icon.png' if you have it
+                    shuffleBtnIcon.src = 'assets/images/icons/Shuffle Icon.png'; // Or 'Shuffle On Icon.png' if you have it
                 }
             } else {
                 shuffleQueue = [];
                 this.classList.remove('active');
                 if (shuffleBtnIcon) {
-                    shuffleBtnIcon.src = 'Icons/Shuffle Icon.png';
+                    shuffleBtnIcon.src = 'assets/images/icons/Shuffle Icon.png';
                 }
             }
             saveMusicState();
@@ -755,7 +757,7 @@ function initMusicPanel() {
     // Get current song name
     function getCurrentSongName() {
         if (!currentSong) return 'No song playing';
-        const song = musicFiles.find(s => `Music/${s.filename}` === currentSong);
+        const song = musicFiles.find(s => currentSong && currentSong.endsWith(`/${s.filename}`));
         return song ? song.name : 'Unknown';
     }
     
@@ -1044,13 +1046,13 @@ function initMusicPanel() {
             if (musicState.currentSong && musicFiles.length > 0) {
                 // Find the song in the music files
                 const songToRestore = musicFiles.find(s => {
-                    const songPath = `Music/${s.filename}`;
-                    return songPath === musicState.currentSong || 
-                           songPath.replace(/ /g, '%20') === musicState.currentSong;
+                    // Match by filename regardless of base path/encoding
+                    const statePath = musicState.currentSong || '';
+                    return statePath.endsWith(`/${s.filename}`) || decodeURIComponent(statePath).endsWith(`/${s.filename}`);
                 });
                 
                 if (songToRestore) {
-                    currentSong = `Music/${songToRestore.filename}`;
+                    currentSong = `assets/audio/music/${songToRestore.filename}`;
                     
                     // Set the source and load
                     const encodedPath = encodeMusicPath(currentSong);
@@ -1170,12 +1172,12 @@ function initMusicPanel() {
                 const currentPrioritySong = window.prioritySong || null;
                 if (currentPrioritySong) {
                     const prioritySongFile = musicFiles.find(s => {
-                        const songPath = `Music/${s.filename}`;
+                        const songPath = `assets/audio/music/${s.filename}`;
                         return songPath === currentPrioritySong || songPath.replace(/ /g, '%20') === currentPrioritySong;
                     });
                     if (prioritySongFile) {
                         logAssetLoad('MUSIC_PRIORITY', `Preloading current song: ${prioritySongFile.filename}`);
-                        const encodedPath = encodeMusicPath(`Music/${prioritySongFile.filename}`);
+                        const encodedPath = encodeMusicPath(`assets/audio/music/${prioritySongFile.filename}`);
                         const priorityAudio = new Audio(encodedPath);
                         priorityAudio.preload = 'auto';
                         priorityAudio.load();
@@ -1193,7 +1195,7 @@ function initMusicPanel() {
                 musicFiles.forEach(song => {
                     // Encode filename to handle special characters
                     const encodedFilename = encodeURIComponent(song.filename);
-                    const audio = new Audio(`Music/${encodedFilename}`);
+                    const audio = new Audio(`assets/audio/music/${encodedFilename}`);
                     audio.preload = 'auto';
                     // Also preload the icon images
                     const iconName = song.filename.replace(/\.(mp3|wav|ogg)$/i, '');
@@ -1201,14 +1203,14 @@ function initMusicPanel() {
                     const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                     // Encode the path properly for URLs (handles spaces and special characters)
                     const encodedIconName = encodeURIComponent(iconName);
-                    iconImg.src = `Music Icons/${encodedIconName}.png?v=${imageCacheBuster}`;
+                    iconImg.src = `assets/images/music/${encodedIconName}.png?v=${imageCacheBuster}`;
                 });
                 
                 // PRIORITY: Restore saved state immediately (this will load and restore the current song)
                 const restored = restoreMusicState();
                 if (!restored && !currentSong && musicFiles.length > 0) {
                     // Only play first song if no saved state exists
-                    const firstSong = `Music/${musicFiles[0].filename}`;
+                    const firstSong = `assets/audio/music/${musicFiles[0].filename}`;
                     playMusic(firstSong);
                     updateNowPlaying();
                 } else if (restored) {
@@ -1218,10 +1220,10 @@ function initMusicPanel() {
                 console.warn('No music files found in manifest.json');
                 console.log('To add music files:');
                 console.log('1. Add .mp3, .wav, or .ogg files to the Music folder');
-                console.log('2. Add matching .png images to the Music Icons folder (same name as music file)');
+                console.log('2. Add matching .png images to the assets/images/music folder (same name as music file)');
                 console.log('3. Run: node generate-manifest.js');
                 console.log('4. Refresh this page');
-                musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">No music files found.<br><br>1. Add files to Music folder<br>2. Add icons to Music Icons folder<br>3. Run: node generate-manifest.js<br>4. Refresh page</div>';
+                musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">No music files found.<br><br>1. Add files to Music folder<br>2. Add icons to assets/images/music folder<br>3. Run: node generate-manifest.js<br>4. Refresh page</div>';
             }
         } catch (error) {
             console.error('Error loading manifest.json:', error);
@@ -1237,7 +1239,7 @@ function initMusicPanel() {
             const musicBtn = document.createElement('div');
             musicBtn.className = 'music-grid-btn';
             // Store original path (will be encoded when used)
-            musicBtn.dataset.songPath = `Music/${song.filename}`;
+            musicBtn.dataset.songPath = `assets/audio/music/${song.filename}`;
             musicBtn.dataset.songName = song.name;
             
             // Image container (EXACT COPY of filter-image-container)
@@ -1245,13 +1247,13 @@ function initMusicPanel() {
             imageContainer.className = 'music-icon-container';
             
             const img = document.createElement('img');
-            // Use image from Music Icons folder with same name as music file
+            // Use image from assets/images/music folder with same name as music file
             const iconName = song.filename.replace(/\.(mp3|wav|ogg)$/i, '');
             // Add cache busting to ensure latest images load
             const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             // Encode the path properly for URLs (handles spaces and special characters)
             const encodedIconName = encodeURIComponent(iconName);
-            img.src = `Music Icons/${encodedIconName}.png?v=${imageCacheBuster}`;
+            img.src = `assets/images/music/${encodedIconName}.png?v=${imageCacheBuster}`;
             img.alt = song.name;
             img.onerror = function() {
                 // If image fails to load, try alternative encodings/cases for GitHub Pages compatibility
@@ -1260,8 +1262,8 @@ function initMusicPanel() {
                 
                 // Try with different encoding (some servers handle spaces differently)
                 const altEncoded = iconName.replace(/\s+/g, '%20');
-                if (this.src !== `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`) {
-                    this.src = `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`;
+                if (this.src !== `assets/images/music/${altEncoded}.png?v=${imageCacheBuster}`) {
+                    this.src = `assets/images/music/${altEncoded}.png?v=${imageCacheBuster}`;
                     return; // Let it try again with this encoding
                 }
                 
@@ -1281,7 +1283,7 @@ function initMusicPanel() {
             musicBtn.appendChild(label);
             
             // Check if this is the current song - try multiple path formats for matching
-            const songPath = `Music/${song.filename}`;
+            const songPath = `assets/audio/music/${song.filename}`;
             if (currentSong === songPath || 
                 currentSong === songPath.replace(/ /g, '%20') ||
                 currentSong && currentSong.replace(/ /g, '%20') === songPath ||
@@ -1458,7 +1460,7 @@ function initMusicPanel() {
     // Function to update pause/play icon
     function updatePauseIcon(isPaused) {
         if (pauseBtnIcon) {
-            pauseBtnIcon.src = isPaused ? 'Icons/Play Icon.png' : 'Icons/Pause Icon.png';
+            pauseBtnIcon.src = isPaused ? 'assets/images/icons/Play Icon.png' : 'assets/images/icons/Pause Icon.png';
             pauseBtnIcon.alt = isPaused ? 'Play' : 'Pause';
         }
     }
@@ -1466,7 +1468,7 @@ function initMusicPanel() {
     // Function to update mute/unmute icon
     function updateMuteIcon(isMuted) {
         if (muteBtnIcon) {
-            muteBtnIcon.src = isMuted ? 'Icons/Muted Icon.png' : 'Icons/Unmuted Icon.png';
+            muteBtnIcon.src = isMuted ? 'assets/images/icons/Muted Icon.png' : 'assets/images/icons/Unmuted Icon.png';
             muteBtnIcon.alt = isMuted ? 'Unmute' : 'Mute';
         }
     }
@@ -1652,13 +1654,13 @@ function initFiltersPanel() {
             }
             
             // Initialize with loaded data
-            createFilterButtons(heroes, 'heroes', 'Heroes');
+            createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
             updateFilterCounts();
             
             // Preload faction images in background
             if (factions.length > 0) {
                 setTimeout(() => {
-                    preloadImages(factions, 'factions', 'Factions');
+                    preloadImages(factions, 'factions', 'assets/images/factions');
                 }, 500);
             }
         } catch (error) {
@@ -1667,7 +1669,7 @@ function initFiltersPanel() {
             // Fallback to empty arrays if manifest doesn't exist
             heroes = [];
             factions = [];
-            createFilterButtons(heroes, 'heroes', 'Heroes');
+            createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
         }
     }
     
@@ -1802,7 +1804,8 @@ function initFiltersPanel() {
                 filterKey = item.filename;
                 displayName = item.displayName;
             } else if (type === 'music') {
-                filterKey = `Music/${item.filename}`;
+                // Use full path for music filter key to match songPath
+                filterKey = `assets/audio/music/${item.filename}`;
                 displayName = item.name;
             } else {
                 // heroes - use original name for filterKey (image loading), but display name for label
@@ -1821,11 +1824,11 @@ function initFiltersPanel() {
             // Use aggressive cache busting (same as music) to ensure latest images load
             const imageCacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             
-            // For music, use Music Icons folder with the filename (without extension), encoded for URLs
+            // For music, use assets/images/music folder with the filename (without extension), encoded for URLs
             if (type === 'music') {
                 const iconName = item.filename.replace(/\.(mp3|wav|ogg)$/i, '');
                 const encodedIconName = encodeURIComponent(iconName);
-                img.src = `Music Icons/${encodedIconName}.png?v=${imageCacheBuster}`;
+                img.src = `assets/images/music/${encodedIconName}.png?v=${imageCacheBuster}`;
             } else if (type === 'factions') {
                 // Encode faction filename to handle spaces and special characters
                 const encodedFilename = encodeURIComponent(filterKey);
@@ -1847,7 +1850,7 @@ function initFiltersPanel() {
                     if (type === 'music') {
                         const iconName = item.filename.replace(/\.(mp3|wav|ogg)$/i, '');
                         const encodedIconName = encodeURIComponent(iconName);
-                        this.src = `Music Icons/${encodedIconName}.png?v=${retryCacheBuster}`;
+                        this.src = `assets/images/music/${encodedIconName}.png?v=${retryCacheBuster}`;
                     } else if (type === 'factions') {
                         // Encode faction filename to handle spaces and special characters
                         const encodedFilename = encodeURIComponent(filterKey);
@@ -1868,9 +1871,9 @@ function initFiltersPanel() {
                     console.warn(`[DEBUG] Filter image failed to load: ${originalSrc}`);
                     
                     // Try with different encoding (some servers handle spaces differently)
-                    const altEncoded = iconName.replace(/\s+/g, '%20');
-                    if (this.src !== `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`) {
-                        this.src = `Music Icons/${altEncoded}.png?v=${imageCacheBuster}`;
+                const altEncoded = iconName.replace(/\s+/g, '%20');
+                if (this.src !== `assets/images/music/${altEncoded}.png?v=${imageCacheBuster}`) {
+                    this.src = `assets/images/music/${altEncoded}.png?v=${imageCacheBuster}`;
                         return; // Let it try again with this encoding
                     }
                 } else if (type === 'factions' || type === 'heroes') {
@@ -1940,9 +1943,9 @@ function initFiltersPanel() {
         
         // Preload images for the other type in background
         if (type === 'heroes' && factions.length > 0) {
-            setTimeout(() => preloadImages(factions, 'factions', 'Factions'), 100);
+            setTimeout(() => preloadImages(factions, 'factions', 'assets/images/factions'), 100);
         } else if (type === 'factions' && heroes.length > 0) {
-            setTimeout(() => preloadImages(heroes, 'heroes', 'Heroes'), 100);
+            setTimeout(() => preloadImages(heroes, 'heroes', 'assets/images/heroes'), 100);
         }
         
         updateFilterCounts(); // Update counts when buttons are created
@@ -1954,25 +1957,25 @@ function initFiltersPanel() {
     const heroesTab = document.getElementById('heroesTab');
     const factionsTab = document.getElementById('factionsTab');
     
-    if (heroesTab) {
-        heroesTab.addEventListener('click', function() {
-            currentFilterType = 'heroes';
-            heroesTab.classList.add('active');
-            factionsTab.classList.remove('active');
-            createFilterButtons(heroes, 'heroes', 'Heroes');
-            updateFilterCounts(); // Update counts when switching tabs
-        });
-    }
+            if (heroesTab) {
+                heroesTab.addEventListener('click', function() {
+                    currentFilterType = 'heroes';
+                    heroesTab.classList.add('active');
+                    factionsTab.classList.remove('active');
+                    createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
+                    updateFilterCounts(); // Update counts when switching tabs
+                });
+            }
     
-    if (factionsTab) {
-        factionsTab.addEventListener('click', function() {
-            currentFilterType = 'factions';
-            factionsTab.classList.add('active');
-            heroesTab.classList.remove('active');
-            createFilterButtons(factions, 'factions', 'Factions');
-            updateFilterCounts(); // Update counts when switching tabs
-        });
-    }
+            if (factionsTab) {
+                factionsTab.addEventListener('click', function() {
+                    currentFilterType = 'factions';
+                    factionsTab.classList.add('active');
+                    heroesTab.classList.remove('active');
+                    createFilterButtons(factions, 'factions', 'assets/images/factions');
+                    updateFilterCounts(); // Update counts when switching tabs
+                });
+            }
     
     // Open filters panel - use mousedown to prevent globe interaction
     if (filtersButton) {
@@ -2022,9 +2025,9 @@ function initFiltersPanel() {
                 
                 // Update button states for current tab
                 if (currentFilterType === 'heroes') {
-                    createFilterButtons(heroes, 'heroes', 'Heroes');
+                    createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
                 } else {
-                    createFilterButtons(factions, 'factions', 'Factions');
+                    createFilterButtons(factions, 'factions', 'assets/images/factions');
                 }
             } else {
                 // When closing via toggle button, reset to confirmed state
@@ -2112,9 +2115,9 @@ function initFiltersPanel() {
             
             // Refresh current view to update button states
             if (currentFilterType === 'heroes' && heroes.length > 0) {
-                createFilterButtons(heroes, 'heroes', 'Heroes');
+                createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
             } else if (currentFilterType === 'factions' && factions.length > 0) {
-                createFilterButtons(factions, 'factions', 'Factions');
+                createFilterButtons(factions, 'factions', 'assets/images/factions');
             }
         });
     }
@@ -2224,7 +2227,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
         if (!iconSpan) return;
         
-        const iconPath = palette === 'gray' ? 'Icons/Dark Palette Icon.png' : 'Icons/Blue Palette Icon.png';
+        const iconPath = palette === 'gray' ? 'assets/images/icons/Dark Palette Icon.png' : 'assets/images/icons/Blue Palette Icon.png';
         
         // Check if img already exists, update src; otherwise create new img
         let img = iconSpan.querySelector('img');
@@ -2271,12 +2274,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'Maps/MAP Black.png' : 'Maps/MAP.png';
+            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
             window.globeController.globeView.changeGlobeTexture(texturePath);
             
             // Change Moon and Mars textures
-            const moonTexturePath = isGray ? 'Misc/Moon_Dark.png' : 'Misc/Moon.png';
-            const marsTexturePath = isGray ? 'Misc/Mars_Dark.png' : 'Misc/Mars.png';
+            const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
+            const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
         }
@@ -2300,13 +2303,13 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.warn('colorChange sound not loaded. Attempting to load now...');
                 // Load and play if not already loaded
-                window.SoundEffectsManager.loadSound('colorChange', 'Sound Effects/Color Change.mp3');
+                window.SoundEffectsManager.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
                 setTimeout(() => {
                     if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['colorChange']) {
                         console.log('colorChange sound loaded, playing now...');
                         window.SoundEffectsManager.play('colorChange');
                     } else {
-                        console.error('Failed to load Color Change sound effect. Check if file exists at: Sound Effects/Color Change.mp3');
+                        console.error('Failed to load Color Change sound effect. Check if file exists at: assets/audio/sfx/Color Change.mp3');
                     }
                 }, 100);
             }

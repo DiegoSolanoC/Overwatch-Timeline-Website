@@ -220,7 +220,7 @@ function setupPaletteToggle() {
         const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
         if (!iconSpan) return;
         
-        const iconPath = palette === 'gray' ? 'Icons/Dark Palette Icon.png' : 'Icons/Blue Palette Icon.png';
+        const iconPath = palette === 'gray' ? 'assets/images/icons/Dark Palette Icon.png' : 'assets/images/icons/Blue Palette Icon.png';
         
         // Check if img already exists, update src; otherwise create new img
         let img = iconSpan.querySelector('img');
@@ -269,12 +269,12 @@ function setupPaletteToggle() {
         
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'Maps/MAP Black.png' : 'Maps/MAP.png';
+            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
             window.globeController.globeView.changeGlobeTexture(texturePath);
             
             // Change Moon and Mars textures
-            const moonTexturePath = isGray ? 'Misc/Moon_Dark.png' : 'Misc/Moon.png';
-            const marsTexturePath = isGray ? 'Misc/Mars_Dark.png' : 'Misc/Mars.png';
+            const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
+            const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
         }
@@ -291,7 +291,7 @@ function setupPaletteToggle() {
                 window.SoundEffectsManager.play('colorChange');
             } else {
                 // Load and play if not already loaded
-                window.SoundEffectsManager.loadSound('colorChange', 'Sound Effects/Color Change.mp3');
+                window.SoundEffectsManager.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
                 setTimeout(() => {
                     window.SoundEffectsManager.play('colorChange');
                 }, 100);
@@ -329,7 +329,7 @@ function setupPaletteToggle() {
                     window.SoundEffectsManager.play('colorChange');
                 } else {
                     // Load and play if not already loaded
-                    window.SoundEffectsManager.loadSound('colorChange', 'Sound Effects/Color Change.mp3');
+                    window.SoundEffectsManager.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
                     setTimeout(() => {
                         if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['colorChange']) {
                             window.SoundEffectsManager.play('colorChange');
@@ -520,7 +520,7 @@ async function loadPalette() {
             paletteBtn.title = 'Toggle Color Palette';
             paletteBtn.innerHTML = `
                 <span id="colorPaletteIcon">
-                    <img src="Icons/Palette Icon.png" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="assets/images/icons/Palette Icon.png" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(paletteBtn);
@@ -530,7 +530,7 @@ async function loadPalette() {
         // Load palette sound effect
         updateStatus('Loading palette sound effect...', 'info');
         if (window.SoundEffectsManager) {
-            window.SoundEffectsManager.loadSound('colorChange', 'Sound Effects/Color Change.mp3');
+            window.SoundEffectsManager.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
             updateStatus('✓ Palette sound effect loaded', 'success');
         }
         
@@ -828,7 +828,7 @@ async function loadTransport() {
             transportBtn.title = 'Toggle Transport Systems';
             transportBtn.innerHTML = `
                 <span id="hyperloopIcon">
-                    <img src="Icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="assets/images/icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(transportBtn);
@@ -846,7 +846,7 @@ async function loadTransport() {
         // Load transport sound effect
         updateStatus('Loading transport sound effect...', 'info');
         if (window.SoundEffectsManager) {
-            window.SoundEffectsManager.loadSound('transportToggle', 'Sound Effects/Transport Toggle.mp3');
+            window.SoundEffectsManager.loadSound('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3');
             updateStatus('✓ Transport sound effect loaded', 'success');
         }
         
@@ -939,7 +939,7 @@ async function loadControls() {
             rotateBtn.title = 'Toggle Auto-Rotation';
             rotateBtn.innerHTML = `
                 <span id="rotateIcon">
-                    <img src="Icons/Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="assets/images/icons/Rotation Icon.png" alt="Rotate" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(rotateBtn);
@@ -960,7 +960,7 @@ async function loadControls() {
             exitBtn.title = 'Exit to Main Menu';
             exitBtn.innerHTML = `
                 <span id="exitIcon">
-                    <img src="Icons/Home Button.png" alt="Exit" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="assets/images/icons/Home Button.png" alt="Exit" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(exitBtn);
@@ -1020,7 +1020,7 @@ async function loadControls() {
         // Load rotation sound effect
         updateStatus('Loading rotation sound effect...', 'info');
         if (window.SoundEffectsManager) {
-            window.SoundEffectsManager.loadSound('rotationToggle', 'Sound Effects/Rotation Toggle.mp3');
+            window.SoundEffectsManager.loadSound('rotationToggle', 'assets/audio/sfx/Rotation Toggle.mp3');
             updateStatus('✓ Rotation sound effect loaded', 'success');
         }
         
@@ -1109,7 +1109,7 @@ async function loadMusic() {
             musicBtn.title = 'Music Options';
             musicBtn.innerHTML = `
                 <span id="musicIcon">
-                    <img src="Icons/Music Icon.png" alt="Music" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="assets/images/icons/Music Icon.png" alt="Music" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(musicBtn);
@@ -1138,16 +1138,16 @@ async function loadMusic() {
                             </div>
                             <div class="music-control-buttons">
                                 <button id="pauseBtn" class="music-control-btn">
-                                    <img id="pauseBtnIcon" src="Icons/Pause Icon.png" alt="Pause" class="control-icon">
+                                    <img id="pauseBtnIcon" src="assets/images/icons/Pause Icon.png" alt="Pause" class="control-icon">
                                 </button>
                                 <button id="skipBtn" class="music-control-btn">
-                                    <img id="skipBtnIcon" src="Icons/Skip Icon.png" alt="Skip" class="control-icon">
+                                    <img id="skipBtnIcon" src="assets/images/icons/Skip Icon.png" alt="Skip" class="control-icon">
                                 </button>
                                 <button id="muteBtn" class="music-control-btn">
-                                    <img id="muteBtnIcon" src="Icons/Unmuted Icon.png" alt="Mute" class="control-icon">
+                                    <img id="muteBtnIcon" src="assets/images/icons/Unmuted Icon.png" alt="Mute" class="control-icon">
                                 </button>
                                 <button id="shuffleBtn" class="music-control-btn">
-                                    <img id="shuffleBtnIcon" src="Icons/Shuffle Icon.png" alt="Shuffle" class="control-icon">
+                                    <img id="shuffleBtnIcon" src="assets/images/icons/Shuffle Icon.png" alt="Shuffle" class="control-icon">
                                 </button>
                             </div>
                         </div>
@@ -1182,7 +1182,7 @@ async function loadMusic() {
         // Load music sound effect
         updateStatus('Loading music sound effect...', 'info');
         if (window.SoundEffectsManager) {
-            window.SoundEffectsManager.loadSound('music', 'Sound Effects/Music.mp3');
+            window.SoundEffectsManager.loadSound('music', 'assets/audio/sfx/Music.mp3');
             updateStatus('✓ Music sound effect loaded', 'success');
         }
         
@@ -1418,7 +1418,7 @@ async function loadEvents() {
             filterBtn.title = 'Open Filters';
             filterBtn.innerHTML = `
                 <span id="filtersIcon">
-                    <img src="Icons/Filter Icon.png" alt="Filters" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="assets/images/icons/Filter Icon.png" alt="Filters" style="width: 100%; height: 100%; object-fit: contain;">
                 </span>
             `;
             document.getElementById('content').appendChild(filterBtn);
@@ -1434,7 +1434,7 @@ async function loadEvents() {
             eventMgrBtn.title = 'Manage Events';
             eventMgrBtn.innerHTML = `
                 <span id="eventsManageIcon">
-                    <img src="Icons/Event Manager Icon.png" alt="Event Manager" style="width: 100%; height: 100%; object-fit: contain;">
+                    <img src="assets/images/icons/Event Manager Icon.png" alt="Event Manager" style="width: 100%; height: 100%; object-fit: contain%;">
                 </span>
             `;
             document.getElementById('content').appendChild(eventMgrBtn);
@@ -1557,15 +1557,15 @@ async function loadEvents() {
         // Load all event-related sound effects
         updateStatus('Loading event sound effects...', 'info');
         if (window.SoundEffectsManager) {
-            window.SoundEffectsManager.loadSound('filterPick', 'Sound Effects/Filter Pick.mp3');
-            window.SoundEffectsManager.loadSound('filterOff', 'Sound Effects/Filter Off.mp3');
-            window.SoundEffectsManager.loadSound('filterConfirm', 'Sound Effects/Filter Confirm.mp3');
-            window.SoundEffectsManager.loadSound('filterClear', 'Sound Effects/Filter Clear.mp3');
-            window.SoundEffectsManager.loadSound('filterButton', 'Sound Effects/Filter Button.mp3');
-            window.SoundEffectsManager.loadSound('eventClick', 'Sound Effects/Event Click.mp3');
-            window.SoundEffectsManager.loadSound('eventManager', 'Sound Effects/Event Manager.mp3');
-            window.SoundEffectsManager.loadSound('switchEvent', 'Sound Effects/Switch Event.mp3');
-            window.SoundEffectsManager.loadSound('page', 'Sound Effects/Page.mp3');
+            window.SoundEffectsManager.loadSound('filterPick', 'assets/audio/sfx/Filter Pick.mp3');
+            window.SoundEffectsManager.loadSound('filterOff', 'assets/audio/sfx/Filter Off.mp3');
+            window.SoundEffectsManager.loadSound('filterConfirm', 'assets/audio/sfx/Filter Confirm.mp3');
+            window.SoundEffectsManager.loadSound('filterClear', 'assets/audio/sfx/Filter Clear.mp3');
+            window.SoundEffectsManager.loadSound('filterButton', 'assets/audio/sfx/Filter Button.mp3');
+            window.SoundEffectsManager.loadSound('eventClick', 'assets/audio/sfx/Event Click.mp3');
+            window.SoundEffectsManager.loadSound('eventManager', 'assets/audio/sfx/Event Manager.mp3');
+            window.SoundEffectsManager.loadSound('switchEvent', 'assets/audio/sfx/Switch Event.mp3');
+            window.SoundEffectsManager.loadSound('page', 'assets/audio/sfx/Page.mp3');
             updateStatus('✓ Event sound effects loaded', 'success');
         }
         
@@ -1744,7 +1744,7 @@ async function loadMenu() {
         globeBtn.title = 'Global Timeline';
         globeBtn.innerHTML = `
             <div class="main-menu-image-container">
-                <img src="Main Menu Buttons/Global Timeline.png" alt="Global Timeline">
+                <img src="assets/images/menu/Global%20Timeline.png" alt="Global Timeline">
             </div>
             <div class="main-menu-label-container">
                 <div class="main-menu-label">Global Timeline</div>
@@ -1763,7 +1763,7 @@ async function loadMenu() {
             glossaryBtn.title = 'Concept Glossary';
             glossaryBtn.innerHTML = `
                 <div class="main-menu-image-container">
-                    <img src="Main Menu Buttons/Concept Glossary.png" alt="Concept Glossary">
+                    <img src="assets/images/menu/Concept%20Glossary.png" alt="Concept Glossary">
                 </div>
                 <div class="main-menu-label-container">
                     <div class="main-menu-label">Concept Glossary</div>
@@ -1778,7 +1778,7 @@ async function loadMenu() {
             biographyBtn.title = 'Character Bios';
             biographyBtn.innerHTML = `
                 <div class="main-menu-image-container">
-                    <img src="Main Menu Buttons/Character Bios.png" alt="Character Bios">
+                    <img src="assets/images/menu/Character%20Bios.png" alt="Character Bios" style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
                 <div class="main-menu-label-container">
                     <div class="main-menu-label">Character Bios</div>

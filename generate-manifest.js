@@ -4,9 +4,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const heroesFolder = './Heroes';
-const factionsFolder = './Factions';
-const musicFolder = './Music';
+const heroesFolder = './assets/images/heroes';
+const factionsFolder = './assets/images/factions';
+const musicFolder = './assets/audio/music';
 
 function getFilesInFolder(folderPath) {
     try {

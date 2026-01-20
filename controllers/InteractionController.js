@@ -943,10 +943,10 @@ export class InteractionController {
                     // Fallback: construct path manually (same logic as EventManager)
                     eventImage = displayEvent.image || null;
                     if (!eventImage || !eventImage.trim()) {
-                        // Auto-detect from Event Images folder
+                        // Auto-detect from events images folder
                         const normalizedName = eventName.replace(/\s+/g, ' ').trim();
                         const encodedFileName = encodeURIComponent(normalizedName);
-                        eventImage = `Event%20Images/${encodedFileName}.png`;
+                        eventImage = `assets/images/events/${encodedFileName}.png`;
                         console.log(`[InteractionController] Auto-detecting image for event "${eventName}": ${eventImage}`);
                     } else {
                         // Encode provided path to handle special characters
@@ -974,13 +974,13 @@ export class InteractionController {
                                 return current;
                             };
                             
-                            // If path already contains Event Images/, encode just the filename
+                            // If path already contains Event Images/, normalize to assets/images/events and encode just the filename
                             const folderPattern = /Event(?:%20| )Images\//;
                             if (folderPattern.test(path)) {
                                 const parts = path.split(/Event(?:%20| )Images\//);
                                 if (parts.length === 2) {
                                     let filename = fullyDecode(parts[1]);
-                                    return `Event%20Images/${encodeURIComponent(filename)}`;
+                                    return `assets/images/events/${encodeURIComponent(filename)}`;
                                 }
                             }
                             // If it's a full path, try to encode just the filename part
