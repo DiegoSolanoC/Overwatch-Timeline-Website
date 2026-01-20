@@ -353,9 +353,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Music Panel (PRIORITY)');
         initMusicPanel();
         
-        // Then initialize Filters Panel
+        // Then initialize Filters Panel (if elements exist - they may be created later when Events component loads)
         if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Filters Panel');
-        initFiltersPanel();
+        // Only try to initialize if elements exist, otherwise it will be initialized when Events component loads
+        const filtersButton = document.getElementById('filtersToggle');
+        const filtersPanel = document.getElementById('filtersPanel');
+        const filtersGrid = document.getElementById('filtersGrid');
+        if (filtersButton && filtersPanel && filtersGrid) {
+            initFiltersPanel();
+        } else {
+            // Elements don't exist yet - they'll be created when Events component loads
+            // initFiltersPanel will be called again at that time
+        }
         
         // Log asset loading summary
         if (typeof logAssetLoad === 'function' && assetLoadOrder.length > 0) {
@@ -1210,13 +1219,13 @@ function initMusicPanel() {
                 console.log('To add music files:');
                 console.log('1. Add .mp3, .wav, or .ogg files to the Music folder');
                 console.log('2. Add matching .png images to the Music Icons folder (same name as music file)');
-                console.log('3. Run: node generate-manifest.js');
+                console.log('3. Run: node scripts/generate-manifest.js');
                 console.log('4. Refresh this page');
-                musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">No music files found.<br><br>1. Add files to Music folder<br>2. Add icons to Music Icons folder<br>3. Run: node generate-manifest.js<br>4. Refresh page</div>';
+                musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">No music files found.<br><br>1. Add files to Music folder<br>2. Add icons to Music Icons folder<br>3. Run: node scripts/generate-manifest.js<br>4. Refresh page</div>';
             }
         } catch (error) {
             console.error('Error loading manifest.json:', error);
-            musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">Error loading music. Run generate-manifest.js</div>';
+            musicGrid.innerHTML = '<div style="color: #ff6600; padding: 20px; text-align: center;">Error loading music. Run scripts/generate-manifest.js</div>';
         }
     }
     
@@ -1569,7 +1578,8 @@ function initFiltersPanel() {
     console.log('Filters grid:', filtersGrid);
     
     if (!filtersButton || !filtersPanel || !filtersGrid) {
-        console.error('Filters panel elements not found!');
+        // Elements not found - this is expected if Events component hasn't loaded yet
+        // Don't log as error, just return silently
         return;
     }
     
@@ -1653,7 +1663,7 @@ function initFiltersPanel() {
             }
         } catch (error) {
             console.error('Error loading manifest.json:', error);
-            console.log('Falling back to empty lists. Run generate-manifest.js to create manifest.json');
+            console.log('Falling back to empty lists. Run scripts/generate-manifest.js to create manifest.json');
             // Fallback to empty arrays if manifest doesn't exist
             heroes = [];
             factions = [];
@@ -2263,6 +2273,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.globeController && window.globeController.globeView) {
             const texturePath = isGray ? 'Maps/MAP Black.png' : 'Maps/MAP.png';
             window.globeController.globeView.changeGlobeTexture(texturePath);
+            
+            // Change Moon and Mars textures
+            const moonTexturePath = isGray ? 'Misc/Moon_Dark.png' : 'Misc/Moon.png';
+            const marsTexturePath = isGray ? 'Misc/Mars_Dark.png' : 'Misc/Mars.png';
+            window.globeController.globeView.changeMoonTexture(moonTexturePath);
+            window.globeController.globeView.changeMarsTexture(marsTexturePath);
         }
         
         // Change scene background color (starfield background) (only on pages with globe)

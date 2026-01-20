@@ -236,14 +236,14 @@ export class GlobeController {
         window.addEventListener('blur', () => {
             // Set page visible to false to prevent spawning (spawn functions check isPageVisible)
             this.sceneModel.setPageVisible(false);
-            console.log('⏸️ Vehicle spawning paused - window lost focus (transport remains visible)');
+            // console.log('⏸️ Vehicle spawning paused - window lost focus (transport remains visible)');
         });
         
         // Resume spawning when window regains focus
         window.addEventListener('focus', () => {
             // Set page visible to true to resume spawning
             this.sceneModel.setPageVisible(true);
-            console.log('🚄 Vehicle spawning resumed - window regained focus');
+            // console.log('🚄 Vehicle spawning resumed - window regained focus');
         });
     }
 

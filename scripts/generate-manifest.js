@@ -4,9 +4,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const heroesFolder = './Heroes';
-const factionsFolder = './Factions';
-const musicFolder = './Music';
+const heroesFolder = '../Heroes';
+const factionsFolder = '../Factions';
+const musicFolder = '../Music';
 
 function getFilesInFolder(folderPath) {
     try {
@@ -94,7 +94,7 @@ const manifest = {
     music: music
 };
 
-fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2));
+fs.writeFileSync('../manifest.json', JSON.stringify(manifest, null, 2));
 console.log('Manifest generated successfully!');
 console.log(`Found ${heroes.length} heroes, ${factions.length} factions, and ${music.length} music files.`);
 

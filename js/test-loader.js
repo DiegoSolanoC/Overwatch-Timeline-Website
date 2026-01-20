@@ -688,7 +688,7 @@ async function loadGlobeBase() {
         
         // Load GlobeController module
         updateStatus('Loading GlobeController module...', 'info');
-        const { GlobeController } = await import('./controllers/GlobeController.js');
+        const { GlobeController } = await import('../controllers/GlobeController.js');
         
         // Initialize GlobeController
         updateStatus('Initializing GlobeController...', 'info');

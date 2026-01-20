@@ -197,7 +197,7 @@ export class TrainController {
         this.routeController.reserveRoute(firstRoute.from, firstRoute.to, train.userData.trainId);
         
         const journey = routes.map(r => `${r.from}->${r.to}${r.needsReverse?'(rev)':''}`).join(' | ');
-        console.log(`🚄 NEW MULTI-STOP TRAIN [${train.userData.trainId}]: ${journey}`);
+        // console.log(`🚄 NEW MULTI-STOP TRAIN [${train.userData.trainId}]: ${journey}`);
         
         return train;
     }
@@ -240,7 +240,7 @@ export class TrainController {
                 canDepart = true;
             } else {
                 if (!data.isWaiting) {
-                    console.log(`⏸️ TRAIN [${data.trainId}] waiting at station ${currentTo}...`);
+                    // console.log(`⏸️ TRAIN [${data.trainId}] waiting at station ${currentTo}...`);
                     data.isWaiting = true;
                     data.progress = 1.0;
                 }
@@ -261,7 +261,7 @@ export class TrainController {
             data.journeyProgress = data.currentRouteIndex / data.totalRoutes;
             
             const progressPercent = Math.round(data.journeyProgress * 100);
-            console.log(`🚄 TRAIN [${data.trainId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length}, ${progressPercent}% journey)`);
+            // console.log(`🚄 TRAIN [${data.trainId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length}, ${progressPercent}% journey)`);
             
             data.curve = nextRoute.curve;
             data.from = nextRoute.from;

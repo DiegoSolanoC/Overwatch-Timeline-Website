@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Map - Timeline Overwatch</title>
     <link rel="icon" type="image/png" href="Icon.png">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles/styles.css?v=5">
     <script>
         // Asset loading order tracking for map.html
         console.log('[0.00ms] PAGE: map.html');
@@ -15,14 +15,14 @@
         
         // Auto-generate manifest before page loads
         // Note: Browsers can't run Node.js directly, so this is a reminder
-        // For automatic generation, use: npm run generate (or node generate-manifest.js)
+        // For automatic generation, use: npm run generate (or node scripts/generate-manifest.js)
         window.addEventListener('DOMContentLoaded', function() {
             console.log('[DOM] DOMContentLoaded event fired');
-            console.log('Tip: Run "node generate-manifest.js" after adding/removing files');
+            console.log('Tip: Run "node scripts/generate-manifest.js" after adding/removing files');
             // Try to load manifest with cache busting
             fetch('manifest.json?' + Date.now(), { cache: 'no-store' })
                 .then(() => console.log('[MANIFEST] manifest.json loaded with cache busting'))
-                .catch(() => console.log('[MANIFEST] Manifest not found - run generate-manifest.js'));
+                .catch(() => console.log('[MANIFEST] Manifest not found - run scripts/generate-manifest.js'));
         });
         
         // Log when scripts start loading
@@ -375,7 +375,7 @@
     <script src="js/EventManager.js"></script>
     
     <!-- Sidebar Script -->
-    <script src="script.js"></script>
+    <script src="js/script.js"></script>
     
     <!-- Initialize Event Manager -->
     <script>
