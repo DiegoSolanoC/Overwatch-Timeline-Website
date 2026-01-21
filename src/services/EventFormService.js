@@ -6,6 +6,9 @@
 class EventFormService {
     constructor() {
         this.eventManager = null; // Reference to EventManager (for state access)
+        this.locationFieldManager = new (window.LocationFieldManager || LocationFieldManager)();
+        this.sourceFieldManager = new (window.SourceFieldManager || SourceFieldManager)();
+        this.autocompleteService = new (window.FormAutocompleteService || FormAutocompleteService)();
     }
 
     /**
@@ -19,29 +22,7 @@ class EventFormService {
      * Setup location type change handler
      */
     setupLocationTypeHandler() {
-        if (!this.eventManager) return;
-        
-        const locationTypeButtons = document.querySelectorAll('.location-type-btn');
-        const locationTypeInput = document.getElementById('eventEditLocationType');
-        
-        if (locationTypeButtons.length > 0 && !locationTypeButtons[0].dataset.handlerSetup) {
-            locationTypeButtons[0].dataset.handlerSetup = 'true';
-            
-            locationTypeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Remove active class from all buttons
-                    locationTypeButtons.forEach(b => b.classList.remove('active'));
-                    // Add active class to clicked button
-                    btn.classList.add('active');
-                    // Update hidden input value
-                    if (locationTypeInput) {
-                        locationTypeInput.value = btn.dataset.locationType;
-                    }
-                    // Update location fields
-                    this.updateLocationFields();
-                });
-            });
-        }
+        this.locationFieldManager.setupLocationTypeHandler();
     }
 
     /**
@@ -49,202 +30,42 @@ class EventFormService {
      * @param {string} locationType - 'earth', 'moon', 'mars', or 'station'
      */
     setLocationType(locationType) {
-        const locationTypeInput = document.getElementById('eventEditLocationType');
-        const locationTypeButtons = document.querySelectorAll('.location-type-btn');
-        
-        // Update hidden input
-        if (locationTypeInput) {
-            locationTypeInput.value = locationType;
-        }
-        
-        // Update button active states
-        locationTypeButtons.forEach(btn => {
-            if (btn.dataset.locationType === locationType) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-        
-        // Update location fields
-        this.updateLocationFields();
+        this.locationFieldManager.setLocationType(locationType);
     }
 
     /**
      * Update location fields based on selected location type
      */
     updateLocationFields() {
-        const locationTypeInput = document.getElementById('eventEditLocationType');
-        const locationType = locationTypeInput ? locationTypeInput.value : 'earth';
-        const latLonFields = document.getElementById('latLonFields');
-        const lonFields = document.getElementById('lonFields');
-        const xyFields = document.getElementById('xyFields');
-        const yFields = document.getElementById('yFields');
-        const cityLookupField = document.getElementById('eventEditCity').closest('.event-edit-field');
-        const cityDisplayNameField = document.getElementById('eventEditCityDisplayName').closest('.event-edit-field');
-        
-        if (locationType === 'earth') {
-            if (latLonFields) latLonFields.style.display = '';
-            if (lonFields) lonFields.style.display = '';
-            if (xyFields) xyFields.style.display = 'none';
-            if (yFields) yFields.style.display = 'none';
-            if (cityLookupField) cityLookupField.style.display = '';
-            if (cityDisplayNameField) cityDisplayNameField.style.display = '';
-            const latInput = document.getElementById('eventEditLat');
-            const lonInput = document.getElementById('eventEditLon');
-            const xInput = document.getElementById('eventEditX');
-            const yInput = document.getElementById('eventEditY');
-            if (latInput) latInput.required = true;
-            if (lonInput) lonInput.required = true;
-            if (xInput) xInput.required = false;
-            if (yInput) yInput.required = false;
-        } else if (locationType === 'station') {
-            // Station: hide coordinate fields (no coordinates needed - placed on ISS automatically)
-            if (latLonFields) latLonFields.style.display = 'none';
-            if (lonFields) lonFields.style.display = 'none';
-            if (xyFields) xyFields.style.display = 'none';
-            if (yFields) yFields.style.display = 'none';
-            if (cityLookupField) cityLookupField.style.display = 'none';
-            // Show city display name field for Station (like Moon/Mars)
-            if (cityDisplayNameField) cityDisplayNameField.style.display = '';
-            const latInput = document.getElementById('eventEditLat');
-            const lonInput = document.getElementById('eventEditLon');
-            const xInput = document.getElementById('eventEditX');
-            const yInput = document.getElementById('eventEditY');
-            const cityDisplayNameInput = document.getElementById('eventEditCityDisplayName');
-            if (latInput) latInput.required = false;
-            if (lonInput) lonInput.required = false;
-            if (xInput) xInput.required = false;
-            if (yInput) yInput.required = false;
-            
-            // Set default city display name if field is empty
-            if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
-                cityDisplayNameInput.value = 'Interstellar Journey Space Station';
-            }
-        } else {
-            // Moon or Mars
-            if (latLonFields) latLonFields.style.display = 'none';
-            if (lonFields) lonFields.style.display = 'none';
-            if (xyFields) xyFields.style.display = '';
-            if (yFields) yFields.style.display = '';
-            if (cityLookupField) cityLookupField.style.display = 'none';
-            // Show city display name field for Moon/Mars (same as Earth)
-            if (cityDisplayNameField) cityDisplayNameField.style.display = '';
-            const latInput = document.getElementById('eventEditLat');
-            const lonInput = document.getElementById('eventEditLon');
-            const xInput = document.getElementById('eventEditX');
-            const yInput = document.getElementById('eventEditY');
-            const cityDisplayNameInput = document.getElementById('eventEditCityDisplayName');
-            if (latInput) latInput.required = false;
-            if (lonInput) lonInput.required = false;
-            if (xInput) xInput.required = true;
-            if (yInput) yInput.required = true;
-            
-            // Set default X/Y coordinates if fields are empty (only when switching, not when editing existing)
-            if (xInput && !xInput.value.trim()) {
-                if (locationType === 'moon') {
-                    xInput.value = '60';
-                } else if (locationType === 'mars') {
-                    xInput.value = '45';
-                }
-            }
-            if (yInput && !yInput.value.trim()) {
-                if (locationType === 'moon') {
-                    yInput.value = '70';
-                } else if (locationType === 'mars') {
-                    yInput.value = '35';
-                }
-            }
-            
-            // Set default city display name if field is empty
-            if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
-                if (locationType === 'moon') {
-                    cityDisplayNameInput.value = 'Horizon Lunar Colony';
-                } else if (locationType === 'mars') {
-                    cityDisplayNameInput.value = 'Red Promise Colony';
-                }
-            }
-        }
+        this.locationFieldManager.updateLocationFields();
     }
 
     /**
      * Add a new source pair
      */
     addSourcePair() {
-        const container = document.getElementById('eventSourcesContainer');
-        if (!container) return;
-        
-        const currentPairs = container.querySelectorAll('.source-pair');
-        const newIndex = currentPairs.length;
-        
-        const pairDiv = document.createElement('div');
-        pairDiv.className = 'source-pair';
-        pairDiv.dataset.sourceIndex = newIndex;
-        
-        pairDiv.innerHTML = `
-            <div class="event-edit-field">
-                <label for="eventEditSourceName${newIndex}">Source Name:</label>
-                <input type="text" id="eventEditSourceName${newIndex}" class="event-edit-input source-name-input" autocomplete="off">
-            </div>
-            <div class="event-edit-field">
-                <label for="eventEditSourceLink${newIndex}">Source Link (optional):</label>
-                <input type="url" id="eventEditSourceLink${newIndex}" class="event-edit-input source-link-input" autocomplete="off">
-            </div>
-        `;
-        
-        container.appendChild(pairDiv);
-        this.updateRemoveSourceButton();
+        this.sourceFieldManager.addSourcePair();
     }
     
     /**
      * Remove the last source pair (but keep at least one)
      */
     removeLastSourcePair() {
-        const container = document.getElementById('eventSourcesContainer');
-        if (!container) return;
-        
-        const pairs = container.querySelectorAll('.source-pair');
-        if (pairs.length <= 1) {
-            alert('At least one source field is required');
-            return;
-        }
-        
-        pairs[pairs.length - 1].remove();
-        this.updateRemoveSourceButton();
+        this.sourceFieldManager.removeLastSourcePair();
     }
     
     /**
      * Clear all source pairs and reset to one empty pair
      */
     clearSourcePairs() {
-        const container = document.getElementById('eventSourcesContainer');
-        if (!container) return;
-        
-        container.innerHTML = `
-            <div class="source-pair" data-source-index="0">
-                <div class="event-edit-field">
-                    <label for="eventEditSourceName0">Source Name:</label>
-                    <input type="text" id="eventEditSourceName0" class="event-edit-input source-name-input" autocomplete="off">
-                </div>
-                <div class="event-edit-field">
-                    <label for="eventEditSourceLink0">Source Link (optional):</label>
-                    <input type="url" id="eventEditSourceLink0" class="event-edit-input source-link-input" autocomplete="off">
-                </div>
-            </div>
-        `;
-        this.updateRemoveSourceButton();
+        this.sourceFieldManager.clearSourcePairs();
     }
     
     /**
      * Update the visibility of the remove source button
      */
     updateRemoveSourceButton() {
-        const removeBtn = document.getElementById('removeSourcePairBtn');
-        const container = document.getElementById('eventSourcesContainer');
-        if (removeBtn && container) {
-            const pairs = container.querySelectorAll('.source-pair');
-            removeBtn.style.display = pairs.length > 1 ? 'inline-block' : 'none';
-        }
+        this.sourceFieldManager.updateRemoveSourceButton();
     }
 
     /**
@@ -354,20 +175,7 @@ class EventFormService {
         }
         
         // Save sources from all source pairs
-        variant.sources = [];
-        const sourcePairs = document.querySelectorAll('.source-pair');
-        sourcePairs.forEach((pair) => {
-            const nameInput = pair.querySelector('.source-name-input');
-            const linkInput = pair.querySelector('.source-link-input');
-            const name = nameInput ? nameInput.value.trim() : '';
-            const link = linkInput ? linkInput.value.trim() : '';
-            if (name) {
-                variant.sources.push({
-                    text: name,
-                    url: link || undefined
-                });
-            }
-        });
+        variant.sources = this.sourceFieldManager.getSourcePairsData();
     }
 
     /**
@@ -434,23 +242,7 @@ class EventFormService {
         }
         
         // Load sources into source pairs
-        const sources = variant.sources || [];
-        this.clearSourcePairs();
-        if (sources.length > 0) {
-            sources.forEach((source, index) => {
-                if (index > 0) {
-                    this.addSourcePair();
-                }
-                const pair = document.querySelectorAll('.source-pair')[index];
-                if (pair) {
-                    const nameInput = pair.querySelector('.source-name-input');
-                    const linkInput = pair.querySelector('.source-link-input');
-                    if (nameInput) nameInput.value = source.text || '';
-                    if (linkInput) linkInput.value = source.url || '';
-                }
-            });
-        }
-        this.updateRemoveSourceButton();
+        this.sourceFieldManager.loadSources(variant.sources || []);
     }
 
     /**
@@ -723,23 +515,7 @@ class EventFormService {
             // Otherwise, keep the value we already set above (from event or first variant)
             
             // Load sources into source pairs
-            const sources = variant.sources || [];
-            this.clearSourcePairs();
-            if (sources.length > 0) {
-                sources.forEach((source, index) => {
-                    if (index > 0) {
-                        this.addSourcePair();
-                    }
-                    const pair = document.querySelectorAll('.source-pair')[index];
-                    if (pair) {
-                        const nameInput = pair.querySelector('.source-name-input');
-                        const linkInput = pair.querySelector('.source-link-input');
-                        if (nameInput) nameInput.value = source.text || '';
-                        if (linkInput) linkInput.value = source.url || '';
-                    }
-                });
-            }
-            this.updateRemoveSourceButton();
+            this.sourceFieldManager.loadSources(variant.sources || []);
         }
         
         this.updateVariantTabs();
@@ -752,103 +528,7 @@ class EventFormService {
      * @param {string} type - Type of autocomplete ('heroes' or 'factions')
      */
     setupAutocomplete(input, options, type) {
-        // Remove existing autocomplete if already set up
-        if (input.dataset.autocompleteSetup === 'true') {
-            return; // Already set up
-        }
-        input.dataset.autocompleteSetup = 'true';
-        
-        let autocompleteList = null;
-        
-        input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            const lastComma = value.lastIndexOf(',');
-            const currentInput = lastComma >= 0 ? value.substring(lastComma + 1).trim() : value.trim();
-            
-            // Remove existing autocomplete list
-            if (autocompleteList) {
-                autocompleteList.remove();
-                autocompleteList = null;
-            }
-            
-            if (currentInput.length === 0) {
-                return;
-            }
-            
-            // Filter matching options
-            const matches = options.filter(opt => 
-                opt.toLowerCase().includes(currentInput.toLowerCase()) &&
-                !value.toLowerCase().includes(opt.toLowerCase())
-            ).slice(0, 5); // Limit to 5 suggestions
-            
-            if (matches.length === 0) {
-                return;
-            }
-            
-            // Create autocomplete list
-            autocompleteList = document.createElement('div');
-            autocompleteList.className = 'filter-autocomplete-list';
-            autocompleteList.style.cssText = `
-                position: absolute;
-                background: #2a2a2a;
-                border: 1px solid rgba(255, 102, 0, 0.5);
-                border-radius: 4px;
-                max-height: 200px;
-                overflow-y: auto;
-                z-index: 1000;
-                margin-top: 2px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-            `;
-            
-            matches.forEach(match => {
-                const item = document.createElement('div');
-                item.className = 'filter-autocomplete-item';
-                item.textContent = match;
-                item.style.cssText = `
-                    padding: 8px 12px;
-                    cursor: pointer;
-                    color: white;
-                    font-size: 14px;
-                    transition: background 0.2s;
-                `;
-                
-                item.addEventListener('mouseenter', () => {
-                    item.style.background = 'rgba(255, 102, 0, 0.3)';
-                });
-                
-                item.addEventListener('mouseleave', () => {
-                    item.style.background = 'transparent';
-                });
-                
-                item.addEventListener('click', () => {
-                    const beforeComma = lastComma >= 0 ? value.substring(0, lastComma + 1) + ' ' : '';
-                    input.value = beforeComma + match + ', ';
-                    input.focus();
-                    autocompleteList.remove();
-                    autocompleteList = null;
-                });
-                
-                autocompleteList.appendChild(item);
-            });
-            
-            // Position autocomplete list
-            const rect = input.getBoundingClientRect();
-            autocompleteList.style.left = rect.left + 'px';
-            autocompleteList.style.top = (rect.bottom + window.scrollY) + 'px';
-            autocompleteList.style.width = rect.width + 'px';
-            
-            document.body.appendChild(autocompleteList);
-        });
-        
-        // Remove autocomplete on blur (with small delay to allow clicks)
-        input.addEventListener('blur', () => {
-            setTimeout(() => {
-                if (autocompleteList) {
-                    autocompleteList.remove();
-                    autocompleteList = null;
-                }
-            }, 200);
-        });
+        this.autocompleteService.setupAutocomplete(input, options, type);
     }
 }
 

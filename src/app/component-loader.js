@@ -1169,6 +1169,15 @@ async function loadMusic() {
             updateStatus('✓ Music panel added', 'success');
         }
         
+        // Initialize MusicManager AFTER elements are created
+        if (window.MusicManager && typeof window.MusicManager.init === 'function') {
+            updateStatus('Initializing MusicManager...', 'info');
+            window.MusicManager.init();
+            updateStatus('✓ MusicManager initialized', 'success');
+        } else {
+            console.warn('MusicManager not available after loading music components');
+        }
+        
         // Add audio element (if not already present)
         if (!document.getElementById('backgroundMusic')) {
             updateStatus('Adding audio element...', 'info');
@@ -1188,12 +1197,24 @@ async function loadMusic() {
         
         // Initialize music panel (using MusicManager service)
         updateStatus('Initializing music panel...', 'info');
-        if (window.MusicManager && typeof window.MusicManager.init === 'function') {
-            window.MusicManager.init();
-            updateStatus('✓ Music panel initialized', 'success');
-        } else {
-            updateStatus('⚠ MusicManager not found - music panel may not work', 'error');
-        }
+        // Wait a bit to ensure all services are loaded
+        setTimeout(() => {
+            if (window.MusicManager && typeof window.MusicManager.init === 'function') {
+                window.MusicManager.init();
+                updateStatus('✓ Music panel initialized', 'success');
+            } else {
+                console.error('MusicManager not available:', {
+                    MusicManager: !!window.MusicManager,
+                    hasInit: window.MusicManager && typeof window.MusicManager.init === 'function',
+                    services: {
+                        MusicStateService: !!window.MusicStateService,
+                        MusicPanelService: !!window.MusicPanelService,
+                        MusicControlService: !!window.MusicControlService
+                    }
+                });
+                updateStatus('⚠ MusicManager not found - music panel may not work', 'error');
+            }
+        }, 50);
         
         loadedComponents.music = true;
         setButtonState('loadMusicBtn', 'loaded');

@@ -248,7 +248,6 @@ export class TransportController {
         this.routeController.reserveRoute(firstRoute.from, firstRoute.to, train.userData.trainId);
         
         const journey = routes.map(r => `${r.from}->${r.to}${r.needsReverse?'(rev)':''}`).join(' | ');
-        console.log(`🚄 NEW MULTI-STOP TRAIN [${train.userData.trainId}]: ${journey}`);
         
         return train;
     }
@@ -471,7 +470,6 @@ export class TransportController {
         plane.userData.isTransitioning = false;
         
         const journey = routes.map(r => `${r.from}->${r.to}`).join(' | ');
-        console.log(`✈️ NEW MULTI-STOP PLANE [${plane.userData.planeId}]: ${journey}`);
         
         return plane;
     }
@@ -608,7 +606,6 @@ export class TransportController {
         this.routeController.reserveBoatRoute(firstRoute.from, firstRoute.to, boat.userData.boatId);
         
         const journey = routes.map(r => `${r.from}->${r.to}`).join(' | ');
-        console.log(`🚢 NEW MULTI-STOP BOAT [${boat.userData.boatId}]: ${journey}`);
         
         return boat;
     }
@@ -649,14 +646,12 @@ export class TransportController {
                         const alternateRoutes = this.routeController.findAlternateRoute(currentTo, data.finalDestination, currentFrom, 5);
                         
                         if (alternateRoutes && alternateRoutes.length > 0) {
-                            console.log(`🔀 TRAIN [${data.trainId}] taking alternate route (${alternateRoutes.length} hops)`);
                             data.routes = [data.routes[data.currentRouteIndex], ...alternateRoutes];
                             data.currentRouteIndex = 0;
                             nextRoute = alternateRoutes[0];
                             canDepart = true;
                         } else {
                             if (!data.isWaiting) {
-                                console.log(`⏸️ TRAIN [${data.trainId}] waiting at station ${currentTo}...`);
                                 data.isWaiting = true;
                                 data.progress = 1.0;
                             }
@@ -677,7 +672,6 @@ export class TransportController {
                         data.journeyProgress = data.currentRouteIndex / data.totalRoutes;
                         
                         const progressPercent = Math.round(data.journeyProgress * 100);
-                        console.log(`🚄 TRAIN [${data.trainId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length}, ${progressPercent}% journey)`);
                         
                         data.curve = nextRoute.curve;
                         data.from = nextRoute.from;
@@ -874,8 +868,6 @@ export class TransportController {
                     data.progress = 0;
                     data.hasLanded = false;
                     data.landingTimer = 0;
-                    
-                    console.log(`✈️ PLANE [${data.planeId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length})`);
                 } else {
                     // Last stop - remove immediately
                     globe.remove(plane);
@@ -983,7 +975,6 @@ export class TransportController {
                     
                     if (!this.routeController.isBoatRouteAvailable(nextRoute.from, nextRoute.to)) {
                         if (!data.isWaiting) {
-                            console.log(`⏸️ BOAT [${data.boatId}] waiting at port ${currentTo}...`);
                             data.isWaiting = true;
                             data.progress = 1.0;
                         }
@@ -1000,7 +991,6 @@ export class TransportController {
                         
                         this.routeController.reserveBoatRoute(nextRoute.from, nextRoute.to, data.boatId);
                         data.currentRouteIndex++;
-                        console.log(`🚢 BOAT [${data.boatId}] departing ${nextRoute.from} -> ${nextRoute.to} (segment ${data.currentRouteIndex + 1}/${data.routes.length})`);
                         
                         data.curve = nextRoute.curve;
                         data.from = nextRoute.from;

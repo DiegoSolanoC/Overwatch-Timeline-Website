@@ -577,6 +577,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     
+    <!-- InteractionController dependencies - load before component-loader (which imports InteractionController) -->
+    <script src="src/services/MarkerPulseService.js"></script>
+    <script src="src/services/CameraControlService.js"></script>
+    <script src="src/services/MouseInteractionService.js"></script>
+    <script src="src/services/TouchInteractionService.js"></script>
+    <script src="src/services/MarkerInteractionService.js"></script>
+    <script src="src/services/StationFollowService.js"></script>
+    
     <!-- Load component loader for globe/menu/features -->
     <script type="module" src="src/app/component-loader.js"></script>
     
@@ -587,7 +595,13 @@
     <script src="src/services/LocationService.js"></script>
     <script src="src/services/EventRenderService.js"></script>
     <script src="src/services/EventEditService.js"></script>
+    <!-- EventFormService dependencies - load before EventFormService -->
+    <script src="src/services/LocationFieldManager.js"></script>
+    <script src="src/services/SourceFieldManager.js"></script>
+    <script src="src/services/FormAutocompleteService.js"></script>
     <script src="src/services/EventFormService.js"></script>
+    <!-- ModalSaveService - load before EventManager -->
+    <script src="src/services/ModalSaveService.js"></script>
     <script src="src/services/EventDragDropService.js"></script>
     <script src="src/services/EventListenerService.js"></script>
     <script src="src/services/EventInteractionService.js"></script>
@@ -595,7 +609,20 @@
     <script src="src/services/CityLookupService.js"></script>
     <script src="src/services/ImagePathService.js"></script>
     <script src="src/services/GlobeSyncService.js"></script>
+    <!-- MusicManager dependencies - load before MusicManager -->
+    <script src="src/services/MusicStateService.js"></script>
+    <script src="src/services/MusicShuffleService.js"></script>
+    <script src="src/services/MusicVolumeService.js"></script>
+    <script src="src/services/MusicProgressService.js"></script>
+    <script src="src/services/MusicPlaybackService.js"></script>
+    <script src="src/services/MusicFileService.js"></script>
+    <script src="src/services/MusicPanelService.js"></script>
+    <script src="src/services/MusicIconService.js"></script>
+    <script src="src/services/MusicControlService.js"></script>
     <script src="src/services/MusicManager.js"></script>
+    <!-- Filter services - load dependencies before FilterService -->
+    <script src="src/services/FilterStateManager.js"></script>
+    <script src="src/services/FilterImageService.js"></script>
     <script src="src/services/FilterService.js"></script>
     <script src="src/services/SidebarService.js"></script>
     

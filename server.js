@@ -47,9 +47,9 @@ const server = http.createServer((req, res) => {
         return;
     }
     
-    // Default route serves test.html
+    // Default route serves main.html
     if (decodedPath === '/' || decodedPath === '/index' || decodedPath === '/index.html') {
-        serveFile(res, './test.html', 'text/html');
+        serveFile(res, './main.html', 'text/html');
         return;
     }
 
@@ -106,11 +106,11 @@ server.listen(PORT, () => {
     console.log(`\n=== Timeline Overwatch Server ===`);
     console.log(`Server running at http://localhost:${PORT}/`);
     console.log(`\nAvailable routes:`);
-    console.log(`  - http://localhost:${PORT}/          → test.html (default)`);
-    console.log(`  - http://localhost:${PORT}/test      → test.html`);
-    console.log(`  - http://localhost:${PORT}/test.html → test.html`);
+    console.log(`  - http://localhost:${PORT}/          → main.html (default)`);
     console.log(`  - http://localhost:${PORT}/main      → main.html`);
     console.log(`  - http://localhost:${PORT}/main.html → main.html`);
+    console.log(`  - http://localhost:${PORT}/test      → test.html`);
+    console.log(`  - http://localhost:${PORT}/test.html → test.html`);
     console.log(`\nPress Ctrl+C to stop the server\n`);
 });
 

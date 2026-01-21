@@ -114,16 +114,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('SidebarService not available - make sure src/services/SidebarService.js is loaded before script.js');
     }
     
-    // PRIORITY: Initialize Music Panel FIRST to load music state and current song
+    // NOTE: MusicManager.init() is now called from component-loader.js after music components are loaded
+    // This ensures the music button and panel elements exist before initialization
+    // The old initialization here has been moved to loadMusic() function
+    
     setTimeout(() => {
-        if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Music Panel (PRIORITY)');
-        // Use MusicManager service
-        if (window.MusicManager && typeof window.MusicManager.init === 'function') {
-            window.MusicManager.init();
-        } else {
-            console.warn('MusicManager not available - make sure src/services/MusicManager.js is loaded before script.js');
-        }
-        
         // Then initialize Filters Panel (if elements exist - they may be created later when Events component loads)
         if (typeof logAssetLoad === 'function') logAssetLoad('INIT', 'Initializing Filters Panel');
         // Only try to initialize if elements exist, otherwise it will be initialized when Events component loads

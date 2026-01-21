@@ -1,0 +1,89 @@
+/* ========================================
+   EVENT SOURCES SECTION
+   ======================================== */
+
+/* Event Sources Section */
+.event-sources-section {
+    margin: 20px 0 10px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border-left: 3px solid #2196F3; /* Light blue for default blue palette */
+}
+
+body.color-palette-gray .event-sources-section {
+    border-left: 3px solid #ff6600; /* Orange for gray palette */
+}
+
+.event-sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.event-source-display-item {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #e0e0e0;
+}
+
+.event-source-link {
+    color: #2196F3;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.event-source-link:hover {
+    color: #42A5F5;
+    text-decoration: underline;
+}
+
+.event-source-text {
+    color: #e0e0e0;
+}
+
+/* Event Source Item in Edit Form */
+.event-source-item {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.event-source-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-source-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.event-source-header strong {
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+/* Source pairs styling */
+.source-pair {
+    margin-bottom: 4px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.source-pair:last-child {
+    margin-bottom: 0;
+}

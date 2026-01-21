@@ -78,6 +78,12 @@ class EventManager {
             this.globeSyncService.setEventManager(this);
         }
         
+        // Reference to ModalSaveService for modal save operations
+        this.modalSaveService = window.ModalSaveService ? new window.ModalSaveService() : null;
+        if (this.modalSaveService) {
+            this.modalSaveService.setEventManager(this);
+        }
+        
         // UI state
         this.draggedElement = null;
         this.dragOverIndex = null;
@@ -738,124 +744,24 @@ class EventManager {
     }
 
     /**
-     * Save event from modal (delegates event creation/update to EventEditService)
+     * Save event from modal (delegates to ModalSaveService)
      */
     saveEventFromModal() {
-        // Prevent saving on GitHub Pages
-        if (this.isGitHubPages()) {
-            console.log('Event saving is disabled on GitHub Pages');
-            return;
-        }
-        
-        if (!this.editService) {
-            console.error('EventManager: EventEditService not available!');
-            alert('Error: EventEditService not available');
-            return;
-        }
-        
-        // Save current variant before processing
-        if (this.formService) {
-            this.formService.saveCurrentVariantToMemory();
-        }
-        const isMultiEvent = this.variantData.length > 1;
-        
-        // Get location type
-        const locationTypeInput = document.getElementById('eventEditLocationType');
-        const locationType = locationTypeInput ? locationTypeInput.value : 'earth';
-        
-        // Read form values
-        let lat, lon, x, y;
-        if (locationType === 'earth') {
-            lat = parseFloat(document.getElementById('eventEditLat').value);
-            lon = parseFloat(document.getElementById('eventEditLon').value);
-        } else if (locationType === 'station') {
-            lat = undefined;
-            lon = undefined;
-            x = undefined;
-            y = undefined;
-        } else {
-            x = parseFloat(document.getElementById('eventEditX').value);
-            y = parseFloat(document.getElementById('eventEditY').value);
-        }
-
-        // Process main event (or first variant if multi-event)
-        const mainName = document.getElementById('eventEditName').value.trim();
-        const mainDescription = document.getElementById('eventEditDescription').value.trim();
-        const mainFiltersStr = document.getElementById('eventEditFilters').value.trim();
-        const mainFactionsStr = document.getElementById('eventEditFactions').value.trim();
-
-        // Process sources from all source pairs
-        const mainSources = [];
-        const sourcePairs = document.querySelectorAll('.source-pair');
-        sourcePairs.forEach((pair) => {
-            const nameInput = pair.querySelector('.source-name-input');
-            const linkInput = pair.querySelector('.source-link-input');
-            const name = nameInput ? nameInput.value.trim() : '';
-            const link = linkInput ? linkInput.value.trim() : '';
-            if (name) {
-                mainSources.push({
-                    text: name,
-                    url: link || undefined
-                });
+        if (this.modalSaveService) {
+            const result = this.modalSaveService.saveEventFromModal();
+            
+            if (result.success) {
+                this.currentPage = result.newCurrentPage;
+                this.renderEvents();
+                this.closeEditModal();
+                this.refreshGlobeEvents();
+            } else {
+                console.error('EventManager: Failed to save event:', result.error);
+                alert('Error saving event: ' + (result.error || 'Unknown error'));
             }
-        });
-
-        const cityDisplayName = document.getElementById('eventEditCityDisplayName').value.trim();
-
-        // Use EventEditService to create event object
-        const formData = {
-            locationType,
-            lat,
-            lon,
-            x,
-            y,
-            mainName,
-            mainDescription,
-            mainFiltersStr,
-            mainFactionsStr,
-            mainSources,
-            cityDisplayName
-        };
-
-        const createResult = this.editService.createEventFromForm(formData, this.variantData, this.factions);
-        if (createResult.error) {
-            alert(createResult.error);
-            return;
-        }
-
-        const event = createResult.event;
-
-        // Get event number (position) from input
-        const eventNumberInput = document.getElementById('eventEditNumber');
-        let targetPosition = null;
-        if (eventNumberInput && eventNumberInput.value) {
-            const eventNumber = parseInt(eventNumberInput.value);
-            if (!isNaN(eventNumber) && eventNumber >= 1) {
-                targetPosition = eventNumber - 1; // Convert to 0-indexed
-                // Clamp to valid range
-                const maxPosition = this.editingIndex === null ? this.events.length : this.events.length - 1;
-                targetPosition = Math.min(targetPosition, maxPosition);
-            }
-        }
-        
-        // Use EventEditService to add or update event
-        let result;
-        if (this.editingIndex === null) {
-            // Add new event
-            result = this.editService.addEvent(event, targetPosition);
         } else {
-            // Update existing event
-            result = this.editService.updateEvent(this.editingIndex, event, targetPosition);
-        }
-
-        if (result.success) {
-            this.currentPage = result.newCurrentPage;
-            this.renderEvents();
-            this.closeEditModal();
-            this.refreshGlobeEvents();
-        } else {
-            console.error('EventManager: Failed to save event:', result.error);
-            alert('Error saving event: ' + (result.error || 'Unknown error'));
+            console.error('EventManager: ModalSaveService not available!');
+            alert('Error: ModalSaveService not available');
         }
     }
 }
