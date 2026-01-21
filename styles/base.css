@@ -1,4 +1,8 @@
-﻿/* Reset and Base Styles */
+/* ========================================
+   BASE & RESET STYLES
+   ======================================== */
+
+/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -9,17 +13,17 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    background: #0D47A1; /* Match footer/header to prevent white line */
+    background: var(--bg-primary); /* Match footer/header to prevent white line */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    transform: scale(0.67);
+    transform: scale(var(--desktop-scale));
     transform-origin: top left;
-    width: 149.25%; /* 100% / 0.67 to maintain full width */
-    height: 149.25%; /* 100% / 0.67 to maintain full height */
+    width: var(--desktop-scale-inverse); /* 100% / 0.67 to maintain full width */
+    height: var(--desktop-scale-inverse); /* 100% / 0.67 to maintain full height */
 }
 
 html {
@@ -32,4 +36,3 @@ html {
     -ms-text-size-adjust: 100%;
     text-size-adjust: 100%;
 }
-

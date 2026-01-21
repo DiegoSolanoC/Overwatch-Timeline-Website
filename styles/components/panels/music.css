@@ -1,0 +1,550 @@
+/* ========================================
+   MUSIC PANEL
+   ======================================== */
+
+/* Music Panel (right side, below filters) - matching filter panel exactly */
+.music-panel {
+    position: fixed;
+    right: calc(-1 * var(--panel-music-width)); /* Match filter panel */
+    top: var(--header-height);
+    bottom: var(--footer-height);
+    width: var(--panel-music-width); /* Match filter panel width */
+    background: var(--bg-secondary); /* Dark blue for default blue palette */
+    box-shadow: none !important; /* Remove shadow to prevent overlap */
+    transition: right var(--panel-transition);
+    z-index: 200;
+    overflow-y: hidden; /* Hide panel scrollbar - only grid scrolls */
+    color: white;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-sizing: border-box;
+    margin-top: 0; /* Remove negative margin */
+    margin-bottom: 0; /* Remove negative margin */
+}
+
+/* Mobile: Override desktop right position to ensure smooth transition */
+@media (max-width: var(--breakpoint-mobile)) {
+    .music-panel {
+        right: -100% !important; /* Start at -100% on mobile, not fixed width */
+    }
+}
+
+.music-panel.open {
+    right: 0;
+}
+
+.music-panel-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 48px;
+    cursor: pointer;
+    color: #fff;
+    line-height: 1;
+    z-index: 201;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.music-panel-close:hover {
+    color: var(--accent-primary); /* Light blue for default blue palette */
+}
+
+/* Gray palette: dark gray background for music panel */
+body.color-palette-gray .music-panel {
+    background: var(--bg-secondary) !important;
+}
+
+/* Gray palette: orange hover for music close */
+body.color-palette-gray .music-panel-close:hover {
+    color: var(--accent-primary);
+}
+
+.music-panel-content {
+    padding: 20px 20px 20px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.music-title {
+    color: var(--accent-primary); /* Light blue for default blue palette */
+    margin: 0; /* Match filters-title */
+    font-size: 20px; /* Explicit size for scaling */
+    font-weight: 600;
+    flex: 1; /* Match filters-title */
+    line-height: 1.2;
+}
+
+/* Gray palette: orange title */
+body.color-palette-gray .music-title {
+    color: var(--accent-primary);
+}
+
+.music-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.music-control-row {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Explicit gap for scaling */
+    flex-shrink: 0; /* Don't shrink - fixed size */
+    margin-bottom: 15px; /* Explicit margin for scaling - Match filters spacing */
+    box-sizing: border-box; /* Ensure consistent sizing */
+}
+
+.music-control-row label {
+    color: #e0e0e0;
+    font-size: 14px; /* Explicit size for scaling */
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.volume-slider {
+    flex: 1;
+    height: 10px; /* Bigger volume bar */
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px; /* Bigger thumb */
+    height: 22px; /* Bigger thumb */
+    background: var(--accent-primary); /* Light blue for default blue palette */
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 22px; /* Bigger thumb */
+    height: 22px; /* Bigger thumb */
+    background: var(--accent-primary); /* Light blue for default blue palette */
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+body.color-palette-gray .volume-slider::-webkit-slider-thumb {
+    background: var(--accent-primary); /* Orange for gray palette */
+}
+
+body.color-palette-gray .volume-slider::-moz-range-thumb {
+    background: var(--accent-primary); /* Orange for gray palette */
+}
+
+.volume-value {
+    color: var(--accent-primary); /* Light blue for default blue palette */
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 45px;
+    text-align: right;
+}
+
+body.color-palette-gray .volume-value {
+    color: var(--accent-primary); /* Orange for gray palette */
+}
+
+.music-mute-btn {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-light)); /* Light blue for default blue palette */
+    border: 2px solid var(--accent-primary);
+    border-radius: 8px;
+    color: white;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--panel-transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.music-mute-btn:hover {
+    background: rgba(var(--accent-primary-rgb), 0.5);
+    border-color: var(--accent-primary-hover);
+}
+
+body.color-palette-gray .music-mute-btn {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-color: var(--accent-primary);
+}
+
+body.color-palette-gray .music-mute-btn:hover {
+    background: rgba(var(--accent-primary-rgb), 0.5);
+    border-color: var(--accent-primary-hover);
+}
+
+.music-mute-btn.muted {
+    background: rgba(255, 0, 0, 0.3);
+    border-color: #ff0000;
+}
+
+.music-source-select,
+.music-playlist-select {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    color: white;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--panel-transition);
+    box-sizing: border-box;
+}
+
+.music-source-select:hover,
+.music-playlist-select:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.music-source-select:focus,
+.music-playlist-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.music-source-select option,
+.music-playlist-select option {
+    background: var(--bg-secondary);
+    color: white;
+}
+
+.music-playlist-select option:disabled {
+    color: var(--accent-primary);
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Music Grid - EXACT COPY of filters-grid */
+.music-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px; /* Reduced spacing between buttons */
+    margin-bottom: 15px;
+    margin-top: 15px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    min-height: 0; /* Allow flex child to shrink */
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    align-content: start; /* Prevent rows from stretching when there's extra space */
+    /* max-height: 300px; */ /* Uncomment to test scrollbar with fewer songs */
+}
+
+/* Custom scrollbar styling for music grid */
+.music-grid::-webkit-scrollbar {
+    width: 12px;
+}
+
+.music-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+.music-grid::-webkit-scrollbar-thumb {
+    background: rgba(33, 150, 243, 0.6); /* Light blue for default blue palette */
+    border-radius: 6px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.music-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(33, 150, 243, 0.8);
+}
+
+/* Firefox scrollbar */
+.music-grid {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(33, 150, 243, 0.6) rgba(0, 0, 0, 0.2); /* Light blue for default blue palette */
+}
+
+body.color-palette-gray .music-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 102, 0, 0.6); /* Orange for gray palette */
+}
+
+body.color-palette-gray .music-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 102, 0, 0.8);
+}
+
+body.color-palette-gray .music-grid {
+    scrollbar-color: rgba(255, 102, 0, 0.6) rgba(0, 0, 0, 0.2);
+}
+
+.music-grid-btn {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: all var(--panel-transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    text-align: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+}
+
+.music-grid-btn:hover {
+    transform: translateY(-2px);
+}
+
+.music-grid-btn .music-icon-container {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #383838; /* Dark gray background */
+    border-radius: 0; /* Sharp edges */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* No padding - image matches exactly */
+    box-sizing: border-box;
+    transition: all var(--panel-transition);
+    overflow: hidden; /* Ensure image doesn't overflow */
+}
+
+.music-grid-btn.selected .music-icon-container {
+    background: rgba(27, 94, 32, 0.9); /* Darker green shade for icon container */
+}
+
+.music-grid-btn .music-icon-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 0; /* Sharp edges */
+    display: block;
+}
+
+.music-grid-btn .music-label {
+    width: 100%;
+    background: #1D4A77; /* Blue for default blue palette - match filter-label */
+    color: white; /* White text for contrast */
+    font-size: 14px; /* Explicit size for scaling - match filter-label */
+    font-weight: 600; /* Bolder font */
+    padding: 8px 4px; /* Explicit padding for scaling */
+    margin-top: 0; /* No spacing between label and button */
+    border-radius: 0; /* Sharp edges */
+    text-align: center;
+    transition: all var(--panel-transition);
+    box-sizing: border-box;
+    letter-spacing: 0.5px; /* Better readability */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.2; /* Explicit line-height for scaling */
+}
+
+/* Gray palette: light gray background for music label - match filter-label */
+body.color-palette-gray .music-grid-btn .music-label {
+    background: #707070; /* Light gray background */
+}
+
+.music-grid-btn.selected .music-label {
+    background: rgba(76, 175, 80, 0.9); /* Light green for label background */
+    color: white;
+    font-weight: bold;
+}
+
+.music-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Match filters-actions */
+    margin-bottom: 15px; /* Match filters-actions */
+    padding: 12px 15px; /* Match filters-actions */
+    border-bottom: 2px solid rgba(33, 150, 243, 0.3); /* Light blue for default blue palette */
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px 8px 0 0;
+    flex-shrink: 0;
+}
+
+body.color-palette-gray .music-actions {
+    border-bottom: 2px solid rgba(255, 102, 0, 0.3); /* Orange for gray palette */
+}
+
+.music-actions-buttons {
+    display: flex;
+    gap: 15px; /* Match filters-actions-buttons */
+}
+
+/* Now Playing Section - matching filter tab styling */
+.music-now-playing {
+    margin-bottom: 15px; /* Explicit margin for scaling */
+    padding: 15px; /* Explicit padding for scaling */
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px; /* Explicit border-radius for scaling */
+    flex-shrink: 0; /* Don't shrink - fixed size */
+    box-sizing: border-box; /* Ensure padding is included in size */
+}
+
+.music-current-song {
+    color: var(--accent-primary); /* Light blue for default blue palette */
+    font-size: 16px; /* Explicit size for scaling */
+    font-weight: 600;
+    margin-bottom: 10px; /* Explicit margin for scaling */
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.2; /* Explicit line-height for scaling */
+}
+
+body.color-palette-gray .music-current-song {
+    color: var(--accent-primary); /* Orange for gray palette */
+}
+
+.music-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+.music-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.music-progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #2196F3; /* Light blue for default blue palette */
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.music-progress-bar::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #2196F3; /* Light blue for default blue palette */
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+body.color-palette-gray .music-progress-bar::-webkit-slider-thumb {
+    background: #ff6600; /* Orange for gray palette */
+}
+
+body.color-palette-gray .music-progress-bar::-moz-range-thumb {
+    background: #ff6600; /* Orange for gray palette */
+}
+
+.music-time-display {
+    display: flex;
+    justify-content: space-between;
+    color: white;
+    font-size: 14px; /* Explicit size for scaling */
+    font-weight: 500;
+    line-height: 1.2; /* Explicit line-height for scaling */
+}
+
+.music-control-buttons {
+    display: flex;
+    gap: 15px; /* Match filters-actions-buttons gap */
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+/* Music control buttons - matching filters-action-btn exactly */
+.music-control-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 14px 28px; /* Explicit padding for scaling - matching filters-action-btn */
+    font-size: 16px; /* Explicit size for scaling - matching filters-action-btn */
+    font-weight: 600; /* Bolder - matching filters-action-btn */
+    cursor: pointer;
+    transition: all var(--panel-transition);
+    min-width: 120px; /* Explicit min-width for scaling - matching filters-action-btn */
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Matching filters-action-btn */
+    box-sizing: border-box;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* Prevent text from showing */
+    font-size: 0; /* Hide any text content */
+}
+
+.music-control-btn .control-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
+}
+
+.music-control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.music-control-btn:active {
+    transform: translateY(0);
+}
+
+/* Active state (orange) for pause, mute, shuffle when on - matching filters-confirm-btn */
+.music-control-btn.active {
+    background: rgba(33, 150, 243, 0.4); /* Light blue for default blue palette */
+    border-color: #2196F3;
+}
+
+.music-control-btn.active:hover {
+    background: rgba(33, 150, 243, 0.6);
+    border-color: #42a5f5;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+/* Gray palette: orange active music buttons */
+body.color-palette-gray .music-control-btn.active {
+    background: rgba(255, 102, 0, 0.4);
+    border-color: #ff6600;
+}
+
+body.color-palette-gray .music-control-btn.active:hover {
+    background: rgba(255, 102, 0, 0.6);
+    border-color: #ff8833;
+    box-shadow: 0 4px 12px rgba(255, 102, 0, 0.4);
+}

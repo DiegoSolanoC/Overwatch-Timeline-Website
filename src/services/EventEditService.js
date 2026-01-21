@@ -125,19 +125,19 @@ class EventEditService {
             return { error: 'Please fill in the required field (Title)' };
         }
 
-        const processFiltersAndFactions = (filtersStr, factionsStr) => {
+        const processFiltersAndFactions = (filtersStr, factionsStr, availableFactions) => {
             const filters = filtersStr ? filtersStr.split(',').map(f => f.trim()).filter(f => f) : [];
             const factionDisplayNames = factionsStr ? factionsStr.split(',').map(f => f.trim()).filter(f => f) : [];
-            const factions = factionDisplayNames.map(displayName => {
-                const found = factions.find(f => 
+            const factionFilenames = factionDisplayNames.map(displayName => {
+                const found = availableFactions.find(f => 
                     f.displayName.toLowerCase() === displayName.toLowerCase()
                 );
                 return found ? found.filename : displayName;
             });
-            return { filters, factions };
+            return { filters, factions: factionFilenames };
         };
 
-        const mainData = processFiltersAndFactions(mainFiltersStr, mainFactionsStr);
+        const mainData = processFiltersAndFactions(mainFiltersStr, mainFactionsStr, factions);
         
         let event;
         
@@ -149,7 +149,8 @@ class EventEditService {
                     (variant.factions || []).map(f => {
                         const faction = factions.find(fac => fac.filename === f);
                         return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
-                    }).join(', ')
+                    }).join(', '),
+                    factions
                 );
                 
                 const variantObj = {

@@ -1,96 +1,109 @@
-﻿/* Color Palette Variables */
+/* ========================================
+   CSS CUSTOM PROPERTIES (Design Tokens)
+   ======================================== */
+
 :root {
+    /* Color Palette - Blue Theme (Default) */
     --primary-blue: #0D47A1;
     --secondary-blue: #2196F3;
     --primary-gray: #4a4a4a;
     --secondary-gray: #707070;
+    
+    /* Accent Colors - Blue Theme */
+    --accent-primary: #2196F3;
+    --accent-primary-rgb: 33, 150, 243;
+    --accent-primary-hover: #42a5f5;
+    --accent-primary-active: rgba(33, 150, 243, 0.4);
+    --accent-primary-active-hover: rgba(33, 150, 243, 0.6);
+    
+    /* Background Colors - Blue Theme */
+    --bg-primary: #0D47A1;
+    --bg-secondary: #0a1929;
+    --bg-main: #0a1929;
+    
+    /* Accent Colors - Gray Theme (Orange) */
+    --accent-gray-primary: #ff6600;
+    --accent-gray-primary-rgb: 255, 102, 0;
+    --accent-gray-primary-hover: #ff8833;
+    --accent-gray-primary-active: rgba(255, 102, 0, 0.4);
+    --accent-gray-primary-active-hover: rgba(255, 102, 0, 0.6);
+    
+    /* Background Colors - Gray Theme */
+    --bg-gray-primary: #1a1a1a;
+    --bg-gray-secondary: #4a4a4a;
+    --bg-gray-tertiary: rgba(74, 74, 74, 0.9);
+    --bg-gray-quaternary: rgba(112, 112, 112, 0.3);
+    
+    /* Scrollbar Colors - Blue Theme */
+    --scrollbar-thumb: rgba(33, 150, 243, 0.6);
+    --scrollbar-thumb-hover: rgba(33, 150, 243, 0.8);
+    --scrollbar-track: rgba(0, 0, 0, 0.2);
+    
+    /* Scrollbar Colors - Gray Theme */
+    --scrollbar-thumb-gray: rgba(255, 102, 0, 0.6);
+    --scrollbar-thumb-gray-hover: rgba(255, 102, 0, 0.8);
+    
+    /* Button Colors - Blue Theme */
+    --btn-primary-bg: rgba(13, 71, 161, 0.9);
+    --btn-primary-bg-hover: rgba(13, 71, 161, 1);
+    --btn-primary-bg-active: rgba(27, 94, 32, 0.9);
+    --btn-primary-bg-active-hover: rgba(27, 94, 32, 1);
+    
+    /* Button Colors - Gray Theme */
+    --btn-gray-bg: rgba(74, 74, 74, 0.9);
+    --btn-gray-bg-hover: rgba(74, 74, 74, 1);
+    
+    /* Layout Constants */
+    --desktop-scale: 0.67;
+    --desktop-scale-inverse: 149.25%; /* 100% / 0.67 */
+    --header-height: 60px;
+    --footer-height: 52px;
+    --panel-transition: 0.3s ease;
+    
+    /* Breakpoints */
+    --breakpoint-mobile: 768px;
+    --breakpoint-small-mobile: 480px;
+    
+    /* Panel Dimensions - Desktop */
+    --panel-event-width: 600px;
+    --panel-filters-width: 800px;
+    --panel-music-width: 800px;
+    --panel-events-manage-width: 900px;
+    
+    /* Opacity Values */
+    --opacity-light: 0.3;
+    --opacity-medium: 0.6;
+    --opacity-heavy: 0.9;
+    --opacity-full: 1;
+    
+    /* Border & Shadow */
+    --border-radius: 8px;
+    --border-radius-small: 6px;
+    --shadow-default: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
-/* Gray Color Palette */
+/* Gray Color Palette Override */
 body.color-palette-gray {
     --primary-color: var(--primary-gray);
     --secondary-color: var(--secondary-gray);
+    
+    /* Override accent colors to orange */
+    --accent-primary: var(--accent-gray-primary);
+    --accent-primary-rgb: var(--accent-gray-primary-rgb);
+    --accent-primary-hover: var(--accent-gray-primary-hover);
+    --accent-primary-active: var(--accent-gray-primary-active);
+    --accent-primary-active-hover: var(--accent-gray-primary-active-hover);
+    
+    /* Override backgrounds to gray */
+    --bg-secondary: var(--bg-gray-primary);
+    --bg-main: var(--bg-gray-primary);
+    
+    /* Override scrollbar colors */
+    --scrollbar-thumb: var(--scrollbar-thumb-gray);
+    --scrollbar-thumb-hover: var(--scrollbar-thumb-gray-hover);
+    
+    /* Override button colors */
+    --btn-primary-bg: var(--btn-gray-bg);
+    --btn-primary-bg-hover: var(--btn-gray-bg-hover);
 }
-
-/* Header */
-body.color-palette-gray header {
-    background: var(--primary-gray) !important;
-}
-
-/* Footer */
-body.color-palette-gray footer {
-    background: var(--primary-gray) !important;
-}
-
-/* Sidebar */
-body.color-palette-gray .sidebar {
-    background: var(--primary-gray) !important;
-}
-
-body.color-palette-gray .sidebar-indicator {
-    background: rgba(74, 74, 74, 0.6) !important;
-}
-
-body.color-palette-gray .sidebar-indicator:hover {
-    background: rgba(74, 74, 74, 0.9) !important;
-}
-
-/* Globe Control Buttons (center buttons) */
-body.color-palette-gray .globe-control-btn {
-    background: rgba(74, 74, 74, 0.9) !important;
-}
-
-body.color-palette-gray .globe-control-btn:hover {
-    background: rgba(74, 74, 74, 1) !important;
-}
-
-body.color-palette-gray .globe-control-btn.active {
-    background: rgba(27, 94, 32, 0.9) !important; /* Keep green for active state */
-}
-
-body.color-palette-gray .globe-control-btn.active:hover {
-    background: rgba(27, 94, 32, 1) !important; /* Keep green for active hover */
-}
-
-/* Variant Toggle Buttons */
-body.color-palette-gray .variant-toggle-btn,
-body.color-palette-gray .variant-tab-btn {
-    background: rgba(112, 112, 112, 0.3) !important;
-    border-color: rgba(112, 112, 112, 0.6) !important;
-}
-
-body.color-palette-gray .variant-toggle-btn:hover,
-body.color-palette-gray .variant-tab-btn:hover {
-    background: rgba(112, 112, 112, 0.5) !important;
-    border-color: rgba(112, 112, 112, 0.9) !important;
-}
-
-body.color-palette-gray .variant-toggle-btn.active,
-body.color-palette-gray .variant-tab-btn.active {
-    background: rgba(112, 112, 112, 0.8) !important;
-    border-color: var(--secondary-gray) !important;
-}
-
-/* Page Buttons and Pagination */
-body.color-palette-gray .page-btn {
-    background: rgba(74, 74, 74, 0.9) !important;
-}
-
-body.color-palette-gray .page-btn:hover:not(:disabled) {
-    background: rgba(74, 74, 74, 1) !important;
-}
-
-body.color-palette-gray .page-input-container {
-    background: rgba(74, 74, 74, 0.9) !important;
-}
-
-/* Event Manager Modal - Replace blue with gray */
-body.color-palette-gray .event-item-variant-name,
-body.color-palette-gray .event-item-variant-description {
-    color: var(--secondary-gray) !important;
-}
-
-body.color-palette-gray .event-item-variant-name:hover {
-    color: var(--primary-gray) !important;
-}
-

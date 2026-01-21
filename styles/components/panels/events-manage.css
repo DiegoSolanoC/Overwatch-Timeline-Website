@@ -1,3 +1,7 @@
+/* ========================================
+   EVENTS MANAGE PANEL
+   ======================================== */
+
 /* Event Management Panel */
 .events-manage-panel {
     position: fixed;
@@ -125,7 +129,7 @@ body.color-palette-gray .events-manage-title {
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--panel-transition);
 }
 
 .events-manage-action-btn:hover {
@@ -232,7 +236,7 @@ body.color-palette-gray .events-list {
     padding: 8px 16px;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--panel-transition);
     font-family: inherit;
     min-width: 40px;
     height: 36px;
@@ -274,7 +278,7 @@ body.color-palette-gray .events-list {
     width: 60px;
     text-align: center;
     font-family: inherit;
-    transition: all 0.3s ease;
+    transition: all var(--panel-transition);
 }
 
 .events-pagination-input:focus {
@@ -317,7 +321,7 @@ body.color-palette-gray .events-pagination-input:focus {
     flex-direction: column;
     gap: 8px;
     cursor: move;
-    transition: all 0.3s ease;
+    transition: all var(--panel-transition);
     position: relative;
     height: 280px; /* Fixed height */
     width: 100%; /* Full width of grid cell */
@@ -588,7 +592,7 @@ body.color-palette-gray .event-item-title {
     padding: 6px 10px;
     font-size: 11px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--panel-transition);
     white-space: nowrap;
     flex: 1;
 }
@@ -659,12 +663,13 @@ body.color-palette-gray .event-item-title {
 }
 
 .event-edit-modal-content {
-    background: #0a1929; /* Dark blue for default blue palette */
-    border: 2px solid rgba(33, 150, 243, 0.5); /* Light blue for default blue palette */
+    background: var(--bg-secondary); /* Dark blue for default blue palette */
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.5); /* Light blue for default blue palette */
     border-radius: 12px;
-    width: 95%;
-    max-width: 1200px;
-    max-height: 98vh;
+    width: 75%;
+    max-width: 900px;
+    height: 100vh;
+    max-height: 100vh;
     overflow: hidden;
     padding: 0;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -674,17 +679,17 @@ body.color-palette-gray .event-item-title {
 
 /* Gray palette: dark gray with orange border */
 body.color-palette-gray .event-edit-modal-content {
-    background: #1a1a1a;
-    border: 2px solid rgba(255, 102, 0, 0.5);
+    background: var(--bg-secondary);
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.5);
 }
 
 .event-edit-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 25px;
-    border-bottom: 2px solid rgba(33, 150, 243, 0.3); /* Light blue for default blue palette */
-    gap: 15px;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    gap: 6px;
     flex-shrink: 0;
 }
 
@@ -694,9 +699,9 @@ body.color-palette-gray .event-edit-modal-header {
 }
 
 .event-edit-modal-header h3 {
-    color: #2196F3; /* Light blue for default blue palette */
+    color: var(--accent-primary);
     margin: 0;
-    font-size: 28px;
+    font-size: 18px;
     font-weight: 600;
 }
 
@@ -710,15 +715,15 @@ body.color-palette-gray .event-edit-modal-header h3 {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 4px;
     color: #fff;
-    font-size: 28px;
+    font-size: 20px;
     cursor: pointer;
     padding: 0;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all var(--panel-transition);
     line-height: 1;
 }
 
@@ -735,33 +740,61 @@ body.color-palette-gray .event-edit-modal-close:hover {
 }
 
 .event-edit-form {
-    padding: 25px;
+    padding: 8px 10px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
+    gap: 5px;
     flex: 1;
-    overflow: visible;
-    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    max-height: 100%;
+}
+
+/* Custom scrollbar styling for event edit form */
+.event-edit-form::-webkit-scrollbar {
+    width: 10px;
+}
+
+.event-edit-form::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
+.event-edit-form::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 5px;
+    border: 1px solid var(--scrollbar-track);
+}
+
+.event-edit-form::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+
+/* Firefox scrollbar */
+.event-edit-form {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* Location Type Buttons */
 .location-type-buttons {
     display: flex;
-    gap: 8px;
-    margin-top: 4px;
+    gap: 4px;
+    margin-top: 1px;
 }
 
 .location-type-btn {
     flex: 1;
-    padding: 10px 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
-    border-radius: 6px;
+    border-radius: var(--border-radius-small);
     cursor: pointer;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all var(--panel-transition);
     text-align: center;
 }
 
@@ -809,11 +842,47 @@ body.color-palette-gray .location-type-btn.active:hover {
 .event-edit-field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 3px;
     position: relative;
 }
 
 .event-edit-input,
+.event-edit-textarea {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--border-radius-small);
+    color: white;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all var(--panel-transition);
+    line-height: 1.4;
+}
+
+.event-edit-input:focus,
+.event-edit-textarea:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-primary);
+}
+
+body.color-palette-gray .event-edit-input:focus,
+body.color-palette-gray .event-edit-textarea:focus {
+    border-color: var(--accent-primary);
+}
+
+.event-edit-textarea {
+    resize: vertical;
+    min-height: 60px;
+    max-height: 250px;
+    line-height: 1.3;
+}
+
+.event-edit-hint {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    font-style: italic;
+}
 
 /* Make description and city fields span full width */
 .event-edit-field-full {
@@ -825,76 +894,38 @@ body.color-palette-gray .location-type-btn.active:hover {
     grid-column: 1 / -1;
 }
 
+.event-edit-field label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
 .event-edit-actions {
     grid-column: 1 / -1;
     display: flex;
-    gap: 10px;
+    gap: 6px;
     justify-content: flex-end;
-    margin-top: 15px;
-    padding-top: 20px;
-    border-top: 2px solid rgba(33, 150, 243, 0.3); /* Light blue for default blue palette */
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
     flex-shrink: 0;
 }
 
 body.color-palette-gray .event-edit-actions {
-    border-top: 2px solid rgba(255, 102, 0, 0.3); /* Orange for gray palette */
-}
-
-.event-edit-field label {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 15px;
-    font-weight: 500;
-    margin-bottom: 4px;
-}
-
-.event-edit-input,
-.event-edit-textarea {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    color: white;
-    padding: 10px 12px;
-    font-size: 16px;
-    font-family: inherit;
-    transition: all 0.3s ease;
-    line-height: 1.5;
-}
-
-.event-edit-input:focus,
-.event-edit-textarea:focus {
-    outline: none;
-    background: rgba(255, 255, 255, 0.15);
-    border-color: #2196F3; /* Light blue for default blue palette */
-}
-
-body.color-palette-gray .event-edit-input:focus,
-body.color-palette-gray .event-edit-textarea:focus {
-    border-color: #ff6600; /* Orange for gray palette */
-}
-
-.event-edit-textarea {
-    resize: vertical;
-    min-height: 150px; /* ~6 lines with larger text (16px * 1.5 * 6 â‰ˆ 144px + padding) */
-    max-height: 300px; /* Allow expansion for longer descriptions */
-    line-height: 1.6;
-}
-
-.event-edit-hint {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 14px;
-    font-style: italic;
+    border-top: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
 }
 
 .lookup-city-btn {
-    background: rgba(33, 150, 243, 0.3); /* Light blue for default blue palette */
-    border: 1px solid rgba(33, 150, 243, 0.6);
-    border-radius: 6px;
+    background: rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border: 1px solid rgba(var(--accent-primary-rgb), var(--opacity-medium));
+    border-radius: var(--border-radius-small);
     color: white;
-    padding: 10px 18px;
-    font-size: 14px;
+    padding: 6px 12px;
+    font-size: 12px;
     cursor: pointer;
-    margin-top: 5px;
-    transition: all 0.3s ease;
+    margin-top: 3px;
+    transition: all var(--panel-transition);
 }
 
 .lookup-city-btn:hover {
@@ -908,4 +939,49 @@ body.color-palette-gray .lookup-city-btn {
 
 body.color-palette-gray .lookup-city-btn:hover {
     background: rgba(255, 102, 0, 0.5);
+}
+
+.event-edit-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--border-radius-small);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--panel-transition);
+}
+
+.event-edit-btn.save-btn {
+    background: rgba(76, 175, 80, 0.8);
+    color: white;
+}
+
+.event-edit-btn.save-btn:hover {
+    background: rgba(76, 175, 80, 1);
+}
+
+.event-edit-btn.cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.event-edit-btn.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Source pairs styling */
+.source-pair {
+    margin-bottom: 4px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.source-pair:last-child {
+    margin-bottom: 0;
 }
