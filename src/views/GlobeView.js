@@ -2,6 +2,7 @@
  * GlobeView - Handles globe rendering, markers, and connection lines
  */
 import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition } from '../utils/GeometryUtils.js?v=3';
+import { EventMarkerManager } from '../managers/EventMarkerManager.js';
 
 // THREE is loaded globally via script tag in index.html
 
@@ -11,6 +12,8 @@ export class GlobeView {
         this.dataModel = dataModel;
         // Cache textures to avoid reloading delays
         this.textureCache = new Map();
+        // Initialize EventMarkerManager
+        this.eventMarkerManager = new EventMarkerManager(sceneModel, dataModel);
     }
 
     /**
@@ -494,1017 +497,60 @@ export class GlobeView {
      * @param {boolean} animate - Whether to animate the appearance (grow from 0)
      * @returns {Promise} - Resolves when markers are added (and animation completes if animating)
      */
+    /**
+     * Add event markers to the globe, moon, mars, and station
+     * Delegates to EventMarkerManager
+     */
     addEventMarkers(animate = false) {
-        const globe = this.sceneModel.getGlobe();
-        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
-        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        const events = this.dataModel.getEventsForCurrentPage(); // Use paginated events
-
-        // Collect all markers and pin lines for animation
-        const newMarkers = [];
-        const newPinLines = [];
-
-        // Get ISS satellite for station events
-        const issSatellite = window.globeController && window.globeController.transportController 
-            ? window.globeController.transportController.findISS() 
-            : null;
-        
-        events.forEach(event => {
-            const isMultiEvent = event.variants && event.variants.length > 0;
-            const eventLocationType = event.locationType || 'earth';
-            
-            if (isMultiEvent) {
-                // Multi-event: create markers for each variant
-                event.variants.forEach((variant, variantIndex) => {
-                    // Get location type from variant if available, otherwise use event location type
-                    const variantLocationType = variant.locationType || eventLocationType;
-                    
-                    let position;
-                    let targetParent;
-                    
-                    if (variantLocationType === 'station') {
-                        // Station: place marker on ISS satellite (moving model)
-                        // Marker will be positioned at the end of a pin line (outward from center)
-                        if (issSatellite) {
-                            // Start with marker at center, we'll move it outward when creating the pin line
-                            // The pin line will point along the normal (from globe center to marker)
-                            // For now, position at a default offset - will be updated dynamically
-                            position = new THREE.Vector3(0, 0, 0.03); // Slightly outward from center
-                            targetParent = issSatellite;
-                        } else {
-                            console.warn('ISS satellite not found, skipping station marker');
-                            return;
-                        }
-                    } else if (variantLocationType === 'moon') {
-                        // Moon: use x/y coordinates (0-100, 0-100)
-                        const x = variant.x !== undefined ? variant.x : (event.x !== undefined ? event.x : 50);
-                        const y = variant.y !== undefined ? variant.y : (event.y !== undefined ? event.y : 50);
-                        if (moonPlane) {
-                            position = xyToPlanePosition(
-                                x, y,
-                                0.4, // planeWidth
-                                0.4, // planeHeight
-                                moonPlane.position
-                            );
-                            targetParent = moonPlane;
-                        } else {
-                            console.warn('Moon plane not found, skipping marker');
-                            return;
-                        }
-                    } else if (variantLocationType === 'mars') {
-                        // Mars: use x/y coordinates (0-100, 0-100)
-                        const x = variant.x !== undefined ? variant.x : (event.x !== undefined ? event.x : 50);
-                        const y = variant.y !== undefined ? variant.y : (event.y !== undefined ? event.y : 50);
-                        if (marsPlane) {
-                            position = xyToPlanePosition(
-                                x, y,
-                                0.4, // planeWidth
-                                0.4, // planeHeight
-                                marsPlane.position
-                            );
-                            targetParent = marsPlane;
-                        } else {
-                            console.warn('Mars plane not found, skipping marker');
-                            return;
-                        }
-                    } else {
-                        // Earth: use lat/lon coordinates
-                    const lat = variant.lat !== undefined ? variant.lat : event.lat;
-                    const lon = variant.lon !== undefined ? variant.lon : event.lon;
-                        position = latLonToVector3(lat, lon, 1.02);
-                        targetParent = globe;
-                    }
-                    
-                    const isMainVariant = variantIndex === 0;
-                    
-                    // Main variant: orange, interactive marker
-                    // Other variants: red, smaller, non-interactive marker
-                    const isSmallMobile = window.innerWidth <= 480;
-                    let markerRadius, markerColor, isInteractive;
-                    
-                    if (isMainVariant) {
-                        markerRadius = isSmallMobile ? 0.030 : 0.015; // Regular size
-                        markerColor = 0xff6600; // Orange
-                        isInteractive = true;
-                    } else {
-                        markerRadius = isSmallMobile ? 0.020 : 0.010; // Smaller
-                        markerColor = 0xff69b4; // Hot pink
-                        isInteractive = false;
-                    }
-                    
-                    const markerGeometry = new THREE.SphereGeometry(markerRadius, 16, 16);
-                    // Create a completely new material instance for each marker to avoid color sharing
-                    // Use MeshBasicMaterial for flat, non-shaded appearance
-                    const markerMaterial = new THREE.MeshBasicMaterial({
-                        color: new THREE.Color(markerColor)
-                    });
-                    
-                    const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-                    // Force update the material to ensure color is applied
-                    marker.material.needsUpdate = true;
-                    marker.position.copy(position);
-                    
-                    const displayName = variant.name || `Variant ${variantIndex + 1}`;
-                    
-                    // Check if this event should be locked based on active filters
-                    const activeFilters = this.sceneModel.activeFilters;
-                    let shouldBeLocked = false;
-                    if (activeFilters && activeFilters.size > 0) {
-                        const eventHeroFilters = event.filters || [];
-                        const eventFactionFilters = event.factions || [];
-                        const hasMatchingHero = eventHeroFilters.some(filter => activeFilters.has(filter));
-                        const hasMatchingFaction = eventFactionFilters.some(faction => activeFilters.has(faction));
-                        const hasMatchingFilter = hasMatchingHero || hasMatchingFaction;
-                        shouldBeLocked = !hasMatchingFilter;
-                    }
-                    
-                    // Set initial scale based on animation and locked state
-                    if (animate) {
-                        marker.scale.set(0, 0, 0);
-                    } else if (shouldBeLocked) {
-                        // If locked and not animating, start at locked scale
-                        marker.scale.set(0.75, 0.75, 0.75);
-                        // Set locked color immediately
-                        marker.material.color.setHex(0x331100);
-                    }
-                    
-                    marker.userData = { 
-                        event: event, // Store full event object
-                        variant: variant, // Store variant object
-                        variantIndex: variantIndex, // Store variant index
-                        eventName: displayName,
-                        locationType: variantLocationType,
-                        lat: variantLocationType === 'earth' ? (variant.lat !== undefined ? variant.lat : event.lat) : undefined,
-                        lon: variantLocationType === 'earth' ? (variant.lon !== undefined ? variant.lon : event.lon) : undefined,
-                        x: variantLocationType !== 'earth' ? (variant.x !== undefined ? variant.x : (event.x !== undefined ? event.x : undefined)) : undefined,
-                        y: variantLocationType !== 'earth' ? (variant.y !== undefined ? variant.y : (event.y !== undefined ? event.y : undefined)) : undefined,
-                        isEventMarker: true,
-                        isInteractive: isInteractive, // Only main variant is interactive
-                        isMainVariant: isMainVariant,
-                        pulseRings: [], // Store pulse rings for this marker
-                        isLocked: shouldBeLocked, // Set initial locked state based on filters
-                        originalScale: 1.0, // Store original scale for unlocking
-                        originalColor: markerColor // Store original color for restoration
-                    };
-                    
-                    // Hide variant markers by default (only show when event is open)
-                    if (!isMainVariant) {
-                        marker.visible = false;
-                    }
-                    
-                    targetParent.add(marker);
-                    const markers = this.sceneModel.getMarkers();
-                    markers.push(marker);
-
-                    // Collect marker for animation (only main variants that are visible)
-                    if (isMainVariant && marker.visible) {
-                        newMarkers.push(marker);
-                    }
-
-                    // Add pin line for all location types
-                    if (isMainVariant) {
-                        let linePoints;
-                        let lineParent;
-                        
-                        if (variantLocationType === 'earth') {
-                            // Earth: line from globe surface to marker
-                            const lat = variant.lat !== undefined ? variant.lat : event.lat;
-                            const lon = variant.lon !== undefined ? variant.lon : event.lon;
-                            linePoints = [
-                            latLonToVector3(lat, lon, 1.0),
-                            position
-                        ];
-                            lineParent = globe;
-                        } else if (variantLocationType === 'moon' && moonPlane) {
-                            // Moon: line from plane surface (Z=0 in local space) to marker (Z=0.03)
-                            // Marker is at local position (localX, localY, 0.03)
-                            // Line should go from (localX, localY, 0) to (localX, localY, 0.03)
-                            const markerLocalPos = marker.position.clone();
-                            const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
-                            linePoints = [
-                                lineStart,
-                                markerLocalPos
-                            ];
-                            lineParent = moonPlane;
-                        } else if (variantLocationType === 'mars' && marsPlane) {
-                            // Mars: line from plane surface (Z=0 in local space) to marker (Z=0.03)
-                            // Marker is at local position (localX, localY, 0.03)
-                            // Line should go from (localX, localY, 0) to (localX, localY, 0.03)
-                            const markerLocalPos = marker.position.clone();
-                            const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
-                            linePoints = [
-                                lineStart,
-                                markerLocalPos
-                            ];
-                            lineParent = marsPlane;
-                        } else if (variantLocationType === 'station' && issSatellite) {
-                            // Station: pin line points along the normal (from globe center to marker)
-                            // Line goes from satellite center (0,0,0) to marker position
-                            // The marker position will be updated dynamically to follow the normal
-                            const lineStart = new THREE.Vector3(0, 0, 0); // Satellite center
-                            const lineEnd = marker.position.clone(); // Marker position (at end of pin)
-                            linePoints = [lineStart, lineEnd];
-                            lineParent = issSatellite;
-                            // Mark this line as needing dynamic updates
-                            if (linePoints && linePoints.length >= 2) {
-                                // Store reference for dynamic updates
-                            }
-                        }
-                        
-                        if (linePoints && lineParent) {
-                            // Set pin line color based on locked state
-                            const lineColor = shouldBeLocked ? 0x331100 : markerColor;
-                        const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-                            const lineMaterial = new THREE.LineBasicMaterial({ 
-                                color: lineColor, // Orange or dark based on locked state
-                                transparent: animate, // Enable transparency for animation
-                                opacity: animate ? 0 : 1 // Start at 0 opacity if animating
-                            });
-                        const line = new THREE.Line(lineGeometry, lineMaterial);
-                        line.userData.isEventMarkerPin = true;
-                        line.userData.marker = marker; // Link line to marker
-                        marker.userData.pinLine = line; // Store pin line reference
-                            lineParent.add(line);
-                            
-                            // Collect pin line for animation (only for main variants)
-                            if (isMainVariant) {
-                                newPinLines.push(line);
-                            }
-                        }
-                    }
-                });
-            } else {
-                // Single event: create one orange marker
-                let position;
-                let targetParent;
-                
-                if (eventLocationType === 'moon') {
-                    // Moon: use x/y coordinates (0-100, 0-100)
-                    const x = event.x !== undefined ? event.x : 50;
-                    const y = event.y !== undefined ? event.y : 50;
-                    if (moonPlane) {
-                        position = xyToPlanePosition(
-                            x, y,
-                            0.4, // planeWidth
-                            0.4, // planeHeight
-                            moonPlane.position
-                        );
-                        targetParent = moonPlane;
-                    } else {
-                        console.warn('Moon plane not found, skipping marker');
-                        return;
-                    }
-                } else if (eventLocationType === 'mars') {
-                    // Mars: use x/y coordinates (0-100, 0-100)
-                    const x = event.x !== undefined ? event.x : 50;
-                    const y = event.y !== undefined ? event.y : 50;
-                    if (marsPlane) {
-                        position = xyToPlanePosition(
-                            x, y,
-                            0.4, // planeWidth
-                            0.4, // planeHeight
-                            marsPlane.position
-                        );
-                        targetParent = marsPlane;
-                    } else {
-                        console.warn('Mars plane not found, skipping marker');
-                        return;
-                    }
-                } else if (eventLocationType === 'station') {
-                    // Station: place marker on ISS satellite (moving model)
-                    // Marker will be positioned at the end of a pin line (outward from center)
-                    if (issSatellite) {
-                        // Start with marker at center, we'll move it outward when creating the pin line
-                        // The pin line will point along the normal (from globe center to marker)
-                        // For now, position at a default offset - will be updated dynamically
-                        position = new THREE.Vector3(0, 0, 0.03); // Slightly outward from center
-                        targetParent = issSatellite;
-                    } else {
-                        console.warn('ISS satellite not found, skipping station marker');
-                        return;
-                    }
-                } else {
-                    // Earth: use lat/lon coordinates
-                    position = latLonToVector3(event.lat, event.lon, 1.02);
-                    targetParent = globe;
-                }
-                
-                // Event markers are orange and bigger than hyperloop markers (0.015 vs 0.010 for seaports)
-                // Make markers bigger on small mobile screens only (not tablets or desktop)
-                const isSmallMobile = window.innerWidth <= 480;
-                const markerRadius = isSmallMobile ? 0.030 : 0.015; // 2x larger on small mobile only
-                const markerGeometry = new THREE.SphereGeometry(markerRadius, 16, 16);
-                const markerMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xff6600 // Orange color - flat, non-shaded
-                });
-                
-                const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-                marker.position.copy(position);
-                
-                const displayName = event.name || 'Event';
-                
-                // Check if this event should be locked based on active filters
-                const activeFilters = this.sceneModel.activeFilters;
-                let shouldBeLocked = false;
-                if (activeFilters && activeFilters.size > 0) {
-                    const eventHeroFilters = event.filters || [];
-                    const eventFactionFilters = event.factions || [];
-                    const hasMatchingHero = eventHeroFilters.some(filter => activeFilters.has(filter));
-                    const hasMatchingFaction = eventFactionFilters.some(faction => activeFilters.has(faction));
-                    const hasMatchingFilter = hasMatchingHero || hasMatchingFaction;
-                    shouldBeLocked = !hasMatchingFilter;
-                }
-                
-                // Set initial scale based on animation and locked state
-                if (animate) {
-                    marker.scale.set(0, 0, 0);
-                } else if (shouldBeLocked) {
-                    // If locked and not animating, start at locked scale
-                    marker.scale.set(0.75, 0.75, 0.75);
-                    // Set locked color immediately
-                    marker.material.color.setHex(0x331100);
-                }
-                
-                marker.userData = { 
-                    event: event, // Store full event object
-                    eventName: displayName,
-                    locationType: eventLocationType,
-                    lat: eventLocationType === 'earth' ? event.lat : undefined,
-                    lon: eventLocationType === 'earth' ? event.lon : undefined,
-                    x: eventLocationType !== 'earth' ? (event.x !== undefined ? event.x : undefined) : undefined,
-                    y: eventLocationType !== 'earth' ? (event.y !== undefined ? event.y : undefined) : undefined,
-                    isEventMarker: true,
-                    isInteractive: true, // Single events are always interactive
-                    isMainVariant: true,
-                    pulseRings: [], // Store pulse rings for this marker
-                    isLocked: shouldBeLocked, // Set initial locked state based on filters
-                    originalScale: 1.0, // Store original scale for unlocking
-                    originalColor: 0xff6600 // Store original color (orange) for restoration
-                };
-                
-                targetParent.add(marker);
-                const markers = this.sceneModel.getMarkers();
-                markers.push(marker);
-
-                // Collect marker for animation
-                newMarkers.push(marker);
-
-                // Add pin line for all location types
-                let linePoints;
-                let lineParent;
-                
-                if (eventLocationType === 'earth') {
-                    // Earth: line from globe surface to marker
-                    linePoints = [
-                    latLonToVector3(event.lat, event.lon, 1.0),
-                    position
-                ];
-                    lineParent = globe;
-                } else if (eventLocationType === 'moon' && moonPlane) {
-                    // Moon: line from plane surface (Z=0 in local space) to marker (Z=0.03)
-                    // Marker is at local position (localX, localY, 0.03)
-                    // Line should go from (localX, localY, 0) to (localX, localY, 0.03)
-                    const markerLocalPos = marker.position.clone();
-                    const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
-                    linePoints = [
-                        lineStart,
-                        markerLocalPos
-                    ];
-                    lineParent = moonPlane;
-                } else if (eventLocationType === 'mars' && marsPlane) {
-                    // Mars: line from plane surface (Z=0 in local space) to marker (Z=0.03)
-                    // Marker is at local position (localX, localY, 0.03)
-                    // Line should go from (localX, localY, 0) to (localX, localY, 0.03)
-                    const markerLocalPos = marker.position.clone();
-                    const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
-                    linePoints = [
-                        lineStart,
-                        markerLocalPos
-                    ];
-                    lineParent = marsPlane;
-                } else if (eventLocationType === 'station' && issSatellite) {
-                    // Station: pin line points along the normal (from globe center to marker)
-                    // Line goes from satellite center (0,0,0) to marker position
-                    // The marker position will be updated dynamically to follow the normal
-                    const lineStart = new THREE.Vector3(0, 0, 0); // Satellite center
-                    const lineEnd = marker.position.clone(); // Marker position (at end of pin)
-                    linePoints = [lineStart, lineEnd];
-                    lineParent = issSatellite;
-                }
-                
-                if (linePoints && lineParent) {
-                    // Set pin line color based on locked state
-                    const lineColor = shouldBeLocked ? 0x331100 : 0xff6600;
-                const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-                    const lineMaterial = new THREE.LineBasicMaterial({ 
-                        color: lineColor, // Orange or dark based on locked state
-                        transparent: animate, // Enable transparency for animation
-                        opacity: animate ? 0 : 1 // Start at 0 opacity if animating
-                    });
-                const line = new THREE.Line(lineGeometry, lineMaterial);
-                line.userData.isEventMarkerPin = true;
-                line.userData.marker = marker; // Link line to marker
-                marker.userData.pinLine = line; // Store pin line reference
-                    lineParent.add(line);
-                    
-                    // Collect pin line for animation
-                    newPinLines.push(line);
-                }
-            }
-        });
-        
-        // Animate markers and pin lines growing if requested
-        if (animate && (newMarkers.length > 0 || newPinLines.length > 0)) {
-            return new Promise((resolve) => {
-                const duration = 300; // 300ms animation
-                const startTime = performance.now();
-                
-                // Mark markers as animating to prevent pulse animation interference
-                newMarkers.forEach(marker => {
-                    if (marker.userData) {
-                        marker.userData.isAnimating = true;
-                    }
-                    marker.scale.set(0, 0, 0);
-                });
-                
-                // Ensure all pin lines start at opacity 0
-                newPinLines.forEach(line => {
-                    if (line.material) {
-                        line.material.transparent = true;
-                        line.material.opacity = 0;
-                    }
-                });
-                
-                const animateGrow = () => {
-                    const elapsed = performance.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Easing function (ease out)
-                    const easeProgress = 1 - Math.pow(1 - progress, 3);
-                    
-                    // Brightness flash - bell curve that peaks in the middle
-                    const glowProgress = Math.sin(progress * Math.PI);
-                    
-                    // Animate markers growing from 0 to target scale (1.0 if unlocked, 0.75 if locked)
-                    newMarkers.forEach(marker => {
-                        const targetScale = (marker.userData && marker.userData.isLocked) ? 0.75 : 1.0;
-                        const currentScale = easeProgress * targetScale;
-                        marker.scale.set(currentScale, currentScale, currentScale);
-                        
-                        // Animate color: if locked, animate to dark color; otherwise flash yellow
-                        if (marker.material && marker.userData) {
-                            if (marker.userData.isLocked) {
-                                // Locked: animate to dark color
-                                const startColor = new THREE.Color(0xff6600); // Orange
-                                const targetColor = new THREE.Color(0x331100); // Dark
-                                marker.material.color.lerpColors(startColor, targetColor, easeProgress);
-                                marker.material.needsUpdate = true;
-                                
-                                // Also animate pin line color if it exists
-                                if (marker.userData.pinLine && marker.userData.pinLine.material) {
-                                    marker.userData.pinLine.material.color.lerpColors(startColor, targetColor, easeProgress);
-                                }
-                            } else {
-                                // Unlocked: flash yellow during animation
-                                const baseColor = new THREE.Color(0xff6600); // Orange
-                                const flashColor = new THREE.Color(0xffff00); // Yellow
-                                marker.material.color.lerpColors(baseColor, flashColor, glowProgress);
-                                marker.material.needsUpdate = true;
-                            }
-                        }
-                    });
-                    
-                    // Animate pin lines fading in
-                    newPinLines.forEach(line => {
-                        if (line.material) {
-                            line.material.opacity = easeProgress;
-                        }
-                    });
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(animateGrow);
-                    } else {
-                        // Ensure final scale is correct (1.0 if unlocked, 0.75 if locked)
-                        newMarkers.forEach(marker => {
-                            const targetScale = (marker.userData && marker.userData.isLocked) ? 0.75 : 1.0;
-                            marker.scale.set(targetScale, targetScale, targetScale);
-                            
-                            // Set final color
-                            if (marker.material && marker.userData) {
-                                if (marker.userData.isLocked) {
-                                    // Locked: dark color
-                                    marker.material.color.setHex(0x331100);
-                                } else {
-                                    // Unlocked: back to orange
-                                    marker.material.color.setHex(0xff6600);
-                                }
-                                marker.material.needsUpdate = true;
-                            }
-                            
-                            // Clear animation flag to allow pulse animation to resume
-                            if (marker.userData) {
-                                marker.userData.isAnimating = false;
-                            }
-                        });
-                        
-                        // Set pin line colors for locked markers
-                        newPinLines.forEach(line => {
-                            if (line.material) {
-                                line.material.opacity = 1;
-                                // If linked marker is locked, set line to dark color
-                                if (line.userData && line.userData.marker && line.userData.marker.userData && line.userData.marker.userData.isLocked) {
-                                    line.material.color.setHex(0x331100);
-                                }
-                            }
-                        });
-                        resolve();
-                    }
-                };
-                
-                // Start animation immediately (markers are already added to scene)
-                requestAnimationFrame(animateGrow);
-            });
-        } else {
-            // If not animating, ensure markers are at full scale
-            newMarkers.forEach(marker => {
-                marker.scale.set(1, 1, 1);
-            });
-            newPinLines.forEach(line => {
-                if (line.material) {
-                    line.material.opacity = 1;
-                    line.material.transparent = false;
-                }
-            });
-            return Promise.resolve();
-        }
+        return this.eventMarkerManager.addEventMarkers(animate);
     }
     
     /**
      * Remove all event markers and their pin lines
-     * @param {boolean} animate - Whether to animate the removal (shrink to 0)
-     * @returns {Promise} - Resolves when removal (and animation) is complete
+     * Delegates to EventMarkerManager
      */
     removeEventMarkers(animate = false) {
-        const globe = this.sceneModel.getGlobe();
-        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
-        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        const markers = this.sceneModel.getMarkers();
-        
-        // Check if globe exists before trying to traverse
-        if (!globe) {
-            console.warn('GlobeView: Cannot remove event markers - globe not initialized yet');
-            return Promise.resolve();
-        }
-        
-        // Collect event markers and their pin lines
-        const eventMarkers = [];
-        const pinLines = [];
-        
-        globe.traverse((child) => {
-            if (child.userData && child.userData.isEventMarker) {
-                eventMarkers.push(child);
-            }
-            if (child.userData && child.userData.isEventMarkerPin) {
-                pinLines.push(child);
-            }
-        });
-        
-        // Remove event markers from Moon plane
-        if (moonPlane) {
-            moonPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        // Remove event markers from Mars plane
-        if (marsPlane) {
-            marsPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        // If no markers to remove, return immediately
-        if (eventMarkers.length === 0 && pinLines.length === 0) {
-            return Promise.resolve();
-        }
-        
-        // If animating, shrink markers before removing
-        if (animate && eventMarkers.length > 0) {
-            return new Promise((resolve) => {
-                const duration = 300; // 300ms animation
-                const startTime = performance.now();
-                
-                // Mark markers as animating to prevent pulse animation interference
-                eventMarkers.forEach(marker => {
-                    if (marker.userData) {
-                        marker.userData.isAnimating = true;
-                    }
-                });
-                
-                // Store initial scales
-                const initialScales = eventMarkers.map(marker => marker.scale.x);
-                
-                const animateShrink = () => {
-                    const elapsed = performance.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Easing function (ease in)
-                    const easeProgress = progress * progress;
-                    
-                    // Brightness flash - bell curve that peaks in the middle
-                    const peakIntensity = 2.0; // Yellow glow peak
-                    const glowProgress = Math.sin(progress * Math.PI);
-                    const currentIntensity = peakIntensity * glowProgress;
-                    
-                    // Animate scale from current to 0
-                    eventMarkers.forEach((marker, index) => {
-                        const scale = initialScales[index] * (1 - easeProgress);
-                        marker.scale.set(scale, scale, scale);
-                        
-                        // Animate emissive intensity (yellow flash)
-                        if (marker.material && marker.material.emissiveIntensity !== undefined) {
-                            marker.material.emissiveIntensity = currentIntensity;
-                            marker.material.needsUpdate = true;
-                        }
-                    });
-                    
-                    // Also shrink pin lines (opacity fade)
-                    pinLines.forEach(line => {
-                        if (line.material) {
-                            line.material.opacity = 1 - easeProgress;
-                            line.material.transparent = true;
-                        }
-                    });
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(animateShrink);
-                    } else {
-                        // Animation complete, now remove everything
-                        eventMarkers.forEach(obj => {
-                            if (obj.userData) {
-                                obj.userData.isAnimating = false;
-                            }
-                            // Reset emissive intensity before disposal
-                            if (obj.material && obj.material.emissiveIntensity !== undefined) {
-                                obj.material.emissiveIntensity = 0.0;
-                            }
-                            if (obj.parent) {
-                                obj.parent.remove(obj);
-                            }
-                            if (obj.geometry) obj.geometry.dispose();
-                            if (obj.material) obj.material.dispose();
-                        });
-                        
-                        pinLines.forEach(obj => {
-                            if (obj.parent) {
-                                obj.parent.remove(obj);
-                            }
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) obj.material.dispose();
-        });
-        
-        // Remove from markers array
-        const eventMarkerIndices = [];
-        markers.forEach((marker, index) => {
-            if (marker.userData && marker.userData.isEventMarker) {
-                eventMarkerIndices.push(index);
-            }
-        });
-        
-        // Remove in reverse order to maintain indices
-        eventMarkerIndices.reverse().forEach(index => {
-            markers.splice(index, 1);
-        });
-                        
-                        resolve();
-                    }
-                };
-                
-                animateShrink();
-            });
-        } else {
-            // Remove immediately without animation
-            eventMarkers.forEach(obj => {
-                if (obj.parent) {
-                    obj.parent.remove(obj);
-                }
-                if (obj.geometry) obj.geometry.dispose();
-                if (obj.material) obj.material.dispose();
-            });
-            
-            pinLines.forEach(obj => {
-                if (obj.parent) {
-                    obj.parent.remove(obj);
-                }
-                if (obj.geometry) obj.geometry.dispose();
-                if (obj.material) obj.material.dispose();
-            });
-            
-            // Remove from markers array
-            const eventMarkerIndices = [];
-            markers.forEach((marker, index) => {
-                if (marker.userData && marker.userData.isEventMarker) {
-                    eventMarkerIndices.push(index);
-                }
-            });
-            
-            // Remove in reverse order to maintain indices
-            eventMarkerIndices.reverse().forEach(index => {
-                markers.splice(index, 1);
-            });
-            
-            return Promise.resolve();
-        }
+        return this.eventMarkerManager.removeEventMarkers(animate);
     }
     
     /**
      * Refresh event markers (remove old, add new for current page)
+     * Delegates to EventMarkerManager
      */
     refreshEventMarkers() {
-        // Check if globe is initialized before proceeding
-        const globe = this.sceneModel.getGlobe();
-        if (!globe) {
-            console.warn('GlobeView: Cannot refresh event markers - globe not initialized yet');
-            return;
-        }
-        
-        // Animate removal, then add new markers with animation
-        // Note: addEventMarkers now checks filters and sets initial locked state,
-        // so markers appear in the correct state from the start
-        this.removeEventMarkers(true).then(() => {
-            return this.addEventMarkers(true);
-        }).then(() => {
-            // Filters are already applied during addEventMarkers, but call applyFilters
-            // to ensure consistency and update number buttons
-        this.applyFilters();
-            
-            // Update plane visibility based on current page events
-            if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
-                window.globeController.updatePlaneVisibility();
-            }
-        });
+        return this.eventMarkerManager.refreshEventMarkers();
     }
     
     /**
      * Apply active filters to event markers
-     * Locks events that don't match any selected filter
+     * Delegates to EventMarkerManager
      */
     applyFilters() {
-        const activeFilters = this.sceneModel.activeFilters;
-        const globe = this.sceneModel.getGlobe();
-        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
-        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        
-        if (!globe) return;
-        
-        // If no filters active, unlock all
-        if (activeFilters.size === 0) {
-            this.unlockAllEvents();
-            return;
-        }
-        
-        // Helper function to check and lock/unlock a marker
-        const processMarker = (child) => {
-            if (child.userData && child.userData.isEventMarker) {
-                const event = child.userData.event;
-                const eventHeroFilters = event.filters || [];
-                const eventFactionFilters = event.factions || [];
-                
-                // Check if event has at least one matching hero or faction filter
-                const hasMatchingHero = eventHeroFilters.some(filter => activeFilters.has(filter));
-                const hasMatchingFaction = eventFactionFilters.some(faction => activeFilters.has(faction));
-                const hasMatchingFilter = hasMatchingHero || hasMatchingFaction;
-                
-                if (hasMatchingFilter) {
-                    // Unlock if it matches
-                    this.unlockEvent(child);
-                } else {
-                    // Lock if it doesn't match
-                    this.lockEvent(child);
-                }
-            }
-        };
-        
-        // Check event markers on the globe (Earth events)
-        globe.traverse(processMarker);
-        
-        // Check event markers on the Moon plane
-        if (moonPlane) {
-            moonPlane.traverse(processMarker);
-        }
-        
-        // Check event markers on the Mars plane
-        if (marsPlane) {
-            marsPlane.traverse(processMarker);
-        }
-        
-        // Update number buttons after filters are applied
-        // Use a small delay to ensure markers are locked before checking
-        setTimeout(() => {
-            if (window.globeController && window.globeController.uiView) {
-                // Call updateNumberButtons if it exists (stored from setupEventNumberButtons)
-                if (window.globeController.uiView.updateNumberButtons && 
-                    typeof window.globeController.uiView.updateNumberButtons === 'function') {
-                    console.log('[GlobeView] Calling updateNumberButtons after applyFilters');
-                    window.globeController.uiView.updateNumberButtons();
-                } else {
-                    console.warn('[GlobeView] updateNumberButtons function not found!');
-                }
-            }
-        }, 50); // Small delay to ensure markers are processed
+        return this.eventMarkerManager.applyFilters();
     }
     
     /**
      * Lock an event marker (dark orange/near black, smaller, no interactions)
-     * Animates the transition smoothly
+     * Delegates to EventMarkerManager
      */
     lockEvent(marker) {
-        if (!marker || !marker.userData) return;
-        
-        marker.userData.isLocked = true;
-        
-        // Store original scale if not already stored
-        if (!marker.userData.originalScale) {
-            marker.userData.originalScale = marker.scale.x;
-        }
-        
-        // Store original color if not already stored
-        if (!marker.userData.originalColor) {
-            marker.userData.originalColor = marker.userData.isInteractive === false ? 0xff69b4 : 0xff6600;
-        }
-        
-        // Get current values
-        const startScale = marker.scale.x;
-        const targetScale = 0.75;
-        const startColor = new THREE.Color();
-        if (marker.material) {
-            startColor.copy(marker.material.color);
-        }
-        const targetColor = new THREE.Color(0x331100); // Dark orange/near black
-        
-        // Mark as animating to prevent pulse interference
-        marker.userData.isAnimating = true;
-        
-        const duration = 300; // 300ms animation
-        const startTime = performance.now();
-        
-        const animate = () => {
-            // Check if animation was cancelled
-            if (!marker.userData || !marker.userData.isAnimating || marker.userData.isLocked === false) {
-                return;
-            }
-            
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Easing function (ease in)
-            const easeProgress = progress * progress;
-            
-            // Interpolate scale
-            const currentScale = startScale + (targetScale - startScale) * easeProgress;
-            marker.scale.set(currentScale, currentScale, currentScale);
-            
-            // Interpolate color
-            if (marker.material) {
-                marker.material.color.lerpColors(startColor, targetColor, easeProgress);
-                marker.material.needsUpdate = true;
-            }
-            
-            // Interpolate pin line color
-        if (marker.userData.pinLine && marker.userData.pinLine.material) {
-                marker.userData.pinLine.material.color.lerpColors(
-                    new THREE.Color(0xff6600), 
-                    targetColor, 
-                    easeProgress
-                );
-            }
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                // Animation complete - ensure final values
-                marker.scale.set(targetScale, targetScale, targetScale);
-                if (marker.material) {
-                    marker.material.color.copy(targetColor);
-                }
-                if (marker.userData.pinLine && marker.userData.pinLine.material) {
-                    marker.userData.pinLine.material.color.copy(targetColor);
-                }
-                marker.userData.isAnimating = false;
-            }
-        };
-        
-        requestAnimationFrame(animate);
+        return this.eventMarkerManager.lockEvent(marker);
     }
     
     /**
      * Unlock an event marker (restore to normal)
-     * Animates the transition smoothly
+     * Delegates to EventMarkerManager
      */
     unlockEvent(marker) {
-        if (!marker || !marker.userData) return;
-        
-        marker.userData.isLocked = false;
-        
-        // Get current values
-        const startScale = marker.scale.x;
-        const originalScale = marker.userData.originalScale || 1.0;
-        const startColor = new THREE.Color();
-        if (marker.material) {
-            startColor.copy(marker.material.color);
-        }
-            const restoreColor = marker.userData.originalColor || 
-                                 (marker.userData.isInteractive === false ? 0xff69b4 : 0xff6600);
-        const targetColor = new THREE.Color(restoreColor);
-        
-        // Mark as animating to prevent pulse interference
-        marker.userData.isAnimating = true;
-        
-        const duration = 300; // 300ms animation
-        const startTime = performance.now();
-        
-        const animate = () => {
-            // Check if animation was cancelled
-            if (!marker.userData || !marker.userData.isAnimating || marker.userData.isLocked === true) {
-                return;
-            }
-            
-            const elapsed = performance.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Easing function (ease out)
-            const easeProgress = 1 - Math.pow(1 - progress, 3);
-            
-            // Interpolate scale
-            const currentScale = startScale + (originalScale - startScale) * easeProgress;
-            marker.scale.set(currentScale, currentScale, currentScale);
-            
-            // Interpolate color
-            if (marker.material) {
-                marker.material.color.lerpColors(startColor, targetColor, easeProgress);
-                marker.material.needsUpdate = true;
-            }
-            
-            // Interpolate pin line color
-        if (marker.userData.pinLine && marker.userData.pinLine.material) {
-                marker.userData.pinLine.material.color.lerpColors(
-                    startColor,
-                    new THREE.Color(0xff6600), // Orange for pin lines
-                    easeProgress
-                );
-            }
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                // Animation complete - ensure final values
-                marker.scale.set(originalScale, originalScale, originalScale);
-                if (marker.material) {
-                    marker.material.color.copy(targetColor);
-                }
-                if (marker.userData.pinLine && marker.userData.pinLine.material) {
-                    marker.userData.pinLine.material.color.setHex(0xff6600); // Orange
-                }
-                marker.userData.isAnimating = false;
-            }
-        };
-        
-        requestAnimationFrame(animate);
+        return this.eventMarkerManager.unlockEvent(marker);
     }
     
     /**
      * Unlock all event markers
+     * Delegates to EventMarkerManager
      */
     unlockAllEvents() {
-        const globe = this.sceneModel.getGlobe();
-        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
-        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        
-        if (!globe) return;
-        
-        // Helper function to unlock a marker
-        const unlockMarker = (child) => {
-            if (child.userData && child.userData.isEventMarker) {
-                this.unlockEvent(child);
-            }
-        };
-        
-        // Unlock event markers on the globe (Earth events)
-        globe.traverse(unlockMarker);
-        
-        // Unlock event markers on the Moon plane
-        if (moonPlane) {
-            moonPlane.traverse(unlockMarker);
-        }
-        
-        // Unlock event markers on the Mars plane
-        if (marsPlane) {
-            marsPlane.traverse(unlockMarker);
-        }
+        return this.eventMarkerManager.unlockAllEvents();
     }
 
     /**
@@ -1539,31 +585,33 @@ export class GlobeView {
             
             const marker = new THREE.Mesh(markerGeometry, markerMaterial);
             marker.position.copy(position);
-            marker.userData = { 
-                seaport: seaport.name,
-                lat: seaport.lat,
-                lon: seaport.lon,
+            
+            // Add pin line for seaport markers
+            const pinLineStart = latLonToVector3(seaport.lat, seaport.lon, 1.0);
+            const pinLineEnd = position;
+            const pinLineGeometry = new THREE.BufferGeometry().setFromPoints([pinLineStart, pinLineEnd]);
+            const pinLineMaterial = new THREE.LineBasicMaterial({ 
+                color: pinColor,
+                transparent: true,
+                opacity: 0.7
+            });
+            const pinLine = new THREE.Line(pinLineGeometry, pinLineMaterial);
+            
+            marker.userData = {
                 isSeaportMarker: true,
-                hasConnections: hasConnections
+                seaportName: seaport.name
             };
             
             marker.visible = false; // Hide port markers (debug only)
-            globe.add(marker);
+            pinLine.visible = false; // Hide port marker pins (debug only)
             
-            // Add pin line
-            const linePoints = [
-                latLonToVector3(seaport.lat, seaport.lon, 1.0),
-                position
-            ];
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: pinColor });
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            line.userData.isSeaportMarkerPin = true;
-            line.visible = false; // Hide port marker pins (debug only)
-            globe.add(line);
+            globe.add(marker);
+            globe.add(pinLine);
+            
+            const markers = this.sceneModel.getMarkers();
+            markers.push(marker);
         });
     }
-
 
     /**
      * Add connection lines (main routes)

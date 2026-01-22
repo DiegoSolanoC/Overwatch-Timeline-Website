@@ -1,7 +1,14 @@
 /**
  * Test Loader - Modular component loading for testing
  * Allows loading individual components (Globe, Music, Events) on demand
+ * Note: Loading overlay, status, and button state management are now handled by managers
  */
+
+import { showLoadingOverlay, hideLoadingOverlay, setRunOperation, getRunOperation } from '../managers/LoadingOverlayManager.js';
+import { updateStatus, updateGlobeComponentsProgress, resetGlobeComponentsProgress } from '../managers/StatusManager.js';
+import { setButtonState } from '../managers/ButtonStateManager.js';
+import { setupPaletteToggle, resetPaletteToggleSetup } from '../managers/PaletteManager.js';
+import { ComponentOrchestrator } from '../managers/ComponentOrchestrator.js';
 
 // Track which components are loaded
 const loadedComponents = {
@@ -16,450 +23,21 @@ const loadedComponents = {
     biography: false
 };
 
-// Loading overlay helpers for test page
-let isRunOperation = false; // Flag to track if we're in a run operation
+// Local variable for isRunOperation (delegates to LoadingOverlayManager)
+// We keep a local variable for direct access but sync with the manager
+let isRunOperation = false;
 
-function showLoadingOverlay() {
-    // Works for both test.html and main.html
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    if (loadingOverlay) {
-        // Force immediate visibility (no transition delay)
-        loadingOverlay.style.opacity = '1';
-        loadingOverlay.style.visibility = 'visible';
-        loadingOverlay.classList.add('active');
-        console.log('[Loading Overlay] Showing overlay');
-    } else {
-        console.warn('[Loading Overlay] Overlay element not found!');
-    }
-}
-
-function hideLoadingOverlay() {
-    // Don't hide overlay if we're in a run operation (let the run function handle it)
-    if (isRunOperation) {
-        console.log('[Loading Overlay] Skipping hide - run operation in progress');
-        return;
-    }
-    
-    // Works for both test.html and main.html
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    if (loadingOverlay) {
-        loadingOverlay.classList.remove('active');
-        // Reset inline styles to allow CSS transition
-        loadingOverlay.style.opacity = '';
-        loadingOverlay.style.visibility = '';
-        console.log('[Loading Overlay] Hiding overlay');
-    }
-}
-
-// Status tracking
-function updateStatus(message, type = 'info') {
-    // Check if we're on main.html with overlay status
-    const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const overlayActive = loadingOverlay && loadingOverlay.classList.contains('active');
-    
-    let statusContent;
-    if (isMainPage && overlayActive) {
-        // Use overlay status on main page when overlay is active
-        statusContent = document.getElementById('overlayStatusContent');
-        // Replace content with single current message
-        if (statusContent) {
-            statusContent.innerHTML = ''; // Clear all previous messages
-            const item = document.createElement('div');
-            item.className = `test-status-item ${type}`;
-            item.textContent = message;
-            statusContent.appendChild(item);
-        }
-    } else {
-        // Use regular test status (replace for test page)
-    const statusDiv = document.getElementById('testStatus');
-        statusContent = document.getElementById('statusContent');
-    if (statusDiv && statusContent) {
-        statusDiv.style.display = 'block';
-        statusContent.innerHTML = ''; // Clear all previous messages
-        const item = document.createElement('div');
-        item.className = `test-status-item ${type}`;
-        item.textContent = message;
-        statusContent.appendChild(item);
-        }
-    }
-}
-
-// Progress tracking for Globe Components
-let globeComponentsProgress = {
-    total: 4, // Globe Base, Transport, Controls, Events
-    completed: 0
-};
-
-function updateGlobeComponentsProgress(completed) {
-    globeComponentsProgress.completed = completed;
-    const progressBar = document.getElementById('loadingProgressBar');
-    if (progressBar) {
-        const percentage = (completed / globeComponentsProgress.total) * 100;
-        progressBar.style.width = percentage + '%';
-    }
-}
-
-function resetGlobeComponentsProgress() {
-    globeComponentsProgress.completed = 0;
-    const progressBar = document.getElementById('loadingProgressBar');
-    if (progressBar) {
-        progressBar.style.width = '0%';
-    }
-}
-
-function setButtonState(buttonId, state) {
-    const btn = document.getElementById(buttonId);
-    if (!btn) return;
-    
-    btn.classList.remove('loading', 'loaded');
-    if (state === 'loading') {
-        btn.classList.add('loading');
-        btn.disabled = true;
-    } else if (state === 'loaded') {
-        btn.classList.add('loaded');
-        btn.disabled = false;
-    } else {
-        btn.disabled = false;
-    }
+// Helper function to sync isRunOperation with manager
+function setIsRunOperation(value) {
+    isRunOperation = value;
+    setRunOperation(value);
 }
 
 /**
  * Setup palette toggle functionality
- * This is needed when the button is added dynamically after DOMContentLoaded
+ * Delegates to PaletteManager
+ * Note: setupPaletteToggle is imported from PaletteManager
  */
-// Track if palette toggle is already set up to prevent duplicate listeners
-let paletteToggleSetup = false;
-
-function setupPaletteToggle() {
-    const colorPaletteToggle = document.getElementById('colorPaletteToggle');
-    if (!colorPaletteToggle) return;
-    
-    // Check if already set up - if so, just ensure state is applied and listeners exist
-    const wasAlreadySetup = paletteToggleSetup && colorPaletteToggle.dataset.setup === 'true';
-    
-    // Always apply saved state
-    const savedPalette = localStorage.getItem('colorPalette');
-    if (savedPalette === 'gray') {
-        document.body.classList.add('color-palette-gray');
-    } else {
-        document.body.classList.remove('color-palette-gray');
-    }
-    
-    // If already set up, verify listeners are still attached, then return
-    if (wasAlreadySetup) {
-        // Verify menu exists and has listeners
-        const paletteMenu = document.getElementById('paletteMenu');
-        if (paletteMenu) {
-            const optionButtons = paletteMenu.querySelectorAll('.palette-option-btn');
-            // Check if any button is missing its handler
-            let needsReattach = false;
-            optionButtons.forEach(btn => {
-                if (!btn._paletteOptionHandler) {
-                    needsReattach = true;
-                }
-            });
-            // If listeners are missing, continue with setup to reattach them
-            if (!needsReattach && colorPaletteToggle._paletteButtonHandler) {
-                // Update active state
-                if (window.updatePaletteMenuActiveState) {
-                    window.updatePaletteMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
-                }
-                return;
-            }
-        }
-        // If we get here, something is missing - continue with full setup
-    }
-    
-    // Mark as set up
-    colorPaletteToggle.dataset.setup = 'true';
-    paletteToggleSetup = true;
-    
-    // Create palette menu if it doesn't exist
-    let paletteMenu = document.getElementById('paletteMenu');
-    if (!paletteMenu) {
-        paletteMenu = document.createElement('div');
-        paletteMenu.id = 'paletteMenu';
-        paletteMenu.className = 'palette-menu';
-        
-        // Blue palette option button
-        const blueBtn = document.createElement('button');
-        blueBtn.className = 'palette-option-btn blue';
-        blueBtn.dataset.palette = 'blue';
-        blueBtn.title = 'Blue Palette';
-        blueBtn.setAttribute('aria-label', 'Blue Palette');
-        // Add a visual indicator inside the button
-        blueBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
-        paletteMenu.appendChild(blueBtn);
-        console.log('[Palette] Created blue button:', blueBtn);
-        
-        // Black/Gray palette option button
-        const blackBtn = document.createElement('button');
-        blackBtn.className = 'palette-option-btn black';
-        blackBtn.dataset.palette = 'gray';
-        blackBtn.title = 'Gray Palette';
-        blackBtn.setAttribute('aria-label', 'Gray Palette');
-        // Add a visual indicator inside the button
-        blackBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
-        paletteMenu.appendChild(blackBtn);
-        console.log('[Palette] Created black button:', blackBtn);
-        
-        document.body.appendChild(paletteMenu);
-        console.log('[Palette] Menu appended to body, total children:', paletteMenu.children.length);
-    }
-    
-    // Update menu active state and icon (savedPalette was already retrieved and applied above)
-    updatePaletteMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
-    updatePaletteButtonIcon(savedPalette === 'gray' ? 'gray' : 'blue');
-    
-    // Function to update palette button icon based on active palette
-    function updatePaletteButtonIcon(palette) {
-        const colorPaletteToggle = document.getElementById('colorPaletteToggle');
-        if (!colorPaletteToggle) return;
-        
-        const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
-        if (!iconSpan) return;
-        
-        const iconPath = palette === 'gray' ? 'assets/images/icons/Dark Palette Icon.png' : 'assets/images/icons/Blue Palette Icon.png';
-        
-        // Check if img already exists, update src; otherwise create new img
-        let img = iconSpan.querySelector('img');
-        if (img) {
-            img.src = iconPath;
-            img.alt = 'Color Palette';
-        } else {
-            iconSpan.innerHTML = `<img src="${iconPath}" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">`;
-        }
-    }
-    
-    // Function to update active state of palette menu buttons
-    function updatePaletteMenuActiveState(palette) {
-        const menu = document.getElementById('paletteMenu');
-        if (!menu) return;
-        
-        const buttons = menu.querySelectorAll('.palette-option-btn');
-        buttons.forEach(btn => {
-            if (btn.dataset.palette === palette) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-        
-        // Update palette button icon
-        updatePaletteButtonIcon(palette);
-    }
-    
-    // Function to change palette
-    function changePalette(palette) {
-        const isGray = palette === 'gray';
-        
-        if (isGray) {
-            document.body.classList.add('color-palette-gray');
-        } else {
-            document.body.classList.remove('color-palette-gray');
-        }
-        
-        updatePaletteMenuActiveState(palette);
-        
-        // Save preference
-        localStorage.setItem('colorPalette', palette);
-        
-        console.log('Palette changed to:', palette);
-        
-        // Change globe texture (only on pages with globe)
-        if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
-            window.globeController.globeView.changeGlobeTexture(texturePath);
-            
-            // Change Moon and Mars textures
-            const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
-            const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
-            window.globeController.globeView.changeMoonTexture(moonTexturePath);
-            window.globeController.globeView.changeMarsTexture(marsTexturePath);
-        }
-        
-        // Change scene background color (starfield background) (only on pages with globe)
-        if (window.globeController && window.globeController.sceneModel) {
-            const bgColor = isGray ? 0x0f0f0f : 0x050d18; // Darker gray/blue than panels for contrast
-            window.globeController.sceneModel.setBackgroundColor(bgColor);
-        }
-        
-        // Play sound effect if available
-        if (window.SoundEffectsManager) {
-            if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['colorChange']) {
-                window.SoundEffectsManager.play('colorChange');
-            } else {
-                // Load and play if not already loaded
-                window.SoundEffectsManager.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
-                setTimeout(() => {
-                    window.SoundEffectsManager.play('colorChange');
-                }, 100);
-            }
-        }
-        
-        // Close menu after selection
-        closePaletteMenu();
-    }
-    
-    // Handle palette button click - toggle menu
-    const handlePaletteButtonClick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log('[Palette] Button clicked');
-        const menu = document.getElementById('paletteMenu');
-        if (!menu) {
-            console.error('[Palette] Menu not found!');
-            return;
-        }
-        
-        console.log('[Palette] Menu found, current state:', menu.classList.contains('open') ? 'open' : 'closed');
-        
-        if (menu.classList.contains('open')) {
-            console.log('[Palette] Closing menu');
-            closePaletteMenu();
-        } else {
-            console.log('[Palette] Opening menu');
-            openPaletteMenu();
-            
-            // Play sound effect when opening menu
-            if (window.SoundEffectsManager) {
-                if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['colorChange']) {
-                    window.SoundEffectsManager.play('colorChange');
-                } else {
-                    // Load and play if not already loaded
-                    window.SoundEffectsManager.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
-                    setTimeout(() => {
-                        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['colorChange']) {
-                            window.SoundEffectsManager.play('colorChange');
-                        }
-                    }, 100);
-                }
-            }
-        }
-    };
-    
-    // Handle palette option button clicks
-    const handlePaletteOptionClick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const palette = this.dataset.palette;
-        if (palette) {
-            changePalette(palette);
-        }
-    };
-    
-    // Open palette menu
-    function openPaletteMenu() {
-        const menu = document.getElementById('paletteMenu');
-        const toggle = document.getElementById('colorPaletteToggle');
-        console.log('[Palette] openPaletteMenu called, menu:', menu, 'toggle:', toggle);
-        if (menu) {
-            menu.classList.add('open');
-            // Force visibility with inline styles as fallback
-            menu.style.opacity = '1';
-            menu.style.visibility = 'visible';
-            menu.style.transform = 'translateY(0)';
-            menu.style.pointerEvents = 'auto';
-            menu.style.display = 'flex';
-            menu.style.position = 'fixed';
-            menu.style.bottom = '150px'; // Pushed further up to avoid overlap with button
-            menu.style.right = '20px';
-            menu.style.zIndex = '300';
-            menu.style.flexDirection = 'column';
-            menu.style.gap = '10px';
-            menu.style.alignItems = 'flex-end'; // Align circles to the right
-            console.log('[Palette] Added "open" class to menu, classes:', menu.className);
-            console.log('[Palette] Menu computed styles:', {
-                opacity: window.getComputedStyle(menu).opacity,
-                visibility: window.getComputedStyle(menu).visibility,
-                display: window.getComputedStyle(menu).display,
-                zIndex: window.getComputedStyle(menu).zIndex
-            });
-            
-            // Check if buttons exist
-            const buttons = menu.querySelectorAll('.palette-option-btn');
-            console.log('[Palette] Number of option buttons found:', buttons.length);
-            buttons.forEach((btn, index) => {
-                console.log(`[Palette] Button ${index}:`, btn, 'classes:', btn.className);
-            });
-        } else {
-            console.error('[Palette] Menu element not found!');
-        }
-        if (toggle) {
-            toggle.classList.add('active');
-            console.log('[Palette] Added "active" class to toggle');
-        }
-    }
-    
-    // Close palette menu
-    function closePaletteMenu() {
-        const menu = document.getElementById('paletteMenu');
-        const toggle = document.getElementById('colorPaletteToggle');
-        if (menu) {
-            menu.classList.remove('open');
-            // Reset inline styles
-            menu.style.opacity = '';
-            menu.style.visibility = '';
-            menu.style.transform = '';
-            menu.style.pointerEvents = '';
-        }
-        if (toggle) {
-            toggle.classList.remove('active');
-        }
-    }
-    
-    // Store close function globally so click outside handler can access it
-    window._closePaletteMenu = closePaletteMenu;
-    
-    // Remove old event listeners if they exist (to prevent duplicates)
-    const oldHandler = colorPaletteToggle._paletteButtonHandler;
-    if (oldHandler) {
-        colorPaletteToggle.removeEventListener('click', oldHandler, true);
-    }
-    
-    // Attach handlers - store reference to allow removal later
-    colorPaletteToggle._paletteButtonHandler = handlePaletteButtonClick;
-    colorPaletteToggle.addEventListener('click', handlePaletteButtonClick, true);
-    
-    // Remove old listeners from option buttons and attach new ones
-    const optionButtons = paletteMenu.querySelectorAll('.palette-option-btn');
-    optionButtons.forEach(btn => {
-        const oldOptionHandler = btn._paletteOptionHandler;
-        if (oldOptionHandler) {
-            btn.removeEventListener('click', oldOptionHandler);
-        }
-        btn._paletteOptionHandler = handlePaletteOptionClick;
-        btn.addEventListener('click', handlePaletteOptionClick);
-    });
-    
-    // Close menu when clicking outside - only add once globally
-    // Use capture phase to ensure it runs before stopPropagation() in option buttons
-    if (!window._paletteClickOutsideHandler) {
-        window._paletteClickOutsideHandler = function(e) {
-            const menu = document.getElementById('paletteMenu');
-            const toggle = document.getElementById('colorPaletteToggle');
-            
-            if (menu && menu.classList.contains('open')) {
-                // Check if click is outside both menu and toggle button
-                // Also check if click is on a palette option button (which should close the menu via changePalette)
-                const isPaletteOption = e.target.closest('.palette-option-btn');
-                if (!menu.contains(e.target) && toggle && !toggle.contains(e.target) && !isPaletteOption) {
-                    if (window._closePaletteMenu) {
-                        window._closePaletteMenu();
-                    }
-                }
-            }
-        };
-        // Use capture phase (true) to catch events before they're stopped by stopPropagation
-        document.addEventListener('click', window._paletteClickOutsideHandler, true);
-    }
-    
-    // Make updatePaletteMenuActiveState available globally for state updates
-    window.updatePaletteMenuActiveState = updatePaletteMenuActiveState;
-}
 
 /**
  * Load Palette Components (Universal Feature)
@@ -485,7 +63,7 @@ async function unloadPalette() {
         }
         
         // Reset palette toggle setup flag
-        paletteToggleSetup = false;
+        resetPaletteToggleSetup();
         
         loadedComponents.palette = false;
         setButtonState('loadPaletteBtn', 'default');
@@ -688,7 +266,18 @@ async function loadGlobeBase() {
         
         // Load GlobeController module
         updateStatus('Loading GlobeController module...', 'info');
-        const { GlobeController } = await import('../controllers/GlobeController.js');
+        let GlobeController;
+        try {
+            const module = await import('../controllers/GlobeController.js');
+            GlobeController = module.GlobeController;
+            if (!GlobeController) {
+                throw new Error('GlobeController not found in module. Available exports: ' + Object.keys(module).join(', '));
+            }
+        } catch (importError) {
+            console.error('Failed to import GlobeController:', importError);
+            console.error('Import error stack:', importError.stack);
+            throw new Error(`Failed to import GlobeController: ${importError.message}. Original error: ${importError}`);
+        }
         
         // Initialize GlobeController
         updateStatus('Initializing GlobeController...', 'info');
@@ -971,7 +560,7 @@ async function loadControls() {
                 console.log('[Exit Button] Exit clicked, starting exit process...');
                 
                 // Set run operation flag FIRST to prevent individual functions from hiding overlay
-                isRunOperation = true;
+                setIsRunOperation(true);
                 console.log('[Exit Button] isRunOperation set to true');
                 
                 // Show loading overlay SYNCHRONOUSLY before any async operations
@@ -1005,7 +594,7 @@ async function loadControls() {
                 } finally {
                     console.log('[Exit Button] Finally block - resetting flag and hiding overlay');
                     // Reset flag and fade out loading overlay after everything is done
-                    isRunOperation = false;
+                    setIsRunOperation(false);
                     hideLoadingOverlay();
                 }
             });
@@ -1819,13 +1408,13 @@ async function loadMenu() {
         if (typeof runGlobeComponents === 'function') {
             globeBtn.addEventListener('click', async function() {
                 // Show overlay SYNCHRONOUSLY before any async operations
-                isRunOperation = true;
+                setIsRunOperation(true);
                 showLoadingOverlay();
                 try {
                     await runGlobeComponents();
                 } catch (error) {
                     console.error('Error in runGlobeComponents:', error);
-                    isRunOperation = false;
+                    setIsRunOperation(false);
                     hideLoadingOverlay();
                 }
             });
@@ -1882,475 +1471,121 @@ async function loadMenu() {
     }
 }
 
+// Initialize ComponentOrchestrator with loaders and unloaders
+const componentOrchestrator = new ComponentOrchestrator(
+    loadedComponents,
+    {
+        palette: loadPalette,
+        music: loadMusic,
+        menu: loadMenu,
+        globeBase: loadGlobeBase,
+        transport: loadTransport,
+        controls: loadControls,
+        events: loadEvents
+    },
+    {
+        palette: unloadPalette,
+        music: unloadMusic,
+        menu: unloadMenu,
+        globeBase: unloadGlobeBase,
+        transport: unloadTransport,
+        controls: unloadControls,
+        events: unloadEvents
+    }
+);
+
 /**
  * Run all Menu Components
  * Simply ensures menu is loaded and visible
+ * Delegates to ComponentOrchestrator
  */
 async function runMenuComponents() {
-    // Note: isRunOperation and overlay should already be set by the button click handler
-    // But if called directly (not from button), set them here
-    if (!isRunOperation) {
-        isRunOperation = true;
-        showLoadingOverlay();
-    }
-    updateStatus('🚀 Running Menu Components...', 'info');
-    
-    try {
-        // If menu is not loaded, load it first
-        if (!loadedComponents.menu) {
-            updateStatus('→ Menu not loaded, loading now...', 'info');
-            await loadMenu();
-        } else {
-            updateStatus('→ Menu already loaded', 'info');
-        }
-        
-        // Ensure menu is visible
-        const testContainer = document.querySelector('.test-container');
-        const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
-        
-        if (menuButtons) {
-            menuButtons.style.display = 'flex';
-            updateStatus('✓ Menu Components are running!', 'success');
-        } else {
-            updateStatus('⚠ Menu buttons not found', 'error');
-        }
-    } catch (error) {
-        console.error('Error running Menu Components:', error);
-        updateStatus(`✗ Error running Menu Components: ${error.message}`, 'error');
-    } finally {
-        isRunOperation = false;
-        hideLoadingOverlay();
-    }
+    return componentOrchestrator.runMenuComponents();
 }
 
 /**
  * Run all Universal Features sequentially
  * Loads: Palette, then Music
+ * Delegates to ComponentOrchestrator
  */
 async function runUniversalFeatures() {
-    const runBtn = document.getElementById('runUniversalBtn');
-    if (runBtn) {
-        runBtn.disabled = true;
-    }
-    
-    // Note: isRunOperation and overlay should already be set by the button click handler
-    // But if called directly (not from button), set them here
-    if (!isRunOperation) {
-        isRunOperation = true;
-        showLoadingOverlay();
-    }
-    updateStatus('🚀 Starting Universal Features auto-load...', 'info');
-    
-    try {
-        // Load Palette
-        if (!loadedComponents.palette) {
-            updateStatus('→ Loading Palette...', 'info');
-            await loadPalette();
-            // Small delay between loads
-            await new Promise(r => setTimeout(r, 300));
-        } else {
-            updateStatus('→ Palette already loaded, skipping...', 'info');
-        }
-        
-        // Load Music
-        if (!loadedComponents.music) {
-            updateStatus('→ Loading Music...', 'info');
-            await loadMusic();
-        } else {
-            updateStatus('→ Music already loaded, skipping...', 'info');
-        }
-        
-        updateStatus('✓ Universal Features auto-load complete!', 'success');
-    } catch (error) {
-        console.error('Error in Universal Features auto-load:', error);
-        updateStatus(`✗ Error in Universal Features auto-load: ${error.message}`, 'error');
-    } finally {
-        isRunOperation = false;
-        hideLoadingOverlay();
-        if (runBtn) {
-            runBtn.disabled = false;
-        }
-    }
+    return componentOrchestrator.runUniversalFeatures();
 }
 
 /**
  * Run all Globe Components sequentially
  * Loads: Globe Base, then Transport, then Controls, then Events
+ * Delegates to ComponentOrchestrator
  */
 async function runGlobeComponents(isAutoLoad = false) {
-    // Note: isRunOperation and overlay should already be set by the button click handler
-    // But if called directly (not from button), set them here
-    if (!isRunOperation) {
-        isRunOperation = true;
-        showLoadingOverlay();
-        // Small delay to ensure overlay is rendered before starting loads
-        await new Promise(r => setTimeout(r, 50));
-    }
-    
-    // Play mode switch sound effect only if manually triggered (not auto-load)
-    if (!isAutoLoad && window.SoundEffectsManager) {
-        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
-            window.SoundEffectsManager.play('modeSwitch');
-        } else {
-            // Load and play if not already loaded
-            window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
-            setTimeout(() => {
-                window.SoundEffectsManager.play('modeSwitch');
-            }, 100);
-        }
-    }
-    
-    // Save current mode to localStorage
-    localStorage.setItem('currentMode', 'globe');
-    
-    const runBtn = document.getElementById('runGlobeBtn');
-    if (runBtn) {
-        runBtn.disabled = true;
-    }
-    
-    // Reset progress
-    resetGlobeComponentsProgress();
-    
-    // Hide the test-container completely (which contains the main menu buttons)
-    const testContainer = document.querySelector('.test-container');
-    if (testContainer) {
-        testContainer.style.display = 'none';
-        updateStatus('→ Hiding menu container...', 'info');
-    }
-    
-    // Hide globe container initially - we'll show it after everything is loaded
-    const globeContainer = document.getElementById('globe-container');
-    if (globeContainer) {
-        globeContainer.style.display = 'none';
-        globeContainer.style.width = '100%';
-        globeContainer.style.height = '100%';
-        updateStatus('→ Preparing globe container...', 'info');
-    }
-    
-    updateStatus('🚀 Starting Globe Components auto-load...', 'info');
-    
-    try {
-        // Load Globe Base
-        if (!loadedComponents.globeBase) {
-            updateStatus('→ Loading Globe Base...', 'info');
-            await loadGlobeBase();
-            // Show globe container immediately after Globe Base loads
-            if (globeContainer) {
-                globeContainer.style.opacity = '1';
-                globeContainer.style.pointerEvents = 'auto';
-                globeContainer.style.display = 'block';
-                globeContainer.classList.add('loaded');
-            }
-            updateGlobeComponentsProgress(1);
-            // Small delay between loads
-            await new Promise(r => setTimeout(r, 300));
-        } else {
-            updateStatus('→ Globe Base already loaded, skipping...', 'info');
-            // If already loaded, make sure globe is visible
-            if (globeContainer) {
-                globeContainer.style.opacity = '1';
-                globeContainer.style.pointerEvents = 'auto';
-                globeContainer.style.display = 'block';
-                globeContainer.classList.add('loaded');
-            }
-            updateGlobeComponentsProgress(1);
-        }
-        
-        // Load Transport
-        if (!loadedComponents.transport) {
-            updateStatus('→ Loading Transport...', 'info');
-            await loadTransport();
-            updateGlobeComponentsProgress(2);
-            await new Promise(r => setTimeout(r, 300));
-        } else {
-            updateStatus('→ Transport already loaded, skipping...', 'info');
-            updateGlobeComponentsProgress(2);
-        }
-        
-        // Load Controls
-        if (!loadedComponents.controls) {
-            updateStatus('→ Loading Controls...', 'info');
-            await loadControls();
-            updateGlobeComponentsProgress(3);
-            await new Promise(r => setTimeout(r, 300));
-        } else {
-            updateStatus('→ Controls already loaded, skipping...', 'info');
-            updateGlobeComponentsProgress(3);
-        }
-        
-        // Load Events
-        if (!loadedComponents.events) {
-            updateStatus('→ Loading Events...', 'info');
-            await loadEvents();
-            updateGlobeComponentsProgress(4);
-        } else {
-            updateStatus('→ Events already loaded, skipping...', 'info');
-            updateGlobeComponentsProgress(4);
-        }
-        
-        updateStatus('✓ Globe Components auto-load complete!', 'success');
-        
-        // Globe container should already be visible (shown after Globe Base loaded)
-        // Just ensure it's still visible
-        if (globeContainer) {
-            globeContainer.style.opacity = '1';
-            globeContainer.style.pointerEvents = 'auto';
-            globeContainer.style.display = 'block';
-            globeContainer.classList.add('loaded');
-        }
-    } catch (error) {
-        console.error('Error in Globe Components auto-load:', error);
-        updateStatus(`✗ Error in Globe Components auto-load: ${error.message}`, 'error');
-    } finally {
-        isRunOperation = false;
-        hideLoadingOverlay();
-        if (runBtn) {
-            runBtn.disabled = false;
-        }
-    }
+    return componentOrchestrator.runGlobeComponents(isAutoLoad);
 }
 
 /**
  * Kill all Menu Components
+ * Delegates to ComponentOrchestrator
  */
 async function killMenuComponents() {
-    updateStatus('Killing all Menu Components...', 'info');
-    
-    if (loadedComponents.menu) {
-        await unloadMenu();
-    }
-    
-    updateStatus('✓ All Menu Components killed!', 'success');
+    return componentOrchestrator.killMenuComponents();
 }
 
 /**
  * Kill all Universal Features
+ * Delegates to ComponentOrchestrator
  */
 async function killUniversalFeatures() {
-    updateStatus('Killing all Universal Features...', 'info');
-    
-    if (loadedComponents.palette) {
-        await unloadPalette();
-    }
-    
-    if (loadedComponents.music) {
-        await unloadMusic();
-    }
-    
-    updateStatus('✓ All Universal Features killed!', 'success');
+    return componentOrchestrator.killUniversalFeatures();
 }
 
 /**
  * Restore main menu (show test-container, hide globe)
  * Make it globally accessible
+ * Delegates to ComponentOrchestrator
  */
 window.restoreMainMenu = async function restoreMainMenu() {
-    const testContainer = document.querySelector('.test-container');
-    const globeContainer = document.getElementById('globe-container');
-    
-    // Ensure menu is loaded (reload if it was killed)
-    if (!loadedComponents.menu) {
-        updateStatus('Loading menu components...', 'info');
-        await loadMenu();
-    }
-    
-    // Restore menu visibility - ensure it's fully visible
-    const menuButtons = testContainer ? testContainer.querySelector('.main-menu-buttons') : null;
-    if (testContainer) {
-        testContainer.style.display = 'flex';
-        testContainer.classList.remove('fading');
-        testContainer.style.opacity = '1';
-        testContainer.style.visibility = 'visible';
-    }
-    
-    // Restore menu buttons visibility
-    if (menuButtons) {
-        menuButtons.style.display = 'flex';
-        menuButtons.style.visibility = 'visible';
-        menuButtons.style.opacity = '1';
-    }
-    
-    // Hide globe and reset its positioning
-    if (globeContainer) {
-        globeContainer.style.display = 'none';
-        globeContainer.classList.remove('loaded');
-        globeContainer.style.position = '';
-        globeContainer.style.top = '';
-        globeContainer.style.left = '';
-    }
-    
-    // Close any open panels
-    const eventSlide = document.getElementById('eventSlide');
-    const eventsManagePanel = document.getElementById('eventsManagePanel');
-    const filtersPanel = document.getElementById('filtersPanel');
-    
-    if (eventSlide) eventSlide.classList.remove('open');
-    if (eventsManagePanel) eventsManagePanel.classList.remove('open');
-    if (filtersPanel) filtersPanel.classList.remove('open');
-    
-    // Remove active states from buttons
-    const eventsManageToggle = document.getElementById('eventsManageToggle');
-    const filtersToggle = document.getElementById('filtersToggle');
-    if (eventsManageToggle) eventsManageToggle.classList.remove('active');
-    if (filtersToggle) filtersToggle.classList.remove('active');
+    return componentOrchestrator.restoreMainMenu();
 }
 
 /**
  * Kill all Globe Components
+ * Delegates to ComponentOrchestrator
  */
 async function killGlobeComponents() {
-    updateStatus('Killing all Globe Components...', 'info');
-    
-    // Unload in reverse order (dependencies first)
-    if (loadedComponents.events) {
-        await unloadEvents();
-    }
-    
-    if (loadedComponents.controls) {
-        await unloadControls();
-    }
-    
-    if (loadedComponents.transport) {
-        await unloadTransport();
-    }
-    
-    if (loadedComponents.globeBase) {
-        await unloadGlobeBase();
-    }
-    
-    // Restore the menu (test-container) when killing globe components
-    // This will also load menu if not already loaded
-    await restoreMainMenu();
-    
-    updateStatus('✓ All Globe Components killed!', 'success');
+    return componentOrchestrator.killGlobeComponents();
 }
 
 /**
  * Run all Glossary Components sequentially
  * (Placeholder - no actual loads yet)
+ * Delegates to ComponentOrchestrator
  */
 async function runGlossaryComponents(isAutoLoad = false) {
-    // Play mode switch sound effect only if manually triggered (not auto-load)
-    if (!isAutoLoad && window.SoundEffectsManager) {
-        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
-            window.SoundEffectsManager.play('modeSwitch');
-        } else {
-            // Load and play if not already loaded
-            window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
-            setTimeout(() => {
-                window.SoundEffectsManager.play('modeSwitch');
-            }, 100);
-        }
-    }
-    
-    // Save current mode to localStorage
-    localStorage.setItem('currentMode', 'glossary');
-    
-    const runBtn = document.getElementById('runGlossaryBtn');
-    if (runBtn) {
-        runBtn.disabled = true;
-    }
-    
-    // Note: isRunOperation and overlay should already be set by the button click handler
-    // But if called directly (not from button), set them here
-    if (!isRunOperation) {
-        isRunOperation = true;
-        showLoadingOverlay();
-    }
-    updateStatus('🚀 Starting Glossary Components auto-load...', 'info');
-    
-    try {
-        // Placeholder - no actual loading yet
-        updateStatus('→ Glossary Components loading not yet implemented', 'info');
-        
-        loadedComponents.glossary = true;
-        updateStatus('✓ Glossary Components auto-load complete!', 'success');
-    } catch (error) {
-        console.error('Error in Glossary Components auto-load:', error);
-        updateStatus(`✗ Error in Glossary Components auto-load: ${error.message}`, 'error');
-    } finally {
-        isRunOperation = false;
-        hideLoadingOverlay();
-        if (runBtn) {
-            runBtn.disabled = false;
-        }
-    }
+    return componentOrchestrator.runGlossaryComponents(isAutoLoad);
 }
 
 /**
  * Kill all Glossary Components
+ * Delegates to ComponentOrchestrator
  */
 async function killGlossaryComponents() {
-    updateStatus('Killing all Glossary Components...', 'info');
-    
-    // Placeholder - no actual unloading yet
-    loadedComponents.glossary = false;
-    
-    updateStatus('✓ All Glossary Components killed!', 'success');
+    return componentOrchestrator.killGlossaryComponents();
 }
 
 /**
  * Run all Biography Components sequentially
  * (Placeholder - no actual loads yet)
+ * Delegates to ComponentOrchestrator
  */
 async function runBiographyComponents(isAutoLoad = false) {
-    // Play mode switch sound effect only if manually triggered (not auto-load)
-    if (!isAutoLoad && window.SoundEffectsManager) {
-        if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
-            window.SoundEffectsManager.play('modeSwitch');
-        } else {
-            // Load and play if not already loaded
-            window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
-            setTimeout(() => {
-                window.SoundEffectsManager.play('modeSwitch');
-            }, 100);
-        }
-    }
-    
-    // Save current mode to localStorage
-    localStorage.setItem('currentMode', 'biography');
-    
-    const runBtn = document.getElementById('runBiographyBtn');
-    if (runBtn) {
-        runBtn.disabled = true;
-    }
-    
-    // Note: isRunOperation and overlay should already be set by the button click handler
-    // But if called directly (not from button), set them here
-    if (!isRunOperation) {
-        isRunOperation = true;
-        showLoadingOverlay();
-    }
-    updateStatus('🚀 Starting Biography Components auto-load...', 'info');
-    
-    try {
-        // Placeholder - no actual loading yet
-        updateStatus('→ Biography Components loading not yet implemented', 'info');
-        
-        loadedComponents.biography = true;
-        updateStatus('✓ Biography Components auto-load complete!', 'success');
-    } catch (error) {
-        console.error('Error in Biography Components auto-load:', error);
-        updateStatus(`✗ Error in Biography Components auto-load: ${error.message}`, 'error');
-    } finally {
-        isRunOperation = false;
-        hideLoadingOverlay();
-        if (runBtn) {
-            runBtn.disabled = false;
-        }
-    }
+    return componentOrchestrator.runBiographyComponents(isAutoLoad);
 }
 
 /**
  * Kill all Biography Components
+ * Delegates to ComponentOrchestrator
  */
 async function killBiographyComponents() {
-    updateStatus('Killing all Biography Components...', 'info');
-    
-    // Placeholder - no actual unloading yet
-    loadedComponents.biography = false;
-    
-    updateStatus('✓ All Biography Components killed!', 'success');
+    return componentOrchestrator.killBiographyComponents();
 }
 
 // Setup button event listeners
