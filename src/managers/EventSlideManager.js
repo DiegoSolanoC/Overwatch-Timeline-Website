@@ -3,6 +3,11 @@
  * Extracted from UIView to reduce complexity and improve maintainability
  */
 
+import { setupMobileEventSlide, cleanupMobileEventSlide, getDefaultZoom } from './helpers/MobileEventSlideHelpers.js';
+import { setupEarthLocation, setupMoonMarsLocation, setupStationLocation, hideLocationWithFade, setupLocationClickHandler } from './helpers/LocationDisplayHelpers.js';
+import { loadEventImage, setupImageFadeIn } from './helpers/ImageLoadingHelpers.js';
+import { findVariantMarker, zoomToVariantLocation, createTempMarkerForCoords } from './helpers/VariantHelpers.js';
+
 /**
  * Helper function to get hero display name (maps filename to display name)
  * e.g., "Soldier 76" -> "Soldier: 76"
@@ -14,148 +19,13 @@ function getHeroDisplayName(heroName) {
     return heroDisplayNames[heroName] || heroName;
 }
 
-/**
- * Mobile-specific constants
- */
-const MOBILE_BREAKPOINT = 768;
-const MOBILE_PORTRAIT_ZOOM = 5.5;
-const DEFAULT_ZOOM = 3.5;
-
-/**
- * Mobile helper functions
- */
-const MobileHelpers = {
-    /**
-     * Check if device is mobile
-     */
-    isMobile() {
-        return window.innerWidth <= MOBILE_BREAKPOINT;
-    },
-
-    /**
-     * Check if device is mobile portrait
-     */
-    isMobilePortrait() {
-        return window.innerWidth <= MOBILE_BREAKPOINT && window.innerHeight > window.innerWidth;
-    },
-
-    /**
-     * Get default camera zoom based on device type
-     */
-    getDefaultZoom() {
-        return this.isMobilePortrait() ? MOBILE_PORTRAIT_ZOOM : DEFAULT_ZOOM;
-    },
-
-    /**
-     * Setup mobile-specific DOM manipulations when opening event slide
-     */
-    setupMobileEventSlide() {
-        if (!this.isMobile()) return;
-
-        const scrollableArea = document.getElementById('eventSlideScrollable');
-        const bottomSection = document.getElementById('eventSlideBottom');
-        const titleEl = document.getElementById('eventSlideTitle');
-        const contentEl = document.getElementById('eventSlideContent');
-
-        // Move all children from bottom section to scrollable area
-        if (scrollableArea && bottomSection) {
-            while (bottomSection.firstChild) {
-                scrollableArea.appendChild(bottomSection.firstChild);
-            }
-            console.log('[DEBUG Mobile] Moved all bottom content into scrollable area');
-        }
-
-        // Fix title position on mobile - same row as close button
-        setTimeout(() => {
-            if (titleEl) {
-                titleEl.style.setProperty('position', 'fixed', 'important');
-                titleEl.style.setProperty('top', '10px', 'important'); // Same as close button
-                titleEl.style.setProperty('left', '20px', 'important');
-                titleEl.style.setProperty('right', '70px', 'important');
-                titleEl.style.setProperty('z-index', '999', 'important');
-                titleEl.style.setProperty('background', 'transparent', 'important'); // No background
-                titleEl.style.setProperty('padding', '0', 'important');
-                titleEl.style.setProperty('margin', '0', 'important');
-                titleEl.style.setProperty('box-shadow', 'none', 'important');
-                titleEl.style.setProperty('max-width', 'calc(100% - 90px)', 'important');
-                titleEl.style.setProperty('width', 'auto', 'important');
-                titleEl.style.setProperty('line-height', '50px', 'important'); // Match close button height
-                titleEl.style.setProperty('height', '50px', 'important'); // Match close button height
-                console.log('[DEBUG Mobile] Fixed title position on same row as close button');
-            }
-
-            // Adjust content padding for fixed title row
-            if (contentEl) {
-                contentEl.style.setProperty('padding-top', '70px', 'important'); // Space for title/close row
-            }
-
-            // Adjust scrollable area margin for fixed title - reduced spacing
-            if (scrollableArea) {
-                scrollableArea.style.setProperty('margin-top', '0', 'important'); // No extra margin
-                scrollableArea.style.setProperty('padding-top', '0', 'important');
-            }
-        }, 50);
-    },
-
-    /**
-     * Cleanup mobile-specific DOM manipulations when closing event slide
-     */
-    cleanupMobileEventSlide() {
-        if (!this.isMobile()) return;
-
-        const scrollableArea = document.getElementById('eventSlideScrollable');
-        const bottomSection = document.getElementById('eventSlideBottom');
-        const titleEl = document.getElementById('eventSlideTitle');
-        const contentEl = document.getElementById('eventSlideContent');
-
-        if (scrollableArea && bottomSection) {
-            // Find elements that should be in bottom section (sources, filters, buttons)
-            const sourcesEl = document.getElementById('eventSourcesSection');
-            const filtersEl = document.getElementById('eventFiltersSection');
-            const controlButtons = document.querySelector('.event-control-buttons');
-            const navButtons = document.querySelector('.event-navigation-buttons');
-
-            // Move them back to bottom section
-            if (sourcesEl && sourcesEl.parentElement === scrollableArea) {
-                bottomSection.appendChild(sourcesEl);
-            }
-            if (filtersEl && filtersEl.parentElement === scrollableArea) {
-                bottomSection.appendChild(filtersEl);
-            }
-            if (controlButtons && controlButtons.parentElement === scrollableArea) {
-                bottomSection.appendChild(controlButtons);
-            }
-            if (navButtons && navButtons.parentElement === scrollableArea) {
-                bottomSection.appendChild(navButtons);
-            }
-            console.log('[DEBUG Mobile] Moved bottom content back to bottom section');
-        }
-
-        // Reset title position
-        if (titleEl) {
-            titleEl.style.position = '';
-            titleEl.style.top = '';
-            titleEl.style.left = '';
-            titleEl.style.right = '';
-            titleEl.style.zIndex = '';
-            titleEl.style.background = '';
-            titleEl.style.padding = '';
-            titleEl.style.margin = '';
-            titleEl.style.boxShadow = '';
-            titleEl.style.maxWidth = '';
-        }
-
-        // Reset content padding
-        if (contentEl) {
-            contentEl.style.paddingTop = '';
-        }
-
-        // Reset scrollable area
-        if (scrollableArea) {
-            scrollableArea.style.marginTop = '';
-            scrollableArea.style.paddingTop = '';
-        }
-    }
+// Export mobile helpers for backward compatibility
+export const MobileHelpers = {
+    isMobile: () => window.innerWidth <= 768,
+    isMobilePortrait: () => window.innerWidth <= 768 && window.innerHeight > window.innerWidth,
+    getDefaultZoom,
+    setupMobileEventSlide,
+    cleanupMobileEventSlide
 };
 
 export class EventSlideManager {
@@ -270,7 +140,6 @@ export class EventSlideManager {
             lon = currentVariant.lon !== undefined ? currentVariant.lon : eventData.lon;
             x = currentVariant.x !== undefined ? currentVariant.x : eventData.x;
             y = currentVariant.y !== undefined ? currentVariant.y : eventData.y;
-            // Use variant's cityDisplayName if available, otherwise event's
             locationName = currentVariant.cityDisplayName || eventData.cityDisplayName || null;
             locationType = currentVariant.locationType || eventData.locationType || 'earth';
         } else {
@@ -282,226 +151,16 @@ export class EventSlideManager {
             locationType = eventData.locationType || 'earth';
         }
 
-        // Handle different location types
+        // Handle different location types using helpers
         if (locationType === 'earth' && lat !== undefined && lon !== undefined && window.eventManager) {
-            if (!locationName) {
-                // Check cache first (same as preview does)
-                const cacheKey = `${lat.toFixed(4)}_${lon.toFixed(4)}`;
-
-                // Try to get from cache first (this will have the full "City, Country" format if enhanced)
-                if (window.eventManager.locationCache && window.eventManager.locationCache.has(cacheKey)) {
-                    locationName = window.eventManager.locationCache.get(cacheKey);
-                }
-
-                // If not in cache, get location name (may return city only, will be enhanced later)
-                if (!locationName) {
-                    locationName = window.eventManager.getLocationName(lat, lon);
-                }
-            }
-
-            if (locationName) {
-                // Use same format as preview: icon + location name (which should be "City, Country")
-                const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
-                if (isAlreadyOpen) {
-                    // Fade transition for location
-                    eventSlideLocation.style.transition = 'opacity 0.2s ease';
-                    eventSlideLocation.style.opacity = '0';
-                    setTimeout(() => {
-                        eventSlideLocation.innerHTML = locationContent;
-                        eventSlideLocation.style.display = 'block';
-                        setTimeout(() => {
-                            eventSlideLocation.style.opacity = '1';
-                        }, 10);
-                    }, 200);
-                } else {
-                    eventSlideLocation.innerHTML = locationContent;
-                    eventSlideLocation.style.display = 'block';
-                    eventSlideLocation.style.opacity = '1';
-                }
-
-                // Make location clickable to zoom to marker
-                eventSlideLocation.style.cursor = 'pointer';
-                eventSlideLocation.title = 'Click to zoom to location';
-                eventSlideLocation.onclick = (e) => {
-                    e.stopPropagation();
-                    if (marker && window.globeController && window.globeController.interactionController) {
-                        if (locationType === 'moon' || locationType === 'mars') {
-                            // Reset camera to default view for Moon/Mars events
-                            window.globeController.interactionController.resetCameraToDefault();
-                        } else {
-                            // Zoom in and center on the marker (Earth events)
-                            window.globeController.interactionController.zoomToMarker(marker);
-                        }
-                    }
-                };
-
-                // Also set up listener to update when location is enhanced with country
-                const updateLocationInSlide = (updatedLat, updatedLon, updatedLocationName) => {
-                    if (Math.abs(updatedLat - lat) < 0.01 && Math.abs(updatedLon - lon) < 0.01) {
-                        eventSlideLocation.innerHTML = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${updatedLocationName}`;
-                        // Re-attach click handler after updating innerHTML
-                        eventSlideLocation.style.cursor = 'pointer';
-                        eventSlideLocation.title = 'Click to zoom to location';
-                        eventSlideLocation.onclick = (e) => {
-                            e.stopPropagation();
-                            if (marker && window.globeController && window.globeController.interactionController) {
-                                if (locationType === 'moon' || locationType === 'mars') {
-                                    window.globeController.interactionController.resetCameraToDefault();
-                                } else {
-                                    window.globeController.interactionController.zoomToMarker(marker);
-                                }
-                            }
-                        };
-                    }
-                };
-                // Store update function to be called by EventManager when location is enhanced
-                window.updateEventSlideLocation = updateLocationInSlide;
-            } else {
-                // Show coordinates as fallback
-                const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-                if (isAlreadyOpen) {
-                    // Fade transition for location
-                    eventSlideLocation.style.transition = 'opacity 0.2s ease';
-                    eventSlideLocation.style.opacity = '0';
-                    setTimeout(() => {
-                        eventSlideLocation.innerHTML = locationContent;
-                        eventSlideLocation.style.display = 'block';
-                        setTimeout(() => {
-                            eventSlideLocation.style.opacity = '1';
-                        }, 10);
-                    }, 200);
-                } else {
-                    eventSlideLocation.innerHTML = locationContent;
-                    eventSlideLocation.style.display = 'block';
-                    eventSlideLocation.style.opacity = '1';
-                }
-
-                // Make location clickable to zoom to marker (even with coordinates)
-                eventSlideLocation.style.cursor = 'pointer';
-                eventSlideLocation.title = 'Click to zoom to location';
-                eventSlideLocation.onclick = (e) => {
-                    e.stopPropagation();
-                    if (marker && window.globeController && window.globeController.interactionController) {
-                        if (locationType === 'moon' || locationType === 'mars') {
-                            window.globeController.interactionController.resetCameraToDefault();
-                        } else {
-                            window.globeController.interactionController.zoomToMarker(marker);
-                        }
-                    }
-                };
-            }
+            setupEarthLocation(eventSlideLocation, lat, lon, marker, isAlreadyOpen, locationName, true);
         } else if (locationType === 'moon' || locationType === 'mars') {
-            // Moon/Mars: use cityDisplayName or show coordinates
-            if (!locationName && x !== undefined && y !== undefined) {
-                locationName = `${locationType === 'moon' ? 'Moon' : 'Mars'}: (${x.toFixed(1)}, ${y.toFixed(1)})`;
-            } else if (!locationName) {
-                locationName = locationType === 'moon' ? 'Moon' : 'Mars';
-            }
-
-            if (locationName) {
-                const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
-                if (isAlreadyOpen) {
-                    eventSlideLocation.style.transition = 'opacity 0.2s ease';
-                    eventSlideLocation.style.opacity = '0';
-                    setTimeout(() => {
-                        eventSlideLocation.innerHTML = locationContent;
-                        eventSlideLocation.style.display = 'block';
-                        setTimeout(() => {
-                            eventSlideLocation.style.opacity = '1';
-                        }, 10);
-                    }, 200);
-                } else {
-                    eventSlideLocation.innerHTML = locationContent;
-                    eventSlideLocation.style.display = 'block';
-                    eventSlideLocation.style.opacity = '1';
-                }
-
-                eventSlideLocation.style.cursor = 'pointer';
-                eventSlideLocation.title = 'Click to zoom to location';
-                eventSlideLocation.onclick = (e) => {
-                    e.stopPropagation();
-                    if (marker && window.globeController && window.globeController.interactionController) {
-                        window.globeController.interactionController.resetCameraToDefault();
-                    }
-                };
-            } else {
-                if (isAlreadyOpen) {
-                    eventSlideLocation.style.transition = 'opacity 0.2s ease';
-                    eventSlideLocation.style.opacity = '0';
-                    setTimeout(() => {
-                        eventSlideLocation.style.display = 'none';
-                    }, 200);
-                } else {
-                    eventSlideLocation.style.display = 'none';
-                }
-                eventSlideLocation.onclick = null;
-                eventSlideLocation.style.cursor = '';
-                eventSlideLocation.title = '';
-            }
+            setupMoonMarsLocation(eventSlideLocation, locationType, x, y, locationName, marker, isAlreadyOpen);
         } else if (locationType === 'station') {
-            // Station: use cityDisplayName or default name
-            if (!locationName) {
-                locationName = 'Space Station (ISS)';
-            }
-
-            if (locationName) {
-                const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
-                if (isAlreadyOpen) {
-                    eventSlideLocation.style.transition = 'opacity 0.2s ease';
-                    eventSlideLocation.style.opacity = '0';
-                    setTimeout(() => {
-                        eventSlideLocation.innerHTML = locationContent;
-                        eventSlideLocation.style.display = 'block';
-                        setTimeout(() => {
-                            eventSlideLocation.style.opacity = '1';
-                        }, 10);
-                    }, 200);
-                } else {
-                    eventSlideLocation.innerHTML = locationContent;
-                    eventSlideLocation.style.display = 'block';
-                    eventSlideLocation.style.opacity = '1';
-                }
-
-                eventSlideLocation.style.cursor = 'pointer';
-                eventSlideLocation.title = 'Click to zoom to location';
-                eventSlideLocation.onclick = (e) => {
-                    e.stopPropagation();
-                    if (marker && window.globeController && window.globeController.interactionController) {
-                        // For station events, follow the station
-                        window.globeController.interactionController.setPlanesVisibility(false);
-                        window.globeController.interactionController.startFollowingStation(marker);
-                    }
-                };
-            } else {
-                if (isAlreadyOpen) {
-                    eventSlideLocation.style.transition = 'opacity 0.2s ease';
-                    eventSlideLocation.style.opacity = '0';
-                    setTimeout(() => {
-                        eventSlideLocation.style.display = 'none';
-                    }, 200);
-                } else {
-                    eventSlideLocation.style.display = 'none';
-                }
-                eventSlideLocation.onclick = null;
-                eventSlideLocation.style.cursor = '';
-                eventSlideLocation.title = '';
-            }
+            setupStationLocation(eventSlideLocation, locationName, marker, isAlreadyOpen);
         } else {
             // No location data for other types
-            if (isAlreadyOpen) {
-                // Fade out location if hiding
-                eventSlideLocation.style.transition = 'opacity 0.2s ease';
-                eventSlideLocation.style.opacity = '0';
-                setTimeout(() => {
-                    eventSlideLocation.style.display = 'none';
-                }, 200);
-            } else {
-                eventSlideLocation.style.display = 'none';
-            }
-            // Remove click handler if no location data
-            eventSlideLocation.onclick = null;
-            eventSlideLocation.style.cursor = '';
-            eventSlideLocation.title = '';
+            hideLocationWithFade(eventSlideLocation, isAlreadyOpen);
         }
     }
 
@@ -656,81 +315,21 @@ export class EventSlideManager {
 
         // Initialize image overlay state - show by default with fade sequence
         if (eventImageOverlay && eventImage) {
-            // Reset states
-            eventImageOverlay.classList.remove('fade-in', 'fade-out');
-            eventImage.classList.remove('fade-in', 'fade-out');
-
-            if (imagePath) {
-                // Clear any previous error handlers first to prevent false errors
-                eventImage.onerror = null;
-                eventImage.onload = null;
-
-                // Ensure path is relative (no leading slash) for proper resolution
-                const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-
-                // Add cache busting to ensure latest images load
-                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                const fullImagePath = `${normalizedPath}${cacheBuster}`;
-
-                // Set up error and load handlers AFTER clearing handlers but BEFORE setting src
-                // This prevents false errors from src clearing
-                eventImage.onerror = () => {
-                    console.error(`Failed to load event image: ${fullImagePath}`);
-                    eventImage.style.display = 'none';
-                    // If image fails, show black overlay instead
-                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
-                };
-                eventImage.onload = () => {
-                    // Image loaded successfully - use transparent background so image shows
-                    eventImage.style.display = 'block';
-                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
-                };
-
-                // Set image source directly (no need to clear first - browser handles cache busting)
-                eventImage.style.display = 'none'; // Hide while loading
-                eventImage.src = fullImagePath;
-            } else {
-                console.log('No image path provided for event');
-                // Clear image src when no path
-                eventImage.src = '';
-                eventImage.style.display = 'none';
-                // No image - use black background
-                eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
-            }
+            // Load event image using helper
+            loadEventImage(eventImage, eventImageOverlay, imagePath);
 
             // Show overlay immediately but invisible
-            // Update ImageOverlayManager state (not UIView directly)
             this.uiView.imageOverlayManager.imageOverlayVisible = true;
-            this.uiView.imageOverlayManager.imageToggleState = true; // Toggle is on by default
+            this.uiView.imageOverlayManager.imageToggleState = true;
             eventImageOverlay.classList.add('open');
 
             // Initial fade-in happens after zoom completes
-            // (Recentering delay only applies when dragging after event is already open)
-            setTimeout(() => {
-                if (imagePath) {
-                    // If there's an image, fade in the image directly (no black first)
-                    eventImage.classList.add('fade-in');
-                    // Disable page navigation buttons when image is fully visible
-                    // Wait for image fade-in to complete (600ms transition)
-                    setTimeout(() => {
-                        this.uiView.disablePageNavigationButtons(true);
-                    }, 600);
-                } else {
-                    // If no image, fade in black overlay
-                    eventImageOverlay.classList.add('fade-in');
-                    // Disable page navigation buttons when overlay is fully visible
-                    setTimeout(() => {
-                        this.uiView.disablePageNavigationButtons(true);
-                    }, 600);
-                }
-            }, 600); // Wait for zoom to complete (500ms) + small buffer
+            setupImageFadeIn(eventImage, eventImageOverlay, imagePath, () => {
+                this.uiView.disablePageNavigationButtons(true);
+            }, 600);
 
             // Store image path for later use
-            if (imagePath) {
-                this.uiView.pendingImagePath = imagePath;
-            } else {
-                this.uiView.pendingImagePath = null;
-            }
+            this.uiView.pendingImagePath = imagePath || null;
 
             // Setup image overlay interaction handlers
             this.uiView.setupImageOverlayHandlers(eventImageOverlay);
@@ -935,216 +534,48 @@ export class EventSlideManager {
         this.currentVariantIndex = variantIndex;
         this.uiView.currentVariantIndex = variantIndex;
 
-        // Update location display for this variant
+        // Update location display for this variant using helpers
         const eventSlideLocation = document.getElementById('eventSlideLocation');
-        if (eventSlideLocation) {
-            const variantLat = variant.lat !== undefined ? variant.lat : eventData.lat;
-            const variantLon = variant.lon !== undefined ? variant.lon : eventData.lon;
-            const variantX = variant.x !== undefined ? variant.x : eventData.x;
-            const variantY = variant.y !== undefined ? variant.y : eventData.y;
-            const variantLocationType = variant.locationType || eventData.locationType || 'earth';
-            let locationName = variant.cityDisplayName || eventData.cityDisplayName || null;
-
-            // Handle different location types
-            if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined && window.eventManager) {
-                // Earth: use location lookup
-                if (!locationName) {
-                    // Check cache first
-                    const cacheKey = `${variantLat.toFixed(4)}_${variantLon.toFixed(4)}`;
-                    if (window.eventManager.locationCache && window.eventManager.locationCache.has(cacheKey)) {
-                        locationName = window.eventManager.locationCache.get(cacheKey);
-                    }
-
-                    // If not in cache, get location name
-                    if (!locationName) {
-                        locationName = window.eventManager.getLocationName(variantLat, variantLon);
-                    }
-                }
-
-                if (locationName) {
-                    const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
-                    eventSlideLocation.innerHTML = locationContent;
-                    eventSlideLocation.style.display = 'block';
-                    eventSlideLocation.style.opacity = '1';
-                    eventSlideLocation.style.cursor = 'pointer';
-                    eventSlideLocation.title = 'Click to zoom to location';
-                } else {
-                    eventSlideLocation.style.display = 'none';
-                    eventSlideLocation.onclick = null;
-                    eventSlideLocation.style.cursor = '';
-                    eventSlideLocation.title = '';
-                }
-            } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
-                // Moon/Mars: use cityDisplayName or show coordinates
-                if (!locationName && variantX !== undefined && variantY !== undefined) {
-                    locationName = `${variantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variantX.toFixed(1)}, ${variantY.toFixed(1)})`;
-                } else if (!locationName) {
-                    locationName = variantLocationType === 'moon' ? 'Moon' : 'Mars';
-                }
-
-                if (locationName) {
-                    const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
-                    eventSlideLocation.innerHTML = locationContent;
-                    eventSlideLocation.style.display = 'block';
-                    eventSlideLocation.style.opacity = '1';
-                    eventSlideLocation.style.cursor = 'pointer';
-                    eventSlideLocation.title = 'Click to zoom to location';
-                } else {
-                    eventSlideLocation.style.display = 'none';
-                    eventSlideLocation.onclick = null;
-                    eventSlideLocation.style.cursor = '';
-                    eventSlideLocation.title = '';
-                }
-            } else if (variantLocationType === 'station') {
-                // Station: use cityDisplayName or default name
-                if (!locationName) {
-                    locationName = 'Space Station (ISS)';
-                }
-
-                if (locationName) {
-                    const locationContent = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
-                    eventSlideLocation.innerHTML = locationContent;
-                    eventSlideLocation.style.display = 'block';
-                    eventSlideLocation.style.opacity = '1';
-                    eventSlideLocation.style.cursor = 'pointer';
-                    eventSlideLocation.title = 'Click to zoom to location';
-                } else {
-                    eventSlideLocation.style.display = 'none';
-                    eventSlideLocation.onclick = null;
-                    eventSlideLocation.style.cursor = '';
-                    eventSlideLocation.title = '';
-                }
-            } else {
-                eventSlideLocation.style.display = 'none';
-                eventSlideLocation.onclick = null;
-                eventSlideLocation.style.cursor = '';
-                eventSlideLocation.title = '';
-            }
-        }
-
-        // Recenter globe to variant's location if it has one
         const variantLat = variant.lat !== undefined ? variant.lat : eventData.lat;
         const variantLon = variant.lon !== undefined ? variant.lon : eventData.lon;
+        const variantX = variant.x !== undefined ? variant.x : eventData.x;
+        const variantY = variant.y !== undefined ? variant.y : eventData.y;
         const variantLocationType = variant.locationType || eventData.locationType || 'earth';
+        const locationName = variant.cityDisplayName || eventData.cityDisplayName || null;
 
-        // Find the marker for this variant and zoom to it
-        if (window.globeController && window.globeController.interactionController) {
-            const markers = this.sceneModel.getMarkers();
-            let variantMarker = null;
-
-            // Try to find the marker for this specific variant
-            for (const marker of markers) {
-                if (marker.userData.isEventMarker &&
-                    marker.userData.event === eventData &&
-                    marker.userData.variantIndex === variantIndex) {
-                    variantMarker = marker;
-                    break;
-                }
+        // Find variant marker
+        const variantMarker = findVariantMarker(this.sceneModel, eventData, variantIndex);
+        
+        if (eventSlideLocation) {
+            // Handle different location types using helpers (no fade for variant switching)
+            if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined && window.eventManager) {
+                setupEarthLocation(eventSlideLocation, variantLat, variantLon, variantMarker || marker, false, locationName, false);
+            } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
+                setupMoonMarsLocation(eventSlideLocation, variantLocationType, variantX, variantY, locationName, variantMarker || marker, false);
+            } else if (variantLocationType === 'station') {
+                setupStationLocation(eventSlideLocation, locationName, variantMarker || marker, false);
+            } else {
+                hideLocationWithFade(eventSlideLocation, false);
             }
-
-            // If no variant-specific marker found, use the main marker
-            // (for backward compatibility with events that don't have variant-specific markers yet)
-            if (!variantMarker) {
-                for (const marker of markers) {
-                    if (marker.userData.isEventMarker &&
-                        marker.userData.event === eventData &&
-                        (marker.userData.isMainVariant || marker.userData.variantIndex === 0)) {
-                        variantMarker = marker;
-                        break;
-                    }
-                }
-            }
-
-            // Set up click handler for location to zoom to this variant's marker
-            if (eventSlideLocation) {
-                if (variantMarker) {
-                    eventSlideLocation.onclick = (e) => {
-                        e.stopPropagation();
-                        if (window.globeController && window.globeController.interactionController) {
-                            if (variantLocationType === 'moon' || variantLocationType === 'mars') {
-                                window.globeController.interactionController.resetCameraToDefault();
-                            } else if (variantLocationType === 'station') {
-                                window.globeController.interactionController.setPlanesVisibility(false);
-                                window.globeController.interactionController.startFollowingStation(variantMarker);
-                            } else {
-                                window.globeController.interactionController.zoomToMarker(variantMarker);
-                            }
-                        }
-                    };
-                } else {
-                    // If no marker found, still make it clickable if we have coordinates
-                    if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined) {
-                        eventSlideLocation.onclick = (e) => {
-                            e.stopPropagation();
-                            if (window.globeController && window.globeController.interactionController) {
-                                // Create temporary marker for zooming
-                                const THREE = window.THREE;
-                                if (THREE) {
-                                    const tempMarker = new THREE.Object3D();
-                                    tempMarker.userData = {
-                                        lat: variantLat,
-                                        lon: variantLon,
-                                        isEventMarker: true
-                                    };
-                                    const phi = (90 - variantLat) * (Math.PI / 180);
-                                    const theta = (variantLon + 180) * (Math.PI / 180);
-                                    const radius = 1.02;
-                                    tempMarker.position.set(
-                                        -radius * Math.sin(phi) * Math.cos(theta),
-                                        radius * Math.cos(phi),
-                                        radius * Math.sin(phi) * Math.sin(theta)
-                                    );
-                                    window.globeController.interactionController.zoomToMarker(tempMarker);
-                                }
-                            }
-                        };
-                    } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
-                        eventSlideLocation.onclick = (e) => {
-                            e.stopPropagation();
-                            if (window.globeController && window.globeController.interactionController) {
-                                window.globeController.interactionController.resetCameraToDefault();
-                            }
-                        };
-                    }
-                }
-            }
-
-            // If we found a marker, zoom to it or handle based on location type
+            
+            // Update click handler to use variant marker
             if (variantMarker) {
-                if (variantLocationType === 'moon' || variantLocationType === 'mars') {
-                    window.globeController.interactionController.resetCameraToDefault();
-                } else if (variantLocationType === 'station') {
-                    window.globeController.interactionController.setPlanesVisibility(false);
-                    window.globeController.interactionController.startFollowingStation(variantMarker);
-                } else {
-                    window.globeController.interactionController.zoomToMarker(variantMarker);
-                }
+                setupLocationClickHandler(eventSlideLocation, variantMarker, variantLocationType);
             } else if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined) {
-                // Fallback: create a temporary marker to zoom to (Earth only)
-                const THREE = window.THREE;
-                if (THREE && window.globeController.globeView) {
-                    // Use the globeView's latLonToVector3 function via a helper
-                    const tempMarker = new THREE.Object3D();
-                    tempMarker.userData = {
-                        lat: variantLat,
-                        lon: variantLon,
-                        isEventMarker: true
-                    };
-                    // Calculate position using lat/lon (same formula as latLonToVector3)
-                    const phi = (90 - variantLat) * (Math.PI / 180);
-                    const theta = (variantLon + 180) * (Math.PI / 180);
-                    const radius = 1.02;
-                    const x = -(radius * Math.sin(phi) * Math.cos(theta));
-                    const z = radius * Math.sin(phi) * Math.sin(theta);
-                    const y = radius * Math.cos(phi);
-                    tempMarker.position.set(x, y, z);
-                    window.globeController.interactionController.zoomToMarker(tempMarker);
+                // For Earth without marker, create temp marker for click handler
+                const tempMarker = createTempMarkerForCoords(variantLat, variantLon);
+                if (tempMarker) {
+                    setupLocationClickHandler(eventSlideLocation, tempMarker, variantLocationType);
                 }
             } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
-                // For Moon/Mars without marker, just reset camera
-                window.globeController.interactionController.resetCameraToDefault();
+                // For Moon/Mars, create a dummy marker for click handler
+                const dummyMarker = { userData: { locationType: variantLocationType } };
+                setupLocationClickHandler(eventSlideLocation, dummyMarker, variantLocationType);
             }
         }
+
+        // Zoom to variant location
+        zoomToVariantLocation(variantMarker, variantLocationType, variantLat, variantLon);
 
         // Update title and description
         const eventSlideTitle = document.getElementById('eventSlideTitle');
@@ -1174,11 +605,11 @@ export class EventSlideManager {
         this.uiView.updateEventSources(variant);
         this.uiView.updateEventFilters(variant);
 
-        // Update image
+        // Update image using helper
         const eventImage = document.getElementById('eventImage');
         const eventImageOverlay = document.getElementById('eventImageOverlay');
         if (eventImage && eventImageOverlay) {
-            // Get image path using EventManager's function (same as previews and marker clicks use)
+            // Get image path using EventManager's function
             let imagePath = null;
             if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
                 imagePath = window.eventManager.getEventImagePath(variant.name, variant.image);
@@ -1192,41 +623,9 @@ export class EventSlideManager {
                 }
             }
 
-            // Process image path if needed
+            // Process and load image
             imagePath = this.processImagePath(imagePath);
-
-            if (imagePath) {
-                // Clear any previous error handlers first to prevent false errors
-                eventImage.onerror = null;
-                eventImage.onload = null;
-
-                // Ensure path is relative (no leading slash) for proper resolution
-                const normalizedPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-
-                // Add cache busting to ensure latest images load
-                const cacheBuster = `?v=${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                const fullImagePath = `${normalizedPath}${cacheBuster}`;
-
-                // Set up error and load handlers AFTER clearing handlers but BEFORE setting src
-                eventImage.onerror = () => {
-                    console.error(`Failed to load event image: ${fullImagePath}`);
-                    eventImage.style.display = 'none';
-                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
-                };
-                eventImage.onload = () => {
-                    eventImage.style.display = 'block';
-                    eventImageOverlay.style.background = 'rgba(0, 0, 0, 0)';
-                };
-
-                // Set image source directly
-                eventImage.style.display = 'none'; // Hide while loading
-                eventImage.src = fullImagePath;
-            } else {
-                console.log('No image path provided for variant');
-                eventImage.src = '';
-                eventImage.style.display = 'none';
-                eventImageOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
-            }
+            loadEventImage(eventImage, eventImageOverlay, imagePath);
         }
 
         // Update variant toggle buttons

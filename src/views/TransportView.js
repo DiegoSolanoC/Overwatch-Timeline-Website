@@ -188,11 +188,18 @@ export class TransportView {
         const boats = this.transportModel.getBoats();
         const boatTrails = this.transportModel.getBoatTrails();
 
-        // Toggle markers visibility (but keep event markers always visible)
+        // Toggle markers visibility (but keep main event markers always visible)
+        // Variant markers (pink) should maintain their current visibility state
         markers.forEach(marker => {
-            // Event markers should always be visible, regardless of hyperloop toggle
             if (marker.userData && marker.userData.isEventMarker) {
-                marker.visible = true;
+                // Only main variant markers should always be visible
+                // Variant markers (isMainVariant === false) should keep their current state
+                // (they're only visible when their event is open)
+                if (marker.userData.isMainVariant !== false) {
+                    marker.visible = true;
+                }
+                // If it's a variant marker (isMainVariant === false), don't change its visibility
+                // Let VariantMarkerManager control it
             } else {
                 marker.visible = hyperloopVisible;
             }
