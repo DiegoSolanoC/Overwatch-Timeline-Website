@@ -1,0 +1,175 @@
+/**
+ * CameraViewManager - Manages camera animations, zoom, and label positioning
+ */
+
+export class CameraViewManager {
+    constructor(sceneModel, uiView) {
+        this.sceneModel = sceneModel;
+        this.uiView = uiView; // Reference to UIView for accessing originalCameraPosition and originalGlobeRotation
+    }
+    
+    /**
+     * Zoom out from event and restore original camera position and globe rotation
+     */
+    zoomOutFromEvent() {
+        if (!this.uiView.originalCameraPosition || !this.uiView.originalGlobeRotation) {
+            // No original state stored, use default
+            const camera = this.sceneModel.getCamera();
+            const globe = this.sceneModel.getGlobe();
+            
+            if (camera) {
+                // On mobile portrait, use more zoomed out position to show Moon/Mars panels
+                const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                const defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+                const defaultPosition = new THREE.Vector3(0, 0, defaultZoom);
+                this.animateCameraToPosition(camera, defaultPosition, globe);
+            }
+            return;
+        }
+        
+        const camera = this.sceneModel.getCamera();
+        const globe = this.sceneModel.getGlobe();
+        
+        if (!camera || !globe) return;
+        
+        // Animate camera back to original position
+        const startPosition = camera.position.clone();
+        const targetPosition = this.uiView.originalCameraPosition.clone();
+        const startRotation = {
+            x: globe.rotation.x,
+            y: globe.rotation.y,
+            z: globe.rotation.z
+        };
+        const targetRotation = this.uiView.originalGlobeRotation;
+        
+        const duration = 1000; // 1 second animation
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (ease out)
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            
+            // Interpolate camera position
+            const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
+            camera.position.copy(currentPosition);
+            
+            // Interpolate globe rotation
+            globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+            globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+            globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
+            
+            // Look at origin
+            camera.lookAt(0, 0, 0);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Clear stored original state
+                this.uiView.originalCameraPosition = null;
+                this.uiView.originalGlobeRotation = null;
+                
+                // Restore plane visibility when zooming out from event
+                if (window.globeController && window.globeController.interactionController) {
+                    window.globeController.interactionController.restorePlanesVisibility();
+                }
+            }
+        };
+        
+        animate();
+    }
+    
+    /**
+     * Animate camera to a specific position
+     */
+    animateCameraToPosition(camera, targetPosition, globe) {
+        const startPosition = camera.position.clone();
+        const duration = 1000;
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            
+            const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
+            camera.position.copy(currentPosition);
+            camera.lookAt(0, 0, 0);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        animate();
+    }
+
+    /**
+     * Show city name label
+     * @param {string} cityName - City name to display
+     * @param {number} x - Screen X coordinate
+     * @param {number} y - Screen Y coordinate
+     */
+    showCityLabel(cityName, x, y) {
+        this.hideCityLabel(); // Remove any existing label
+        
+        const labelElement = document.createElement('div');
+        labelElement.className = 'city-label';
+        labelElement.textContent = cityName;
+        labelElement.style.position = 'absolute';
+        labelElement.style.left = `${x}px`;
+        labelElement.style.top = `${y}px`;
+        labelElement.style.background = 'rgba(0, 0, 0, 0.8)';
+        labelElement.style.color = '#fff';
+        labelElement.style.padding = '8px 12px';
+        labelElement.style.borderRadius = '4px';
+        labelElement.style.fontSize = '14px';
+        labelElement.style.fontWeight = 'bold';
+        labelElement.style.pointerEvents = 'none';
+        labelElement.style.zIndex = '1000';
+        labelElement.style.transform = 'translate(-50%, -100%)';
+        labelElement.style.marginTop = '-10px';
+        labelElement.style.whiteSpace = 'nowrap';
+        labelElement.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+        
+        document.body.appendChild(labelElement);
+        this.sceneModel.setLabelElement(labelElement);
+    }
+
+    /**
+     * Hide city label
+     */
+    hideCityLabel() {
+        const labelElement = this.sceneModel.getLabelElement();
+        if (labelElement) {
+            labelElement.remove();
+            this.sceneModel.setLabelElement(null);
+        }
+        this.sceneModel.setActiveMarker(null);
+    }
+
+    /**
+     * Update label position to follow marker
+     */
+    updateLabelPosition() {
+        const labelElement = this.sceneModel.getLabelElement();
+        const activeMarker = this.sceneModel.getActiveMarker();
+        
+        if (!labelElement || !activeMarker) return;
+        
+        const camera = this.sceneModel.getCamera();
+        const renderer = this.sceneModel.getRenderer();
+        
+        const vector = new THREE.Vector3();
+        activeMarker.getWorldPosition(vector);
+        vector.project(camera);
+        
+        const x = (vector.x * 0.5 + 0.5) * renderer.domElement.clientWidth;
+        const y = (-vector.y * 0.5 + 0.5) * renderer.domElement.clientHeight;
+        
+        labelElement.style.left = `${x}px`;
+        labelElement.style.top = `${y}px`;
+    }
+}

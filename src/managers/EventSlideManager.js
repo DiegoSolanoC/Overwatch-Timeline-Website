@@ -699,8 +699,9 @@ export class EventSlideManager {
             }
 
             // Show overlay immediately but invisible
-            this.uiView.imageOverlayVisible = true;
-            this.uiView.imageToggleState = true; // Toggle is on by default
+            // Update ImageOverlayManager state (not UIView directly)
+            this.uiView.imageOverlayManager.imageOverlayVisible = true;
+            this.uiView.imageOverlayManager.imageToggleState = true; // Toggle is on by default
             eventImageOverlay.classList.add('open');
 
             // Initial fade-in happens after zoom completes
@@ -734,8 +735,9 @@ export class EventSlideManager {
             // Setup image overlay interaction handlers
             this.uiView.setupImageOverlayHandlers(eventImageOverlay);
         } else {
-            this.uiView.imageOverlayVisible = false;
-            this.uiView.imageToggleState = false;
+            // Update ImageOverlayManager state (not UIView directly)
+            this.uiView.imageOverlayManager.imageOverlayVisible = false;
+            this.uiView.imageOverlayManager.imageToggleState = false;
         }
 
         // Update toggle button text
@@ -902,13 +904,14 @@ export class EventSlideManager {
             this.previousAutoRotateState = null;
         }
 
-        this.uiView.imageOverlayVisible = false;
-        this.uiView.imageToggleState = false;
+        // Update ImageOverlayManager state (not UIView directly)
+        this.uiView.imageOverlayManager.imageOverlayVisible = false;
+        this.uiView.imageOverlayManager.imageToggleState = false;
 
         // Clear any pending timeouts
-        if (this.uiView.imageAutoHideTimeout) {
-            clearTimeout(this.uiView.imageAutoHideTimeout);
-            this.uiView.imageAutoHideTimeout = null;
+        if (this.uiView.imageOverlayManager.imageAutoHideTimeout) {
+            clearTimeout(this.uiView.imageOverlayManager.imageAutoHideTimeout);
+            this.uiView.imageOverlayManager.imageAutoHideTimeout = null;
         }
 
         // Reset stillness tracking
