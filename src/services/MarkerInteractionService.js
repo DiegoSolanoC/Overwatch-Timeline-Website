@@ -162,41 +162,77 @@ class MarkerInteractionService {
      * @param {Function} onResetCamera - Callback to reset camera
      */
     onMarkerClick(event, onZoomToMarker, onResetCamera) {
+        console.log('[onMarkerClick] Click detected');
+        
         // Don't register click if mouse was dragged
-        if (window.mouseMoved) return;
+        if (window.mouseMoved) {
+            console.log('[onMarkerClick] Ignored - mouse was dragged');
+            return;
+        }
         
         const camera = this.sceneModel.getCamera();
-        if (!camera) return;
+        if (!camera) {
+            console.log('[onMarkerClick] No camera');
+            return;
+        }
+        
+        const markers = this.sceneModel.getMarkers();
+        console.log('[onMarkerClick] Total markers in array:', markers?.length || 0);
         
         const container = document.getElementById('globe-container');
-        if (!container) return;
+        if (!container) {
+            console.log('[onMarkerClick] No container');
+            return;
+        }
         
         const rect = container.getBoundingClientRect();
+        
         const mouse = new THREE.Vector2();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
+        console.log('[onMarkerClick] Mouse coords:', { x: mouse.x, y: mouse.y });
+        
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
         
-        // Use EXACT same approach as checkEventMarkerHover (which works)
-        // Get all event and seaport markers from globe, Moon plane, Mars plane, and ISS satellite
+        // CRITICAL: Only include EVENT markers (not seaport or city markers)
+        // Seaport markers were blocking event markers from being clicked
         const clickableObjects = [];
-        const globe = this.sceneModel.getGlobe();
-        if (globe) {
-            globe.traverse((child) => {
-                if (child.userData && (child.userData.isEventMarker || child.userData.isSeaportMarker)) {
-                    clickableObjects.push(child);
+        
+        // Add ONLY event markers from the array
+        if (markers && markers.length > 0) {
+            markers.forEach(marker => {
+                if (marker && marker.userData && marker.userData.isEventMarker) {
+                    clickableObjects.push(marker);
                 }
             });
+        }
+        console.log('[onMarkerClick] Event markers from array:', clickableObjects.length);
+        
+        // Also traverse scene to catch event markers that might not be in array
+        const globe = this.sceneModel.getGlobe();
+        if (globe) {
+            let foundInTraverse = 0;
+            globe.traverse((child) => {
+                if (child.userData && child.userData.isEventMarker) {
+                    if (!clickableObjects.includes(child)) {
+                        clickableObjects.push(child);
+                        foundInTraverse++;
+                    }
+                }
+            });
+            console.log('[onMarkerClick] Added event markers from globe traverse:', foundInTraverse);
         }
         
         // Also check Moon and Mars planes for event markers
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
         if (moonPlane) {
             moonPlane.traverse((child) => {
-                if (child.userData && (child.userData.isEventMarker || child.userData.isSeaportMarker)) {
-                    clickableObjects.push(child);
+                if (child.userData && child.userData.isEventMarker) {
+                    if (!clickableObjects.includes(child)) {
+                        clickableObjects.push(child);
+                    }
                 }
             });
         }
@@ -204,8 +240,10 @@ class MarkerInteractionService {
         const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
         if (marsPlane) {
             marsPlane.traverse((child) => {
-                if (child.userData && (child.userData.isEventMarker || child.userData.isSeaportMarker)) {
-                    clickableObjects.push(child);
+                if (child.userData && child.userData.isEventMarker) {
+                    if (!clickableObjects.includes(child)) {
+                        clickableObjects.push(child);
+                    }
                 }
             });
         }
@@ -215,22 +253,56 @@ class MarkerInteractionService {
             const issSatellite = window.globeController.transportController.findISS();
             if (issSatellite) {
                 issSatellite.traverse((child) => {
-                    if (child.userData && (child.userData.isEventMarker || child.userData.isSeaportMarker)) {
-                        clickableObjects.push(child);
+                    if (child.userData && child.userData.isEventMarker) {
+                        if (!clickableObjects.includes(child)) {
+                            clickableObjects.push(child);
+                        }
                     }
                 });
             }
         }
         
+        console.log('[onMarkerClick] Total clickable objects (EVENT MARKERS ONLY):', clickableObjects.length);
+        
+        // Log first few markers for debugging
+        if (clickableObjects.length > 0) {
+            console.log('[onMarkerClick] First marker sample:', {
+                hasUserData: !!clickableObjects[0].userData,
+                isEventMarker: clickableObjects[0].userData?.isEventMarker,
+                isInteractive: clickableObjects[0].userData?.isInteractive,
+                visible: clickableObjects[0].visible,
+                scale: clickableObjects[0].scale,
+                position: clickableObjects[0].position,
+                hasParent: !!clickableObjects[0].parent
+            });
+        }
+        
         const intersects = raycaster.intersectObjects(clickableObjects);
+        console.log('[onMarkerClick] Raycast intersects:', intersects.length);
+        
+        if (intersects.length > 0) {
+            console.log('[onMarkerClick] First intersect:', {
+                object: intersects[0].object,
+                hasUserData: !!intersects[0].object.userData,
+                isEventMarker: intersects[0].object.userData?.isEventMarker,
+                isSeaportMarker: intersects[0].object.userData?.isSeaportMarker,
+                distance: intersects[0].distance
+            });
+        } else {
+            console.log('[onMarkerClick] NO INTERSECTIONS FOUND');
+        }
         
         if (intersects.length > 0) {
             const clickedMarker = intersects[0].object;
+            console.log('[onMarkerClick] Processing clicked marker');
             
             // Handle event marker click
             if (clickedMarker.userData && clickedMarker.userData.isEventMarker) {
+                console.log('[onMarkerClick] It is an event marker - proceeding');
+                
                 // Only allow clicks on interactive markers (main variant or single events)
                 if (clickedMarker.userData.isInteractive === false) {
+                    console.log('[onMarkerClick] Ignored - not interactive');
                     return; // Non-interactive variant markers cannot be clicked
                 }
                 

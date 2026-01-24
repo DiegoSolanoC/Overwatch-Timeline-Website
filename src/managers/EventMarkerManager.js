@@ -1,4 +1,4 @@
-/**
+"C:\Users\diego\OneDrive\Escritorio\Overwatch-Timeline-Website - Copy"/**
  * EventMarkerManager - Handles event marker creation, removal, filtering, and locking
  * Extracted from GlobeView.js to improve maintainability
  */
