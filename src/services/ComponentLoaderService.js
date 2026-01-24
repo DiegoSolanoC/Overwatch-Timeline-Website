@@ -1,311 +1,161 @@
 /**
  * ComponentLoaderService - Handles loading and unloading of individual components
  */
-// Use global helpers if available (for script tag loading), otherwise use imports
-const createGlobeControlButton = (typeof window !== 'undefined' && window.ServiceLoadHelpers?.createGlobeControlButton) 
-    ? window.ServiceLoadHelpers.createGlobeControlButton 
-    : (config, statusService) => {
-        // Fallback implementation if helpers not loaded
-        if (document.getElementById(config.id)) {
-            return document.getElementById(config.id);
-        }
-        const button = document.createElement('button');
-        button.id = config.id;
-        button.className = `globe-control-btn ${config.className || ''}`;
-        button.title = config.title;
-        button.innerHTML = `<span id="${config.id}Icon"><img src="${config.iconPath}" alt="${config.iconAlt}" style="width: 100%; height: 100%; object-fit: contain;"></span>`;
-        const parent = document.getElementById(config.parentId || 'content');
-        if (parent) {
-            parent.appendChild(button);
-            if (statusService) statusService.update(`✓ ${config.title} button added`, 'success');
-        }
-        return button;
-    };
+// Get helpers from global window or fallback module
+const getHelper = (name, fallbackFn) => {
+    // Try global window helpers first (for script tag loading)
+    if (typeof window !== 'undefined') {
+        const fb = window.ComponentLoaderFallbackHelpers;
+        if (fb && fb[name]) return fb[name];
+    }
+    // Fallback to provided function
+    return fallbackFn;
+};
 
-const loadSoundEffect = (typeof window !== 'undefined' && window.ServiceLoadHelpers?.loadSoundEffect)
-    ? window.ServiceLoadHelpers.loadSoundEffect
-    : (soundName, soundPath, statusService) => {
-        if (window.SoundEffectsManager) {
-            if (statusService) statusService.update(`Loading ${soundName} sound effect...`, 'info');
-            window.SoundEffectsManager.loadSound(soundName, soundPath);
-            if (statusService) statusService.update(`✓ ${soundName} sound effect loaded`, 'success');
-            return true;
-        }
-        return false;
-    };
+// Helper getters - use global if available, otherwise use fallback
+const createGlobeControlButton = getHelper('createGlobeControlButton', (config, statusService) => {
+    if (document.getElementById(config.id)) return document.getElementById(config.id);
+    const button = document.createElement('button');
+    button.id = config.id;
+    button.className = `globe-control-btn ${config.className || ''}`;
+    button.title = config.title;
+    button.innerHTML = `<span id="${config.id}Icon"><img src="${config.iconPath}" alt="${config.iconAlt}" style="width: 100%; height: 100%; object-fit: contain;"></span>`;
+    const parent = document.getElementById(config.parentId || 'content');
+    if (parent) {
+        parent.appendChild(button);
+        if (statusService) statusService.update(`✓ ${config.title} button added`, 'success');
+    }
+    return button;
+});
 
-const requireGlobeBase = (typeof window !== 'undefined' && window.ServiceLoadHelpers?.requireGlobeBase)
-    ? window.ServiceLoadHelpers.requireGlobeBase
-    : (loadedComponents, buttonId, statusService, buttonStateService) => {
-        if (!loadedComponents?.globeBase || !window.globeController) {
-            if (statusService) statusService.update('⚠ Globe base must be loaded first!', 'error');
-            if (buttonId && buttonStateService) buttonStateService.setState(buttonId, 'error');
-            return false;
-        }
+const loadSoundEffect = getHelper('loadSoundEffect', (soundName, soundPath, statusService) => {
+    if (window.SoundEffectsManager) {
+        if (statusService) statusService.update(`Loading ${soundName} sound effect...`, 'info');
+        window.SoundEffectsManager.loadSound(soundName, soundPath);
+        if (statusService) statusService.update(`✓ ${soundName} sound effect loaded`, 'success');
         return true;
-    };
+    }
+    return false;
+});
 
-const removeElementById = (typeof window !== 'undefined' && window.ServiceUnloadHelpers?.removeElementById)
-    ? window.ServiceUnloadHelpers.removeElementById
-    : (elementId, statusMessage, statusService, checkParent = false) => {
-        const element = document.getElementById(elementId);
-        if (!element || (checkParent && !element.parentElement)) return false;
-        element.remove();
-        if (statusMessage && statusService) statusService.update(`✓ ${statusMessage}`, 'success');
+const requireGlobeBase = getHelper('requireGlobeBase', (loadedComponents, buttonId, statusService, buttonStateService) => {
+    if (!loadedComponents?.globeBase || !window.globeController) {
+        if (statusService) statusService.update('⚠ Globe base must be loaded first!', 'error');
+        if (buttonId && buttonStateService) buttonStateService.setState(buttonId, 'error');
+        return false;
+    }
+    return true;
+});
+
+const removeElementById = getHelper('removeElementById', (elementId, statusMessage, statusService, checkParent = false) => {
+    const element = document.getElementById(elementId);
+    if (!element || (checkParent && !element.parentElement)) return false;
+    element.remove();
+    if (statusMessage && statusService) statusService.update(`✓ ${statusMessage}`, 'success');
+    return true;
+});
+
+const removeElementsByIds = getHelper('removeElementsByIds', (elements, statusService) => {
+    let count = 0;
+    elements.forEach(({ id, message, checkParent = false }) => {
+        if (removeElementById(id, message, statusService, checkParent)) count++;
+    });
+    return count;
+});
+
+const createMusicPanel = getHelper('createMusicPanel', () => document.getElementById('musicPanel'));
+const createFiltersPanel = getHelper('createFiltersPanel', () => document.getElementById('filtersPanel'));
+const createEventPagination = getHelper('createEventPagination', () => document.getElementById('eventPagination'));
+const createBackgroundMusicElement = getHelper('createBackgroundMusicElement', (statusService) => {
+    if (document.getElementById('backgroundMusic')) return document.getElementById('backgroundMusic');
+    const audio = document.createElement('audio');
+    audio.id = 'backgroundMusic';
+    audio.loop = true;
+    document.body.appendChild(audio);
+    if (statusService) statusService.update('✓ Audio element added', 'success');
+    return audio;
+});
+
+const initializeEventManager = getHelper('initializeEventManager', async (statusService) => {
+    if (typeof EventManager === 'undefined') throw new Error('EventManager class not available');
+    const eventManager = new EventManager();
+    await eventManager.init();
+    window.eventManager = eventManager;
+    return eventManager;
+});
+
+const withLoadWrapper = getHelper('withLoadWrapper', async (loadFn) => await loadFn());
+const withUnloadWrapper = getHelper('withUnloadWrapper', async (unloadFn) => await unloadFn());
+const checkAlreadyLoaded = getHelper('checkAlreadyLoaded', (isLoaded, componentName, statusService) => {
+    if (isLoaded && statusService) {
+        statusService.update(`→ ${componentName} already loaded!`, 'info');
         return true;
-    };
+    }
+    return false;
+});
 
-const removeElementsByIds = (typeof window !== 'undefined' && window.ServiceUnloadHelpers?.removeElementsByIds)
-    ? window.ServiceUnloadHelpers.removeElementsByIds
-    : (elements, statusService) => {
-        let count = 0;
-        elements.forEach(({ id, message, checkParent = false }) => {
-            if (removeElementById(id, message, statusService, checkParent)) count++;
-        });
-        return count;
-    };
+const createExitButton = getHelper('createExitButton', () => document.getElementById('exitButton'));
+const setupGlobeContainer = getHelper('setupGlobeContainer', () => document.getElementById('globe-container'));
+const makeGlobeContainerVisible = getHelper('makeGlobeContainerVisible', (container) => {
+    if (container) {
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+        container.style.display = 'block';
+        container.classList.add('loaded');
+    }
+});
+const removeEventMarkersIfNeeded = getHelper('removeEventMarkersIfNeeded', () => {});
+const disposeGlobeResources = getHelper('disposeGlobeResources', () => {
+    if (window.globeController?.animationId) cancelAnimationFrame(window.globeController.animationId);
+    window.globeController = null;
+});
 
-// Panel creation helpers
-const createMusicPanel = (typeof window !== 'undefined' && window.ServicePanelHelpers?.createMusicPanel)
-    ? window.ServicePanelHelpers.createMusicPanel
-    : (statusService) => {
-        if (document.getElementById('musicPanel')) return document.getElementById('musicPanel');
-        // Fallback implementation would go here - keeping it minimal
-        return null;
-    };
+const verifyEventPanels = getHelper('verifyEventPanels', () => {});
+const setupEventManagerListeners = getHelper('setupEventManagerListeners', () => {});
+const syncEventsWithGlobe = getHelper('syncEventsWithGlobe', (globeController, eventManager) => {
+    if (globeController && eventManager) globeController.dataModel.events = [...eventManager.events];
+});
 
-const createFiltersPanel = (typeof window !== 'undefined' && window.ServicePanelHelpers?.createFiltersPanel)
-    ? window.ServicePanelHelpers.createFiltersPanel
-    : (statusService) => {
-        if (document.getElementById('filtersPanel')) return document.getElementById('filtersPanel');
-        return null;
-    };
+const isGitHubPages = getHelper('isGitHubPages', () => {
+    const hostname = window.location.hostname;
+    return hostname.includes('github.io') || hostname.includes('github.com') || (hostname === 'localhost' && window.location.port === '');
+});
+const removeOldTestButtons = getHelper('removeOldTestButtons', () => {});
+const createMenuButtonsContainer = getHelper('createMenuButtonsContainer', () => {
+    const menuButtons = document.createElement('div');
+    menuButtons.className = 'main-menu-buttons';
+    return menuButtons;
+});
+const appendMenuButtons = getHelper('appendMenuButtons', (menuButtons) => document.body.appendChild(menuButtons));
+const isTestPage = getHelper('isTestPage', () => {
+    const existingGlobeBtn = document.getElementById('runGlobeBtn');
+    return existingGlobeBtn && existingGlobeBtn.classList.contains('test-run-button');
+});
 
-const createEventPagination = (typeof window !== 'undefined' && window.ServicePanelHelpers?.createEventPagination)
-    ? window.ServicePanelHelpers.createEventPagination
-    : (statusService) => {
-        if (document.getElementById('eventPagination')) return document.getElementById('eventPagination');
-        return null;
-    };
+const loadEventSoundEffects = getHelper('loadEventSoundEffects', () => {});
+const initializeFilterPanel = getHelper('initializeFilterPanel', () => {});
+const initializeMusicManager = getHelper('initializeMusicManager', () => {});
 
-const createBackgroundMusicElement = (typeof window !== 'undefined' && window.ServicePanelHelpers?.createBackgroundMusicElement)
-    ? window.ServicePanelHelpers.createBackgroundMusicElement
-    : (statusService) => {
-        if (document.getElementById('backgroundMusic')) return document.getElementById('backgroundMusic');
-        const audio = document.createElement('audio');
-        audio.id = 'backgroundMusic';
-        audio.loop = true;
-        document.body.appendChild(audio);
-        if (statusService) statusService.update('✓ Audio element added', 'success');
-        return audio;
-    };
+const checkMenuAlreadyLoaded = getHelper('checkMenuAlreadyLoaded', (isLoaded, isRunOperation, overlayService, statusService) => {
+    if (isLoaded && statusService) {
+        statusService.update('✓ Menu components already loaded!', 'success');
+        return true;
+    }
+    return false;
+});
+const handleExistingMenuButtons = getHelper('handleExistingMenuButtons', () => false);
+const finalizeMenuLoad = getHelper('finalizeMenuLoad', (setLoaded) => setLoaded(true));
 
-// EventManager initialization helper
-const initializeEventManager = (typeof window !== 'undefined' && window.ServiceEventManagerHelpers?.initializeEventManager)
-    ? window.ServiceEventManagerHelpers.initializeEventManager
-    : async (statusService) => {
-        // Fallback - basic implementation
-        if (typeof EventManager === 'undefined') {
-            throw new Error('EventManager class not available');
-        }
-        const eventManager = new EventManager();
-        await eventManager.init();
-        window.eventManager = eventManager;
-        return eventManager;
-    };
+const createLoadParams = getHelper('createLoadParams', (service, componentName, buttonId, setLoaded) => ({
+    componentName, buttonId, isRunOperation: service.isRunOperation(),
+    overlayService: service.overlayService, buttonStateService: service.buttonStateService,
+    statusService: service.statusService, setLoaded
+}));
 
-// Wrapper helpers
-const withLoadWrapper = (typeof window !== 'undefined' && window.ServiceWrapperHelpers?.withLoadWrapper)
-    ? window.ServiceWrapperHelpers.withLoadWrapper
-    : async (loadFn, params) => {
-        // Fallback - execute function directly
-        await loadFn();
-    };
-
-const withUnloadWrapper = (typeof window !== 'undefined' && window.ServiceWrapperHelpers?.withUnloadWrapper)
-    ? window.ServiceWrapperHelpers.withUnloadWrapper
-    : async (unloadFn, params) => {
-        // Fallback - execute function directly
-        await unloadFn();
-    };
-
-const checkAlreadyLoaded = (typeof window !== 'undefined' && window.ServiceWrapperHelpers?.checkAlreadyLoaded)
-    ? window.ServiceWrapperHelpers.checkAlreadyLoaded
-    : (isLoaded, componentName, statusService) => {
-        if (isLoaded) {
-            if (statusService) statusService.update(`→ ${componentName} already loaded!`, 'info');
-            return true;
-        }
-        return false;
-    };
-
-// Exit button helper
-const createExitButton = (typeof window !== 'undefined' && window.ServiceExitButtonHelpers?.createExitButton)
-    ? window.ServiceExitButtonHelpers.createExitButton
-    : ({ overlayService, statusService }) => {
-        // Fallback - minimal implementation
-        if (document.getElementById('exitButton')) return document.getElementById('exitButton');
-        return null;
-    };
-
-// Globe base helpers
-const setupGlobeContainer = (typeof window !== 'undefined' && window.ServiceGlobeBaseHelpers?.setupGlobeContainer)
-    ? window.ServiceGlobeBaseHelpers.setupGlobeContainer
-    : (statusService) => document.getElementById('globe-container');
-
-const makeGlobeContainerVisible = (typeof window !== 'undefined' && window.ServiceGlobeBaseHelpers?.makeGlobeContainerVisible)
-    ? window.ServiceGlobeBaseHelpers.makeGlobeContainerVisible
-    : (container, statusService) => {
-        if (container) {
-            container.style.opacity = '1';
-            container.style.pointerEvents = 'auto';
-            container.style.display = 'block';
-            container.classList.add('loaded');
-        }
-    };
-
-const removeEventMarkersIfNeeded = (typeof window !== 'undefined' && window.ServiceGlobeBaseHelpers?.removeEventMarkersIfNeeded)
-    ? window.ServiceGlobeBaseHelpers.removeEventMarkersIfNeeded
-    : (controller, eventsLoaded, statusService) => {
-        // Fallback - do nothing
-    };
-
-const disposeGlobeResources = (typeof window !== 'undefined' && window.ServiceGlobeBaseHelpers?.disposeGlobeResources)
-    ? window.ServiceGlobeBaseHelpers.disposeGlobeResources
-    : (statusService) => {
-        // Fallback - basic cleanup
-        if (window.globeController) {
-            if (window.globeController.animationId) {
-                cancelAnimationFrame(window.globeController.animationId);
-            }
-            window.globeController = null;
-        }
-    };
-
-// Event panel helpers
-const verifyEventPanels = (typeof window !== 'undefined' && window.ServiceEventPanelHelpers?.verifyEventPanels)
-    ? window.ServiceEventPanelHelpers.verifyEventPanels
-    : (statusService) => {
-        // Fallback - do nothing
-    };
-
-const setupEventManagerListeners = (typeof window !== 'undefined' && window.ServiceEventPanelHelpers?.setupEventManagerListeners)
-    ? window.ServiceEventPanelHelpers.setupEventManagerListeners
-    : (eventManager, statusService) => {
-        // Fallback - do nothing
-    };
-
-const syncEventsWithGlobe = (typeof window !== 'undefined' && window.ServiceEventPanelHelpers?.syncEventsWithGlobe)
-    ? window.ServiceEventPanelHelpers.syncEventsWithGlobe
-    : (globeController, eventManager, statusService) => {
-        // Fallback - basic sync
-        if (globeController && eventManager) {
-            globeController.dataModel.events = [...eventManager.events];
-        }
-    };
-
-// Menu helpers
-const isGitHubPages = (typeof window !== 'undefined' && window.ServiceMenuHelpers?.isGitHubPages)
-    ? window.ServiceMenuHelpers.isGitHubPages
-    : () => {
-        const hostname = window.location.hostname;
-        return hostname.includes('github.io') || hostname.includes('github.com') || (hostname === 'localhost' && window.location.port === '');
-    };
-
-const removeOldTestButtons = (typeof window !== 'undefined' && window.ServiceMenuHelpers?.removeOldTestButtons)
-    ? window.ServiceMenuHelpers.removeOldTestButtons
-    : (statusService) => {
-        // Fallback - do nothing
-    };
-
-const createMenuButtonsContainer = (typeof window !== 'undefined' && window.ServiceMenuHelpers?.createMenuButtonsContainer)
-    ? window.ServiceMenuHelpers.createMenuButtonsContainer
-    : (statusService) => {
-        // Fallback - minimal implementation
-        const menuButtons = document.createElement('div');
-        menuButtons.className = 'main-menu-buttons';
-        return menuButtons;
-    };
-
-const appendMenuButtons = (typeof window !== 'undefined' && window.ServiceMenuHelpers?.appendMenuButtons)
-    ? window.ServiceMenuHelpers.appendMenuButtons
-    : (menuButtons, isTestPage, statusService) => {
-        // Fallback - append to body
-        document.body.appendChild(menuButtons);
-    };
-
-const isTestPage = (typeof window !== 'undefined' && window.ServiceMenuHelpers?.isTestPage)
-    ? window.ServiceMenuHelpers.isTestPage
-    : () => {
-        const existingGlobeBtn = document.getElementById('runGlobeBtn');
-        return existingGlobeBtn && existingGlobeBtn.classList.contains('test-run-button');
-    };
-
-// Event sound helpers
-const loadEventSoundEffects = (typeof window !== 'undefined' && window.ServiceEventSoundHelpers?.loadEventSoundEffects)
-    ? window.ServiceEventSoundHelpers.loadEventSoundEffects
-    : (loadSoundEffect, statusService) => {
-        // Fallback - do nothing
-    };
-
-const initializeFilterPanel = (typeof window !== 'undefined' && window.ServiceEventSoundHelpers?.initializeFilterPanel)
-    ? window.ServiceEventSoundHelpers.initializeFilterPanel
-    : (statusService) => {
-        // Fallback - do nothing
-    };
-
-// Music manager helpers
-const initializeMusicManager = (typeof window !== 'undefined' && window.ServiceMusicManagerHelpers?.initializeMusicManager)
-    ? window.ServiceMusicManagerHelpers.initializeMusicManager
-    : (statusService) => {
-        // Fallback - do nothing
-    };
-
-// Menu load helpers
-const checkMenuAlreadyLoaded = (typeof window !== 'undefined' && window.ServiceMenuLoadHelpers?.checkMenuAlreadyLoaded)
-    ? window.ServiceMenuLoadHelpers.checkMenuAlreadyLoaded
-    : (isLoaded, isRunOperation, overlayService, statusService) => {
-        if (isLoaded) {
-            if (statusService) statusService.update('✓ Menu components already loaded!', 'success');
-            return true;
-        }
-        return false;
-    };
-
-const handleExistingMenuButtons = (typeof window !== 'undefined' && window.ServiceMenuLoadHelpers?.handleExistingMenuButtons)
-    ? window.ServiceMenuLoadHelpers.handleExistingMenuButtons
-    : (statusService, buttonStateService, setLoaded) => {
-        return false;
-    };
-
-const finalizeMenuLoad = (typeof window !== 'undefined' && window.ServiceMenuLoadHelpers?.finalizeMenuLoad)
-    ? window.ServiceMenuLoadHelpers.finalizeMenuLoad
-    : (setLoaded, buttonStateService, statusService) => {
-        setLoaded(true);
-    };
-
-// Helper factory
-const createLoadParams = (typeof window !== 'undefined' && window.ServiceHelperFactory?.createLoadParams)
-    ? window.ServiceHelperFactory.createLoadParams
-    : (service, componentName, buttonId, setLoaded) => ({
-        componentName,
-        buttonId,
-        isRunOperation: service.isRunOperation(),
-        overlayService: service.overlayService,
-        buttonStateService: service.buttonStateService,
-        statusService: service.statusService,
-        setLoaded
-    });
-
-const createUnloadParams = (typeof window !== 'undefined' && window.ServiceHelperFactory?.createUnloadParams)
-    ? window.ServiceHelperFactory.createUnloadParams
-    : (service, componentName, buttonId, setLoaded) => ({
-        componentName,
-        buttonId,
-        buttonStateService: service.buttonStateService,
-        statusService: service.statusService,
-        setLoaded
-    });
+const createUnloadParams = getHelper('createUnloadParams', (service, componentName, buttonId, setLoaded) => ({
+    componentName, buttonId, buttonStateService: service.buttonStateService,
+    statusService: service.statusService, setLoaded
+}));
 
 class ComponentLoaderService {
     constructor(overlayService, statusService, buttonStateService, paletteService) {
@@ -348,20 +198,16 @@ class ComponentLoaderService {
             return;
         }
         
+        const loadPaletteLogic = window.ComponentLoadLogicHelpers?.loadPaletteLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).loadPaletteLogic;
+        
         await withLoadWrapper(async () => {
-            // Add palette button using helper
-            createGlobeControlButton({
-                id: 'colorPaletteToggle',
-                className: 'color-palette-btn bottom-right-btn',
-                title: 'Toggle Color Palette',
-                iconPath: 'assets/images/icons/Palette Icon.png',
-                iconAlt: 'Color Palette'
-            }, this.statusService);
-            
-            // Load palette sound effect using helper
-            loadSoundEffect('colorChange', 'assets/audio/sfx/Color Change.mp3', this.statusService);
-            
-            this.paletteService.setupToggle();
+            await loadPaletteLogic({
+                paletteService: this.paletteService,
+                createGlobeControlButton,
+                loadSoundEffect,
+                statusService: this.statusService
+            });
         }, createLoadParams(this, 'Palette', 'loadPaletteBtn', (value) => { this.loadedComponents.palette = value; }));
     }
 
@@ -371,11 +217,15 @@ class ComponentLoaderService {
             return;
         }
         
+        const unloadPaletteLogic = window.ComponentLoadLogicHelpers?.unloadPaletteLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).unloadPaletteLogic;
+        
         await withUnloadWrapper(async () => {
-            // Remove palette button using helper
-            removeElementById('colorPaletteToggle', 'Palette button removed', this.statusService);
-            
-            this.paletteService.paletteToggleSetup = false;
+            await unloadPaletteLogic({
+                removeElementById,
+                paletteService: this.paletteService,
+                statusService: this.statusService
+            });
         }, createUnloadParams(this, 'Palette', 'loadPaletteBtn', (value) => { this.loadedComponents.palette = value; }));
     }
 
@@ -385,27 +235,18 @@ class ComponentLoaderService {
             return;
         }
         
+        const loadGlobeBaseLogic = window.ComponentLoadLogicHelpers?.loadGlobeBaseLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).loadGlobeBaseLogic;
+        
         await withLoadWrapper(async () => {
-            // Setup container using helper
-            const container = setupGlobeContainer(this.statusService);
-            
-            this.statusService.update('Loading GlobeController module...', 'info');
-            const { GlobeController } = await import('../controllers/GlobeController.js');
-            
-            this.statusService.update('Initializing GlobeController...', 'info');
-            const controller = new GlobeController();
-            window.globeController = controller;
-            
-            this.statusService.update('Initializing globe scene...', 'info');
-            await controller.init();
-            
-            // Remove event markers if needed using helper
-            removeEventMarkersIfNeeded(controller, this.loadedComponents.events, this.statusService);
-            
-            // Make container visible if not in run operation
-            if (!this.isRunOperation() && container) {
-                makeGlobeContainerVisible(container, this.statusService);
-            }
+            await loadGlobeBaseLogic({
+                setupGlobeContainer,
+                removeEventMarkersIfNeeded,
+                makeGlobeContainerVisible,
+                statusService: this.statusService,
+                isRunOperation: () => this.isRunOperation(),
+                loadedComponents: this.loadedComponents
+            });
         }, {
             componentName: 'Globe Base',
             buttonId: 'loadGlobeBaseBtn',
@@ -423,20 +264,18 @@ class ComponentLoaderService {
             return;
         }
         
+        const unloadGlobeBaseLogic = window.ComponentLoadLogicHelpers?.unloadGlobeBaseLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).unloadGlobeBaseLogic;
+        
         await withUnloadWrapper(async () => {
-            // Dispose Three.js resources using helper
-            disposeGlobeResources(this.statusService);
-            
-            // Unload dependent components
-            if (this.loadedComponents.transport) {
-                await this.unloadTransport();
-            }
-            if (this.loadedComponents.controls) {
-                await this.unloadControls();
-            }
-            if (this.loadedComponents.events) {
-                await this.unloadEvents();
-            }
+            await unloadGlobeBaseLogic({
+                disposeGlobeResources,
+                unloadTransport: () => this.unloadTransport(),
+                unloadControls: () => this.unloadControls(),
+                unloadEvents: () => this.unloadEvents(),
+                statusService: this.statusService,
+                loadedComponents: this.loadedComponents
+            });
         }, createUnloadParams(this, 'Globe Base', 'loadGlobeBaseBtn', (value) => { this.loadedComponents.globeBase = value; }));
     }
 
@@ -450,31 +289,15 @@ class ComponentLoaderService {
             return;
         }
         
+        const loadTransportLogic = window.ComponentLoadLogicHelpers?.loadTransportLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).loadTransportLogic;
+        
         await withLoadWrapper(async () => {
-            const controller = window.globeController;
-            
-            // Add transport toggle using helper
-            createGlobeControlButton({
-                id: 'hyperloopToggle',
-                className: 'hyperloop-btn active',
-                title: 'Toggle Transport Systems',
-                iconPath: 'assets/images/icons/Train Icon.png',
-                iconAlt: 'Transport'
-            }, this.statusService);
-            
-            if (controller.uiView) {
-                controller.uiView.setupHyperloopToggle(() => {
-                    controller.transportView.updateHyperloopVisibility();
-                });
-                this.statusService.update('✓ Transport toggle initialized', 'success');
-            }
-            
-            // Load transport sound effect using helper
-            loadSoundEffect('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3', this.statusService);
-            
-            if (controller.transportView) {
-                controller.transportView.updateHyperloopVisibility();
-            }
+            await loadTransportLogic({
+                createGlobeControlButton,
+                loadSoundEffect,
+                statusService: this.statusService
+            });
         }, {
             componentName: 'Transport',
             buttonId: 'loadTransportBtn',
@@ -492,9 +315,14 @@ class ComponentLoaderService {
             return;
         }
         
+        const unloadTransportLogic = window.ComponentLoadLogicHelpers?.unloadTransportLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).unloadTransportLogic;
+        
         await withUnloadWrapper(async () => {
-            // Remove transport toggle using helper
-            removeElementById('hyperloopToggle', 'Transport toggle removed', this.statusService);
+            await unloadTransportLogic({
+                removeElementById,
+                statusService: this.statusService
+            });
         }, createUnloadParams(this, 'Transport', 'loadTransportBtn', (value) => { this.loadedComponents.transport = value; }));
     }
 
@@ -508,31 +336,17 @@ class ComponentLoaderService {
             return;
         }
         
+        const loadControlsLogic = window.ComponentLoadLogicHelpers?.loadControlsLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).loadControlsLogic;
+        
         await withLoadWrapper(async () => {
-            const controller = window.globeController;
-            
-            // Add rotation toggle using helper
-            createGlobeControlButton({
-                id: 'autoRotateToggle',
-                className: '',
-                title: 'Toggle Auto-Rotation',
-                iconPath: 'assets/images/icons/Rotation Icon.png',
-                iconAlt: 'Rotate'
-            }, this.statusService);
-            
-            // Add exit button using helper
-            createExitButton({
+            await loadControlsLogic({
+                createGlobeControlButton,
+                createExitButton,
+                loadSoundEffect,
                 overlayService: this.overlayService,
                 statusService: this.statusService
             });
-            
-            if (controller.uiView) {
-                controller.uiView.setupAutoRotateToggle();
-                this.statusService.update('✓ Rotation toggle initialized', 'success');
-            }
-            
-            // Load rotation sound effect using helper
-            loadSoundEffect('rotationToggle', 'assets/audio/sfx/Rotation Toggle.mp3', this.statusService);
         }, createLoadParams(this, 'Controls', 'loadControlsBtn', (value) => { this.loadedComponents.controls = value; }));
     }
 
@@ -542,12 +356,14 @@ class ComponentLoaderService {
             return;
         }
         
+        const unloadControlsLogic = window.ComponentLoadLogicHelpers?.unloadControlsLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).unloadControlsLogic;
+        
         await withUnloadWrapper(async () => {
-            // Remove control buttons using helper
-            removeElementsByIds([
-                { id: 'autoRotateToggle', message: 'Rotation toggle removed' },
-                { id: 'exitButton', message: 'Exit button removed' }
-            ], this.statusService);
+            await unloadControlsLogic({
+                removeElementsByIds,
+                statusService: this.statusService
+            });
         }, createUnloadParams(this, 'Controls', 'loadControlsBtn', (value) => { this.loadedComponents.controls = value; }));
     }
 
@@ -556,27 +372,18 @@ class ComponentLoaderService {
             return;
         }
         
+        const loadMusicLogic = window.ComponentLoadLogicHelpers?.loadMusicLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).loadMusicLogic;
+        
         await withLoadWrapper(async () => {
-            // Add music toggle button using helper
-            createGlobeControlButton({
-                id: 'musicToggle',
-                className: 'music-btn bottom-right-btn',
-                title: 'Music Options',
-                iconPath: 'assets/images/icons/Music Icon.png',
-                iconAlt: 'Music'
-            }, this.statusService);
-            
-            // Create music panel using helper
-            createMusicPanel(this.statusService);
-            
-            // Create audio element using helper
-            createBackgroundMusicElement(this.statusService);
-            
-            // Load music sound effect using helper
-            loadSoundEffect('music', 'assets/audio/sfx/Music.mp3', this.statusService);
-            
-            // Initialize MusicManager using helper
-            initializeMusicManager(this.statusService);
+            await loadMusicLogic({
+                createGlobeControlButton,
+                createMusicPanel,
+                createBackgroundMusicElement,
+                loadSoundEffect,
+                initializeMusicManager,
+                statusService: this.statusService
+            });
         }, createLoadParams(this, 'Music', 'loadMusicBtn', (value) => { this.loadedComponents.music = value; }));
     }
 
@@ -586,17 +393,14 @@ class ComponentLoaderService {
             return;
         }
         
+        const unloadMusicLogic = window.ComponentLoadLogicHelpers?.unloadMusicLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).unloadMusicLogic;
+        
         await withUnloadWrapper(async () => {
-            // Remove music components using helper
-            removeElementsByIds([
-                { id: 'musicToggle', message: 'Music button removed' },
-                { id: 'musicPanel', message: 'Music panel removed' }
-            ], this.statusService);
-            
-            if (window.currentAudio) {
-                window.currentAudio.pause();
-                window.currentAudio = null;
-            }
+            await unloadMusicLogic({
+                removeElementsByIds,
+                statusService: this.statusService
+            });
         }, createUnloadParams(this, 'Music', 'loadMusicBtn', (value) => { this.loadedComponents.music = value; }));
     }
 
@@ -610,51 +414,23 @@ class ComponentLoaderService {
             return;
         }
         
+        const loadEventsLogic = window.ComponentLoadLogicHelpers?.loadEventsLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).loadEventsLogic;
+        
         await withLoadWrapper(async () => {
-            // Initialize EventManager using helper
-            await initializeEventManager(this.statusService);
-            
-            // Add filter and event manager buttons using helper
-            createGlobeControlButton({
-                id: 'filtersToggle',
-                className: 'filters-btn top-left-btn',
-                title: 'Open Filters',
-                iconPath: 'assets/images/icons/Filter Icon.png',
-                iconAlt: 'Filters'
-            }, this.statusService);
-            
-            createGlobeControlButton({
-                id: 'eventsManageToggle',
-                className: 'events-manage-btn top-left-btn',
-                title: 'Manage Events',
-                iconPath: 'assets/images/icons/Event Manager Icon.png',
-                iconAlt: 'Event Manager'
-            }, this.statusService);
-            
-            // Create event pagination using helper
-            createEventPagination(this.statusService);
-            
-            // Create filters panel using helper
-            createFiltersPanel(this.statusService);
-            
-            // Verify event panels exist using helper
-            verifyEventPanels(this.statusService);
-            
-            // Load event sound effects using helper
-            loadEventSoundEffects(loadSoundEffect, this.statusService);
-            
-            // Initialize filter panel using helper
-            initializeFilterPanel(this.statusService);
-            
-            // Setup event manager listeners using helper
-            if (window.eventManager) {
-                setupEventManagerListeners(window.eventManager, this.statusService);
-            }
-            
-            // Final sync with globe (after all UI is set up) using helper
-            if (window.globeController && window.eventManager) {
-                syncEventsWithGlobe(window.globeController, window.eventManager, this.statusService);
-            }
+            await loadEventsLogic({
+                initializeEventManager,
+                createGlobeControlButton,
+                createEventPagination,
+                createFiltersPanel,
+                verifyEventPanels,
+                loadEventSoundEffects,
+                initializeFilterPanel,
+                setupEventManagerListeners,
+                syncEventsWithGlobe,
+                loadSoundEffect,
+                statusService: this.statusService
+            });
         }, createLoadParams(this, 'Events', 'loadEventsBtn', (value) => { this.loadedComponents.events = value; }));
     }
 
@@ -664,18 +440,14 @@ class ComponentLoaderService {
             return;
         }
         
+        const unloadEventsLogic = window.ComponentLoadLogicHelpers?.unloadEventsLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).unloadEventsLogic;
+        
         await withUnloadWrapper(async () => {
-            // Remove event UI components using helper
-            removeElementsByIds([
-                { id: 'filtersToggle', message: 'Filter button removed' },
-                { id: 'eventsManageToggle', message: 'Event manager button removed' },
-                { id: 'eventPagination', message: 'Event pagination removed' },
-                { id: 'filtersPanel', message: null, checkParent: true }
-            ], this.statusService);
-            
-            if (window.eventManager) {
-                window.eventManager.listenersSetup = false;
-            }
+            await unloadEventsLogic({
+                removeElementsByIds,
+                statusService: this.statusService
+            });
         }, createUnloadParams(this, 'Events', 'loadEventsBtn', (value) => { this.loadedComponents.events = value; }));
     }
 
@@ -689,20 +461,19 @@ class ComponentLoaderService {
             return;
         }
         
-        // Check if we're on test page and remove old test buttons
-        const testPage = isTestPage();
-        if (testPage) {
-            removeOldTestButtons(this.statusService);
-        }
+        const loadMenuLogic = window.ComponentLoadLogicHelpers?.loadMenuLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).loadMenuLogic;
         
-        // Create menu buttons using helper
-        const menuButtons = createMenuButtonsContainer(this.statusService);
-        
-        // Append menu buttons using helper
-        appendMenuButtons(menuButtons, testPage, this.statusService);
-        
-        // Finalize menu load
-        finalizeMenuLoad((value) => { this.loadedComponents.menu = value; }, this.buttonStateService, this.statusService);
+        await loadMenuLogic({
+            isTestPage,
+            removeOldTestButtons,
+            createMenuButtonsContainer,
+            appendMenuButtons,
+            finalizeMenuLoad,
+            statusService: this.statusService,
+            buttonStateService: this.buttonStateService,
+            setLoaded: (value) => { this.loadedComponents.menu = value; }
+        });
     }
 
     async unloadMenu() {
@@ -711,19 +482,13 @@ class ComponentLoaderService {
             return;
         }
         
+        const unloadMenuLogic = window.ComponentLoadLogicHelpers?.unloadMenuLogic || 
+            (await import('./helpers/ComponentLoadLogicHelpers.js')).unloadMenuLogic;
+        
         await withUnloadWrapper(async () => {
-            // Try to find menu buttons in test-container, content, or body
-            const testContainer = document.querySelector('.test-container');
-            const contentContainer = document.getElementById('content');
-            const searchContainer = testContainer || contentContainer || document.body;
-            
-            if (searchContainer) {
-                const menuButtons = searchContainer.querySelector('.main-menu-buttons');
-                if (menuButtons) {
-                    menuButtons.remove();
-                    this.statusService.update('✓ Menu buttons removed', 'success');
-                }
-            }
+            await unloadMenuLogic({
+                statusService: this.statusService
+            });
         }, createUnloadParams(this, 'Menu', 'loadMenuBtn', (value) => { this.loadedComponents.menu = value; }));
     }
 }

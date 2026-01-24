@@ -623,6 +623,12 @@
     <!-- Filter services - load dependencies before FilterService -->
     <script src="src/services/FilterStateManager.js"></script>
     <script src="src/services/FilterImageService.js"></script>
+    <!-- FilterService helpers - load before FilterService -->
+    <script type="module" src="src/services/helpers/FilterButtonHelpers.js"></script>
+    <script type="module" src="src/services/helpers/FilterButtonSetupHelpers.js"></script>
+    <script type="module" src="src/services/helpers/FilterManifestHelpers.js"></script>
+    <script type="module" src="src/services/helpers/FilterTabHelpers.js"></script>
+    <script type="module" src="src/services/helpers/FilterCountHelpers.js"></script>
     <script src="src/services/FilterService.js"></script>
     <script src="src/services/SidebarService.js"></script>
     

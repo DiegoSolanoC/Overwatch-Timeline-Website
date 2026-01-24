@@ -8,16 +8,7 @@ import { setupEarthLocation, setupMoonMarsLocation, setupStationLocation, hideLo
 import { loadEventImage, setupImageFadeIn } from './helpers/ImageLoadingHelpers.js';
 import { findVariantMarker, zoomToVariantLocation, createTempMarkerForCoords } from './helpers/VariantHelpers.js';
 
-/**
- * Helper function to get hero display name (maps filename to display name)
- * e.g., "Soldier 76" -> "Soldier: 76"
- */
-function getHeroDisplayName(heroName) {
-    const heroDisplayNames = {
-        'Soldier 76': 'Soldier: 76'
-    };
-    return heroDisplayNames[heroName] || heroName;
-}
+// getHeroDisplayName removed - not used in this file
 
 // Export mobile helpers for backward compatibility
 export const MobileHelpers = {
@@ -41,78 +32,53 @@ export class EventSlideManager {
         this.originalGlobeRotation = null;
     }
 
-    /**
-     * Process and normalize image path
-     * @param {string} imagePath - Raw image path
-     * @returns {string} - Normalized image path
-     */
+    // Process image path using helper
     processImagePath(imagePath) {
-        if (!imagePath || !imagePath.trim()) {
-            return null;
+        const processImagePathHelper = window.EventSlideUtilityHelpers?.processImagePath;
+        if (processImagePathHelper) {
+            return processImagePathHelper(imagePath);
         }
-
+        // Minimal fallback
+        if (!imagePath?.trim()) return null;
         imagePath = imagePath.trim();
-
-        // Only process if path doesn't look properly formatted already
-        // If path already contains assets/images/events/ with encoded filename, use it as-is
-        // Only process if it has legacy Event Images/ (with space) or needs normalization
         if (imagePath.includes('Event Images/') && !imagePath.includes('Event%20Images/')) {
-            // Handle legacy "Event Images/" format (with space) - convert to assets/images/events with encoded filename
-            const folderPattern = /Event Images\//;
-            if (folderPattern.test(imagePath)) {
-                const parts = imagePath.split(/Event Images\//);
-                if (parts.length === 2) {
-                    let filename = parts[1];
-                    // Decode multiple times in case it's double/triple encoded
-                    let previousFilename = '';
-                    while (filename !== previousFilename) {
-                        previousFilename = filename;
-                        try {
-                            const decoded = decodeURIComponent(filename);
-                            if (decoded !== filename) {
-                                filename = decoded;
-                            } else {
-                                break;
-                            }
-                        } catch (e) {
-                            break; // Can't decode further
-                        }
-                    }
-                    imagePath = `assets/images/events/${encodeURIComponent(filename)}`;
+            const parts = imagePath.split(/Event Images\//);
+            if (parts.length === 2) {
+                let filename = parts[1];
+                let previousFilename = '';
+                while (filename !== previousFilename) {
+                    previousFilename = filename;
+                    try {
+                        const decoded = decodeURIComponent(filename);
+                        if (decoded !== filename) filename = decoded;
+                        else break;
+                    } catch (e) { break; }
                 }
+                imagePath = `assets/images/events/${encodeURIComponent(filename)}`;
             }
         }
-        // If path already has assets/images/events/, use it as-is (already properly formatted)
         return imagePath;
     }
 
-    /**
-     * Update content with fade transition
-     * @param {HTMLElement} element - Element to update
-     * @param {string} newContent - New content HTML
-     * @param {boolean} isAlreadyOpen - Whether slide is already open
-     */
+    // Update content with fade using helper
     updateContentWithFade(element, newContent, isAlreadyOpen) {
-        if (!element) return;
-
-        if (isAlreadyOpen) {
-            // Fade out
-            element.style.transition = 'opacity 0.2s ease';
-            element.style.opacity = '0';
-
-            setTimeout(() => {
-                // Update content
-                element.innerHTML = newContent;
-
-                // Fade in
-                setTimeout(() => {
-                    element.style.opacity = '1';
-                }, 10);
-            }, 200);
+        const updateContentWithFadeHelper = window.EventSlideUtilityHelpers?.updateContentWithFade;
+        if (updateContentWithFadeHelper) {
+            updateContentWithFadeHelper(element, newContent, isAlreadyOpen);
         } else {
-            // No transition needed, just update
-            element.innerHTML = newContent;
-            element.style.opacity = '1';
+            // Minimal fallback
+            if (!element) return;
+            if (isAlreadyOpen) {
+                element.style.transition = 'opacity 0.2s ease';
+                element.style.opacity = '0';
+                setTimeout(() => {
+                    element.innerHTML = newContent;
+                    setTimeout(() => { element.style.opacity = '1'; }, 10);
+                }, 200);
+            } else {
+                element.innerHTML = newContent;
+                element.style.opacity = '1';
+            }
         }
     }
 
@@ -178,8 +144,9 @@ export class EventSlideManager {
             window.SoundEffectsManager.play('eventClick');
         }
 
-        // Process image path
-        imagePath = this.processImagePath(imagePath);
+        // Process image path using helper
+        const processImagePathHelper = window.EventSlideUtilityHelpers?.processImagePath;
+        imagePath = processImagePathHelper ? processImagePathHelper(imagePath) : this.processImagePath(imagePath);
 
         const eventSlide = document.getElementById('eventSlide');
         const eventSlideTitle = document.getElementById('eventSlideTitle');
@@ -189,20 +156,23 @@ export class EventSlideManager {
         const imageToggleBtn = document.getElementById('eventImageToggle');
         const variantToggles = document.getElementById('eventVariantToggles');
 
-        // Store current event marker and data (sync with UIView for backward compatibility)
-        this.currentEventMarker = marker;
-        this.uiView.currentEventMarker = marker;
-        this.currentEventData = eventData;
-        this.uiView.currentEventData = eventData;
-        this.currentVariantIndex = 0; // Track which variant is currently displayed
-        this.uiView.currentVariantIndex = 0;
-
-        // Store current auto-rotate state but don't disable it completely
-        // We'll use a special event-centered auto-rotate instead
-        this.previousAutoRotateState = this.sceneModel.getAutoRotateEnabled();
-        this.sceneModel.setAutoRotateEnabled(true); // Keep enabled for event recentering
-        this.sceneModel.setAutoRotate(false); // But don't start rotating yet
-        this.sceneModel.eventMarker = marker; // Store marker for recentering
+        // Initialize event slide state using helper
+        const initializeEventSlideState = window.EventSlideShowHelpers?.initializeEventSlideState;
+        if (initializeEventSlideState) {
+            initializeEventSlideState(this, marker, eventData, 0, this.uiView);
+        } else {
+            // Minimal fallback
+            this.currentEventMarker = marker;
+            this.currentEventData = eventData;
+            this.currentVariantIndex = 0;
+            this.uiView.currentEventMarker = marker;
+            this.uiView.currentEventData = eventData;
+            this.uiView.currentVariantIndex = 0;
+            this.previousAutoRotateState = this.sceneModel.getAutoRotateEnabled();
+            this.sceneModel.setAutoRotateEnabled(true);
+            this.sceneModel.setAutoRotate(false);
+            this.sceneModel.eventMarker = marker;
+        }
 
         if (eventSlide) {
             // Check if this is a multi-event
@@ -216,74 +186,88 @@ export class EventSlideManager {
 
             // Store the current variant index
             this.currentVariantIndex = initialVariantIndex;
-            this.uiView.currentVariantIndex = initialVariantIndex;
+            const syncState = window.EventSlideStateHelpers?.syncStateWithUIView;
+            if (syncState) {
+                syncState(this.uiView, { currentVariantIndex: initialVariantIndex });
+            } else {
+                this.uiView.currentVariantIndex = initialVariantIndex;
+            }
 
-            // Setup variant toggle buttons for multi-events
-            if (isMultiEvent && variantToggles) {
-                variantToggles.style.display = 'flex';
-                variantToggles.innerHTML = '';
-
-                // Create button for each variant
-                eventData.variants.forEach((variant, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'variant-toggle-btn';
-                    btn.innerHTML = (window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(variant.name) : variant.name) || `Variant ${index + 1}`;
-                    btn.dataset.variantIndex = index;
-                    if (index === initialVariantIndex) {
-                        btn.classList.add('active');
-                    }
-                    btn.addEventListener('click', () => {
-                        this.switchEventVariant(index, eventData);
-                    });
-                    variantToggles.appendChild(btn);
+            // Setup variant toggle buttons using helper
+            const setupVariantToggles = window.EventSlideContentHelpers?.setupVariantToggles;
+            if (setupVariantToggles) {
+                setupVariantToggles(variantToggles, isMultiEvent ? eventData.variants : null, initialVariantIndex, (index) => {
+                    this.switchEventVariant(index, eventData);
                 });
             } else if (variantToggles) {
-                variantToggles.style.display = 'none';
+                // Minimal fallback
+                variantToggles.style.display = isMultiEvent ? 'flex' : 'none';
                 variantToggles.innerHTML = '';
+                if (isMultiEvent) {
+                    eventData.variants.forEach((variant, index) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'variant-toggle-btn';
+                        btn.innerHTML = (window.GlitchTextService?.getDisplayEventName(variant.name) || variant.name) || `Variant ${index + 1}`;
+                        btn.dataset.variantIndex = index;
+                        if (index === initialVariantIndex) btn.classList.add('active');
+                        btn.addEventListener('click', () => this.switchEventVariant(index, eventData));
+                        variantToggles.appendChild(btn);
+                    });
+                }
             }
 
             // Check if event slide is already open (for fade transition)
             const isAlreadyOpen = eventSlide.classList.contains('open');
 
-            // Update title with fade
-            this.updateContentWithFade(eventSlideTitle, window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(eventName) : eventName, isAlreadyOpen);
-
-            // Display location between title and description
-            const eventSlideLocation = document.getElementById('eventSlideLocation');
-            if (eventSlideLocation && eventData) {
-                this.setupLocationDisplay(eventSlideLocation, eventData, marker, isMultiEvent, initialVariantIndex, isAlreadyOpen);
+            // Update event slide content using helper
+            const updateEventSlideContent = window.EventSlideShowHelpers?.updateEventSlideContent;
+            if (updateEventSlideContent) {
+                updateEventSlideContent(this, eventName, description, eventData, marker, isMultiEvent, initialVariantIndex, isAlreadyOpen);
+            } else {
+                // Minimal fallback (wrap so GlitchTextService methods are called with correct this)
+                const getDisplayEventName = window.GlitchTextService
+                    ? (name) => window.GlitchTextService.getDisplayEventName(name)
+                    : (name) => name;
+                const getDisplayText = window.GlitchTextService
+                    ? (text) => window.GlitchTextService.getDisplayText(text)
+                    : (text) => text;
+                this.updateContentWithFade(eventSlideTitle, getDisplayEventName(eventName), isAlreadyOpen);
+                const eventSlideLocation = document.getElementById('eventSlideLocation');
+                if (eventSlideLocation && eventData) {
+                    this.setupLocationDisplay(eventSlideLocation, eventData, marker, isMultiEvent, initialVariantIndex, isAlreadyOpen);
+                }
+                this.updateContentWithFade(eventSlideText, getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.'), isAlreadyOpen);
             }
 
-            // Update description with fade
-            this.updateContentWithFade(eventSlideText, window.GlitchTextService ? window.GlitchTextService.getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.') : (description || 'Placeholder text for event information. This will be replaced with actual event details.'), isAlreadyOpen);
-
-            // Start glitch character animation for any glitchy text overlays (only if enabled)
-            if (window.GlitchTextService && window.GlitchTextService.isEnabled()) {
-                window.GlitchTextService.startAnimation();
-                // Show hacked image overlay when opening event with glitch enabled
-                // Wait for slide animation to complete (300ms) + buffer for text rendering
-                setTimeout(() => {
-                    this.uiView.showHackedOverlay();
-                }, 400); // Wait for slide transition (300ms) + 100ms buffer for text rendering
+            // Manage glitch animation using helper
+            const manageGlitchAnimation = window.EventSlideGlitchHelpers?.manageGlitchAnimation;
+            if (manageGlitchAnimation) {
+                manageGlitchAnimation(window.GlitchTextService?.isEnabled() || false, this.uiView);
             } else {
-                if (window.GlitchTextService) {
-                    window.GlitchTextService.stopAnimation();
+                // Fallback
+                if (window.GlitchTextService?.isEnabled()) {
+                    window.GlitchTextService.startAnimation();
+                    setTimeout(() => this.uiView.showHackedOverlay(), 400);
+                } else {
+                    window.GlitchTextService?.stopAnimation();
                 }
             }
 
             // Get current variant or main event
             const currentEvent = isMultiEvent ? eventData.variants[this.currentVariantIndex] : eventData;
 
-            // Update sources and filters sections (using shared helper functions)
-            this.uiView.updateEventSources(currentEvent);
-            this.uiView.updateEventFilters(currentEvent);
-
-            // Hide variant markers for previous event (if switching between events)
-            if (this.currentEventData &&
-                this.currentEventData !== eventData &&
-                this.currentEventData.variants &&
-                this.currentEventData.variants.length > 0) {
-                this.uiView.hideVariantMarkers(this.currentEventData);
+            // Handle variant markers using helper
+            const handleVariantMarkers = window.EventSlideShowHelpers?.handleVariantMarkers;
+            if (handleVariantMarkers) {
+                handleVariantMarkers(this.uiView, this.currentEventData, eventData);
+            } else {
+                // Minimal fallback
+                if (this.currentEventData && this.currentEventData !== eventData && this.currentEventData.variants?.length > 0) {
+                    this.uiView.hideVariantMarkers(this.currentEventData);
+                }
+                if (eventData?.variants?.length > 0) {
+                    this.uiView.showVariantMarkers(eventData);
+                }
             }
 
             // Store event data for variant switching
@@ -291,119 +275,96 @@ export class EventSlideManager {
                 this.currentEventData = eventData;
             }
 
-            // Show variant markers for this event (if it's a multi-event)
-            if (eventData && eventData.variants && eventData.variants.length > 0) {
-                this.uiView.showVariantMarkers(eventData);
-            }
-
             eventSlide.classList.add('open');
-
-            // Adjust image overlay position when slide opens
-            if (eventImageOverlay) {
-                eventImageOverlay.classList.add('slide-open');
-            }
-
-            // On mobile: move bottom section content into scrollable area and fix title position
+            if (eventImageOverlay) eventImageOverlay.classList.add('slide-open');
             MobileHelpers.setupMobileEventSlide();
 
-            // Call helper functions to update sources and filters
-            setTimeout(() => {
+            // Update sources and filters using helper
+            const updateEventSourcesAndFilters = window.EventSlideShowHelpers?.updateEventSourcesAndFilters;
+            if (updateEventSourcesAndFilters) {
+                updateEventSourcesAndFilters(this.uiView, currentEvent);
+            } else {
                 this.uiView.updateEventSources(currentEvent);
                 this.uiView.updateEventFilters(currentEvent);
-            }, 100);
+                setTimeout(() => {
+                    this.uiView.updateEventSources(currentEvent);
+                    this.uiView.updateEventFilters(currentEvent);
+                }, 100);
+            }
         }
 
-        // Initialize image overlay state - show by default with fade sequence
-        if (eventImageOverlay && eventImage) {
-            // Load event image using helper
+        // Initialize image overlay using helper
+        const initializeImageOverlay = window.EventSlideImageHelpers?.initializeImageOverlay;
+        if (initializeImageOverlay) {
+            initializeImageOverlay(eventImageOverlay, eventImage, imagePath, this.uiView);
+        } else if (eventImageOverlay && eventImage) {
+            // Minimal fallback
             loadEventImage(eventImage, eventImageOverlay, imagePath);
-
-            // Show overlay immediately but invisible
-            this.uiView.imageOverlayManager.imageOverlayVisible = true;
-            this.uiView.imageOverlayManager.imageToggleState = true;
+            if (this.uiView?.imageOverlayManager) {
+                this.uiView.imageOverlayManager.imageOverlayVisible = true;
+                this.uiView.imageOverlayManager.imageToggleState = true;
+            }
             eventImageOverlay.classList.add('open');
-
-            // Initial fade-in happens after zoom completes
             setupImageFadeIn(eventImage, eventImageOverlay, imagePath, () => {
                 this.uiView.disablePageNavigationButtons(true);
             }, 600);
-
-            // Store image path for later use
-            this.uiView.pendingImagePath = imagePath || null;
-
-            // Setup image overlay interaction handlers
-            this.uiView.setupImageOverlayHandlers(eventImageOverlay);
-        } else {
-            // Update ImageOverlayManager state (not UIView directly)
+            if (this.uiView) {
+                this.uiView.pendingImagePath = imagePath || null;
+                this.uiView.setupImageOverlayHandlers(eventImageOverlay);
+            }
+        } else if (this.uiView?.imageOverlayManager) {
             this.uiView.imageOverlayManager.imageOverlayVisible = false;
             this.uiView.imageOverlayManager.imageToggleState = false;
         }
 
-        // Update toggle button text
-        if (imageToggleBtn) {
+        // Setup image toggle button
+        if (imageToggleBtn && this.uiView) {
             imageToggleBtn.textContent = 'Hide Image';
             imageToggleBtn.onclick = () => this.uiView.toggleEventImage();
         }
 
-        // Setup glitch toggle button (only show if event contains "Olivia Colomar")
+        // Setup glitch toggle button using helper
         const glitchToggleBtn = document.getElementById('eventGlitchToggle');
-        const hasOliviaColomar = (eventName && /Olivia Colomar/gi.test(eventName)) ||
-            (description && /Olivia Colomar/gi.test(description)) ||
-            (eventData && eventData.variants && eventData.variants.some(v =>
-                (v.name && /Olivia Colomar/gi.test(v.name)) ||
-                (v.description && /Olivia Colomar/gi.test(v.description))
-            ));
-
-        // Debug logging
-        console.log('Glitch detection:', {
-            eventName,
-            description,
-            hasOliviaColomar,
-            glitchToggleBtn: !!glitchToggleBtn,
-            glitchEnabled: window.GlitchTextService ? window.GlitchTextService.isEnabled() : false,
-            soundManager: !!window.SoundEffectsManager
-        });
-
-        if (glitchToggleBtn) {
-            if (hasOliviaColomar) {
+        const hasOliviaColomar = window.EventSlideGlitchHelpers?.hasOliviaColomar || 
+            ((eventName, description, eventData) => {
+                if (eventName && /Olivia Colomar/gi.test(eventName)) return true;
+                if (description && /Olivia Colomar/gi.test(description)) return true;
+                return eventData?.variants?.some(v =>
+                    (v.name && /Olivia Colomar/gi.test(v.name)) ||
+                    (v.description && /Olivia Colomar/gi.test(v.description))
+                ) || false;
+            });
+        const setupGlitchToggleButton = window.EventSlideGlitchHelpers?.setupGlitchToggleButton;
+        if (setupGlitchToggleButton) {
+            setupGlitchToggleButton(glitchToggleBtn, hasOliviaColomar(eventName, description, eventData), this.uiView);
+        } else if (glitchToggleBtn) {
+            // Minimal fallback
+            const hasOlivia = hasOliviaColomar(eventName, description, eventData);
+            if (hasOlivia) {
                 glitchToggleBtn.style.display = 'block';
                 glitchToggleBtn.style.visibility = 'visible';
-                if (window.GlitchTextService) {
-                    window.GlitchTextService.setEnabled(true); // Reset to enabled when opening event
-                }
+                window.GlitchTextService?.setEnabled(true);
                 glitchToggleBtn.textContent = 'Disable Glitch';
                 glitchToggleBtn.onclick = () => this.uiView.toggleGlitchEffect();
-
-                // Play hack on sound when opening event with glitch effect active (only if glitch is enabled)
-                // Use a small delay to ensure SoundEffectsManager is fully initialized
                 setTimeout(() => {
-                    if (window.GlitchTextService && window.GlitchTextService.isEnabled() && window.SoundEffectsManager && window.SoundEffectsManager.play) {
-                        console.log('Playing hackOn sound');
+                    if (window.GlitchTextService?.isEnabled() && window.SoundEffectsManager?.play) {
                         try {
-                            window.SoundEffectsManager.play('hackOn', {
-                                playbackRate: 1.2, // Speed up by 20%
-                                fadeOut: true,
-                                fadeOutDuration: 500 // 500ms fade out
-                            });
-                        } catch (e) {
-                            console.error('Error playing hackOn sound:', e);
-                        }
-                        // Note: showHackedOverlay() is already called in showEventSlide(), no need to call it again here
-                    } else {
-                        console.log('Not playing sound - glitchEnabled:', window.GlitchTextService ? window.GlitchTextService.isEnabled() : false, 'SoundManager:', !!window.SoundEffectsManager, 'play method:', !!(window.SoundEffectsManager && window.SoundEffectsManager.play));
+                            window.SoundEffectsManager.play('hackOn', { playbackRate: 1.2, fadeOut: true, fadeOutDuration: 500 });
+                        } catch (e) { console.error('Error playing hackOn sound:', e); }
                     }
                 }, 50);
             } else {
                 glitchToggleBtn.style.display = 'none';
             }
-        } else {
-            console.error('Glitch toggle button not found!');
         }
 
-        // Add close button handler (use addEventListener to avoid overwriting)
+        // Setup close button using helper
         const closeBtn = document.getElementById('eventSlideClose');
-        if (closeBtn) {
-            // Remove any existing listeners by cloning the element
+        const setupCloseButton = window.EventSlideContentHelpers?.setupCloseButton;
+        if (setupCloseButton) {
+            setupCloseButton(closeBtn, () => this.hideEventSlide());
+        } else if (closeBtn) {
+            // Minimal fallback
             const newCloseBtn = closeBtn.cloneNode(true);
             closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
             newCloseBtn.addEventListener('click', (e) => {
@@ -412,14 +373,18 @@ export class EventSlideManager {
             });
         }
 
-        // Setup navigation buttons (prev/next event)
+        // Setup navigation buttons and reset stillness tracking
         this.uiView.setupEventNavigation();
-
-        // Reset stillness tracking
-        this.uiView.lastCameraPosition = null;
-        this.uiView.lastGlobeRotation = null;
-        this.uiView.stillnessStartTime = null;
-        this.uiView.wasDragging = false;
+        const resetStillnessTracking = window.EventSlideStateHelpers?.resetStillnessTracking;
+        if (resetStillnessTracking) {
+            resetStillnessTracking(this.uiView);
+        } else {
+            // Minimal fallback
+            this.uiView.lastCameraPosition = null;
+            this.uiView.lastGlobeRotation = null;
+            this.uiView.stillnessStartTime = null;
+            this.uiView.wasDragging = false;
+        }
     }
 
     /**
@@ -470,12 +435,18 @@ export class EventSlideManager {
             this.uiView.hideVariantMarkers(this.currentEventData);
         }
 
-        // Clear current event data (sync with UIView)
-        this.currentEventData = null;
-        this.uiView.currentEventData = null;
+        // Clear current event data (sync with UIView using helper)
         const hadEventMarker = this.currentEventMarker !== null;
+        this.currentEventData = null;
         this.currentEventMarker = null;
-        this.uiView.currentEventMarker = null;
+        const syncState = window.EventSlideStateHelpers?.syncStateWithUIView;
+        if (syncState) {
+            syncState(this.uiView, { currentEventData: null, currentEventMarker: null });
+        } else {
+            // Fallback
+            this.uiView.currentEventData = null;
+            this.uiView.currentEventMarker = null;
+        }
 
         // Only zoom out and restore camera position if we actually zoomed to an event
         // (i.e., if originalCameraPosition was set from zoomToMarker)
@@ -490,17 +461,21 @@ export class EventSlideManager {
             this.uiView.originalGlobeRotation = null;
         }
 
-        // Clear event marker and restore previous auto-rotate state
-        this.sceneModel.eventMarker = null;
-        this.currentEventMarker = null;
-        this.uiView.currentEventMarker = null;
-
-        if (this.previousAutoRotateState !== null) {
-            this.sceneModel.setAutoRotateEnabled(this.previousAutoRotateState);
-            if (this.previousAutoRotateState) {
-                this.sceneModel.setAutoRotate(true);
-            }
+        // Restore auto-rotate state using helper
+        const restoreAutoRotateState = window.EventSlideStateHelpers?.restoreAutoRotateState;
+        if (restoreAutoRotateState) {
+            restoreAutoRotateState(this.sceneModel, this.previousAutoRotateState);
             this.previousAutoRotateState = null;
+        } else {
+            // Fallback
+            this.sceneModel.eventMarker = null;
+            if (this.previousAutoRotateState !== null) {
+                this.sceneModel.setAutoRotateEnabled(this.previousAutoRotateState);
+                if (this.previousAutoRotateState) {
+                    this.sceneModel.setAutoRotate(true);
+                }
+                this.previousAutoRotateState = null;
+            }
         }
 
         // Update ImageOverlayManager state (not UIView directly)
@@ -513,11 +488,17 @@ export class EventSlideManager {
             this.uiView.imageOverlayManager.imageAutoHideTimeout = null;
         }
 
-        // Reset stillness tracking
-        this.uiView.lastCameraPosition = null;
-        this.uiView.lastGlobeRotation = null;
-        this.uiView.stillnessStartTime = null;
-        this.uiView.wasDragging = false;
+        // Reset stillness tracking using helper
+        const resetStillnessTracking = window.EventSlideStateHelpers?.resetStillnessTracking;
+        if (resetStillnessTracking) {
+            resetStillnessTracking(this.uiView);
+        } else {
+            // Fallback
+            this.uiView.lastCameraPosition = null;
+            this.uiView.lastGlobeRotation = null;
+            this.uiView.stillnessStartTime = null;
+            this.uiView.wasDragging = false;
+        }
     }
 
     /**
@@ -532,105 +513,105 @@ export class EventSlideManager {
 
         const variant = eventData.variants[variantIndex];
         this.currentVariantIndex = variantIndex;
-        this.uiView.currentVariantIndex = variantIndex;
-
-        // Update location display for this variant using helpers
-        const eventSlideLocation = document.getElementById('eventSlideLocation');
-        const variantLat = variant.lat !== undefined ? variant.lat : eventData.lat;
-        const variantLon = variant.lon !== undefined ? variant.lon : eventData.lon;
-        const variantX = variant.x !== undefined ? variant.x : eventData.x;
-        const variantY = variant.y !== undefined ? variant.y : eventData.y;
-        const variantLocationType = variant.locationType || eventData.locationType || 'earth';
-        const locationName = variant.cityDisplayName || eventData.cityDisplayName || null;
-
-        // Find variant marker
-        const variantMarker = findVariantMarker(this.sceneModel, eventData, variantIndex);
-        
-        if (eventSlideLocation) {
-            // Handle different location types using helpers (no fade for variant switching)
-            if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined && window.eventManager) {
-                setupEarthLocation(eventSlideLocation, variantLat, variantLon, variantMarker || marker, false, locationName, false);
-            } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
-                setupMoonMarsLocation(eventSlideLocation, variantLocationType, variantX, variantY, locationName, variantMarker || marker, false);
-            } else if (variantLocationType === 'station') {
-                setupStationLocation(eventSlideLocation, locationName, variantMarker || marker, false);
-            } else {
-                hideLocationWithFade(eventSlideLocation, false);
-            }
-            
-            // Update click handler to use variant marker
-            if (variantMarker) {
-                setupLocationClickHandler(eventSlideLocation, variantMarker, variantLocationType);
-            } else if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined) {
-                // For Earth without marker, create temp marker for click handler
-                const tempMarker = createTempMarkerForCoords(variantLat, variantLon);
-                if (tempMarker) {
-                    setupLocationClickHandler(eventSlideLocation, tempMarker, variantLocationType);
-                }
-            } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
-                // For Moon/Mars, create a dummy marker for click handler
-                const dummyMarker = { userData: { locationType: variantLocationType } };
-                setupLocationClickHandler(eventSlideLocation, dummyMarker, variantLocationType);
-            }
-        }
-
-        // Zoom to variant location
-        zoomToVariantLocation(variantMarker, variantLocationType, variantLat, variantLon);
-
-        // Update title and description
-        const eventSlideTitle = document.getElementById('eventSlideTitle');
-        const eventSlideText = document.getElementById('eventSlideText');
-        if (eventSlideTitle) {
-            eventSlideTitle.innerHTML = (window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(variant.name) : variant.name) || `Variant ${variantIndex + 1}`;
-        }
-        if (eventSlideText) {
-            eventSlideText.innerHTML = window.GlitchTextService ? window.GlitchTextService.getDisplayText(variant.description || 'No description') : (variant.description || 'No description');
-        }
-
-        // Play switch event sound when switching variants
-        if (window.SoundEffectsManager) {
-            window.SoundEffectsManager.play('switchEvent');
-        }
-
-        // Start glitch character animation for any glitchy text overlays (only if enabled)
-        if (window.GlitchTextService && window.GlitchTextService.isEnabled()) {
-            window.GlitchTextService.startAnimation();
+        const syncVariantIndex = window.EventSlideStateHelpers?.syncStateWithUIView;
+        if (syncVariantIndex) {
+            syncVariantIndex(this.uiView, { currentVariantIndex: variantIndex });
         } else {
-            if (window.GlitchTextService) {
-                window.GlitchTextService.stopAnimation();
+            this.uiView.currentVariantIndex = variantIndex;
+        }
+
+        // Setup variant location using helper
+        const eventSlideLocation = document.getElementById('eventSlideLocation');
+        const setupVariantLocation = window.EventSlideVariantHelpers?.setupVariantLocation;
+        if (setupVariantLocation) {
+            setupVariantLocation(eventSlideLocation, variant, eventData, this.sceneModel, this.currentEventMarker);
+        } else {
+            // Minimal fallback
+            const variantLat = variant.lat ?? eventData.lat;
+            const variantLon = variant.lon ?? eventData.lon;
+            const variantX = variant.x ?? eventData.x;
+            const variantY = variant.y ?? eventData.y;
+            const variantLocationType = variant.locationType || eventData.locationType || 'earth';
+            const locationName = variant.cityDisplayName || eventData.cityDisplayName || null;
+            const variantMarker = findVariantMarker(this.sceneModel, eventData, variantIndex);
+            
+            if (eventSlideLocation) {
+                if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined && window.eventManager) {
+                    setupEarthLocation(eventSlideLocation, variantLat, variantLon, variantMarker || this.currentEventMarker, false, locationName, false);
+                } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
+                    setupMoonMarsLocation(eventSlideLocation, variantLocationType, variantX, variantY, locationName, variantMarker || this.currentEventMarker, false);
+                } else if (variantLocationType === 'station') {
+                    setupStationLocation(eventSlideLocation, locationName, variantMarker || this.currentEventMarker, false);
+                } else {
+                    hideLocationWithFade(eventSlideLocation, false);
+                }
+                
+                if (variantMarker) {
+                    setupLocationClickHandler(eventSlideLocation, variantMarker, variantLocationType);
+                } else if (variantLocationType === 'earth' && variantLat !== undefined && variantLon !== undefined) {
+                    const tempMarker = createTempMarkerForCoords(variantLat, variantLon);
+                    if (tempMarker) setupLocationClickHandler(eventSlideLocation, tempMarker, variantLocationType);
+                } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
+                    setupLocationClickHandler(eventSlideLocation, { userData: { locationType: variantLocationType } }, variantLocationType);
+                }
+            }
+            zoomToVariantLocation(variantMarker, variantLocationType, variantLat, variantLon);
+        }
+
+        // Update variant content using helper
+        const updateVariantContent = window.EventSlideVariantHelpers?.updateVariantContent;
+        if (updateVariantContent) {
+            updateVariantContent(variant, variantIndex, this);
+        } else {
+            // Minimal fallback (wrap so GlitchTextService methods are called with correct this)
+            const eventSlideTitle = document.getElementById('eventSlideTitle');
+            const eventSlideText = document.getElementById('eventSlideText');
+            const getDisplayEventName = window.GlitchTextService
+                ? (name) => window.GlitchTextService.getDisplayEventName(name)
+                : (name) => name;
+            const getDisplayText = window.GlitchTextService
+                ? (text) => window.GlitchTextService.getDisplayText(text)
+                : (text) => text;
+            if (eventSlideTitle) eventSlideTitle.innerHTML = getDisplayEventName(variant.name) || `Variant ${variantIndex + 1}`;
+            if (eventSlideText) eventSlideText.innerHTML = getDisplayText(variant.description || 'No description');
+            
+            const eventImage = document.getElementById('eventImage');
+            const eventImageOverlay = document.getElementById('eventImageOverlay');
+            if (eventImage && eventImageOverlay) {
+                let imagePath = window.eventManager?.getEventImagePath(variant.name, variant.image) || variant.image;
+                if (!imagePath?.trim()) {
+                    imagePath = `assets/images/events/${encodeURIComponent(variant.name.replace(/\s+/g, ' ').trim())}.png`;
+                }
+                loadEventImage(eventImage, eventImageOverlay, this.processImagePath(imagePath));
             }
         }
 
-        // Update sources and filters sections (using shared helper functions)
+        // Play switch event sound
+        window.SoundEffectsManager?.play('switchEvent');
+
+        // Manage glitch animation
+        const manageGlitchAnimation = window.EventSlideGlitchHelpers?.manageGlitchAnimation;
+        if (manageGlitchAnimation) {
+            manageGlitchAnimation(window.GlitchTextService?.isEnabled() || false, this.uiView);
+        } else {
+            if (window.GlitchTextService?.isEnabled()) {
+                window.GlitchTextService.startAnimation();
+            } else {
+                window.GlitchTextService?.stopAnimation();
+            }
+        }
+
+        // Update sources and filters
         this.uiView.updateEventSources(variant);
         this.uiView.updateEventFilters(variant);
 
-        // Update image using helper
-        const eventImage = document.getElementById('eventImage');
-        const eventImageOverlay = document.getElementById('eventImageOverlay');
-        if (eventImage && eventImageOverlay) {
-            // Get image path using EventManager's function
-            let imagePath = null;
-            if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
-                imagePath = window.eventManager.getEventImagePath(variant.name, variant.image);
-            } else {
-                // Fallback: construct path manually
-                imagePath = variant.image || null;
-                if (!imagePath || !imagePath.trim()) {
-                    const normalizedName = variant.name.replace(/\s+/g, ' ').trim();
-                    const encodedFileName = encodeURIComponent(normalizedName);
-                    imagePath = `assets/images/events/${encodedFileName}.png`;
-                }
-            }
-
-            // Process and load image
-            imagePath = this.processImagePath(imagePath);
-            loadEventImage(eventImage, eventImageOverlay, imagePath);
-        }
-
-        // Update variant toggle buttons
+        // Update variant toggle buttons using helper
         const variantToggles = document.getElementById('eventVariantToggles');
-        if (variantToggles) {
+        const updateVariantToggleButtons = window.EventSlideContentHelpers?.updateVariantToggleButtons;
+        if (updateVariantToggleButtons) {
+            updateVariantToggleButtons(variantToggles, variantIndex);
+        } else if (variantToggles) {
+            // Fallback
             const buttons = variantToggles.querySelectorAll('.variant-toggle-btn');
             buttons.forEach((btn, index) => {
                 if (index === variantIndex) {
@@ -642,50 +623,22 @@ export class EventSlideManager {
         }
     }
 
-    /**
-     * Get current event marker
-     */
-    getCurrentEventMarker() {
-        return this.currentEventMarker;
-    }
+    // Simple getters
+    getCurrentEventMarker() { return this.currentEventMarker; }
+    getCurrentEventData() { return this.currentEventData; }
+    getCurrentVariantIndex() { return this.currentVariantIndex; }
 
-    /**
-     * Get current event data
-     */
-    getCurrentEventData() {
-        return this.currentEventData;
-    }
-
-    /**
-     * Get current variant index
-     */
-    getCurrentVariantIndex() {
-        return this.currentVariantIndex;
-    }
-
-    /**
-     * Set original camera position (called from zoomToMarker)
-     * Note: zoomToMarker in InteractionController sets this on uiView directly,
-     * so we mainly sync for consistency
-     */
     setOriginalCameraPosition(position, rotation) {
         this.originalCameraPosition = position;
         this.originalGlobeRotation = rotation;
-        // Sync with UIView for backward compatibility
         this.uiView.originalCameraPosition = position;
         this.uiView.originalGlobeRotation = rotation;
     }
     
-    /**
-     * Get original camera position (reads from uiView since zoomToMarker sets it there)
-     */
     getOriginalCameraPosition() {
         return this.uiView.originalCameraPosition || this.originalCameraPosition;
     }
     
-    /**
-     * Get original globe rotation (reads from uiView since zoomToMarker sets it there)
-     */
     getOriginalGlobeRotation() {
         return this.uiView.originalGlobeRotation || this.originalGlobeRotation;
     }

@@ -21,6 +21,7 @@ import { initializeMusicManager, createBackgroundMusicElement } from './helpers/
 import { clearEventManager, removeAllEventMarkers } from './helpers/EventCleanupHelpers.js';
 import { removeElementById, removeElementBySelector, removeElementsByIds } from './helpers/ComponentUnloadHelpers.js';
 import { setupEventUIComponents, loadEventSoundEffects, initializeFilterPanel, setupEventListenersDelayed } from './helpers/EventsLoadHelpers.js';
+import { createOrchestratorDelegations } from './helpers/ComponentOrchestratorDelegationHelpers.js';
 
 // Track which components are loaded
 const loadedComponents = {
@@ -45,19 +46,7 @@ function setIsRunOperation(value) {
     setRunOperation(value);
 }
 
-/**
- * Setup palette toggle functionality
- * Delegates to PaletteManager
- * Note: setupPaletteToggle is imported from PaletteManager
- */
-
-/**
- * Load Palette Components (Universal Feature)
- * - Palette button
- * - Background color switching
- * - Globe texture switching
- * - Related sound effects
- */
+/** Unload Palette (button, bg/texture switching, sound). */
 async function unloadPalette() {
     if (!loadedComponents.palette) {
         updateStatus('Palette not loaded', 'info');
@@ -100,13 +89,7 @@ async function loadPalette() {
     }, 'Palette', 'loadPaletteBtn', isRunOperation);
 }
 
-/**
- * Load Globe Base Components
- * - Earth sphere and textures
- * - Starfield background
- * - Scene, camera, renderer, lights
- * - City markers, seaport markers
- */
+/** Unload Globe Base (earth, starfield, scene, markers). */
 async function unloadGlobeBase() {
     if (!loadedComponents.globeBase) {
         updateStatus('Globe base not loaded', 'info');
@@ -192,14 +175,7 @@ async function loadGlobeBase() {
     }
 }
 
-/**
- * Load Transport Components
- * - Vehicles (trains, planes, boats)
- * - Connection lines (city connections, seaport connections, secondary lines)
- * - Ports and airports
- * - Transport toggle button
- * - Related sound effects
- */
+/** Unload Transport (vehicles, connections, toggle, sound). */
 async function unloadTransport() {
     if (!loadedComponents.transport) {
         updateStatus('Transport not loaded', 'info');
@@ -260,12 +236,7 @@ async function loadTransport() {
     }, 'Transport', 'loadTransportBtn', isRunOperation);
 }
 
-/**
- * Load Controls Components
- * - Rotation toggle button
- * - Interaction controls (mouse/touch)
- * - Related sound effects
- */
+/** Unload Controls (rotation toggle, interaction, sound). */
 async function unloadControls() {
     if (!loadedComponents.controls) {
         updateStatus('Controls not loaded', 'info');
@@ -322,9 +293,7 @@ async function loadControls() {
     }, 'Controls', 'loadControlsBtn', isRunOperation);
 }
 
-/**
- * Unload Music Components
- */
+/** Unload Music (toggle, panel, audio). */
 async function unloadMusic() {
     if (!loadedComponents.music) {
         updateStatus('Music not loaded', 'info');
@@ -483,10 +452,7 @@ async function unloadMenu() {
     }, 'Menu', 'loadMenuBtn');
 }
 
-/**
- * Load Menu Components
- * - Main menu with 3 buttons (Global Timeline, Concept Glossary, Character Bios)
- */
+/** Load Menu (Global Timeline, Glossary, Bios buttons). */
 async function loadMenu() {
     if (checkAlreadyLoaded(loadedComponents.menu, 'Menu')) {
         return;
@@ -546,99 +512,21 @@ const componentOrchestrator = new ComponentOrchestrator(
     }
 );
 
-/**
- * Run all Menu Components
- * Simply ensures menu is loaded and visible
- * Delegates to ComponentOrchestrator
- */
-async function runMenuComponents() {
-    return componentOrchestrator.runMenuComponents();
-}
+const {
+    runMenuComponents,
+    runUniversalFeatures,
+    runGlobeComponents,
+    killMenuComponents,
+    killUniversalFeatures,
+    restoreMainMenu,
+    killGlobeComponents,
+    runGlossaryComponents,
+    killGlossaryComponents,
+    runBiographyComponents,
+    killBiographyComponents
+} = createOrchestratorDelegations(componentOrchestrator);
 
-/**
- * Run all Universal Features sequentially
- * Loads: Palette, then Music
- * Delegates to ComponentOrchestrator
- */
-async function runUniversalFeatures() {
-    return componentOrchestrator.runUniversalFeatures();
-}
-
-/**
- * Run all Globe Components sequentially
- * Loads: Globe Base, then Transport, then Controls, then Events
- * Delegates to ComponentOrchestrator
- */
-async function runGlobeComponents(isAutoLoad = false) {
-    return componentOrchestrator.runGlobeComponents(isAutoLoad);
-}
-
-/**
- * Kill all Menu Components
- * Delegates to ComponentOrchestrator
- */
-async function killMenuComponents() {
-    return componentOrchestrator.killMenuComponents();
-}
-
-/**
- * Kill all Universal Features
- * Delegates to ComponentOrchestrator
- */
-async function killUniversalFeatures() {
-    return componentOrchestrator.killUniversalFeatures();
-}
-
-/**
- * Restore main menu (show test-container, hide globe)
- * Make it globally accessible
- * Delegates to ComponentOrchestrator
- */
-window.restoreMainMenu = async function restoreMainMenu() {
-    return componentOrchestrator.restoreMainMenu();
-}
-
-/**
- * Kill all Globe Components
- * Delegates to ComponentOrchestrator
- */
-async function killGlobeComponents() {
-    return componentOrchestrator.killGlobeComponents();
-}
-
-/**
- * Run all Glossary Components sequentially
- * (Placeholder - no actual loads yet)
- * Delegates to ComponentOrchestrator
- */
-async function runGlossaryComponents(isAutoLoad = false) {
-    return componentOrchestrator.runGlossaryComponents(isAutoLoad);
-}
-
-/**
- * Kill all Glossary Components
- * Delegates to ComponentOrchestrator
- */
-async function killGlossaryComponents() {
-    return componentOrchestrator.killGlossaryComponents();
-}
-
-/**
- * Run all Biography Components sequentially
- * (Placeholder - no actual loads yet)
- * Delegates to ComponentOrchestrator
- */
-async function runBiographyComponents(isAutoLoad = false) {
-    return componentOrchestrator.runBiographyComponents(isAutoLoad);
-}
-
-/**
- * Kill all Biography Components
- * Delegates to ComponentOrchestrator
- */
-async function killBiographyComponents() {
-    return componentOrchestrator.killBiographyComponents();
-}
+window.restoreMainMenu = restoreMainMenu;
 
 // Setup button event listeners
 document.addEventListener('DOMContentLoaded', function() {

@@ -118,17 +118,17 @@ class FilterService {
         // Initialize with confirmed filters
         this.resetToConfirmedFilters();
         
-        // Load manifest
-        this.loadManifest();
-        
-        // Setup tab switching
-        this.setupTabs();
-        
-        // Setup button handlers
-        this.setupButtons();
-        
-        // Setup click outside handler
-        this.setupClickOutside();
+        // Load manifest and setup (async)
+        this.loadManifest().then(() => {
+            // Setup tab switching
+            this.setupTabs();
+            
+            // Setup button handlers
+            this.setupButtons();
+            
+            // Setup click outside handler
+            this.setupClickOutside();
+        });
     }
     
     /**
@@ -172,76 +172,93 @@ class FilterService {
         });
     }
     
-    // Load manifest
+    // Load manifest - delegates to helper
     async loadManifest() {
-        try {
-            // Add cache busting to ensure we get the latest manifest
-            // Use both timestamp and random number for better cache busting
-            const cacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const response = await fetch(`manifest.json?v=${cacheBuster}`, {
-                cache: 'no-store',
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache'
-                }
-            });
-            const manifest = await response.json();
-            
-            if (manifest.heroes) {
-                this.heroes = manifest.heroes.sort(); // Sort alphabetically
-            }
-            
-            if (manifest.factions) {
-                this.factions = manifest.factions.map(f => ({
+        const helper = window.FilterManifestHelpers?.loadManifest;
+        if (helper) {
+            const result = await helper(
+                (items, type, folder) => this.createFilterButtons(items, type, folder),
+                () => this.updateFilterCounts(),
+                (items, type, folder) => this.preloadImages(items, type, folder),
+                this.factions
+            );
+            this.heroes = result.heroes;
+            this.factions = result.factions;
+        } else {
+            // Fallback implementation
+            try {
+                const cacheBuster = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const response = await fetch(`manifest.json?v=${cacheBuster}`, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                const manifest = await response.json();
+                this.heroes = manifest.heroes ? manifest.heroes.sort() : [];
+                this.factions = manifest.factions ? manifest.factions.map(f => ({
                     filename: f.filename,
                     number: f.number,
                     displayName: f.displayName
-                })).sort((a, b) => a.number - b.number); // Sort by number
+                })).sort((a, b) => a.number - b.number) : [];
+                this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
+                this.updateFilterCounts();
+                if (this.factions.length > 0) {
+                    setTimeout(() => this.preloadImages(this.factions, 'factions', 'assets/images/factions'), 500);
+                }
+            } catch (error) {
+                console.error('Error loading manifest.json:', error);
+                this.heroes = [];
+                this.factions = [];
+                this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
             }
-            
-            // Initialize with loaded data
-            this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
-            this.updateFilterCounts();
-            
-            // Preload faction images in background
-            if (this.factions.length > 0) {
-                setTimeout(() => {
-                    this.preloadImages(this.factions, 'factions', 'assets/images/factions');
-                }, 500);
-            }
-        } catch (error) {
-            console.error('Error loading manifest.json:', error);
-            console.log('Falling back to empty lists. Run generate-manifest.js to create manifest.json');
-            // Fallback to empty arrays if manifest doesn't exist
-            this.heroes = [];
-            this.factions = [];
-            this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
         }
     }
     
     /**
-     * Update filter counts display
+     * Update filter counts display - delegates to helper
      */
-    updateFilterCounts() {
-        const heroesCount = document.getElementById('heroesCount');
-        const factionsCount = document.getElementById('factionsCount');
-        const { heroCount, factionCount } = this.stateManager.getCounts();
+    async updateFilterCounts() {
+        let helper = window.FilterCountHelpers?.updateFilterCounts;
         
-        this.updateCountDisplay(heroesCount, heroCount);
-        this.updateCountDisplay(factionsCount, factionCount);
-    }
-    
-    /**
-     * Update individual count display element
-     */
-    updateCountDisplay(element, count) {
-        if (!element) return;
+        // If helper not available, try to load it dynamically
+        if (!helper) {
+            try {
+                const module = await import('./helpers/FilterCountHelpers.js');
+                helper = module.updateFilterCounts;
+                // Cache it for next time
+                if (!window.FilterCountHelpers) window.FilterCountHelpers = {};
+                window.FilterCountHelpers.updateFilterCounts = helper;
+            } catch (error) {
+                // Silently fall through to fallback - helpers may be loading via script tags
+            }
+        }
         
-        if (count > 0) {
-            element.textContent = count;
-            element.style.display = 'inline';
+        if (helper) {
+            helper(this.stateManager);
         } else {
-            element.style.display = 'none';
+            // Fallback implementation
+            const heroesCount = document.getElementById('heroesCount');
+            const factionsCount = document.getElementById('factionsCount');
+            const { heroCount, factionCount } = this.stateManager.getCounts();
+            
+            if (heroesCount) {
+                if (heroCount > 0) {
+                    heroesCount.textContent = heroCount;
+                    heroesCount.style.display = 'inline';
+                } else {
+                    heroesCount.style.display = 'none';
+                }
+            }
+            if (factionsCount) {
+                if (factionCount > 0) {
+                    factionsCount.textContent = factionCount;
+                    factionsCount.style.display = 'inline';
+                } else {
+                    factionsCount.style.display = 'none';
+                }
+            }
         }
     }
     
@@ -253,395 +270,267 @@ class FilterService {
     }
     
     /**
-     * Get hero display name (maps filename to display name)
+     * Create filter buttons (with caching) - delegates to helper
      */
-    getHeroDisplayName(heroName) {
-        const heroDisplayNames = {
-            'Soldier 76': 'Soldier: 76'
-        };
-        return heroDisplayNames[heroName] || heroName;
-    }
-    
-    /**
-     * Get filter key and display name based on type
-     */
-    getFilterKeyAndDisplayName(item, type) {
-        if (type === 'factions') {
-            return { filterKey: item.filename, displayName: item.displayName };
-        } else if (type === 'music') {
-            return { 
-                filterKey: `assets/audio/music/${item.filename}`, 
-                displayName: item.name 
-            };
-        } else {
-            // heroes
-            return { 
-                filterKey: item, 
-                displayName: this.getHeroDisplayName(item) 
-            };
-        }
-    }
-    
-    /**
-     * Create image element for filter button
-     */
-    createFilterImage(filterKey, displayName, type, folder) {
-        const imagePath = this.imageService.buildImagePath(
-            type === 'factions' ? { filename: filterKey } : filterKey,
-            type,
-            folder
-        );
-        const img = this.imageService.createImageElement(imagePath, type, filterKey, folder);
-        img.alt = displayName;
-        return img;
-    }
-    
-    /**
-     * Attach click handler to filter button
-     */
-    attachFilterButtonClickHandler(filterBtn, filterKey) {
-        filterBtn.addEventListener('click', () => {
-            if (this.stateManager.has(filterKey)) {
-                this.stateManager.remove(filterKey);
-                filterBtn.classList.remove('selected');
-                if (this.soundManager) {
-                    this.soundManager.play('filterOff');
-                }
-            } else {
-                this.stateManager.add(filterKey);
-                filterBtn.classList.add('selected');
-                if (this.soundManager) {
-                    this.soundManager.play('filterPick');
-                }
+    async createFilterButtons(items, type, folder) {
+        let helper = window.FilterButtonHelpers?.createFilterButtons;
+        
+        // If helper not available, try to load it dynamically (but don't error if it fails)
+        if (!helper) {
+            try {
+                const module = await import('./helpers/FilterButtonHelpers.js');
+                helper = module.createFilterButtons;
+                // Cache it for next time
+                if (!window.FilterButtonHelpers) window.FilterButtonHelpers = {};
+                window.FilterButtonHelpers.createFilterButtons = helper;
+            } catch (error) {
+                // Silently return - helpers may be loading via script tags
+                return;
             }
-            this.updateFilterCounts();
-        });
-    }
-    
-    /**
-     * Create a single filter button element
-     */
-    createFilterButtonElement(item, type, folder) {
-        const { filterKey, displayName } = this.getFilterKeyAndDisplayName(item, type);
-        
-        const filterBtn = document.createElement('div');
-        filterBtn.className = 'filter-btn';
-        filterBtn.dataset.filterType = type;
-        filterBtn.dataset.filterKey = filterKey;
-        
-        // Image container
-        const imageContainer = document.createElement('div');
-        imageContainer.className = 'filter-image-container';
-        const img = this.createFilterImage(filterKey, displayName, type, folder);
-        imageContainer.appendChild(img);
-        
-        // Label
-        const label = document.createElement('div');
-        label.className = 'filter-label';
-        label.textContent = displayName;
-        
-        filterBtn.appendChild(imageContainer);
-        filterBtn.appendChild(label);
-        
-        // Set initial selection state
-        if (this.stateManager.has(filterKey)) {
-            filterBtn.classList.add('selected');
         }
         
-        // Attach click handler
-        this.attachFilterButtonClickHandler(filterBtn, filterKey);
-        
-        return filterBtn;
-    }
-    
-    /**
-     * Use cached buttons if available
-     */
-    useCachedButtons(type) {
-        if (!this.buttonCache[type]) return false;
-        
-        this.filtersGrid.innerHTML = '';
-        this.buttonCache[type].forEach(cachedBtn => {
-            const filterKey = cachedBtn.dataset.filterKey;
-            if (filterKey) {
-                if (this.stateManager.has(filterKey)) {
-                    cachedBtn.classList.add('selected');
-                } else {
-                    cachedBtn.classList.remove('selected');
-                }
-            }
-            this.filtersGrid.appendChild(cachedBtn);
-        });
-        this.updateFilterCounts();
-        return true;
-    }
-    
-    /**
-     * Create filter buttons (with caching)
-     */
-    createFilterButtons(items, type, folder) {
-        if (!this.filtersGrid) return;
-        
-        // Try to use cached buttons first
-        if (this.useCachedButtons(type)) {
-            return;
+        if (helper) {
+            helper(
+                items, type, folder, 
+                this.filtersGrid, this.buttonCache, 
+                this.stateManager, this.imageService, this.soundManager,
+                this.heroes, this.factions,
+                (items, type, folder) => this.preloadImages(items, type, folder),
+                () => this.updateFilterCounts()
+            );
         }
-        
-        // Create new buttons and cache them
-        this.filtersGrid.innerHTML = '';
-        const cachedButtons = [];
-        
-        items.forEach(item => {
-            const filterBtn = this.createFilterButtonElement(item, type, folder);
-            this.filtersGrid.appendChild(filterBtn);
-            cachedButtons.push(filterBtn);
-        });
-        
-        // Cache the buttons
-        this.buttonCache[type] = cachedButtons;
-        
-        // Preload images for the other type in background
-        if (type === 'heroes' && this.factions.length > 0) {
-            setTimeout(() => this.preloadImages(this.factions, 'factions', 'assets/images/factions'), 100);
-        } else if (type === 'factions' && this.heroes.length > 0) {
-            setTimeout(() => this.preloadImages(this.heroes, 'heroes', 'assets/images/heroes'), 100);
-        }
-        
-        this.updateFilterCounts();
     }
     
-    // Setup tab switching
+    // Setup tab switching - delegates to helper
     setupTabs() {
-        if (this.heroesTab) {
-            this.heroesTab.addEventListener('click', () => {
-                this.currentFilterType = 'heroes';
-                this.heroesTab.classList.add('active');
-                if (this.factionsTab) {
-                    this.factionsTab.classList.remove('active');
-                }
-                this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
-                this.updateFilterCounts(); // Update counts when switching tabs
-            });
-        }
-        
-        if (this.factionsTab) {
-            this.factionsTab.addEventListener('click', () => {
-                this.currentFilterType = 'factions';
-                this.factionsTab.classList.add('active');
-                if (this.heroesTab) {
-                    this.heroesTab.classList.remove('active');
-                }
-                this.createFilterButtons(this.factions, 'factions', 'assets/images/factions');
-                this.updateFilterCounts(); // Update counts when switching tabs
-            });
+        const helper = window.FilterTabHelpers?.setupTabs;
+        if (helper) {
+            helper(
+                this.heroesTab, this.factionsTab,
+                this.heroes, this.factions,
+                (items, type, folder) => {
+                    this.currentFilterType = type;
+                    this.createFilterButtons(items, type, folder);
+                },
+                () => this.updateFilterCounts()
+            );
+        } else {
+            // Fallback implementation
+            if (this.heroesTab) {
+                this.heroesTab.addEventListener('click', () => {
+                    this.currentFilterType = 'heroes';
+                    this.heroesTab.classList.add('active');
+                    if (this.factionsTab) this.factionsTab.classList.remove('active');
+                    this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
+                    this.updateFilterCounts();
+                });
+            }
+            if (this.factionsTab) {
+                this.factionsTab.addEventListener('click', () => {
+                    this.currentFilterType = 'factions';
+                    this.factionsTab.classList.add('active');
+                    if (this.heroesTab) this.heroesTab.classList.remove('active');
+                    this.createFilterButtons(this.factions, 'factions', 'assets/images/factions');
+                    this.updateFilterCounts();
+                });
+            }
         }
     }
     
     /**
-     * Close other panels (music, events manage) when opening filters
+     * Close other panels - delegates to helper
      */
-    closeOtherPanels() {
-        const musicPanel = document.getElementById('musicPanel');
-        const musicButton = document.getElementById('musicToggle');
-        if (musicPanel?.classList.contains('open')) {
-            musicPanel.classList.remove('open');
-            musicButton?.classList.remove('active');
-        }
-        
-        const eventsManagePanel = document.getElementById('eventsManagePanel');
-        const eventsManageToggle = document.getElementById('eventsManageToggle');
-        if (eventsManagePanel?.classList.contains('open')) {
-            eventsManagePanel.classList.remove('open');
-            eventsManageToggle?.classList.remove('active');
+    async closeOtherPanels() {
+        const helper = window.FilterPanelHelpers?.closeOtherPanels;
+        if (helper) {
+            helper();
+        } else {
+            // Fallback
+            const musicPanel = document.getElementById('musicPanel');
+            const musicButton = document.getElementById('musicToggle');
+            if (musicPanel?.classList.contains('open')) {
+                musicPanel.classList.remove('open');
+                musicButton?.classList.remove('active');
+            }
+            const eventsManagePanel = document.getElementById('eventsManagePanel');
+            const eventsManageToggle = document.getElementById('eventsManageToggle');
+            if (eventsManagePanel?.classList.contains('open')) {
+                eventsManagePanel.classList.remove('open');
+                eventsManageToggle?.classList.remove('active');
+            }
         }
     }
     
     /**
-     * Open the filters panel
+     * Open the filters panel - delegates to helper
      */
     openPanel() {
-        const sceneModel = this.getSceneModel();
-        this.stateManager.resetToConfirmed(sceneModel);
-        
-        // Update button states for current tab
-        if (this.currentFilterType === 'heroes') {
-            this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
+        const helper = window.FilterPanelHelpers?.openPanel;
+        if (helper) {
+            helper(
+                this.filtersPanel, this.filtersButton,
+                this.stateManager, () => this.getSceneModel(),
+                this.currentFilterType, this.heroes, this.factions,
+                (items, type, folder) => this.createFilterButtons(items, type, folder)
+            );
         } else {
-            this.createFilterButtons(this.factions, 'factions', 'assets/images/factions');
-        }
-        
-        this.filtersPanel.classList.add('open');
-        this.filtersButton?.classList.add('active');
-    }
-    
-    /**
-     * Close the filters panel
-     */
-    closePanel() {
-        this.filtersPanel.classList.remove('open');
-        this.filtersButton?.classList.remove('active');
-    }
-    
-    /**
-     * Toggle panel open/close state
-     */
-    togglePanel() {
-        const isOpening = !this.filtersPanel.classList.contains('open');
-        
-        if (isOpening) {
-            this.closeOtherPanels();
-            this.openPanel();
-        } else {
-            this.resetToConfirmedFilters();
-            this.closePanel();
-        }
-    }
-    
-    /**
-     * Setup filters toggle button handlers
-     */
-    setupFiltersButton() {
-        if (!this.filtersButton) {
-            console.error('Filters button not found!');
-            return;
-        }
-        
-        const handleFiltersToggle = (event) => {
-            if (event) {
-                event.stopPropagation();
-                event.preventDefault();
-            }
-            
-            if (this.soundManager) {
-                this.soundManager.play('filterButton');
-            }
-            
-            this.togglePanel();
-        };
-        
-        // Prevent button from interfering with globe controls
-        this.filtersButton.addEventListener('mousedown', (e) => e.stopPropagation());
-        this.filtersButton.addEventListener('mouseup', (e) => e.stopPropagation());
-        
-        // Handle touch events for mobile
-        let touchStartTime = 0;
-        this.filtersButton.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            touchStartTime = Date.now();
-        });
-        
-        this.filtersButton.addEventListener('touchend', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            if (Date.now() - touchStartTime < 300) {
-                handleFiltersToggle(e);
-            }
-        });
-        
-        this.filtersButton.addEventListener('click', handleFiltersToggle);
-    }
-    
-    /**
-     * Setup close button handler
-     */
-    setupCloseButton() {
-        if (!this.filtersPanelClose) return;
-        
-        this.filtersPanelClose.addEventListener('click', () => {
-            if (this.soundManager) {
-                this.soundManager.play('filterButton');
-            }
-            this.resetToConfirmedFilters();
-            this.closePanel();
-        });
-    }
-    
-    /**
-     * Setup clear button handler
-     */
-    setupClearButton() {
-        if (!this.clearFiltersBtn) return;
-        
-        this.clearFiltersBtn.addEventListener('click', () => {
-            if (this.soundManager) {
-                this.soundManager.play('filterClear');
-            }
-            this.stateManager.clear();
-            this.updateButtonStates();
-            
-            // Clear filters and unlock all events
+            // Fallback
             const sceneModel = this.getSceneModel();
-            const globeController =
-                this.globeController ||
-                (typeof window !== 'undefined' ? window.globeController : null);
-            if (sceneModel && globeController?.globeView) {
-                sceneModel.activeFilters.clear();
-                globeController.globeView.unlockAllEvents();
-            }
-            
-            // Refresh current view
-            if (this.currentFilterType === 'heroes' && this.heroes.length > 0) {
+            this.stateManager.resetToConfirmed(sceneModel);
+            if (this.currentFilterType === 'heroes') {
                 this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
-            } else if (this.currentFilterType === 'factions' && this.factions.length > 0) {
+            } else {
                 this.createFilterButtons(this.factions, 'factions', 'assets/images/factions');
             }
-        });
+            this.filtersPanel.classList.add('open');
+            this.filtersButton?.classList.add('active');
+        }
     }
     
     /**
-     * Setup confirm button handler
+     * Close the filters panel - delegates to helper
      */
-    setupConfirmButton() {
-        if (!this.confirmFiltersBtn) return;
+    async closePanel() {
+        const helper = window.FilterPanelHelpers?.closePanel;
+        if (helper) {
+            helper(this.filtersPanel, this.filtersButton);
+        } else {
+            // Fallback
+            this.filtersPanel.classList.remove('open');
+            this.filtersButton?.classList.remove('active');
+        }
+    }
+    
+    /**
+     * Toggle panel open/close state - delegates to helper
+     */
+    async togglePanel() {
+        const helper = window.FilterPanelHelpers?.togglePanel;
+        if (helper) {
+            helper(
+                this.filtersPanel, this.filtersButton,
+                () => this.closeOtherPanels(),
+                async (panel, button, stateManager, getSceneModel, currentType, heroes, factions, createFilterButtons) => {
+                    const sceneModel = getSceneModel();
+                    stateManager.resetToConfirmed(sceneModel);
+                    if (currentType === 'heroes') {
+                        await createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
+                    } else {
+                        await createFilterButtons(factions, 'factions', 'assets/images/factions');
+                    }
+                    panel.classList.add('open');
+                    button?.classList.add('active');
+                },
+                () => this.resetToConfirmedFilters(),
+                (panel, button) => {
+                    panel.classList.remove('open');
+                    button?.classList.remove('active');
+                },
+                this.stateManager, () => this.getSceneModel(),
+                this.currentFilterType, this.heroes, this.factions,
+                (items, type, folder) => this.createFilterButtons(items, type, folder)
+            );
+        } else {
+            // Fallback
+            const isOpening = !this.filtersPanel.classList.contains('open');
+            if (isOpening) {
+                this.closeOtherPanels();
+                this.openPanel();
+            } else {
+                this.resetToConfirmedFilters();
+                this.closePanel();
+            }
+        }
+    }
+    
+    /**
+     * Setup all button handlers - delegates to helper
+     */
+    async setupButtons() {
+        let helper = window.FilterButtonSetupHelpers?.setupButtons;
         
-        this.confirmFiltersBtn.addEventListener('click', () => {
-            if (this.soundManager) {
-                this.soundManager.play('filterConfirm');
+        // If helper not available, try to load it dynamically
+        if (!helper) {
+            try {
+                const module = await import('./helpers/FilterButtonSetupHelpers.js');
+                helper = module.setupButtons;
+                // Cache it for next time
+                if (!window.FilterButtonSetupHelpers) window.FilterButtonSetupHelpers = {};
+                window.FilterButtonSetupHelpers.setupButtons = helper;
+            } catch (error) {
+                // Silently fall through to fallback - helpers may be loading via script tags
             }
-            
-            // Apply filters to events immediately BEFORE closing
-            const sceneModel = this.getSceneModel();
-            const globeController =
-                this.globeController ||
-                (typeof window !== 'undefined' ? window.globeController : null);
-            
-            if (sceneModel && globeController?.globeView) {
-                this.stateManager.applyToScene(sceneModel);
-                globeController.globeView.applyFilters();
+        }
+        
+        if (helper) {
+            helper(
+                this.filtersButton, this.filtersPanelClose, this.clearFiltersBtn, this.confirmFiltersBtn,
+                this.soundManager, () => this.togglePanel(),
+                () => this.resetToConfirmedFilters(), () => this.closePanel(),
+                this.stateManager, () => this.updateButtonStates(),
+                () => this.getSceneModel(), this.currentFilterType,
+                this.heroes, this.factions,
+                (items, type, folder) => this.createFilterButtons(items, type, folder)
+            );
+        } else {
+            // Fallback - basic button setup
+            if (this.filtersButton) {
+                this.filtersButton.addEventListener('click', () => this.togglePanel());
             }
-            
-            this.closePanel();
-        });
-    }
-    
-    /**
-     * Setup all button handlers
-     */
-    setupButtons() {
-        this.setupFiltersButton();
-        this.setupCloseButton();
-        this.setupClearButton();
-        this.setupConfirmButton();
-    }
-    
-    // Setup click outside handler
-    setupClickOutside() {
-        document.addEventListener('click', (e) => {
-            if (this.filtersPanel && this.filtersPanel.classList.contains('open')) {
-                if (!this.filtersPanel.contains(e.target) && 
-                    !this.filtersButton.contains(e.target) && 
-                    e.target !== this.filtersButton) {
-                    // Reset to confirmed filters before closing
+            if (this.filtersPanelClose) {
+                this.filtersPanelClose.addEventListener('click', () => {
                     this.resetToConfirmedFilters();
-                    
-                    this.filtersPanel.classList.remove('open');
-                    // Update button active state
-                    if (this.filtersButton) {
-                        this.filtersButton.classList.remove('active');
+                    this.closePanel();
+                });
+            }
+            if (this.clearFiltersBtn) {
+                this.clearFiltersBtn.addEventListener('click', () => {
+                    this.stateManager.clear();
+                    this.updateButtonStates();
+                    const sceneModel = this.getSceneModel();
+                    const globeController = typeof window !== 'undefined' ? window.globeController : null;
+                    if (sceneModel && globeController?.globeView) {
+                        sceneModel.activeFilters.clear();
+                        globeController.globeView.unlockAllEvents();
+                    }
+                });
+            }
+            if (this.confirmFiltersBtn) {
+                this.confirmFiltersBtn.addEventListener('click', () => {
+                    const sceneModel = this.getSceneModel();
+                    const globeController = typeof window !== 'undefined' ? window.globeController : null;
+                    if (sceneModel && globeController?.globeView) {
+                        this.stateManager.applyToScene(sceneModel);
+                        globeController.globeView.applyFilters();
+                    }
+                    this.closePanel();
+                });
+            }
+        }
+    }
+    
+    // Setup click outside handler - delegates to helper
+    async setupClickOutside() {
+        const helper = window.FilterPanelHelpers?.setupClickOutside;
+        if (helper) {
+            helper(
+                this.filtersPanel, this.filtersButton,
+                () => this.resetToConfirmedFilters()
+            );
+        } else {
+            // Fallback implementation
+            document.addEventListener('click', (e) => {
+                if (this.filtersPanel && this.filtersPanel.classList.contains('open')) {
+                    if (!this.filtersPanel.contains(e.target) && 
+                        !this.filtersButton.contains(e.target) && 
+                        e.target !== this.filtersButton) {
+                        this.resetToConfirmedFilters();
+                        this.filtersPanel.classList.remove('open');
+                        if (this.filtersButton) this.filtersButton.classList.remove('active');
                     }
                 }
-            }
-        });
+            });
+        }
     }
 }
 
