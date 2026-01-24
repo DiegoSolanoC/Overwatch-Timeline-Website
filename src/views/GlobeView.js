@@ -3,6 +3,11 @@
  */
 import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition } from '../utils/GeometryUtils.js?v=3';
 import { EventMarkerManager } from '../managers/EventMarkerManager.js';
+import { configureTexture, loadTexture, changePlaneTexture } from './helpers/GlobeTextureHelpers.js';
+import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './helpers/GlobePlaneHelpers.js';
+import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
+import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
+import { createGlobeMesh, setupCelestialPlanes } from './helpers/GlobeInitHelpers.js';
 
 // THREE is loaded globally via script tag in index.html
 
@@ -23,9 +28,6 @@ export class GlobeView {
     initGlobe(onTextureLoaded) {
         const scene = this.sceneModel.getScene();
         const renderer = this.sceneModel.getRenderer();
-
-        // Create Earth sphere
-        const geometry = new THREE.SphereGeometry(1, 64, 64);
         
         // Check saved palette preference to load correct texture
         const savedPalette = localStorage.getItem('colorPalette');
@@ -33,53 +35,36 @@ export class GlobeView {
         const initialTexturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
         console.log('Initializing globe with palette:', savedPalette || 'blue (default)', 'Texture:', initialTexturePath);
         
-        // Load Earth texture
         const textureLoader = new THREE.TextureLoader();
         
         // Load normal map
         const normalMapPath = 'assets/images/maps/MAP Normal.png';
-        const normalMap = textureLoader.load(
+        const normalMap = loadTexture(
+            textureLoader,
             normalMapPath,
-            (texture) => {
-                console.log('Normal map loaded successfully');
-                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
-            },
-            undefined,
-            (err) => {
-                console.warn('Normal map not found, continuing without it:', err);
-            }
+            renderer,
+            (texture) => console.log('Normal map loaded successfully'),
+            (err) => console.warn('Normal map not found, continuing without it:', err)
         );
         
-        const earthTexture = textureLoader.load(
+        // Create globe mesh
+        const globe = createGlobeMesh(
+            textureLoader,
+            renderer,
             initialTexturePath,
+            normalMap,
             (texture) => {
-                console.log('Earth texture loaded successfully:', initialTexturePath);
-                
-                // Improve texture quality and reduce pole blur
-                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
-                
                 const globe = this.sceneModel.getGlobe();
                 if (globe) {
-                    // Ensure the texture is applied to the material
                     globe.material.map = texture;
                     globe.material.normalMap = normalMap;
                     globe.material.needsUpdate = true;
                 }
-                
-                // Cache the loaded texture
                 this.textureCache.set(initialTexturePath, texture);
-                
                 if (onTextureLoaded) {
                     onTextureLoaded();
                 }
             },
-            undefined,
             (err) => {
                 console.error('Error loading Earth texture:', err);
                 const globe = this.sceneModel.getGlobe();
@@ -88,110 +73,24 @@ export class GlobeView {
                 }
             }
         );
+        this.sceneModel.setGlobe(globe);
+        scene.add(globe);
         
         // Preload the other texture to avoid delay when switching palettes
         const otherTexturePath = isGray ? 'assets/images/maps/MAP.png' : 'assets/images/maps/MAP Black.png';
-        textureLoader.load(otherTexturePath, (texture) => {
-            // Improve texture quality
-            const renderer = this.sceneModel.getRenderer();
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            texture.generateMipmaps = false;
-            // Cache the preloaded texture
+        loadTexture(textureLoader, otherTexturePath, renderer, (texture) => {
             this.textureCache.set(otherTexturePath, texture);
             console.log('Preloaded and cached alternate texture:', otherTexturePath);
         });
         
-        // Use MeshStandardMaterial for normal map (needs lighting)
-        const material = new THREE.MeshStandardMaterial({
-            map: earthTexture,
-            normalMap: normalMap,
-            transparent: false,
-            opacity: 1.0,
-            metalness: 0.1,
-            roughness: 0.9
+        // Create Moon and Mars planes
+        setupCelestialPlanes({
+            scene,
+            textureLoader,
+            renderer,
+            isGray,
+            sceneModel: this.sceneModel
         });
-        
-        const globe = new THREE.Mesh(geometry, material);
-        this.sceneModel.setGlobe(globe);
-        scene.add(globe);
-
-        // Create Moon and Mars planes at the same time as globe
-        // Moon plane - smaller, to the right of globe
-        const moonGeometry = new THREE.PlaneGeometry(0.4, 0.4);
-        const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
-        const moonTexture = textureLoader.load(moonTexturePath, (texture) => {
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-        });
-        
-        const moonMaterial = new THREE.MeshStandardMaterial({
-            map: moonTexture,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.75, // Semi-transparent
-            alphaTest: 0.1, // Respect transparent background
-            emissive: 0x88aaff, // Blue glow for Moon
-            emissiveIntensity: 0.3, // Subtle glow intensity
-            emissiveMap: moonTexture, // Use texture for emission pattern
-            metalness: 0.0,
-            roughness: 0.5
-        });
-        const moonPlane = new THREE.Mesh(moonGeometry, moonMaterial);
-        
-        // Position will be set by InteractionController.updatePlanesPosition after init
-        // Default to desktop position for now
-        moonPlane.position.set(1.5, 0.3, 0);
-        moonPlane.visible = false; // Hidden by default, shown only if current page has Moon events
-        moonPlane.scale.set(1, 0, 1); // Start with Y scale at 0 (squashed)
-        // Rotate plane to face the camera (will be updated by updatePlanesPosition)
-        moonPlane.lookAt(0, 0, 3.5);
-        if (this.sceneModel.setMoonPlane) {
-            this.sceneModel.setMoonPlane(moonPlane);
-        } else {
-            this.sceneModel.moonPlane = moonPlane;
-        }
-        scene.add(moonPlane);
-        console.log('Moon plane created at:', moonPlane.position, 'rotation:', moonPlane.quaternion);
-
-        // Mars plane - smaller, to the right of globe
-        const marsGeometry = new THREE.PlaneGeometry(0.4, 0.4);
-        const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
-        const marsTexture = textureLoader.load(marsTexturePath, (texture) => {
-            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-        });
-        const marsMaterial = new THREE.MeshStandardMaterial({
-            map: marsTexture,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.75, // Semi-transparent
-            alphaTest: 0.1, // Respect transparent background
-            emissive: 0x88aaff, // Blue glow for Mars
-            emissiveIntensity: 0.3, // Subtle glow intensity
-            emissiveMap: marsTexture, // Use texture for emission pattern
-            metalness: 0.0,
-            roughness: 0.5
-        });
-        const marsPlane = new THREE.Mesh(marsGeometry, marsMaterial);
-        
-        // Position will be set by InteractionController.updatePlanesPosition after init
-        // Default to desktop position for now
-        marsPlane.position.set(1.5, -0.3, 0);
-        marsPlane.visible = false; // Hidden by default, shown only if current page has Mars events
-        marsPlane.scale.set(1, 0, 1); // Start with Y scale at 0 (squashed)
-        // Rotate plane to face the camera (will be updated by updatePlanesPosition)
-        marsPlane.lookAt(0, 0, 3.5);
-        if (this.sceneModel.setMarsPlane) {
-            this.sceneModel.setMarsPlane(marsPlane);
-        } else {
-            this.sceneModel.marsPlane = marsPlane;
-        }
-        scene.add(marsPlane);
-        console.log('Mars plane created at:', marsPlane.position, 'rotation:', marsPlane.quaternion);
     }
 
     /**
@@ -221,33 +120,15 @@ export class GlobeView {
         const renderer = this.sceneModel.getRenderer();
         const textureLoader = new THREE.TextureLoader();
         
-        textureLoader.load(
-            texturePath,
-            (texture) => {
-                console.log('Globe texture changed to:', texturePath);
-                
-                // Improve texture quality
-                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
-                
-                // Cache the texture for instant switching
-                this.textureCache.set(texturePath, texture);
-                
-                // Update globe material
-                globe.material.map = texture;
-                globe.material.needsUpdate = true;
-                
-                if (onTextureLoaded) {
-                    onTextureLoaded();
-                }
-            },
-            undefined,
-            (err) => {
-                console.error('Error loading globe texture:', err);
+        loadTexture(textureLoader, texturePath, renderer, (texture) => {
+            console.log('Globe texture changed to:', texturePath);
+            this.textureCache.set(texturePath, texture);
+            globe.material.map = texture;
+            globe.material.needsUpdate = true;
+            if (onTextureLoaded) {
+                onTextureLoaded();
             }
-        );
+        });
     }
 
     /**
@@ -256,33 +137,9 @@ export class GlobeView {
      */
     changeMoonTexture(texturePath) {
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
-        if (!moonPlane) {
-            console.error('Moon plane not found');
-            return;
-        }
-
         const renderer = this.sceneModel.getRenderer();
         const textureLoader = new THREE.TextureLoader();
-        
-        textureLoader.load(
-            texturePath,
-            (texture) => {
-                console.log('Moon texture changed to:', texturePath);
-                
-                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
-                
-                moonPlane.material.map = texture;
-                moonPlane.material.emissiveMap = texture; // Update emissive map too
-                moonPlane.material.needsUpdate = true;
-            },
-            undefined,
-            (err) => {
-                console.error('Error loading Moon texture:', err);
-            }
-        );
+        changePlaneTexture(moonPlane, texturePath, textureLoader, renderer, true);
     }
 
     /**
@@ -291,33 +148,9 @@ export class GlobeView {
      */
     changeMarsTexture(texturePath) {
         const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        if (!marsPlane) {
-            console.error('Mars plane not found');
-            return;
-        }
-
         const renderer = this.sceneModel.getRenderer();
         const textureLoader = new THREE.TextureLoader();
-        
-        textureLoader.load(
-            texturePath,
-            (texture) => {
-                console.log('Mars texture changed to:', texturePath);
-                
-                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.generateMipmaps = false;
-                
-                marsPlane.material.map = texture;
-                marsPlane.material.emissiveMap = texture; // Update emissive map too
-                marsPlane.material.needsUpdate = true;
-            },
-            undefined,
-            (err) => {
-                console.error('Error loading Mars texture:', err);
-            }
-        );
+        changePlaneTexture(marsPlane, texturePath, textureLoader, renderer, true);
     }
 
     /**
@@ -375,57 +208,27 @@ export class GlobeView {
         const renderer = this.sceneModel.getRenderer();
         const textureLoader = new THREE.TextureLoader();
         
-        // Create Moon plane - following same pattern as globe
-        const moonGeometry = new THREE.PlaneGeometry(1.5, 1.5);
-        const moonTexture = textureLoader.load(
-            'assets/images/misc/Moon.png',
-            (texture) => {
-                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-            }
-        );
-        const moonMaterial = new THREE.MeshStandardMaterial({
-            map: moonTexture,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.75,
-            alphaTest: 0.1,
-            emissive: 0x88aaff, // Blue glow for Moon
-            emissiveIntensity: 0.3, // Subtle glow intensity
-            emissiveMap: moonTexture, // Use texture for emission pattern
-            metalness: 0.0,
-            roughness: 0.5
+        // Create Moon plane
+        const moonPlane = createCelestialPlane({
+            texturePath: 'assets/images/misc/Moon.png',
+            textureLoader,
+            renderer,
+            size: 1.5,
+            position: new THREE.Vector3(0, 0.6, 0),
+            visible: true
         });
-        const moonPlane = new THREE.Mesh(moonGeometry, moonMaterial);
-        moonPlane.position.set(0, 0.6, 0); // Above center
         this.sceneModel.setMoonPlane(moonPlane);
         scene.add(moonPlane);
         
-        // Create Mars plane - following same pattern as globe
-        const marsGeometry = new THREE.PlaneGeometry(1.5, 1.5);
-        const marsTexture = textureLoader.load(
-            'assets/images/misc/Mars.png',
-            (texture) => {
-                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-            }
-        );
-        const marsMaterial = new THREE.MeshStandardMaterial({
-            map: marsTexture,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.75,
-            alphaTest: 0.1,
-            emissive: 0x88aaff, // Blue glow for Mars
-            emissiveIntensity: 0.3, // Subtle glow intensity
-            emissiveMap: marsTexture, // Use texture for emission pattern
-            metalness: 0.0,
-            roughness: 0.5
+        // Create Mars plane
+        const marsPlane = createCelestialPlane({
+            texturePath: 'assets/images/misc/Mars.png',
+            textureLoader,
+            renderer,
+            size: 1.5,
+            position: new THREE.Vector3(0, -0.6, 0),
+            visible: true
         });
-        const marsPlane = new THREE.Mesh(marsGeometry, marsMaterial);
-        marsPlane.position.set(0, -0.6, 0); // Below center
         this.sceneModel.setMarsPlane(marsPlane);
         scene.add(marsPlane);
         
@@ -460,35 +263,21 @@ export class GlobeView {
                 return; // Skip cities without connections
             }
 
-            const position = latLonToVector3(city.lat, city.lon, 1.02);
-            
-            const markerGeometry = new THREE.SphereGeometry(0.004, 16, 16); // Much smaller
-            const markerMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffd700 // Golden color matching main routes
+            createMarkerWithPin({
+                location: city,
+                radius: 0.004,
+                color: 0xffd700,
+                pinColor: 0xffd700,
+                elevation: 1.02,
+                userData: {
+                    city: city.name,
+                    lat: city.lat,
+                    lon: city.lon,
+                    isMarker: true
+                },
+                parent: globe,
+                markersArray: markers
             });
-            
-            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-            marker.position.copy(position);
-            marker.userData = { 
-                city: city.name,
-                lat: city.lat,
-                lon: city.lon,
-                isMarker: true
-            };
-            
-            globe.add(marker);
-            markers.push(marker);
-
-            // Add pin line
-            const linePoints = [
-                latLonToVector3(city.lat, city.lon, 1.0),
-                position
-            ];
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 }); // Golden color
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            line.userData.isMarkerPin = true;
-            globe.add(line);
         });
     }
 
@@ -571,45 +360,23 @@ export class GlobeView {
         });
 
         seaports.forEach(seaport => {
-            const position = latLonToVector3(seaport.lat, seaport.lon, 1.02);
-            
-            // Determine color: red if has connections, green if no connections
             const hasConnections = portsWithConnections.has(seaport.name);
             const markerColor = hasConnections ? 0xff0000 : 0x00ff00; // Red or green
-            const pinColor = hasConnections ? 0xff0000 : 0x00ff00; // Red or green
             
-            const markerGeometry = new THREE.SphereGeometry(0.010, 16, 16);
-            const markerMaterial = new THREE.MeshBasicMaterial({
-                color: markerColor
+            createMarkerWithPin({
+                location: seaport,
+                radius: 0.010,
+                color: markerColor,
+                pinColor: markerColor,
+                elevation: 1.02,
+                userData: {
+                    isSeaportMarker: true,
+                    seaportName: seaport.name
+                },
+                parent: globe,
+                markersArray: this.sceneModel.getMarkers(),
+                visible: false // Hide port markers (debug only)
             });
-            
-            const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-            marker.position.copy(position);
-            
-            // Add pin line for seaport markers
-            const pinLineStart = latLonToVector3(seaport.lat, seaport.lon, 1.0);
-            const pinLineEnd = position;
-            const pinLineGeometry = new THREE.BufferGeometry().setFromPoints([pinLineStart, pinLineEnd]);
-            const pinLineMaterial = new THREE.LineBasicMaterial({ 
-                color: pinColor,
-                transparent: true,
-                opacity: 0.7
-            });
-            const pinLine = new THREE.Line(pinLineGeometry, pinLineMaterial);
-            
-            marker.userData = {
-                isSeaportMarker: true,
-                seaportName: seaport.name
-            };
-            
-            marker.visible = false; // Hide port markers (debug only)
-            pinLine.visible = false; // Hide port marker pins (debug only)
-            
-            globe.add(marker);
-            globe.add(pinLine);
-            
-            const markers = this.sceneModel.getMarkers();
-            markers.push(marker);
         });
     }
 
@@ -631,12 +398,7 @@ export class GlobeView {
                 return;
             }
             
-            const curvePoints = createArcBetweenPoints(
-                fromCity.lat, fromCity.lon,
-                toCity.lat, toCity.lon,
-                1.02, 50, true  // Changed from 1.03 to 1.02 to start from marker position
-            );
-            
+            const curvePoints = createArcBetweenPoints(fromCity.lat, fromCity.lon, toCity.lat, toCity.lon, 1.02, 50, true);
             const curve = new THREE.CatmullRomCurve3(curvePoints);
             
             if (onRouteCurveCreated) {
@@ -655,70 +417,12 @@ export class GlobeView {
                 transparent: true,
                 opacity: 0.95
             });
-            
             const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
             tube.userData.isConnectionLine = true;
             globe.add(tube);
             
             // Create gradient glow
-            const glowSegments = 50;
-            for (let layer = 0; layer < 2; layer++) {
-                const radiusMultiplier = 1 + layer * 0.8;
-                const baseRadius = 0.002 * radiusMultiplier;
-                
-                const points = curve.getPoints(glowSegments);
-                const radialSegments = 8;
-                const radiusArray = [];
-                
-                for (let i = 0; i <= glowSegments; i++) {
-                    const t = i / glowSegments;
-                    const fadeFactor = Math.sin(t * Math.PI);
-                    radiusArray.push(baseRadius * fadeFactor);
-                }
-                
-                const glowPath = new THREE.CatmullRomCurve3(points);
-                const glowGeometry = new THREE.TubeGeometry(
-                    glowPath, 
-                    glowSegments, 
-                    baseRadius, 
-                    radialSegments, 
-                    false
-                );
-                
-                const positionAttr = glowGeometry.attributes.position;
-                for (let i = 0; i < positionAttr.count; i++) {
-                    const segmentIndex = Math.floor(i / (radialSegments + 1));
-                    if (segmentIndex < radiusArray.length) {
-                        const scaleFactor = radiusArray[segmentIndex] / baseRadius;
-                        const x = positionAttr.getX(i);
-                        const y = positionAttr.getY(i);
-                        const z = positionAttr.getZ(i);
-                        
-                        const centerPoint = points[segmentIndex];
-                        const dx = x - centerPoint.x;
-                        const dy = y - centerPoint.y;
-                        const dz = z - centerPoint.z;
-                        
-                        positionAttr.setXYZ(
-                            i,
-                            centerPoint.x + dx * scaleFactor,
-                            centerPoint.y + dy * scaleFactor,
-                            centerPoint.z + dz * scaleFactor
-                        );
-                    }
-                }
-                positionAttr.needsUpdate = true;
-                
-                const glowMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xffcc00,
-                    transparent: true,
-                    opacity: 0.3 / (layer + 1)
-                });
-                
-                const glowTube = new THREE.Mesh(glowGeometry, glowMaterial);
-                glowTube.userData.isConnectionLine = true;
-                globe.add(glowTube);
-            }
+            createConnectionGlow(curve, globe, 0.002, 50, 2);
         });
     }
 
@@ -739,25 +443,20 @@ export class GlobeView {
                 return;
             }
             
-            const curvePoints = createArcBetweenPoints(
-                fromCity.lat, fromCity.lon,
-                toCity.lat, toCity.lon,
-                1.02, 50, false
-            );
-            
-            const curve = new THREE.CatmullRomCurve3(curvePoints);
-            
-            // White line for secondary connections
-            const tubeGeometry = new THREE.TubeGeometry(curve, 50, 0.0015, 8, false);
-            const tubeMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.7
+            createConnectionLine({
+                fromLocation: { lat: fromCity.lat, lon: fromCity.lon, from: connection.from },
+                toLocation: { lat: toCity.lat, lon: toCity.lon, to: connection.to },
+                radius: 1.02,
+                segments: 50,
+                useArc: false,
+                parent: globe,
+                lineConfig: {
+                    radius: 0.0015,
+                    color: 0xffffff,
+                    opacity: 0.7,
+                    userDataKey: 'isSecondaryLine'
+                }
             });
-            
-            const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
-            tube.userData.isSecondaryLine = true;
-            globe.add(tube);
         });
     }
 
@@ -783,34 +482,23 @@ export class GlobeView {
             const forceLongWay = (connection.from === 'Mumbai' && connection.to === 'Anchorage') ||
                                  (connection.from === 'Anchorage' && connection.to === 'Mumbai');
             
-            const curvePoints = createArcBetweenPoints(
-                fromPort.lat, fromPort.lon,
-                toPort.lat, toPort.lon,
-                1.0, 50, false, forceLongWay
-            );
-            
-            const curve = new THREE.CatmullRomCurve3(curvePoints);
-            
-            if (onBoatRouteCurveCreated) {
-                onBoatRouteCurveCreated({
-                    curve: curve,
-                    from: connection.from,
-                    to: connection.to
-                });
-            }
-            
-            // Red line for seaport connections
-            const tubeGeometry = new THREE.TubeGeometry(curve, 50, 0.002, 8, false);
-            const tubeMaterial = new THREE.MeshBasicMaterial({
-                color: 0xff0000,
-                transparent: true,
-                opacity: 0.8
+            createConnectionLine({
+                fromLocation: { lat: fromPort.lat, lon: fromPort.lon, from: connection.from },
+                toLocation: { lat: toPort.lat, lon: toPort.lon, to: connection.to },
+                radius: 1.0,
+                segments: 50,
+                useArc: false,
+                forceLongWay,
+                parent: globe,
+                onCurveCreated: onBoatRouteCurveCreated,
+                lineConfig: {
+                    radius: 0.002,
+                    color: 0xff0000,
+                    opacity: 0.8,
+                    userDataKey: 'isSeaportConnectionLine',
+                    visible: false // Hide seaport connection lines
+                }
             });
-            
-            const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
-            tube.userData.isSeaportConnectionLine = true;
-            tube.visible = false; // Hide seaport connection lines
-            globe.add(tube);
         });
     }
 

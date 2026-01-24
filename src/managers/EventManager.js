@@ -8,81 +8,70 @@
  */
 class EventManager {
     constructor() {
-        // Reference to EventDataService for data operations
-        this.dataService = window.EventDataService || null;
+        // Initialize all services using helper (use global fallback for script tag loading)
+        const initializeAllServices = window.EventManagerServiceHelpers?.initializeAllServices || 
+            (() => {
+                // Fallback if helper not available
+                const dataService = window.EventDataService || null;
+                return {
+                    dataService,
+                    renderService: window.EventRenderService || null,
+                    locationService: window.LocationService || null,
+                    editService: window.EventEditService || null,
+                    formService: window.EventFormService || null,
+                    dragDropService: window.EventDragDropService || null,
+                    listenerService: window.EventListenerService || null,
+                    interactionService: window.EventInteractionService || null,
+                    initService: window.EventInitService || null,
+                    cityLookupService: window.CityLookupService || null,
+                    imagePathService: window.ImagePathService || null,
+                    globeSyncService: window.GlobeSyncService || null,
+                    modalSaveService: window.ModalSaveService ? new window.ModalSaveService() : null
+                };
+            });
         
-        // Reference to EventRenderService for rendering operations
-        this.renderService = window.EventRenderService || null;
-        if (this.renderService) {
-            this.renderService.setEventManager(this);
+        const services = initializeAllServices(this);
+        
+        // Set up services that need configuration
+        if (services.renderService) {
+            services.renderService.setEventManager(this);
+        }
+        if (services.locationService) {
+            services.locationService.setDataService(services.dataService);
+            services.locationService.setEventManager(this);
+        }
+        if (services.editService) {
+            services.editService.setEventManager(this);
+        }
+        if (services.formService) {
+            services.formService.setEventManager(this);
+        }
+        if (services.dragDropService) {
+            services.dragDropService.setEventManager(this);
+        }
+        if (services.listenerService) {
+            services.listenerService.setEventManager(this);
+        }
+        if (services.interactionService) {
+            services.interactionService.setEventManager(this);
+        }
+        if (services.initService) {
+            services.initService.setEventManager(this);
+        }
+        if (services.cityLookupService) {
+            services.cityLookupService.setEventManager(this);
+        }
+        if (services.imagePathService) {
+            services.imagePathService.setEventManager(this);
+        }
+        if (services.globeSyncService) {
+            services.globeSyncService.setEventManager(this);
+        }
+        if (services.modalSaveService) {
+            services.modalSaveService.setEventManager(this);
         }
         
-        // Reference to LocationService for location operations
-        this.locationService = window.LocationService || null;
-        if (this.locationService) {
-            this.locationService.setDataService(this.dataService);
-            this.locationService.setEventManager(this);
-        }
-        
-        // Reference to EventEditService for CRUD operations
-        this.editService = window.EventEditService || null;
-        if (this.editService) {
-            this.editService.setEventManager(this);
-        }
-        
-        // Reference to EventFormService for form management
-        this.formService = window.EventFormService || null;
-        if (this.formService) {
-            this.formService.setEventManager(this);
-        }
-        
-        // Reference to EventDragDropService for drag and drop operations
-        this.dragDropService = window.EventDragDropService || null;
-        if (this.dragDropService) {
-            this.dragDropService.setEventManager(this);
-        }
-        
-        // Reference to EventListenerService for event listener setup
-        this.listenerService = window.EventListenerService || null;
-        if (this.listenerService) {
-            this.listenerService.setEventManager(this);
-        }
-        
-        // Reference to EventInteractionService for event interactions
-        this.interactionService = window.EventInteractionService || null;
-        if (this.interactionService) {
-            this.interactionService.setEventManager(this);
-        }
-        
-        // Reference to EventInitService for initialization
-        this.initService = window.EventInitService || null;
-        if (this.initService) {
-            this.initService.setEventManager(this);
-        }
-        
-        // Reference to CityLookupService for city lookup
-        this.cityLookupService = window.CityLookupService || null;
-        if (this.cityLookupService) {
-            this.cityLookupService.setEventManager(this);
-        }
-        
-        // Reference to ImagePathService for image path resolution
-        this.imagePathService = window.ImagePathService || null;
-        if (this.imagePathService) {
-            this.imagePathService.setEventManager(this);
-        }
-        
-        // Reference to GlobeSyncService for globe synchronization
-        this.globeSyncService = window.GlobeSyncService || null;
-        if (this.globeSyncService) {
-            this.globeSyncService.setEventManager(this);
-        }
-        
-        // Reference to ModalSaveService for modal save operations
-        this.modalSaveService = window.ModalSaveService ? new window.ModalSaveService() : null;
-        if (this.modalSaveService) {
-            this.modalSaveService.setEventManager(this);
-        }
+        Object.assign(this, services);
         
         // UI state
         this.draggedElement = null;
@@ -242,17 +231,21 @@ class EventManager {
         // Re-render to update visual indicators
         this.renderEvents();
         
-        // Show success message
-        const saveBtn = document.getElementById('saveEventsBtn');
-        if (saveBtn) {
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = '✓ Saved!';
-            saveBtn.style.background = 'rgba(76, 175, 80, 0.8)';
-            setTimeout(() => {
-                saveBtn.textContent = originalText;
-                saveBtn.style.background = '';
-            }, 2000);
-        }
+        // Show success message (use global fallback for script tag loading)
+        const showSaveSuccessFeedback = window.EventManagerUIHelpers?.showSaveSuccessFeedback || 
+            ((buttonId) => {
+                const saveBtn = document.getElementById(buttonId);
+                if (saveBtn) {
+                    const originalText = saveBtn.textContent;
+                    saveBtn.textContent = '✓ Saved!';
+                    saveBtn.style.background = 'rgba(76, 175, 80, 0.8)';
+                    setTimeout(() => {
+                        saveBtn.textContent = originalText;
+                        saveBtn.style.background = '';
+                    }, 2000);
+                }
+            });
+        showSaveSuccessFeedback('saveEventsBtn');
         
         // Refresh event markers on globe
         this.refreshGlobeEvents();
@@ -516,65 +509,77 @@ class EventManager {
             return;
         }
         
-        const modal = document.getElementById('eventEditModal');
-        const modalTitle = document.getElementById('eventEditModalTitle');
+        // Use global fallback for script tag loading
+        const openEditModalHelper = window.EventManagerModalHelpers?.openEditModal || 
+            (({ index, events, formService, setEditingIndex, clearEditForm, populateEditForm, heroes, factions }) => {
+                const modal = document.getElementById('eventEditModal');
+                const modalTitle = document.getElementById('eventEditModalTitle');
+                
+                if (!modal) return;
+                
+                setEditingIndex(index);
+                
+                if (index === null) {
+                    modalTitle.textContent = 'Add New Event';
+                    clearEditForm();
+                } else {
+                    modalTitle.textContent = 'Edit Event';
+                    populateEditForm(events[index]);
+                }
+                
+                modal.classList.add('open');
+                
+                if (formService) {
+                    formService.setupLocationTypeHandler();
+                }
+                
+                setTimeout(() => {
+                    const filtersInput = document.getElementById('eventEditFilters');
+                    const factionsInput = document.getElementById('eventEditFactions');
+                    
+                    if (filtersInput && heroes.length > 0 && formService) {
+                        formService.setupAutocomplete(filtersInput, heroes, 'heroes');
+                    }
+                    
+                    if (factionsInput && factions.length > 0 && formService) {
+                        const factionDisplayNames = factions.map(f => f.displayName);
+                        formService.setupAutocomplete(factionsInput, factionDisplayNames, 'factions');
+                    }
+                }, 100);
+            });
         
-        if (!modal) return;
-
-        this.editingIndex = index;
-        
-        if (index === null) {
-            // New event
-            modalTitle.textContent = 'Add New Event';
-            this.clearEditForm();
-        } else {
-            // Edit existing event
-            modalTitle.textContent = 'Edit Event';
-            this.populateEditForm(this.events[index]);
-        }
-
-        modal.classList.add('open');
-        
-        // Setup location type change handler
-        if (this.formService) {
-            this.formService.setupLocationTypeHandler();
-        }
-        
-        // Keep event manager panel open when opening edit modal
-        // Don't close the events panel
-        
-        // Setup autocomplete after modal is open (for both heroes and factions)
-        setTimeout(() => {
-            const filtersInput = document.getElementById('eventEditFilters');
-            const factionsInput = document.getElementById('eventEditFactions');
-            
-            if (filtersInput && this.heroes.length > 0 && this.formService) {
-                this.formService.setupAutocomplete(filtersInput, this.heroes, 'heroes');
-            }
-            
-            if (factionsInput && this.factions.length > 0 && this.formService) {
-                // Create array of display names for autocomplete
-                const factionDisplayNames = this.factions.map(f => f.displayName);
-                this.formService.setupAutocomplete(factionsInput, factionDisplayNames, 'factions');
-            }
-        }, 100);
+        openEditModalHelper({
+            index,
+            events: this.events,
+            formService: this.formService,
+            setEditingIndex: (idx) => { this.editingIndex = idx; },
+            clearEditForm: () => { this.clearEditForm(); },
+            populateEditForm: (event) => { this.populateEditForm(event); },
+            heroes: this.heroes,
+            factions: this.factions
+        });
     }
 
     /**
      * Close edit modal
      */
     closeEditModal() {
-        const modal = document.getElementById('eventEditModal');
-        if (modal) {
-            modal.classList.remove('open');
-        }
-        this.editingIndex = null;
+        // Use global fallback for script tag loading
+        const closeEditModalHelper = window.EventManagerModalHelpers?.closeEditModal || 
+            ((setEditingIndex) => {
+                const modal = document.getElementById('eventEditModal');
+                if (modal) {
+                    modal.classList.remove('open');
+                }
+                setEditingIndex(null);
+                
+                const filtersInput = document.getElementById('eventEditFilters');
+                if (filtersInput) {
+                    filtersInput.dataset.autocompleteSetup = 'false';
+                }
+            });
         
-        // Reset autocomplete setup flags
-        const filtersInput = document.getElementById('eventEditFilters');
-        if (filtersInput) {
-            filtersInput.dataset.autocompleteSetup = 'false';
-        }
+        closeEditModalHelper((idx) => { this.editingIndex = idx; });
     }
 
 

@@ -20,6 +20,7 @@ import { createExitButton } from './helpers/ControlsHelpers.js';
 import { initializeMusicManager, createBackgroundMusicElement } from './helpers/MusicHelpers.js';
 import { clearEventManager, removeAllEventMarkers } from './helpers/EventCleanupHelpers.js';
 import { removeElementById, removeElementBySelector, removeElementsByIds } from './helpers/ComponentUnloadHelpers.js';
+import { setupEventUIComponents, loadEventSoundEffects, initializeFilterPanel, setupEventListenersDelayed } from './helpers/EventsLoadHelpers.js';
 
 // Track which components are loaded
 const loadedComponents = {
@@ -443,67 +444,17 @@ async function loadEvents() {
         // Sync events with globe and add markers (first sync)
         syncEventsWithGlobe(window.globeController, window.eventManager);
         
-        // Add filter button
-        createGlobeControlButton({
-            id: 'filtersToggle',
-            className: 'filters-btn top-left-btn',
-            title: 'Open Filters',
-            iconPath: 'assets/images/icons/Filter Icon.png',
-            iconAlt: 'Filters'
-        });
+        // Setup all event UI components using helper
+        setupEventUIComponents({ updateStatus });
         
-        // Add event manager button
-        createGlobeControlButton({
-            id: 'eventsManageToggle',
-            className: 'events-manage-btn top-left-btn',
-            title: 'Manage Events',
-            iconPath: 'assets/images/icons/Event Manager Icon.png',
-            iconAlt: 'Event Manager'
-        });
+        // Load all event-related sound effects using helper
+        loadEventSoundEffects();
         
-        // Add event pagination
-        getOrCreateElement('eventPagination', () => {
-            updateStatus('Adding event pagination...', 'info');
-            return createEventPagination();
-        }, 'Event pagination');
+        // Initialize filter panel functionality using helper
+        initializeFilterPanel(updateStatus);
         
-        // Add filters panel
-        getOrCreateElement('filtersPanel', () => {
-            updateStatus('Adding filters panel...', 'info');
-            return createFiltersPanel();
-        }, 'Filters panel');
-        
-        // Verify other panels exist
-        verifyEventPanels();
-        
-        // Load all event-related sound effects
-        loadSoundEffects([
-            { name: 'filterPick', path: 'assets/audio/sfx/Filter Pick.mp3' },
-            { name: 'filterOff', path: 'assets/audio/sfx/Filter Off.mp3' },
-            { name: 'filterConfirm', path: 'assets/audio/sfx/Filter Confirm.mp3' },
-            { name: 'filterClear', path: 'assets/audio/sfx/Filter Clear.mp3' },
-            { name: 'filterButton', path: 'assets/audio/sfx/Filter Button.mp3' },
-            { name: 'eventClick', path: 'assets/audio/sfx/Event Click.mp3' },
-            { name: 'eventManager', path: 'assets/audio/sfx/Event Manager.mp3' },
-            { name: 'switchEvent', path: 'assets/audio/sfx/Switch Event.mp3' },
-            { name: 'page', path: 'assets/audio/sfx/Page.mp3' }
-        ], 'Loading event sound effects...');
-        
-        // Initialize filter panel functionality
-        updateStatus('Initializing filter panel...', 'info');
-        if (window.FilterService && typeof window.FilterService.init === 'function') {
-            window.FilterService.init();
-            updateStatus('✓ Filter panel initialized', 'success');
-        } else {
-            updateStatus('⚠ FilterService not found - filter panel may not work', 'error');
-        }
-        
-        // Setup event listeners AFTER all buttons and panels are created
-        if (window.eventManager) {
-            setTimeout(() => {
-                setupEventManagerListeners(window.eventManager);
-            }, 50);
-        }
+        // Setup event listeners AFTER all buttons and panels are created using helper
+        setupEventListenersDelayed(window.eventManager, setupEventManagerListeners);
         
         // Final sync with globe (after all UI is set up)
         syncEventsWithGlobe(window.globeController, window.eventManager);
