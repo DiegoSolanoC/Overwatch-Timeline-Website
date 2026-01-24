@@ -565,7 +565,6 @@ export class EventNavigationManager {
                     if (isLocked) {
                         btn.disabled = true;
                         btn.classList.add('locked');
-                        console.log(`[EventNavigationManager] Disabled button ${position} for locked event: ${targetEvent.name}`);
                     } else {
                         btn.disabled = false;
                         btn.classList.remove('locked');

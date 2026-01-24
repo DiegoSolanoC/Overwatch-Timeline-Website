@@ -491,7 +491,7 @@ class FilterService {
                     const globeController = typeof window !== 'undefined' ? window.globeController : null;
                     if (sceneModel && globeController?.globeView) {
                         sceneModel.activeFilters.clear();
-                        globeController.globeView.unlockAllEvents();
+                        globeController.globeView.applyFilters(); /* runs unlockAllEvents + updateNumberButtons */
                     }
                 });
             }

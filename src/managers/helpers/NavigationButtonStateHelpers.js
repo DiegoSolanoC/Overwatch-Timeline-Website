@@ -10,7 +10,9 @@
 export function resetButtonStyles(btn) {
     btn.style.display = 'flex';
     btn.disabled = false;
+    btn.removeAttribute('disabled');  // ensure attribute is gone (can persist after .disabled=true)
     btn.classList.remove('locked');
+    btn.style.pointerEvents = 'auto'; // re-enable events after .locked/:disabled (CSS uses pointer-events: none)
     // Only remove specific style properties we might have set, keep display
     btn.style.opacity = '';
     btn.style.filter = '';

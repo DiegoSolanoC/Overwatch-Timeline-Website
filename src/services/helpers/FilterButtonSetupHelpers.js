@@ -75,12 +75,12 @@ export function setupClearButton(clearFiltersBtn, soundManager, stateManager, up
         stateManager.clear();
         updateButtonStates();
         
-        // Clear filters and unlock all events
+        // Clear filters, unlock all events, and refresh number buttons immediately
         const sceneModel = getSceneModel();
         const globeController = typeof window !== 'undefined' ? window.globeController : null;
         if (sceneModel && globeController?.globeView) {
             sceneModel.activeFilters.clear();
-            globeController.globeView.unlockAllEvents();
+            globeController.globeView.applyFilters(); /* runs unlockAllEvents + updateNumberButtons */
         }
         
         // Refresh current view

@@ -1,4 +1,4 @@
-"C:\Users\diego\OneDrive\Escritorio\Overwatch-Timeline-Website - Copy"/**
+/**
  * EventMarkerManager - Handles event marker creation, removal, filtering, and locking
  * Extracted from GlobeView.js to improve maintainability
  */
@@ -218,9 +218,15 @@ export class EventMarkerManager {
         
         if (!globe) return;
         
-        // If no filters active, unlock all
+        // If no filters active, unlock all and refresh number button states
         if (activeFilters.size === 0) {
             this.unlockAllEvents();
+            setTimeout(() => {
+                if (window.globeController?.uiView?.updateNumberButtons &&
+                    typeof window.globeController.uiView.updateNumberButtons === 'function') {
+                    window.globeController.uiView.updateNumberButtons();
+                }
+            }, 50);
             return;
         }
         
@@ -256,7 +262,6 @@ export class EventMarkerManager {
                 // Call updateNumberButtons if it exists (stored from setupEventNumberButtons)
                 if (window.globeController.uiView.updateNumberButtons && 
                     typeof window.globeController.uiView.updateNumberButtons === 'function') {
-                    console.log('[EventMarkerManager] Calling updateNumberButtons after applyFilters');
                     window.globeController.uiView.updateNumberButtons();
                 } else {
                     console.warn('[EventMarkerManager] updateNumberButtons function not found!');

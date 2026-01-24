@@ -14,6 +14,8 @@ export function cloneButton(button) {
     }
     const clone = button.cloneNode(true);
     button.parentNode.replaceChild(clone, button);
+    // Elements without id: getElementById('') is unreliable; return the clone we just inserted
+    if (!button.id) return clone;
     return document.getElementById(button.id) || clone;
 }
 

@@ -1,0 +1,306 @@
+/**
+ * Events Manage panel – panel, list, pagination.
+ * Split from mobile.css per deslop. panels/events-manage.css and
+ * event-pagination.css also define overlapping rules; load order applies.
+ */
+
+/* Event Management Panel */
+.events-manage-panel {
+    position: fixed;
+    right: -900px;
+    top: 60px;
+    bottom: 52px;
+    width: 900px;
+    background: #0a1929;
+    box-shadow: none !important;
+    transition: right 0.3s ease;
+    z-index: 200;
+    overflow-y: auto;
+    color: white;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .events-manage-panel {
+        right: -100% !important;
+    }
+}
+
+.events-manage-panel.open {
+    right: 0;
+}
+
+.events-manage-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 48px;
+    cursor: pointer;
+    color: #fff;
+    line-height: 1;
+    z-index: 201;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.events-manage-close:hover {
+    color: #2196F3;
+}
+
+body.color-palette-gray .events-manage-panel {
+    background: #1a1a1a !important;
+}
+
+body.color-palette-gray .events-manage-close:hover {
+    color: #ff6600;
+}
+
+.events-manage-content {
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.events-manage-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    padding-right: 80px;
+    border-bottom: 2px solid rgba(33, 150, 243, 0.3);
+}
+
+body.color-palette-gray .events-manage-header {
+    border-bottom: 2px solid rgba(255, 102, 0, 0.3);
+}
+
+.events-manage-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+}
+
+.events-manage-title {
+    color: #2196F3;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+body.color-palette-gray .events-manage-title {
+    color: #ff6600;
+}
+
+.events-manage-count {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.events-manage-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.events-manage-action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.events-manage-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.events-manage-action-btn.save-btn {
+    background: rgba(76, 175, 80, 0.3);
+    border-color: rgba(76, 175, 80, 0.6);
+}
+
+.events-manage-action-btn.save-btn:hover {
+    background: rgba(76, 175, 80, 0.5);
+}
+
+.events-manage-action-btn.export-btn {
+    background: rgba(33, 150, 243, 0.3);
+    border-color: rgba(33, 150, 243, 0.6);
+}
+
+.events-manage-action-btn.export-btn:hover {
+    background: rgba(33, 150, 243, 0.5);
+}
+
+.events-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+    margin-top: 15px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+    min-height: 0;
+    box-sizing: border-box;
+    align-content: start;
+    width: 100%;
+    max-width: 100%;
+}
+
+.events-list::-webkit-scrollbar {
+    width: 12px;
+}
+
+.events-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+.events-list::-webkit-scrollbar-thumb {
+    background: rgba(33, 150, 243, 0.6);
+    border-radius: 6px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.events-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(33, 150, 243, 0.8);
+}
+
+.events-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(33, 150, 243, 0.6) rgba(0, 0, 0, 0.2);
+}
+
+body.color-palette-gray .events-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 102, 0, 0.6);
+}
+
+body.color-palette-gray .events-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 102, 0, 0.8);
+}
+
+body.color-palette-gray .events-list {
+    scrollbar-color: rgba(255, 102, 0, 0.6) rgba(0, 0, 0, 0.2);
+}
+
+.events-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.events-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.events-pagination-btn {
+    background: rgba(33, 150, 243, 0.3);
+    border: 1px solid rgba(33, 150, 243, 0.6);
+    border-radius: 6px;
+    color: white;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    min-width: 40px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.events-pagination-btn:hover:not(:disabled) {
+    background: rgba(33, 150, 243, 0.5);
+    border-color: rgba(33, 150, 243, 0.9);
+}
+
+.events-pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.events-pagination-page-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 8px;
+}
+
+.events-pagination-page-selector label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    user-select: none;
+}
+
+.events-pagination-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.6);
+    border-radius: 4px;
+    color: white;
+    padding: 6px 10px;
+    font-size: 14px;
+    width: 60px;
+    text-align: center;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.events-pagination-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(33, 150, 243, 0.9);
+}
+
+.events-pagination-total {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    user-select: none;
+}
+
+body.color-palette-gray .events-pagination-btn {
+    background: rgba(255, 102, 0, 0.3);
+    border-color: rgba(255, 102, 0, 0.6);
+}
+
+body.color-palette-gray .events-pagination-btn:hover:not(:disabled) {
+    background: rgba(255, 102, 0, 0.5);
+    border-color: rgba(255, 102, 0, 0.9);
+}
+
+body.color-palette-gray .events-pagination-input {
+    border-color: rgba(255, 102, 0, 0.6);
+}
+
+body.color-palette-gray .events-pagination-input:focus {
+    border-color: rgba(255, 102, 0, 0.9);
+}
