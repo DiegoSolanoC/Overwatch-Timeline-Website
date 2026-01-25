@@ -16,11 +16,15 @@ class ModalSaveService {
      */
     setEventManager(eventManager) {
         this.eventManager = eventManager;
-        this.editService = eventManager?.editService || null;
+        this.editService = eventManager?.editService || (typeof window !== 'undefined' && window.EventEditService) || null;
         this.formService = eventManager?.formService || null;
         // Get SourceFieldManager from formService
         if (this.formService && this.formService.sourceFieldManager) {
             this.sourceFieldManager = this.formService.sourceFieldManager;
+        }
+        // Ensure EventEditService has EventManager when using the global instance
+        if (this.editService && this.eventManager && typeof this.editService.setEventManager === 'function') {
+            this.editService.setEventManager(this.eventManager);
         }
     }
 
@@ -142,7 +146,13 @@ class ModalSaveService {
             console.log('Event saving is disabled on GitHub Pages');
             return { success: false, error: 'Saving is disabled on GitHub Pages' };
         }
-        
+
+        // Fallback: use global EventEditService if not injected via EventManager
+        if (!this.editService && this.eventManager && typeof window !== 'undefined' && window.EventEditService) {
+            window.EventEditService.setEventManager(this.eventManager);
+            this.editService = window.EventEditService;
+        }
+
         if (!this.editService) {
             console.error('ModalSaveService: EventEditService not available!');
             return { success: false, error: 'EventEditService not available' };

@@ -123,11 +123,6 @@ export class EventMarkerManager {
         const eventMarkers = collectEventMarkers(this.sceneModel);
         const pinLines = collectEventMarkerPins(this.sceneModel);
         
-        // If no markers to remove, return immediately
-        if (eventMarkers.length === 0 && pinLines.length === 0) {
-            return Promise.resolve();
-        }
-        
         const markers = this.sceneModel.getMarkers();
         
         // Helper to remove a marker and its pin line
@@ -152,32 +147,41 @@ export class EventMarkerManager {
             }
         };
         
-        // If animating, shrink markers before removing
-        if (animate && eventMarkers.length > 0) {
-            return animateMarkersShrink(eventMarkers, pinLines).then(() => {
-                // Animation complete, now remove everything
-                eventMarkers.forEach(removeMarker);
-                
-                // Remove any remaining pin lines
-                pinLines.forEach(line => {
-                    if (line.parent) {
-                        line.parent.remove(line);
-                    }
-                });
-            });
-        } else {
-            // Remove immediately without animation
+        // Remove any orphaned event-marker pin lines (e.g. from city/seaport-style pins at same location, or missed teardown). Only lines with isEventMarkerPin are from events; isMarkerPin are city/seaport and are not removed here.
+        const removeOrphanedEventPins = (parent) => {
+            if (!parent || !parent.children) return;
+            const toRemove = [];
+            for (let i = 0; i < parent.children.length; i++) {
+                const c = parent.children[i];
+                if (c.userData && c.userData.isEventMarkerPin) toRemove.push(c);
+            }
+            toRemove.forEach(c => { if (c.parent) c.parent.remove(c); });
+        };
+        
+        const doRemove = () => {
             eventMarkers.forEach(removeMarker);
-            
-            // Remove any remaining pin lines
             pinLines.forEach(line => {
-                if (line.parent) {
-                    line.parent.remove(line);
-                }
+                if (line.parent) line.parent.remove(line);
             });
-            
+            removeOrphanedEventPins(globe);
+            const moon = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
+            const mars = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
+            if (moon) removeOrphanedEventPins(moon);
+            if (mars) removeOrphanedEventPins(mars);
+        };
+        
+        // If no markers to remove, still run orphan cleanup then return
+        if (eventMarkers.length === 0 && pinLines.length === 0) {
+            doRemove();
             return Promise.resolve();
         }
+        
+        // If animating, shrink markers before removing
+        if (animate && eventMarkers.length > 0) {
+            return animateMarkersShrink(eventMarkers, pinLines).then(doRemove);
+        }
+        doRemove();
+        return Promise.resolve();
     }
 
     /**

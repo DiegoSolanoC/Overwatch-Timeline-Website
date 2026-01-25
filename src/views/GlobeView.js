@@ -276,7 +276,8 @@ export class GlobeView {
                     isMarker: true
                 },
                 parent: globe,
-                markersArray: markers
+                markersArray: markers,
+                pinVisible: false  // Only event pins show; avoids loose pins at cities that also have events (e.g. Honolulu, The Hague)
             });
         });
     }
@@ -375,7 +376,8 @@ export class GlobeView {
                 },
                 parent: globe,
                 markersArray: this.sceneModel.getMarkers(),
-                visible: false // Hide port markers (debug only)
+                visible: false,  // Hide port markers (debug only)
+                pinVisible: false  // No loose seaport pins
             });
         });
     }
