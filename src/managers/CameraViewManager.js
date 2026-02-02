@@ -82,6 +82,48 @@ export class CameraViewManager {
     }
     
     /**
+     * Reset zoom and camera centering to default (camera at default distance, globe rotation 0,0,0).
+     */
+    resetToDefault() {
+        const camera = this.sceneModel.getCamera();
+        const globe = this.sceneModel.getGlobe();
+        if (!camera || !globe) return;
+
+        this.uiView.originalCameraPosition = null;
+        this.uiView.originalGlobeRotation = null;
+
+        const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+        const defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+        const targetPosition = new THREE.Vector3(0, 0, defaultZoom);
+        const startPosition = camera.position.clone();
+        const startRotation = { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z };
+        const duration = 1000;
+        const startTime = Date.now();
+
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+            const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
+            camera.position.copy(currentPosition);
+            globe.rotation.x = startRotation.x + (0 - startRotation.x) * easeProgress;
+            globe.rotation.y = startRotation.y + (0 - startRotation.y) * easeProgress;
+            globe.rotation.z = startRotation.z + (0 - startRotation.z) * easeProgress;
+            camera.lookAt(0, 0, 0);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                if (window.globeController && window.globeController.interactionController) {
+                    window.globeController.interactionController.restorePlanesVisibility();
+                }
+            }
+        };
+        animate();
+    }
+
+    /**
      * Animate camera to a specific position
      */
     animateCameraToPosition(camera, targetPosition, globe) {

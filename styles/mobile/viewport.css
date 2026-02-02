@@ -34,13 +34,18 @@
         font-size: 12px !important;
     }
 
-    /* Rotation and Transport buttons - positioned below event manager and filter buttons on mobile */
+    /* Left-side spacing: match right-side gap (10px between buttons, same as music/palette) */
+    .filters-btn {
+        left: 90px !important; /* 20 + 60 (button width) + 10 (gap) */
+    }
+
+    /* Rotation and Transport buttons - below event manager/filter row, same 10px gap */
     #autoRotateToggle {
         top: 80px !important; /* Below event manager (20px top + 50px height + 10px gap = 80px) */
     }
-
     .hyperloop-btn {
-        top: 80px !important; /* Below filter button, same row as rotation */
+        top: 80px !important;
+        left: 90px !important; /* 20 + 60 + 10, match filters column */
     }
 
     .bottom-right-btn {
@@ -49,13 +54,32 @@
         font-size: 12px !important;
     }
 
+    /* Music and Color Palette – below exit button on mobile (exit is top: 20px, height 50px → start at 80px) */
+    .music-btn.bottom-right-btn,
+    .color-palette-btn.bottom-right-btn {
+        bottom: auto !important;
+        top: 80px !important;
+        right: 20px !important;
+    }
+    .music-btn.bottom-right-btn {
+        right: 90px !important; /* Next to palette (60px width + 10px gap) */
+    }
+    .color-palette-btn.bottom-right-btn {
+        right: 20px !important; /* Rightmost, aligned with exit */
+    }
+
     .palette-option-btn {
         width: 38px !important;
         height: 38px !important;
     }
 
     .palette-menu {
-        bottom: 130px !important;
+        top: 200px !important; /* Below palette button (80 + 50 + 20px gap so circles don’t overlap) */
+        bottom: auto !important;
+        transform: translateY(-20px) !important; /* Start above; will slide down when open */
+    }
+    .palette-menu.open {
+        transform: translateY(0) !important; /* Slide down into place */
     }
 
     /* Panels: full width, slide in/out from right */
@@ -286,9 +310,10 @@
     .event-pagination {
         top: 70px !important;
         bottom: auto !important;
-        left: auto !important;
-        right: 20px !important;
-        transform: none !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        align-items: center;
     }
 
     .page-controls-row {

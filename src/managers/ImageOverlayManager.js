@@ -217,6 +217,7 @@ export class ImageOverlayManager {
         const hyperloopToggle = document.getElementById('hyperloopToggle');
         const autoRotateToggle = document.getElementById('autoRotateToggle');
         const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomResetBtn = document.getElementById('zoomResetBtn');
         const zoomOutBtn = document.getElementById('zoomOutBtn');
         
         setButtonState(musicToggle, disable);
@@ -227,6 +228,7 @@ export class ImageOverlayManager {
         setButtonState(hyperloopToggle, disable);
         setButtonState(autoRotateToggle, disable);
         setButtonState(zoomInBtn, disable);
+        setButtonState(zoomResetBtn, disable);
         setButtonState(zoomOutBtn, disable);
     }
     

@@ -140,6 +140,7 @@ window.addEventListener('DOMContentLoaded', function () {
 // Zoom controls setup (shared between main/index pages)
 function setupZoomControls() {
     const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
     const zoomOutBtn = document.getElementById('zoomOutBtn');
     const zoomControls = document.getElementById('zoomControls');
 
@@ -152,6 +153,17 @@ function setupZoomControls() {
                 window.globeController.interactionController.zoomIn();
             }
         });
+
+        if (zoomResetBtn) {
+            zoomResetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (window.globeController && window.globeController.interactionController) {
+                    window.globeController.interactionController.resetToDefault();
+                }
+            });
+        }
 
         zoomOutBtn.addEventListener('click', (e) => {
             e.preventDefault();

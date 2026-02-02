@@ -147,7 +147,7 @@ export function createEventPagination() {
         </div>
     `;
     
-    // Apply mobile positioning
+    // Apply mobile positioning (centered, same as desktop)
     const applyMobilePaginationPosition = () => {
         if (window.innerWidth <= 768) {
             pagination.style.setProperty('position', 'fixed', 'important');

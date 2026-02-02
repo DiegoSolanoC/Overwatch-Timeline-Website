@@ -241,6 +241,13 @@ export class UIView {
     zoomOutFromEvent() {
         this.cameraViewManager.zoomOutFromEvent();
     }
+
+    /**
+     * Reset zoom and camera to default view
+     */
+    resetToDefault() {
+        this.cameraViewManager.resetToDefault();
+    }
     
     /**
      * Animate camera to a specific position

@@ -216,6 +216,13 @@ export class InteractionController {
     }
 
     /**
+     * Reset zoom and camera to default view
+     */
+    resetToDefault() {
+        this.uiView.resetToDefault();
+    }
+
+    /**
      * Handle window resize
      */
     onWindowResize() {

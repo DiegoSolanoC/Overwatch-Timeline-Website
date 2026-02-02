@@ -345,8 +345,12 @@ body.color-palette-gray .zoom-btn:hover:not(:disabled) {
     order: 1; /* + button on top */
 }
 
+.zoom-reset-btn {
+    order: 2; /* = button in middle */
+}
+
 .zoom-out-btn {
-    order: 2; /* - button on bottom */
+    order: 3; /* - button on bottom */
 }
 
 /* Hide zoom controls initially */
@@ -365,11 +369,12 @@ body.color-palette-gray .zoom-btn:hover:not(:disabled) {
     pointer-events: auto; /* Buttons are clickable */
 }
 
-/* Mobile: Make zoom controls smaller and move them up */
+/* Mobile: Match desktop vertical position (centered), smaller buttons */
 @media (max-width: 768px) and (orientation: portrait) {
     .zoom-controls {
-        top: 25% !important; /* Move up from center */
-        left: 15px !important; /* Slightly closer to edge */
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        left: 15px !important;
     }
 
     .zoom-btn {
