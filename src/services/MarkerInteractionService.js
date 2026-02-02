@@ -105,6 +105,7 @@ class MarkerInteractionService {
                 if (currentHovered && currentHovered.userData.isInteractive !== false) {
                     this.pulseService.stopEventMarkerPulse(currentHovered);
                     this.pulseService.setHoveredMarker(null);
+                    this.highlightNumberButtonForMarker(null);
                 }
                 return;
             }
@@ -116,6 +117,7 @@ class MarkerInteractionService {
                 if (currentHovered && !currentHovered.userData.isLocked) {
                     this.pulseService.stopEventMarkerPulse(currentHovered);
                     this.pulseService.setHoveredMarker(null);
+                    this.highlightNumberButtonForMarker(null);
                 }
                 return;
             }
@@ -137,6 +139,7 @@ class MarkerInteractionService {
             if (currentHovered !== hoveredMarker) {
                 this.pulseService.startEventMarkerPulse(hoveredMarker);
                 this.pulseService.setHoveredMarker(hoveredMarker);
+                this.highlightNumberButtonForMarker(hoveredMarker);
             }
         } else {
             // Not hovering any event marker - resume auto-rotate if enabled
@@ -144,6 +147,7 @@ class MarkerInteractionService {
             if (currentHovered) {
                 this.pulseService.stopEventMarkerPulse(currentHovered);
                 this.pulseService.setHoveredMarker(null);
+                this.highlightNumberButtonForMarker(null);
                 
                 // Resume auto-rotate after a shorter delay
                 if (this.sceneModel.getAutoRotateEnabled() && !this.sceneModel.eventMarker) {
@@ -152,6 +156,36 @@ class MarkerInteractionService {
                     }, 500); // 0.5 second delay - faster resume
                 }
             }
+        }
+    }
+
+    /**
+     * Highlight the number button (1-10) that corresponds to the hovered event marker.
+     * Uses same visual as button hover: scale up, brighter background/border, stronger shadow.
+     * @param {THREE.Object3D|null} marker - Hovered event marker or null to clear highlight
+     */
+    highlightNumberButtonForMarker(marker) {
+        const buttons = document.querySelectorAll('.event-number-btn');
+        buttons.forEach(btn => btn.classList.remove('number-btn-marker-hover'));
+
+        if (!marker || !marker.userData || !marker.userData.event) return;
+
+        const dataModel = window.globeController && window.globeController.dataModel;
+        if (!dataModel) return;
+
+        const currentPageEvents = dataModel.getEventsForCurrentPage();
+        const event = marker.userData.event;
+        let index = currentPageEvents.findIndex(e => e === event);
+        if (index < 0) {
+            const name = (event.name || '').trim();
+            index = currentPageEvents.findIndex(e => (e.name || '').trim() === name);
+        }
+        if (index < 0) return;
+
+        const position = index + 1; // 1-10
+        const btn = document.querySelector(`.event-number-btn[data-position="${position}"]`);
+        if (btn && !btn.disabled && !btn.classList.contains('locked')) {
+            btn.classList.add('number-btn-marker-hover');
         }
     }
 

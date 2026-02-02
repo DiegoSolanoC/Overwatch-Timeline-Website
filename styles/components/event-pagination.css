@@ -297,11 +297,14 @@ body.color-palette-gray .events-pagination-input:focus {
     opacity: 1;
 }
 
-.event-number-btn:hover:not(:disabled) {
+/* Shared hover style: number button hover and marker-hover highlight (same look) */
+.event-number-btn:hover:not(:disabled),
+.event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
     background: rgba(13, 71, 161, 1);
-    border-color: rgba(255, 255, 255, 0.6);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border-width: 3px;
+    border-color: rgba(255, 170, 0, 0.95);
+    transform: scale(1.2);
+    box-shadow: 0 0 0 2px rgba(255, 170, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 .event-number-btn:active:not(:disabled) {
@@ -326,8 +329,11 @@ body.color-palette-gray .event-number-btn {
     background: rgba(74, 74, 74, 0.9) !important;
 }
 
-body.color-palette-gray .event-number-btn:hover:not(:disabled) {
+body.color-palette-gray .event-number-btn:hover:not(:disabled),
+body.color-palette-gray .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
     background: rgba(74, 74, 74, 1) !important;
+    border-color: rgba(255, 170, 0, 0.95) !important;
+    box-shadow: 0 0 0 2px rgba(255, 170, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Disabled state for gray palette */

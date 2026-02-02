@@ -121,7 +121,7 @@ class MarkerPulseService {
         ring.userData.isPulseRing = true;
         ring.userData.startTime = Date.now();
         ring.userData.startScale = 1;
-        ring.userData.maxScale = 4; // Larger expansion
+        ring.userData.maxScale = 5.2; // ~30% more expansion than 4 (4 * 1.3)
         ring.userData.duration = 1200; // 1.2 seconds - faster wave
         ring.userData.marker = marker;
         
@@ -328,21 +328,21 @@ class MarkerPulseService {
                     marker.userData.pulseData = {
                         startTime: currentTime,
                         baseScale: 1.0,
-                        minScale: 0.85, // More exaggerated - smaller
-                        maxScale: 1.20, // More exaggerated - bigger
-                        pulseSpeed: 0.008 // Much faster pulse speed
+                        minScale: 0.85,
+                        maxScale: 1.20,
+                        pulseSpeed: 0.008
                     };
                 }
                 
                 const pulseData = marker.userData.pulseData;
                 const elapsed = (currentTime - pulseData.startTime) * pulseData.pulseSpeed;
-                
-                // Use sine wave for smooth pulsing (dilation)
                 const pulse = Math.sin(elapsed);
-                // Map from -1 to 1 range to minScale to maxScale
-                const scale = pulseData.baseScale + (pulse * (pulseData.maxScale - pulseData.baseScale) * 0.5);
+                let scale = pulseData.baseScale + (pulse * (pulseData.maxScale - pulseData.baseScale) * 0.5);
                 
-                // For Moon/Mars/Station markers on flat planes or moving objects, scale only in X and Y (flat), keep Z at 1
+                // When hovering this marker, grow ~30% more (1.0 -> 1.3)
+                const hoverScaleMultiplier = (this.hoveredEventMarker === marker) ? 1.3 : 1.0;
+                scale *= hoverScaleMultiplier;
+                
                 const locationType = marker.userData ? marker.userData.locationType : 'earth';
                 if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
                     marker.scale.set(scale, scale, 1);

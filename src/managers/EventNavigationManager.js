@@ -381,7 +381,19 @@ export class EventNavigationManager {
                 // Close current event
                 this.eventSlideManager.hideEventSlide();
 
-                // Open event manager (keep globe visible)
+                // Open event manager on the page that contains the current event
+                const currentIndex = this.getCurrentEventIndex();
+                const em = window.eventManager;
+                if (em && currentIndex >= 0 && em.events && em.events.length > 0) {
+                    const perPage = em.eventsPerPage || 50;
+                    const totalPages = Math.max(1, Math.ceil(em.events.length / perPage));
+                    const targetPage = Math.min(Math.max(1, Math.floor(currentIndex / perPage) + 1), totalPages);
+                    em.currentPage = targetPage;
+                    if (em.renderEvents) em.renderEvents();
+                    if (em.renderPaginationControls) em.renderPaginationControls();
+                }
+
+                // Open event manager panel (keep globe visible)
                 const panel = document.getElementById('eventsManagePanel');
                 const toggleBtn = document.getElementById('eventsManageToggle');
                 if (panel) {
