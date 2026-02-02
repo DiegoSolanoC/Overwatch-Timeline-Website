@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node generate-manifest.js && node server.js",
     "generate": "node generate-manifest.js",
-    "dev": "node generate-manifest.js && node server.js"
+    "dev": "node generate-manifest.js && node server.js",
+    "launch": "node generate-manifest.js && start cmd /k \"node server.js\" && timeout /t 3 /nobreak >nul && start chrome.exe http://localhost:8000"
   },
   "dependencies": {}
 }

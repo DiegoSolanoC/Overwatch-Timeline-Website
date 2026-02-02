@@ -626,6 +626,14 @@
                             <button type="button" id="removeSourcePairBtn" class="event-edit-btn" style="display: none; background: rgba(244, 67, 54, 0.8);">- Remove Source</button>
                         </div>
                     </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label>News Headlines:</label>
+                        <div id="eventHeadlinesContainer"></div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" id="addHeadlineBtn" class="event-edit-btn">+ Add Headline</button>
+                            <button type="button" id="removeHeadlineBtn" class="event-edit-btn" style="display: none; background: rgba(244, 67, 54, 0.8);">- Remove Headline</button>
+                        </div>
+                    </div>
                     <div class="event-edit-actions">
                         <button id="eventEditSave" class="event-edit-btn save-btn">Save</button>
                         <button id="eventEditCancel" class="event-edit-btn cancel-btn">Cancel</button>
@@ -636,6 +644,9 @@
     </div>
 
     <footer>
+        <div class="footer-atlas-news">
+            <img src="assets/images/misc/Atlas News.png" alt="Atlas News" />
+        </div>
         <p>&copy; Original Work by Blizzard Entertainment.</p>
     </footer>
 
@@ -661,9 +672,11 @@
     <script src="src/services/LocationService.js"></script>
     <script src="src/services/EventRenderService.js"></script>
     <script src="src/services/EventEditService.js"></script>
+    <script src="src/services/NewsTickerService.js"></script>
     <!-- EventFormService dependencies - load before EventFormService -->
     <script src="src/services/LocationFieldManager.js"></script>
     <script src="src/services/SourceFieldManager.js"></script>
+    <script src="src/services/HeadlinesFieldManager.js"></script>
     <script src="src/services/FormAutocompleteService.js"></script>
     <script src="src/services/EventFormService.js"></script>
     <!-- ModalSaveService - load before EventManager -->

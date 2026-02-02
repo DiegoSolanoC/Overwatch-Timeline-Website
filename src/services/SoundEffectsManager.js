@@ -65,7 +65,7 @@ class SoundEffectsManager {
                 audio.playbackRate = options.playbackRate;
             }
             
-            // Set volume with optional multiplier
+            // Set volume with optional multiplier (use current this.volume in case slider updated it)
             let volumeMultiplier = 1;
             if (name === 'filterConfirm') {
                 volumeMultiplier = 0.5; // Filter confirm is always at 50% of the set volume
@@ -75,13 +75,22 @@ class SoundEffectsManager {
                 volumeMultiplier = 0.4; // Page turning sound at 40% of the set volume
             }
             
-            audio.volume = this.volume * volumeMultiplier;
+            const vol = Math.max(0, Math.min(1, this.volume)) * volumeMultiplier;
+            audio.volume = vol;
             
             // Play immediately - if not ready, wait for ready state
             const playAudio = () => {
-                audio.play().catch(err => {
-                    console.warn(`Could not play sound effect "${name}":`, err);
-                });
+                const p = audio.play();
+                if (p && typeof p.catch === 'function') {
+                    p.catch(err => {
+                        // NotAllowedError often means autoplay policy (e.g. after heavy WebGL); log once
+                        if (err.name === 'NotAllowedError') {
+                            console.warn('Sound effect blocked (user gesture or autoplay policy):', name);
+                        } else {
+                            console.warn(`Could not play sound effect "${name}":`, err);
+                        }
+                    });
+                }
             };
             
             if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or higher
@@ -197,21 +206,35 @@ class SoundEffectsManager {
         const savedVolume = this.loadVolume();
         this.setVolume(savedVolume); // This will apply to all sounds
         
-        // Setup sound effects volume slider
+        // Setup sound effects volume slider (may not exist yet - music panel is created when timeline loads)
+        this.setupSoundEffectsSlider();
+    }
+    
+    /**
+     * Setup or sync the sound effects volume slider UI.
+     * Call this when the music panel is created (e.g. from MusicManager.init()) so the slider
+     * reflects the actual volume and responds to input.
+     */
+    setupSoundEffectsSlider() {
         const soundEffectsSlider = document.getElementById('soundEffectsSlider');
         const soundEffectsVolumeValue = document.getElementById('soundEffectsVolumeValue');
         
-        if (soundEffectsSlider && soundEffectsVolumeValue) {
-            // Set slider to saved volume
-            soundEffectsSlider.value = Math.round(savedVolume * 100);
-            soundEffectsVolumeValue.textContent = Math.round(savedVolume * 100) + '%';
-            
-            soundEffectsSlider.addEventListener('input', function() {
-                const volume = this.value / 100;
-                window.SoundEffectsManager.setVolume(volume);
-                soundEffectsVolumeValue.textContent = this.value + '%';
-            });
-        }
+        if (!soundEffectsSlider || !soundEffectsVolumeValue) return;
+        
+        const currentVolume = this.volume;
+        const valuePct = Math.round(currentVolume * 100);
+        soundEffectsSlider.value = valuePct;
+        soundEffectsVolumeValue.textContent = valuePct + '%';
+        
+        // Only attach listener once (use a data attribute to avoid duplicates)
+        if (soundEffectsSlider.dataset.soundEffectsBound === 'true') return;
+        soundEffectsSlider.dataset.soundEffectsBound = 'true';
+        
+        soundEffectsSlider.addEventListener('input', () => {
+            const volume = soundEffectsSlider.value / 100;
+            this.setVolume(volume);
+            soundEffectsVolumeValue.textContent = soundEffectsSlider.value + '%';
+        });
     }
 }
 

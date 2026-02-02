@@ -160,6 +160,38 @@ class ComponentRunnerService {
                 globeContainer.style.display = 'block';
                 globeContainer.classList.add('loaded');
             }
+            
+            // Change footer to white with no text when timeline is loaded
+            const footer = document.querySelector('footer');
+            if (footer) {
+                footer.classList.add('timeline-loaded');
+                
+                // Initialize news ticker when timeline loads
+                if (window.NewsTickerService && !window.newsTickerService) {
+                    window.newsTickerService = new window.NewsTickerService();
+                    window.newsTickerService.init();
+                }
+                
+                // Update ticker with headlines from current page after a short delay to ensure events are loaded
+                // Try multiple times with increasing delays to catch when events are synced
+                const updateTickerDelayed = (attempt = 0) => {
+                    if (window.globeController && window.globeController.dataModel && window.newsTickerService) {
+                        const currentPageEvents = window.globeController.dataModel.getEventsForCurrentPage();
+                        if (currentPageEvents && currentPageEvents.length > 0) {
+                            if (window.newsTickerService.updateTicker) {
+                                window.newsTickerService.updateTicker(currentPageEvents);
+                            }
+                        } else if (attempt < 5) {
+                            // Events not synced yet, try again
+                            setTimeout(() => updateTickerDelayed(attempt + 1), 200);
+                        }
+                    } else if (attempt < 5) {
+                        // Services not ready yet, try again
+                        setTimeout(() => updateTickerDelayed(attempt + 1), 200);
+                    }
+                };
+                updateTickerDelayed();
+            }
         } catch (error) {
             console.error('Error in Globe Components auto-load:', error);
             this.statusService.update(`✗ Error in Globe Components auto-load: ${error.message}`, 'error');

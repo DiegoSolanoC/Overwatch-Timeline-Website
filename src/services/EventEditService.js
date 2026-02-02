@@ -101,6 +101,7 @@ class EventEditService {
             mainFiltersStr,
             mainFactionsStr,
             mainSources,
+            mainHeadlines,
             cityDisplayName
         } = formData;
 
@@ -143,7 +144,7 @@ class EventEditService {
         
         if (isMultiEvent) {
             // Collect variants from variantData
-            const variants = variantData.map(variant => {
+            const variants = variantData.map((variant, variantIndex) => {
                 const variantData = processFiltersAndFactions(
                     (variant.filters || []).join(', '),
                     (variant.factions || []).map(f => {
@@ -153,15 +154,30 @@ class EventEditService {
                     factions
                 );
                 
+                // Preserve headlines - check if variant has headlines and they're valid
+                let headlines = undefined;
+                if (variant.headlines) {
+                    if (Array.isArray(variant.headlines) && variant.headlines.length > 0) {
+                        headlines = variant.headlines;
+                    } else if (typeof variant.headlines === 'string' && variant.headlines.trim()) {
+                        // Handle case where headlines might be a string
+                        headlines = [variant.headlines.trim()];
+                    }
+                }
+                
                 const variantObj = {
                     name: variant.name || '',
                     description: variant.description || '',
                     filters: variantData.filters,
                     factions: variantData.factions,
                     sources: variant.sources && variant.sources.length > 0 ? variant.sources : undefined,
+                    headlines: headlines,
                     image: '', // Auto-detect
                     locationType: variant.locationType || 'earth'
                 };
+                
+                // Debug logging
+                console.log(`EventEditService: Creating variant ${variantIndex} with headlines:`, variantObj.headlines, 'from variant data:', variant.headlines, 'type:', typeof variant.headlines, 'isArray:', Array.isArray(variant.headlines));
                 
                 // Include coordinates based on location type
                 if (variant.locationType === 'earth') {
@@ -220,7 +236,8 @@ class EventEditService {
                 image: '', // Auto-detect
                 filters: mainData.filters,
                 factions: mainData.factions,
-                sources: mainSources.length > 0 ? mainSources : undefined
+                sources: mainSources.length > 0 ? mainSources : undefined,
+                headlines: mainHeadlines && mainHeadlines.length > 0 ? mainHeadlines : undefined
             };
             // Add coordinates based on location type
             if (locationType === 'earth') {

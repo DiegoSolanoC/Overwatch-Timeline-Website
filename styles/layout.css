@@ -79,9 +79,104 @@ footer {
     box-shadow: none;
 }
 
+/* Atlas News image on left side of footer */
+.footer-atlas-news {
+    position: absolute;
+    left: 1rem;
+    width: var(--footer-height);
+    height: var(--footer-height);
+    background: #ff0000; /* Red square background */
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    box-sizing: border-box;
+}
+
+.footer-atlas-news img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
 footer p {
     color: white;
     margin: 0;
     font-size: 14px;
     line-height: 1.2;
+}
+
+/* Footer when global timeline is loaded - split design: 75% white (top), 25% blue/gray (bottom) */
+footer.timeline-loaded {
+    background: linear-gradient(to bottom, white 0%, white 75%, var(--bg-primary) 75%, var(--bg-primary) 100%);
+    position: relative;
+}
+
+/* Gray palette: bottom 25% should match the gray background */
+body.color-palette-gray footer.timeline-loaded {
+    background: linear-gradient(to bottom, white 0%, white 75%, var(--bg-gray-primary) 75%, var(--bg-gray-primary) 100%);
+}
+
+footer.timeline-loaded p {
+    display: none;
+}
+
+/* Show and enlarge Atlas News when timeline is loaded - bottom left, aligned with bottom of screen */
+footer.timeline-loaded .footer-atlas-news {
+    display: flex; /* Show when timeline is loaded */
+    background: #C93439; /* Red trapezoid background */
+    width: 120px; /* Reduced from 160px */
+    height: 100px; /* Reduced from 130px */
+    left: -10px; /* Moved slightly left from screen border */
+    bottom: 0; /* Align bottom with screen bottom */
+    top: auto; /* Remove top positioning */
+    z-index: 10; /* Ensure it's above footer */
+    padding: 0.5rem; /* Reduced from 0.7rem */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
+    transform: none; /* Remove centering transform */
+    /* Trapezoid shape: straight left, sloped right, top longer than bottom - extended top side to the right */
+    clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
+    /* Rounded edges on right half only (top-right and bottom-right corners) */
+    border-top-right-radius: 6px; /* Reduced from 8px */
+    border-bottom-right-radius: 6px; /* Reduced from 8px */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Mobile responsive adjustments for Atlas News */
+@media (max-width: 768px) {
+    footer.timeline-loaded .footer-atlas-news {
+        width: 100px; /* Reduced from 130px */
+        height: 85px; /* Reduced from 110px */
+        left: -8px; /* Moved slightly left from screen border */
+        bottom: 0; /* Align bottom with screen bottom */
+        top: auto; /* Remove top positioning */
+        padding: 0.4rem; /* Reduced from 0.6rem */
+        transform: none; /* Remove centering transform */
+        /* Maintain trapezoid shape with extended top side and rounded right edges */
+        clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
+        border-top-right-radius: 5px; /* Reduced from 6px */
+        border-bottom-right-radius: 5px; /* Reduced from 6px */
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    footer.timeline-loaded .footer-atlas-news {
+        width: 85px; /* Reduced from 110px */
+        height: 70px; /* Reduced from 90px */
+        left: -6px; /* Moved slightly left from screen border */
+        bottom: 0; /* Align bottom with screen bottom */
+        top: auto; /* Remove top positioning */
+        padding: 0.35rem; /* Reduced from 0.5rem */
+        transform: none; /* Remove centering transform */
+        /* Maintain trapezoid shape with extended top side and rounded right edges */
+        clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
+        border-top-right-radius: 4px; /* Reduced from 5px */
+        border-bottom-right-radius: 4px; /* Reduced from 5px */
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
 }

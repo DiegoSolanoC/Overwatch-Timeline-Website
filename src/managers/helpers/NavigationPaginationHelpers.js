@@ -6,6 +6,18 @@
 import { playNavigationSound } from './NavigationButtonHelpers.js';
 
 /**
+ * Update news ticker with headlines from globe's current page
+ */
+function updateNewsTickerFromGlobe() {
+    if (window.globeController && window.globeController.dataModel && window.newsTickerService) {
+        const currentPageEvents = window.globeController.dataModel.getEventsForCurrentPage();
+        if (window.newsTickerService.updateTicker) {
+            window.newsTickerService.updateTicker(currentPageEvents);
+        }
+    }
+}
+
+/**
  * Handles previous page button click with wrap logic
  * @param {Object} dataModel - DataModel instance
  * @param {Function} wrappedUpdatePaginationUI - Wrapped update function
@@ -28,6 +40,10 @@ export function handlePrevPageClick(dataModel, wrappedUpdatePaginationUI, onPage
     
     dataModel.setCurrentEventPage(newPage);
     wrappedUpdatePaginationUI();
+    
+    // Update news ticker with headlines from new page
+    updateNewsTickerFromGlobe();
+    
     if (onPageChange) {
         onPageChange();
     }
@@ -56,6 +72,10 @@ export function handleNextPageClick(dataModel, wrappedUpdatePaginationUI, onPage
     
     dataModel.setCurrentEventPage(newPage);
     wrappedUpdatePaginationUI();
+    
+    // Update news ticker with headlines from new page
+    updateNewsTickerFromGlobe();
+    
     if (onPageChange) {
         onPageChange();
     }
@@ -76,6 +96,10 @@ export function handlePageInputChange(inputValue, dataModel, wrappedUpdatePagina
         const oldPage = dataModel.getCurrentEventPage();
         dataModel.setCurrentEventPage(inputValue);
         wrappedUpdatePaginationUI();
+        
+        // Update news ticker with headlines from new page
+        updateNewsTickerFromGlobe();
+        
         // Only play sound if page actually changed
         if (oldPage !== inputValue) {
             playNavigationSound('page');
@@ -157,4 +181,5 @@ if (typeof window !== 'undefined') {
     window.NavigationPaginationHelpers.handleNextPageClick = handleNextPageClick;
     window.NavigationPaginationHelpers.handlePageInputChange = handlePageInputChange;
     window.NavigationPaginationHelpers.updatePaginationButtonStates = updatePaginationButtonStates;
+    window.NavigationPaginationHelpers.updateNewsTickerFromGlobe = updateNewsTickerFromGlobe;
 }

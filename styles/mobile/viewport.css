@@ -34,6 +34,15 @@
         font-size: 12px !important;
     }
 
+    /* Rotation and Transport buttons - positioned below event manager and filter buttons on mobile */
+    #autoRotateToggle {
+        top: 80px !important; /* Below event manager (20px top + 50px height + 10px gap = 80px) */
+    }
+
+    .hyperloop-btn {
+        top: 80px !important; /* Below filter button, same row as rotation */
+    }
+
     .bottom-right-btn {
         width: 60px !important;
         height: 50px !important;

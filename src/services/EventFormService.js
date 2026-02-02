@@ -8,6 +8,7 @@ class EventFormService {
         this.eventManager = null; // Reference to EventManager (for state access)
         this.locationFieldManager = new (window.LocationFieldManager || LocationFieldManager)();
         this.sourceFieldManager = new (window.SourceFieldManager || SourceFieldManager)();
+        this.headlinesFieldManager = new (window.HeadlinesFieldManager || HeadlinesFieldManager)();
         this.autocompleteService = new (window.FormAutocompleteService || FormAutocompleteService)();
     }
 
@@ -69,6 +70,34 @@ class EventFormService {
     }
 
     /**
+     * Add a new headline field
+     */
+    addHeadlineField() {
+        this.headlinesFieldManager.addHeadlineField();
+    }
+    
+    /**
+     * Remove the last headline field (but keep at least one)
+     */
+    removeLastHeadlineField() {
+        this.headlinesFieldManager.removeLastHeadlineField();
+    }
+    
+    /**
+     * Clear all headline fields and reset to one empty field
+     */
+    clearHeadlineFields() {
+        this.headlinesFieldManager.clearHeadlineFields();
+    }
+    
+    /**
+     * Update the visibility of the remove headline button
+     */
+    updateRemoveHeadlineButton() {
+        this.headlinesFieldManager.updateRemoveHeadlineButton();
+    }
+
+    /**
      * Clear edit form
      */
     clearEditForm() {
@@ -91,6 +120,8 @@ class EventFormService {
         this.setLocationType('earth');
         // Clear all source pairs and reset to one
         this.clearSourcePairs();
+        // Clear all headline fields and reset to one
+        this.clearHeadlineFields();
         // Initialize with one variant (always show tabs)
         this.eventManager.variantData = [{
             name: '',
@@ -98,6 +129,7 @@ class EventFormService {
             filters: [],
             factions: [],
             sources: [],
+            headlines: [],
             locationType: 'earth'
         }];
         this.eventManager.activeVariantIndex = 0;
@@ -176,6 +208,48 @@ class EventFormService {
         
         // Save sources from all source pairs
         variant.sources = this.sourceFieldManager.getSourcePairsData();
+        
+        // Save headlines from all headline fields
+        const headlines = this.headlinesFieldManager.getHeadlinesData();
+        
+        // IMPORTANT: Always preserve existing headlines if form is empty but variant had headlines
+        // This prevents losing headlines when switching variants or when form fields are cleared
+        if (headlines.length > 0) {
+            variant.headlines = headlines;
+        } else if (variant.headlines && Array.isArray(variant.headlines) && variant.headlines.length > 0) {
+            // Form is empty but variant has headlines - keep existing headlines
+            console.log(`EventFormService: Preserving existing headlines for variant ${this.eventManager.activeVariantIndex}:`, variant.headlines);
+        } else {
+            // No headlines in form and no existing headlines - set to undefined
+            variant.headlines = undefined;
+        }
+        
+        // Debug logging
+        console.log(`EventFormService: Saved variant ${this.eventManager.activeVariantIndex} headlines:`, variant.headlines, 'from form:', headlines);
+        console.log(`EventFormService: Full variant after save:`, JSON.stringify(variant).substring(0, 300));
+    }
+
+    /**
+     * Save all variants to memory (ensures all variants have their current form data saved)
+     */
+    saveAllVariantsToMemory() {
+        if (!this.eventManager || this.eventManager.variantData.length === 0) return;
+        
+        // Save current variant first (this is the only one we can save from the form)
+        this.saveCurrentVariantToMemory();
+        
+        // Debug: Log all variants after saving
+        console.log('EventFormService: All variants after saveAllVariantsToMemory:', 
+            this.eventManager.variantData.map((v, i) => ({
+                index: i,
+                name: v.name,
+                headlines: v.headlines,
+                headlinesLength: Array.isArray(v.headlines) ? v.headlines.length : 'undefined'
+            }))
+        );
+        
+        // Note: Other variants should already be saved when switching between them
+        // This method ensures the current variant is saved before operations like saving the event
     }
 
     /**
@@ -243,6 +317,9 @@ class EventFormService {
         
         // Load sources into source pairs
         this.sourceFieldManager.loadSources(variant.sources || []);
+        
+        // Load headlines into headline fields
+        this.headlinesFieldManager.loadHeadlines(variant.headlines || []);
     }
 
     /**
@@ -305,6 +382,7 @@ class EventFormService {
                 filters: [],
                 factions: [],
                 sources: [],
+                headlines: [],
                 locationType: currentLocationType
             };
             
@@ -382,7 +460,8 @@ class EventFormService {
                 description: '',
                 filters: [],
                 factions: [],
-                sources: []
+                sources: [],
+                headlines: []
             };
         } else {
             // Multiple variants - delete current one
@@ -443,13 +522,14 @@ class EventFormService {
         document.getElementById('eventEditCity').value = '';
         
         if (isMultiEvent) {
-            // Load all variants into variantData, including locationType, lat/lon, x/y, and cityDisplayName
+            // Load all variants into variantData, including locationType, lat/lon, x/y, cityDisplayName, and headlines
             this.eventManager.variantData = event.variants.map(variant => ({
                 name: variant.name || '',
                 description: variant.description || '',
                 filters: variant.filters || [],
                 factions: variant.factions || [],
                 sources: variant.sources || [],
+                headlines: variant.headlines || [],
                 locationType: variant.locationType || mainLocationType,
                 lat: variant.lat !== undefined ? variant.lat : undefined,
                 lon: variant.lon !== undefined ? variant.lon : undefined,
@@ -466,6 +546,7 @@ class EventFormService {
                 filters: event.filters || [],
                 factions: event.factions || [],
                 sources: event.sources || [],
+                headlines: event.headlines || [],
                 locationType: event.locationType || 'earth',
                 lat: event.lat !== undefined ? event.lat : undefined,
                 lon: event.lon !== undefined ? event.lon : undefined,
@@ -516,6 +597,9 @@ class EventFormService {
             
             // Load sources into source pairs
             this.sourceFieldManager.loadSources(variant.sources || []);
+            
+            // Load headlines into headline fields
+            this.headlinesFieldManager.loadHeadlines(variant.headlines || []);
         }
         
         this.updateVariantTabs();

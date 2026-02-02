@@ -407,7 +407,7 @@ async function loadEvents() {
     }
     
     await withLoadWrapper(async () => {
-        // Initialize EventManager
+                        // Initialize EventManager
         window.eventManager = await initializeEventManager();
         
         // Sync events with globe and add markers (first sync)

@@ -57,7 +57,7 @@
     --desktop-scale: 0.67;
     --desktop-scale-inverse: 149.25%; /* 100% / 0.67 */
     --header-height: 60px;
-    --footer-height: 52px;
+    --footer-height: 65px; /* Increased for more space for news ticker */
     --panel-transition: 0.3s ease;
     
     /* Breakpoints */

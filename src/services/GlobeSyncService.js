@@ -30,6 +30,21 @@ class GlobeSyncService {
                 window.globeController.globeView.refreshEventMarkers();
                 console.log('GlobeSyncService: Refreshed event markers on globe');
             }
+            
+            // Update news ticker with headlines from current page
+            this.updateNewsTicker();
+        }
+    }
+    
+    /**
+     * Update news ticker with headlines from globe's current page
+     */
+    updateNewsTicker() {
+        if (window.globeController && window.globeController.dataModel && window.newsTickerService) {
+            const currentPageEvents = window.globeController.dataModel.getEventsForCurrentPage();
+            if (window.newsTickerService.updateTicker) {
+                window.newsTickerService.updateTicker(currentPageEvents);
+            }
         }
     }
 
@@ -62,6 +77,9 @@ class GlobeSyncService {
                     }
                 });
             }
+            
+            // Update news ticker with headlines from current page
+            this.updateNewsTicker();
         }
     }
 }

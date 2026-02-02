@@ -6,8 +6,8 @@
 
 if (typeof getLogAssetLoad === 'undefined') {
     var getLogAssetLoad = function () {
-        return (typeof window !== 'undefined' && typeof window.logAssetLoad === 'function')
-            ? window.logAssetLoad
+        return (typeof window !== 'undefined' && typeof window.logAssetLoad === 'function') 
+            ? window.logAssetLoad 
             : function () {};
     };
 }
@@ -43,15 +43,15 @@ class MusicManager {
         this.skipBtnIcon = null;
         this.shuffleBtnIcon = null;
     }
-
+    
     init() {
         if (this.initialized && this.musicButton && this.musicPanel) {
             console.log('Music panel already initialized, skipping...');
             return;
         }
-
+        
         var logAssetLoad = getLogAssetLoad();
-
+        
         this.musicButton = document.getElementById('musicToggle');
         this.musicPanel = document.getElementById('musicPanel');
         this.musicPanelClose = document.getElementById('musicPanelClose');
@@ -62,15 +62,20 @@ class MusicManager {
         this.pauseBtn = document.getElementById('pauseBtn');
         this.skipBtn = document.getElementById('skipBtn');
         this.musicGrid = document.getElementById('musicGrid');
-
+        
         if (!this.musicButton || !this.musicPanel || !this.backgroundMusic || !this.musicGrid) {
             console.warn('MusicManager: Required DOM elements not found yet.');
             return;
         }
-
+        
         this.initialized = true;
         console.log('MusicManager: Initializing with all elements present');
-
+        
+        // Sync sound effects slider with actual volume (slider is created with music panel, after SoundEffectsManager.init())
+        if (window.SoundEffectsManager && typeof window.SoundEffectsManager.setupSoundEffectsSlider === 'function') {
+            window.SoundEffectsManager.setupSoundEffectsSlider();
+        }
+        
         var missing = [];
         if (!window.MusicStateService) missing.push('MusicStateService');
         if (!window.MusicShuffleService) missing.push('MusicShuffleService');
@@ -85,7 +90,7 @@ class MusicManager {
             console.error('MusicManager: Missing services:', missing);
             return;
         }
-
+        
         var self = this;
         this.stateService = new window.MusicStateService();
         this.shuffleService = new window.MusicShuffleService();
@@ -102,11 +107,11 @@ class MusicManager {
             this.iconService,
             function () { return self.saveMusicState(); }
         );
-
+        
         this.progressService.init();
         this.iconService.init();
         this.controlService.init();
-
+        
         var savedState = this.stateService.loadState();
         var prioritySong = null;
         var initialVolume = 0.1;
@@ -120,12 +125,12 @@ class MusicManager {
             }
         }
         window.prioritySong = prioritySong;
-
+        
         this.volumeService.setTargetVolume(initialVolume);
         this.backgroundMusic.volume = initialVolume;
         if (this.volumeSlider) this.volumeSlider.value = Math.round(initialVolume * 100);
         if (this.volumeValue) this.volumeValue.textContent = Math.round(initialVolume * 100) + '%';
-
+        
         var fadeIn = function () {
             self.volumeService.fadeIn(self.progressService.isSeeking, self.progressService.isDragging);
         };
@@ -145,7 +150,7 @@ class MusicManager {
                 }
             );
         };
-
+        
         var H = window.MusicManagerInitHelpers || {};
         var playMusic = H.createPlayMusic ? H.createPlayMusic(this) : (function () {
             console.warn('MusicManagerInitHelpers not loaded');
@@ -219,7 +224,7 @@ class MusicManager {
             if (st) self.stateService.saveState(st);
         };
         window.saveMusicState = this.saveMusicState;
-
+        
         this.restoreMusicState = function () {
             return (H.restoreMusicState && H.restoreMusicState(this)) || false;
         };
@@ -237,9 +242,9 @@ class MusicManager {
                 function (btnPath, songPath) { return self.playbackService.matchesSongPath(btnPath, songPath); }
             );
         };
-
+        
         this.backgroundMusic.load();
-
+        
         if (H.setupPlayOnInteraction) {
             H.setupPlayOnInteraction(this, playMusic);
         }
@@ -251,9 +256,9 @@ class MusicManager {
         this.panelService.setupToggleButton();
         this.panelService.setupCloseButton();
         this.panelService.setupClickOutsideHandler();
-
+        
         this.controlService.initializeButtonStates();
-
+        
         if (H.loadMusicFiles) {
             H.loadMusicFiles(this, playMusic);
         }

@@ -384,6 +384,36 @@ class EventListenerService {
             });
         }
 
+        // Headline buttons
+        const addHeadlineBtn = document.getElementById('addHeadlineBtn');
+        const removeHeadlineBtn = document.getElementById('removeHeadlineBtn');
+        
+        if (addHeadlineBtn && !isGitHubPages) {
+            // Remove any existing listeners by cloning
+            const addHeadlineBtnClone = addHeadlineBtn.cloneNode(true);
+            addHeadlineBtn.parentNode.replaceChild(addHeadlineBtnClone, addHeadlineBtn);
+            const newAddHeadlineBtn = document.getElementById('addHeadlineBtn');
+            
+            newAddHeadlineBtn.addEventListener('click', () => {
+                if (this.eventManager.formService && this.eventManager.formService.addHeadlineField) {
+                    this.eventManager.formService.addHeadlineField();
+                }
+            });
+        }
+
+        if (removeHeadlineBtn && !isGitHubPages) {
+            // Remove any existing listeners by cloning
+            const removeHeadlineBtnClone = removeHeadlineBtn.cloneNode(true);
+            removeHeadlineBtn.parentNode.replaceChild(removeHeadlineBtnClone, removeHeadlineBtn);
+            const newRemoveHeadlineBtn = document.getElementById('removeHeadlineBtn');
+            
+            newRemoveHeadlineBtn.addEventListener('click', () => {
+                if (this.eventManager.formService && this.eventManager.formService.removeLastHeadlineField) {
+                    this.eventManager.formService.removeLastHeadlineField();
+                }
+            });
+        }
+
         // Mark listeners as set up
         this.eventManager.listenersSetup = true;
         console.log('EventListenerService: All listeners set up successfully');

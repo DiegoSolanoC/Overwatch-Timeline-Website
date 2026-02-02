@@ -121,13 +121,13 @@ export class GlobeView {
         const textureLoader = new THREE.TextureLoader();
         
         loadTexture(textureLoader, texturePath, renderer, (texture) => {
-            console.log('Globe texture changed to:', texturePath);
-            this.textureCache.set(texturePath, texture);
-            globe.material.map = texture;
-            globe.material.needsUpdate = true;
-            if (onTextureLoaded) {
-                onTextureLoaded();
-            }
+                console.log('Globe texture changed to:', texturePath);
+                this.textureCache.set(texturePath, texture);
+                globe.material.map = texture;
+                globe.material.needsUpdate = true;
+                if (onTextureLoaded) {
+                    onTextureLoaded();
+                }
         });
     }
 
@@ -270,10 +270,10 @@ export class GlobeView {
                 pinColor: 0xffd700,
                 elevation: 1.02,
                 userData: {
-                    city: city.name,
-                    lat: city.lat,
-                    lon: city.lon,
-                    isMarker: true
+                city: city.name,
+                lat: city.lat,
+                lon: city.lon,
+                isMarker: true
                 },
                 parent: globe,
                 markersArray: markers,
@@ -371,7 +371,7 @@ export class GlobeView {
                 pinColor: markerColor,
                 elevation: 1.02,
                 userData: {
-                    isSeaportMarker: true,
+                isSeaportMarker: true,
                     seaportName: seaport.name
                 },
                 parent: globe,
@@ -454,7 +454,7 @@ export class GlobeView {
                 parent: globe,
                 lineConfig: {
                     radius: 0.0015,
-                    color: 0xffffff,
+                color: 0xffffff,
                     opacity: 0.7,
                     userDataKey: 'isSecondaryLine'
                 }
@@ -495,7 +495,7 @@ export class GlobeView {
                 onCurveCreated: onBoatRouteCurveCreated,
                 lineConfig: {
                     radius: 0.002,
-                    color: 0xff0000,
+                color: 0xff0000,
                     opacity: 0.8,
                     userDataKey: 'isSeaportConnectionLine',
                     visible: false // Hide seaport connection lines

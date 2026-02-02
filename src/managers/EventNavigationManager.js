@@ -469,12 +469,16 @@ export class EventNavigationManager {
         // Store updateNumberButtons so it can be called when filters are applied
         this.uiView.updateNumberButtons = updateNumberButtons;
 
-        // Wrap updatePaginationUI to also update number buttons
+        // Wrap updatePaginationUI to also update number buttons and ticker
         const originalUpdatePaginationUI = updatePaginationUI;
         const wrappedUpdatePaginationUI = () => {
             originalUpdatePaginationUI();
             if (updateNumberButtons) {
                 updateNumberButtons();
+            }
+            // Update news ticker with headlines from current page
+            if (window.NavigationPaginationHelpers && window.NavigationPaginationHelpers.updateNewsTickerFromGlobe) {
+                window.NavigationPaginationHelpers.updateNewsTickerFromGlobe();
             }
         };
 

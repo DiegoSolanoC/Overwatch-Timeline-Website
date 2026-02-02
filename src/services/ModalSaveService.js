@@ -9,6 +9,7 @@ class ModalSaveService {
         this.editService = null;
         this.formService = null;
         this.sourceFieldManager = null;
+        this.headlinesFieldManager = null;
     }
 
     /**
@@ -21,6 +22,10 @@ class ModalSaveService {
         // Get SourceFieldManager from formService
         if (this.formService && this.formService.sourceFieldManager) {
             this.sourceFieldManager = this.formService.sourceFieldManager;
+        }
+        // Get HeadlinesFieldManager from formService
+        if (this.formService && this.formService.headlinesFieldManager) {
+            this.headlinesFieldManager = this.formService.headlinesFieldManager;
         }
         // Ensure EventEditService has EventManager when using the global instance
         if (this.editService && this.eventManager && typeof this.editService.setEventManager === 'function') {
@@ -43,10 +48,9 @@ class ModalSaveService {
     collectFormData() {
         if (!this.eventManager) return null;
 
-        // Save current variant before processing
-        if (this.formService) {
-            this.formService.saveCurrentVariantToMemory();
-        }
+        // IMPORTANT: Do NOT save variant here - it's already saved by saveEventFromModal
+        // Saving here can cause issues if the form fields don't match the variant we want to save
+        // The variant data should already be up-to-date from saveAllVariantsToMemory()
 
         // Get location type
         const locationTypeInput = document.getElementById('eventEditLocationType');
@@ -94,6 +98,22 @@ class ModalSaveService {
             });
         }
 
+        // Process headlines from all headline fields
+        let mainHeadlines = [];
+        if (this.headlinesFieldManager) {
+            mainHeadlines = this.headlinesFieldManager.getHeadlinesData();
+        } else {
+            // Fallback: read directly from DOM
+            const headlineFields = document.querySelectorAll('.headline-field');
+            headlineFields.forEach((field) => {
+                const input = field.querySelector('.headline-input');
+                const value = input ? input.value.trim() : '';
+                if (value) {
+                    mainHeadlines.push(value);
+                }
+            });
+        }
+
         const cityDisplayName = document.getElementById('eventEditCityDisplayName')?.value.trim() || '';
 
         return {
@@ -107,6 +127,7 @@ class ModalSaveService {
             mainFiltersStr,
             mainFactionsStr,
             mainSources,
+            mainHeadlines,
             cityDisplayName
         };
     }
@@ -163,15 +184,41 @@ class ModalSaveService {
             return { success: false, error: 'EventManager not available' };
         }
 
+        // Save all variants to memory before collecting form data
+        // This ensures all variants have their latest data (including headlines) saved
+        if (this.formService && typeof this.formService.saveAllVariantsToMemory === 'function') {
+            this.formService.saveAllVariantsToMemory();
+        } else if (this.formService && typeof this.formService.saveCurrentVariantToMemory === 'function') {
+            // Fallback: at least save current variant
+            this.formService.saveCurrentVariantToMemory();
+        }
+
         // Collect form data
         const formData = this.collectFormData();
         if (!formData) {
             return { success: false, error: 'Failed to collect form data' };
         }
 
-        // Get variant data
-        const variantData = this.eventManager.variantData || [];
+        // Get variant data - make a deep copy to prevent mutations
+        // IMPORTANT: Do this AFTER saveAllVariantsToMemory to ensure we have the latest data
+        const variantData = JSON.parse(JSON.stringify(this.eventManager.variantData || []));
         const factions = this.eventManager.factions || [];
+        
+        // Debug logging - check if variants have headlines
+        console.log('ModalSaveService: Variant data before creating event (deep copy):', variantData.map((v, i) => ({
+            index: i,
+            name: v.name,
+            hasHeadlines: !!v.headlines,
+            headlines: v.headlines,
+            headlinesType: Array.isArray(v.headlines) ? 'array' : typeof v.headlines,
+            headlinesLength: Array.isArray(v.headlines) ? v.headlines.length : 'N/A',
+            fullVariant: JSON.stringify(v).substring(0, 200) // First 200 chars for debugging
+        })));
+        console.log('ModalSaveService: Original variantData reference (before copy):', this.eventManager.variantData.map((v, i) => ({
+            index: i,
+            headlines: v.headlines,
+            headlinesType: Array.isArray(v.headlines) ? 'array' : typeof v.headlines
+        })));
 
         // Use EventEditService to create event object
         const createResult = this.editService.createEventFromForm(formData, variantData, factions);

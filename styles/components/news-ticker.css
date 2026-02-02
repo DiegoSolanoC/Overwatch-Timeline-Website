@@ -1,0 +1,102 @@
+/* ========================================
+   NEWS TICKER
+   ======================================== */
+
+/* News ticker container - positioned in white section of footer */
+.news-ticker-container {
+    position: absolute;
+    top: 0;
+    left: 140px; /* Start after Atlas News logo (120px width + 20px margin) */
+    right: 0;
+    height: 75%; /* Match white section height */
+    overflow: hidden;
+    display: none; /* Hidden by default, shown when timeline is loaded */
+    z-index: 5; /* Below Atlas News logo (z-index: 10) */
+    pointer-events: none; /* Allow clicks to pass through */
+    padding: 2px 0; /* Minimal vertical padding to reduce white space */
+}
+
+/* Show ticker when timeline is loaded - but let service control visibility */
+footer.timeline-loaded .news-ticker-container {
+    /* Display controlled by service based on whether headlines exist */
+}
+
+/* News ticker content - scrolling text */
+.news-ticker-content {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    height: 100%;
+    padding: 0 20px;
+    margin: 0; /* Remove any default margins */
+    color: #333; /* Dark text on white background */
+    font-size: 18px; /* Increased from 14px */
+    font-weight: 700; /* Bolder - increased from 500 */
+    line-height: 0.85; /* Further reduced to decrease vertical spacing */
+    letter-spacing: 0.15em; /* Increased spacing between letters */
+    text-transform: uppercase; /* All caps */
+    will-change: transform; /* Optimize for animation */
+    position: relative; /* Ensure proper positioning */
+}
+
+/* Duplicate content for seamless loop */
+.news-ticker-content-duplicate {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden; /* Hide until positioned correctly by JavaScript */
+}
+
+/* Individual ticker items */
+.news-ticker-item {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+/* Separator between headlines */
+.news-ticker-separator {
+    display: inline-block;
+    margin: 0 15px; /* Space between headlines */
+    color: #666;
+    font-weight: 700; /* Match boldness of headlines */
+    letter-spacing: 0.15em; /* Match letter spacing */
+}
+
+/* Gray palette: adjust text color if needed */
+body.color-palette-gray .news-ticker-content {
+    color: #333; /* Keep dark text on white background */
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .news-ticker-container {
+        left: 120px; /* Adjust for smaller Atlas News logo on mobile (100px + 20px margin) */
+    }
+    
+    .news-ticker-content {
+        font-size: 16px; /* Increased from 12px */
+        padding: 0 15px;
+        letter-spacing: 0.12em; /* Slightly less spacing on mobile */
+    }
+    
+    .news-ticker-separator {
+        margin: 0 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .news-ticker-container {
+        left: 105px; /* Adjust for smaller Atlas News logo on very small screens (85px + 20px margin) */
+    }
+    
+    .news-ticker-content {
+        font-size: 14px; /* Increased from 11px */
+        padding: 0 10px;
+        letter-spacing: 0.1em; /* Slightly less spacing on very small screens */
+    }
+    
+    .news-ticker-separator {
+        margin: 0 8px;
+    }
+}

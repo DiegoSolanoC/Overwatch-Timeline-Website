@@ -98,8 +98,58 @@ class EventRenderService {
             onRenderComplete();
         }
         
+        // Update news ticker with headlines from displayed events
+        this.updateNewsTicker(eventsToRender);
+        
         // Render pagination controls
         this.renderPaginationControls(events, validPage, eventsPerPage);
+    }
+
+    /**
+     * Update news ticker with headlines from displayed events
+     * @param {Array} displayedEvents - Events currently displayed on the page (from EventManager - not used for ticker)
+     */
+    updateNewsTicker(displayedEvents) {
+        // Use globe's pagination system instead (10 events per page)
+        // Get events from DataModel's current page
+        if (window.globeController && window.globeController.dataModel) {
+            const currentPageEvents = window.globeController.dataModel.getEventsForCurrentPage();
+            this.updateNewsTickerFromGlobePage(currentPageEvents);
+        } else {
+            // Fallback: use provided events if globe not available
+            this.updateNewsTickerFromGlobePage(displayedEvents);
+        }
+    }
+
+    /**
+     * Update news ticker with headlines from globe's current page events
+     * @param {Array} currentPageEvents - Events from globe's current page
+     */
+    updateNewsTickerFromGlobePage(currentPageEvents) {
+        // Initialize or get NewsTickerService
+        if (!window.newsTickerService) {
+            if (window.NewsTickerService) {
+                window.newsTickerService = new window.NewsTickerService();
+                window.newsTickerService.init();
+            } else {
+                // Service not loaded yet, try again later
+                setTimeout(() => this.updateNewsTickerFromGlobePage(currentPageEvents), 100);
+                return;
+            }
+        }
+
+        // Check if timeline is loaded (footer has timeline-loaded class)
+        const footer = document.querySelector('footer');
+        if (!footer || !footer.classList.contains('timeline-loaded')) {
+            // Timeline not loaded yet, but we can still prepare the ticker
+            // It will show when timeline loads
+            return;
+        }
+
+        // Update ticker with headlines from current page events
+        if (window.newsTickerService && window.newsTickerService.updateTicker) {
+            window.newsTickerService.updateTicker(currentPageEvents);
+        }
     }
     
     /**

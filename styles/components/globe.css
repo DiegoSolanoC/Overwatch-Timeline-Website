@@ -1,4 +1,4 @@
-﻿/* Main Content */
+/* Main Content */
 main {
     flex: 1;
     padding: 0;
@@ -271,8 +271,17 @@ body.color-palette-gray .event-number-btn.locked {
     object-fit: contain;
 }
 
-/* Hyperloop Toggle Button - positioned next to rotation button (stays at bottom) */
+/* Rotation Toggle Button - positioned below event manager button (second row, top-left) */
+#autoRotateToggle {
+    bottom: auto !important;
+    top: 95px !important; /* Below event manager (20px top + 65px height + 10px gap = 95px) */
+    left: 20px !important;
+}
+
+/* Hyperloop Toggle Button - positioned next to rotation button (second row, top-left) */
 .hyperloop-btn {
+    bottom: auto !important;
+    top: 95px !important; /* Below filter button, same row as rotation */
     left: 110px !important; /* Position next to rotation button */
 }
 

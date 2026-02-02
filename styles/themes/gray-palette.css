@@ -11,6 +11,14 @@ body.color-palette-gray footer {
     background: var(--primary-gray) !important;
 }
 
+body.color-palette-gray footer.timeline-loaded {
+    background: linear-gradient(to bottom, white 0%, white 75%, var(--primary-gray) 75%, var(--primary-gray) 100%) !important;
+}
+
+body.color-palette-gray footer.timeline-loaded p {
+    display: none !important;
+}
+
 body.color-palette-gray main {
     background: var(--bg-main);
 }

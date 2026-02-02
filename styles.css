@@ -41,6 +41,7 @@
 @import url('styles/components/event-item.css');
 @import url('styles/components/event-pagination.css');
 @import url('styles/components/event-edit-modal.css');
+@import url('styles/components/news-ticker.css');
 
 /* Panel Components */
 @import url('styles/components/panels/event-slide.css');
