@@ -1713,23 +1713,62 @@
       "name": "Eye of Horus",
       "locationType": "earth",
       "cityDisplayName": "Cairo, Egypt",
-      "description": "",
+      "description": "For a long period in the Crisis, humanity did not know what was causing all the chaos. Anubis had targeted so many cities at once everyone was too busy to truly find the root of the Crisis, and what's more, the God program amassed a giant army in Cairo. While from the outside it looked like any other attack on a major city, in reality this was its personal guard, as it was trying to take shelter in the chaos.\n\n\n\nIn the endless struggle, a notorious face kept appearing on the news, Ana Amari. Widely regarded as the best sniper in the world, in great part due to her cybernetic eye, Amari had become an invaluable asset for the Egyptian military, supporting troops from afar, with impeccable aim and efficiency, confusing many of the warbot troops and drawing their attention away from civilians. While everywhere around the world news were appearing of inhuman soldiers and giant machines, Ana was a regular person with no major augmentation beyond what was accessible to the public. The war had split Amari's family off. Her husband Sam was busy with the carnage going on in Canada, and her young daughter Fareeha had to take shelter, watching as both her parents left to save the world, wondering if they would even come back.",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ana"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Top Sniper prevents massacre in Cairo"
+      ],
       "lat": 30.0443879,
       "lon": 31.2357257
     },
     {
       "name": "Super Soldiers",
       "locationType": "earth",
-      "cityDisplayName": "Los Angeles, United States",
+      "cityDisplayName": "Wheeler County, United States",
+      "description": "The Soldier Enhancement Program had been kept secret for a long time due to the many human rights violations going on with its research, and in spite of years of progress, Naughton lacked the ethical green light to move on to human subjects. That all changed when the Crisis started.\n\n\n\nThe United States turned into multiple warzones overnight, and any measures they took to stop the bloodshed seemed only temporary. In desperation, the government decided to go public with the Soldier Enhancement Program. In spite of concerns, the program gathered plenty of public support due to the dire circumstances of the Crisis, and recruitment for human trials began, though at this time the concept was purely fictional.\n\n\n\nAt least two hundred military personnel volunteered for the SEP initially, but only a handful would survive the horrors that awaited them in Naughton's labs.  As recruits kept coming in, failed attempts piled up, with about sixty percent of them dying throughout the program. Anubis was also keenly aware of the situation and targeted the labs on multiple occasions. The initial lab at Camp Hale was destroyed within weeks of the announcement, and the team had to hop from one facility to another. In the end, the successful soldiers would be deployed around the country and quickly turn the tides in many battles where they showed up. \n\n\n\nThe two most notorious successes of the program were Soldier 24: Gabriel Reyes, and Soldier 76: Jack Morrison. The reputation of these two men was legendary even before Overwatch, the golden-haired hero who appeared out of nowhere and saved the day. And although Reyes was quieter and usually took less flashy missions, he was nonetheless just as effective and valuable, and even while he was still being actively tested on, he found time to communicate and coordinate with troops actively in battle.",
+      "image": "",
+      "filters": [
+        "Soldier 76",
+        "Reaper"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "United States Government to begin recruitment for Super Soldier trials",
+        "National Heroes Jack Morrison and Gabriel Reyes to be deployed across battle scared cities"
+      ],
+      "lat": 35.3921902,
+      "lon": -100.2632764
+    },
+    {
+      "name": "The Svyatogor",
+      "locationType": "earth",
+      "cityDisplayName": "Moscow, Russia",
       "description": "",
       "image": "",
       "filters": [],
       "factions": [],
-      "lat": 34.0779819,
-      "lon": -118.2567824
+      "lat": 55.625578,
+      "lon": 37.6063916
     },
     {
       "name": "The Heroic Five",
@@ -1758,17 +1797,6 @@
       "factions": [],
       "lat": 52.5173885,
       "lon": 13.3951309
-    },
-    {
-      "name": "The Svyatogor",
-      "locationType": "earth",
-      "cityDisplayName": "Moscow, Russia",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 55.625578,
-      "lon": 37.6063916
     },
     {
       "name": "Jamison Fawkes is Born",
