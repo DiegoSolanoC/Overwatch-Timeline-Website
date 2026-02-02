@@ -60,10 +60,13 @@ The application is configured to work on GitHub Pages. Follow these steps to dep
 
 Make sure these files are in your repository root:
 - `index.html` - Main entry point (GitHub Pages will serve this at the root URL)
-- `404.html` - Fallback page for 404 errors
-- All asset folders (`data/`, `Misc/`, `Music/`, `Icons/`, etc.)
-- All JavaScript files (`script.js`, `test-loader.js`, `js/`, `controllers/`, `models/`, `views/`, `utils/`)
-- `styles.css` - Main stylesheet
+- `main.html` - Main timeline application (use this URL for direct access)
+- `404.html` - Redirects to `main.html` so broken links still reach the app
+- `.nojekyll` - Empty file; tells GitHub Pages not to use Jekyll
+- `styles.css` and `styles/` - All CSS (layout, footer, news ticker, pagination, mobile)
+- `src/` - All JavaScript (component-loader, controllers, managers, services)
+- `data/` - `events.json`, `locations.json`, etc.
+- `assets/` - Images (e.g. `assets/images/misc/Atlas News.png`), models, audio
 
 ### 3. Access Your Site
 
@@ -82,7 +85,12 @@ https://username.github.io/Timeline-Overwatch/
 - **Edit Mode**: The application automatically detects when running on GitHub Pages and disables edit/delete functionality for events. This prevents users from modifying data on the live site.
 - **Local Storage**: User preferences (color palette, music state) are saved in browser localStorage and will persist across sessions.
 - **Event Data**: Events are loaded from `data/events.json`. On GitHub Pages, users can view events but cannot edit them (edit buttons are hidden).
-- **File Paths**: All file paths are relative, so they work correctly on both localhost and GitHub Pages.
+- **File Paths**: All file paths are relative (no leading `/`), so the site works the same on both localhost and GitHub Pages. Asset paths with spaces (e.g. `Atlas News.png`) use URL-encoded form (`Atlas%20News.png`) in HTML for compatibility.
+- **Parity with local**: The following are built to look and behave the same on GitHub Pages as locally:
+  - **Footer**: Atlas News image (red trapezoid) and sliding headlines ticker appear after the timeline loads (`footer.timeline-loaded`).
+  - **Number buttons (1–10)**: Pagination and event-number button styles (including marker-hover highlight) are in `styles/components/event-pagination.css` and load via `styles.css`.
+  - **Button layouts**: Desktop and mobile layouts (zoom, music, palette, event manager, filters, etc.) are in `styles/entry.css`, `styles/components/globe.css`, and `styles/mobile/viewport.css`; all loaded via relative imports.
+- **Root files**: Ensure `.nojekyll` exists in the repo root so GitHub Pages does not run Jekyll. Ensure `assets/images/misc/Atlas News.png` (and other assets under `assets/`, `data/`) are committed.
 
 ## Project Structure
 

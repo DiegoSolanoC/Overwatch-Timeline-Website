@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script>
+        // GitHub Pages: redirect 404 to main app (preserve repo base path)
+        var base = location.pathname.replace(/\/[^/]*$/, '/');
+        if (base === '/') base = '';
+        location.replace(base ? base + 'main.html' : 'main.html');
+    </script>
+    <meta http-equiv="refresh" content="0;url=main.html">
+    <link rel="canonical" href="main.html">
+</head>
+<body>
+    <p>Redirecting to <a href="main.html">main.html</a>...</p>
+</body>
+</html>
