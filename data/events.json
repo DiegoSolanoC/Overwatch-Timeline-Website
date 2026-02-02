@@ -1610,9 +1610,11 @@
       "name": "Launching Into the Skies",
       "locationType": "earth",
       "cityDisplayName": "Roshani, India",
-      "description": "",
+      "description": "The Crisis was not just fought on land and water, as Anubis took its efforts into the skies. In the years prior to the Crisis, the Indian Space Research Organization had adapted the Mag-Lev technology pioneered by Dr. De Kuiper, and installed a  massive launch track of levitating magnetic accelerator launchers across India. This track allowed cargo to reach orbital velocity consistently and quickly, reducing the cost for low orbit launches across the world.\n\n\n\nAnubis, naturally, predicted that in order to prevent efficient human communication, taking down and seizing most satellites orbiting the planet was going to be a main priority early on. ISRO's launchers thus became a key player in the Indian side of the war, as they were responsible for consistently launching new satellites equipped with antimissile technology to quickly counteract Anubis' efforts to shut down the human network. As India kept production steady, Anubis troops would shift focus to destroying the Orbital Launchers themselves, until only one remained standing, next to the Roshani river. The military focused entirely on protecting the last remaining launcher as engineers kept the pipeline flowing through the rest of the crisis, until the last launcher finally fell. \n\n\n\nThe launch tracks were never rebuilt, as technology advanced and allowed for a new generation of launchers. Massive, trackless levitating rings spread across India nowadays, including one looming over Roshani, where the last of the original launchers had once been.",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Sigma"
+      ],
       "factions": [
         "06Crisis",
         "09Lucheng"
@@ -1623,45 +1625,35 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "headlines": [
+        "Anubis targets Satellite systems across the atmosphere",
+        "India focus military effort into securing lauching track protection",
+        "IRSO sucessfully restablishes global satellite network"
+      ],
       "lat": 23.2599,
       "lon": 77.4126
-    },
-    {
-      "name": "The Savior",
-      "locationType": "earth",
-      "cityDisplayName": "Lagos, Nigeria",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Doomfist"
-      ],
-      "factions": [
-        "25Numbani"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "lat": 6.4550575,
-      "lon": 3.3941795
     },
     {
       "name": "Fiery Pride",
       "locationType": "earth",
       "cityDisplayName": "Chengdu, China",
-      "description": "",
+      "description": "As the Crisis went on, innovation became vital. All across the world it seemed  that warbots were actively learning from every encounter, and you could never defeat them the same way twice. It is no surprise, then, that some of the most vital discoveries came from university students and teachers.\n\n\n\nWuxing University was already a prestigious college known for taking knowledge of old things and applying it to new technology, and when the Crisis came, its students were well-prepared. The Metal College students and faculty were already working to develop some of the most cutting-edge weaponry available for China, with multiple Mech designs capable of fighting with the larger Omnic Units. But one of the calls to fame of the school was when a task force of Fire College Alumni were able to defeat an incoming fleet of warbots by themselves. This side of the school focused on martial arts and defensive strategy, making them particularly adept warriors that, on top of their own studies and discipline, wielded weapons unlike anything else Anubis had accounted for. Fiery gear, capable of bending and floating in the air, guided by the users, which combined well with their close combat.\n\n\n\nThis success during the Crisis boosted the school's reputation and prestige, particularly for the Metal and especially Fire Colleges, where, between their popularity, the desire people had to defend their homes, and the sense of honor and pedigree that came from Wuxing's standard, made both of these the top hardest college to be admitted into, til this day. The other colleges, of course, were just as vital, with Water students providing medical aid to civilians, while Wood and Earth Colleges managed the analytics and optics of the impact the war would leave on the world. But in the eyes of the world, the mechs and the fire-wielding fighters were the ones everyone admired, and the true source of pride for the school.",
       "image": "",
       "filters": [
         "Wuyang"
       ],
-      "factions": [],
+      "factions": [
+        "06Crisis"
+      ],
       "sources": [
         {
           "text": "Against the Tide",
           "url": "https://overwatch.blizzard.com/en-us/media/comic/against-the-tide/"
         }
+      ],
+      "headlines": [
+        "Fire College Students protect Chengdu from warbots",
+        "Student  made mechs to be deployed across China"
       ],
       "lat": 30.659867,
       "lon": 104.063315
@@ -1670,34 +1662,52 @@
       "name": "Children of the Sun",
       "locationType": "earth",
       "cityDisplayName": "Runasapi, Peru",
-      "description": "",
+      "description": "Solar energy has forever changed the people of Peru, both in the way it defined their way of life for communities across the mountains, but also for the selected few that had been chosen to wield the sun itself in their body.\n\n\n\nThe Paqarina research group had experimented with cybernetic applications to the Solar threading techniques, imbuing several of their community's strongest and most determined fighters with augments capable of harnessing the Sun's power through their cybernetics. These chosen few were known as the Children of the Sun, and with their augments they were able to gift the Sun directly to their people, as providers of energy and warm, miraculous healers, and when the time came, as protectors.\n\n\n\nThe Inti Warriors, as they were known by many on the outside, were able to fight off Anubis' forces, thanks to the versatility of their technology and the raw power harnessed directly from the sun, that flowed through their bodies. The augments not only powered their weaponry, they also allowed them to regulate the surrounding temperature, using the convection currents created by their thermodynamics to lift off into the sky.\n\n\n\nThese children of the Sun served their roles as guardians of Runasapi and the Andean mountains, and became a source of pride for their people, to the point that even years after the crisis, the Paqarina research group kept the program active, training aspiring warriors since young, preparing them for the day of their augmentation ceremony, so that they too can use the gifts the Sun gives them to help their people, and if the time ever came again, protect them once more.",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Illari"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Illari Origin Story",
+          "url": "https://www.youtube.com/watch?v=LBI_uHJD-Xo"
+        }
+      ],
+      "headlines": [
+        "Solar Powered Warriors fight Omnics in the Andes",
+        "Cybernetic Ceremony brings the power of the sun into the Human body"
+      ],
       "lat": -13.1631,
       "lon": -72.545
     },
     {
-      "name": "The Proposal",
+      "name": "Force the Sun to Set",
       "locationType": "earth",
-      "cityDisplayName": "Zurich, Switzerland",
-      "description": "",
+      "cityDisplayName": "Lagos, Nigeria",
+      "description": "All over the world, heroic figures started to appear throughout the entire Crisis, remarkable individuals that stood out amongst the crowd for their bravery, ingenuity and perhaps most notoriously, superhuman abilities. From genetically enhanced soldiers, to cybernetic warriors, to mech pilots and rocket-powered knights, it appears that all over the planet, individuals branding the latest weapons and technology available to them are making actual progress at repelling warbot attacks. But there was perhaps no figure more notorious and heavily debated, than the mysterious Savior of Nigeria, the Doomfist.\n\n\n\nNigeria had endured constant war since the beginning of the crisis, as the high population numbers of Lagos and proximity to an Omnium made it the clearest target for Anubis to go after. When the attacks became global, neighboring countries increased their efforts to block their borders with Nigeria, offering little help and hoping to keep the invasion within the country. All seemed lost, until one night, in the city of Ibadan, he appeared. A single man, carrying no guns, just a metallic gauntlet in his right hand. According to witnesses, the man would leap into the air and piledrive into the machines with impossible force, wrecking the warbots and brawling entire waves of them for hours until sunrise.\n\n\n\nA young eyewitness approached the man, scared. The kid asked the hero if the war was over, to which his response was, \"No, but there is strength in struggle. With each fight for our home, I grow stronger, and I will keep our people safe\". The man disappeared as authorities arrived to provide aid. But he would show up every night to repel the Omnic forces once more. Witnesses describe his battles as both brutal and beautiful, like an artist at work. His presence spelled the doom of those who crossed his gauntlet, and thus the mighty Doomfist was born.",
       "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 47.3744489,
-      "lon": 8.5410422
-    },
-    {
-      "name": "Super Soldiers",
-      "locationType": "earth",
-      "cityDisplayName": "Los Angeles, United States",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 34.0779819,
-      "lon": -118.2567824
+      "filters": [
+        "Doomfist"
+      ],
+      "factions": [
+        "25Numbani",
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Man single handedly stops waves of Omnics before vanishing",
+        "The \"Doomfist\" is spotted once more in Nigeria"
+      ],
+      "lat": 6.4550575,
+      "lon": 3.3941795
     },
     {
       "name": "Eye of Horus",
@@ -1711,15 +1721,15 @@
       "lon": 31.2357257
     },
     {
-      "name": "The Svyatogor",
+      "name": "Super Soldiers",
       "locationType": "earth",
-      "cityDisplayName": "Moscow, Russia",
+      "cityDisplayName": "Los Angeles, United States",
       "description": "",
       "image": "",
       "filters": [],
       "factions": [],
-      "lat": 55.625578,
-      "lon": 37.6063916
+      "lat": 34.0779819,
+      "lon": -118.2567824
     },
     {
       "name": "The Heroic Five",
@@ -1750,15 +1760,15 @@
       "lon": 13.3951309
     },
     {
-      "name": "The Road of Bones",
+      "name": "The Svyatogor",
       "locationType": "earth",
-      "cityDisplayName": "Oymyakon, Russia",
+      "cityDisplayName": "Moscow, Russia",
       "description": "",
       "image": "",
       "filters": [],
       "factions": [],
-      "lat": 63.4629473,
-      "lon": 142.7869693
+      "lat": 55.625578,
+      "lon": 37.6063916
     },
     {
       "name": "Jamison Fawkes is Born",
@@ -1770,6 +1780,17 @@
       "factions": [],
       "lat": -25,
       "lon": 135
+    },
+    {
+      "name": "The Proposal",
+      "locationType": "earth",
+      "cityDisplayName": "Geneva, Switzerland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 46.2017559,
+      "lon": 6.1466014
     },
     {
       "locationType": "earth",
@@ -1811,6 +1832,17 @@
       "factions": [],
       "lat": 48,
       "lon": 8
+    },
+    {
+      "name": "The Road of Bones",
+      "locationType": "earth",
+      "cityDisplayName": "Oymyakon, Russia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 63.4629473,
+      "lon": 142.7869693
     },
     {
       "name": "The Original Strike Team",
@@ -1939,7 +1971,7 @@
       "lon": -63.1653789
     },
     {
-      "name": "Force the Sun to Set",
+      "name": "The Savior",
       "locationType": "earth",
       "cityDisplayName": "Ibadan, Nigeria",
       "description": "",

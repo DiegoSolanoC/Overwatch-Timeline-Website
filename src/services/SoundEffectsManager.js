@@ -1,15 +1,21 @@
 /**
  * SoundEffectsManager - Manages all sound effects for the application
  * Handles loading, playing, and volume control for sound effects
+ *
+ * Debug: In DevTools console set window.DEBUG_SOUND_EFFECTS = true then try playing a sound.
+ * You'll see [SFX] logs for each play() and any rejections (e.g. NotAllowedError on desktop after WebGL).
  */
-
-// Asset loading order tracking (if available) - use window.logAssetLoad if it exists
-// Don't declare a const to avoid conflicts with script.js
 
 class SoundEffectsManager {
     constructor() {
         this.sounds = {};
         this.volume = 0.5; // Default 50%
+        this._audioUnlocked = false;
+        // Use original Audio element (no clone) by default so sound works on desktop Chrome after WebGL.
+        // Clone can resolve but produce no sound; original element is reliable. Overlapping is disabled.
+        this._cloneBlocked = true;
+        // Set window.DEBUG_SOUND_EFFECTS = true in console to log every play() and result
+        this._debug = () => !!(typeof window !== 'undefined' && window.DEBUG_SOUND_EFFECTS);
     }
     
     // Load saved volume from localStorage
@@ -51,96 +57,130 @@ class SoundEffectsManager {
         }
     }
     
+    /**
+     * Unlock audio for this document (browser autoplay policy).
+     * Call once in a user gesture so subsequent play() works (e.g. after WebGL/timeline load).
+     */
+    unlock() {
+        if (this._audioUnlocked) return;
+        this._audioUnlocked = true;
+        const key = Object.keys(this.sounds)[0];
+        if (!key || !this.sounds[key]) return;
+        const el = this.sounds[key];
+        const prevVolume = el.volume;
+        el.volume = 0;
+        const p = el.play();
+        if (p && typeof p.then === 'function') {
+            p.then(() => {
+                el.pause();
+                el.currentTime = 0;
+                el.volume = prevVolume;
+            }).catch(() => { el.volume = prevVolume; });
+        } else {
+            el.volume = prevVolume;
+        }
+    }
+
+    /**
+     * Play using the original Audio element (no clone). Use when clone fails (e.g. desktop Chrome after WebGL).
+     * No overlapping playback; restarts if already playing.
+     */
+    _playOriginal(name, vol, options = {}) {
+        const orig = this.sounds[name];
+        if (!orig) return null;
+        orig.currentTime = 0;
+        if (options.playbackRate) orig.playbackRate = options.playbackRate;
+        orig.volume = vol;
+        const p = orig.play();
+        if (p && typeof p.then === 'function') {
+            p.catch(err => {
+                if (this._debug()) console.warn('[SFX] _playOriginal failed:', name, err?.name || err);
+            });
+        }
+        return orig;
+    }
+
     // Play a sound effect
     play(name, options = {}) {
-        if (this.sounds[name]) {
-            // Clone the audio to allow overlapping sounds
-            const audio = this.sounds[name].cloneNode();
-            
-            // Reset to beginning and ensure it's ready
-            audio.currentTime = 0;
-            
-            // Set playback rate if specified (for speed adjustment)
-            if (options.playbackRate) {
-                audio.playbackRate = options.playbackRate;
-            }
-            
-            // Set volume with optional multiplier (use current this.volume in case slider updated it)
-            let volumeMultiplier = 1;
-            if (name === 'filterConfirm') {
-                volumeMultiplier = 0.5; // Filter confirm is always at 50% of the set volume
-            } else if (name === 'hackOn' || name === 'hackOff') {
-                volumeMultiplier = 0.85; // Hack sounds at 85% of the set volume
-            } else if (name === 'page') {
-                volumeMultiplier = 0.4; // Page turning sound at 40% of the set volume
-            }
-            
-            const vol = Math.max(0, Math.min(1, this.volume)) * volumeMultiplier;
-            audio.volume = vol;
-            
-            // Play immediately - if not ready, wait for ready state
-            const playAudio = () => {
-                const p = audio.play();
-                if (p && typeof p.catch === 'function') {
-                    p.catch(err => {
-                        // NotAllowedError often means autoplay policy (e.g. after heavy WebGL); log once
-                        if (err.name === 'NotAllowedError') {
-                            console.warn('Sound effect blocked (user gesture or autoplay policy):', name);
-                        } else {
-                            console.warn(`Could not play sound effect "${name}":`, err);
-                        }
-                    });
-                }
-            };
-            
-            if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or higher
-                playAudio();
-            } else {
-                // Wait for audio to be ready, but don't wait too long
-                const readyHandler = () => {
-                    playAudio();
-                    audio.removeEventListener('canplay', readyHandler);
-                };
-                audio.addEventListener('canplay', readyHandler);
-                // Fallback: try to play anyway after a short delay
-                setTimeout(() => {
-                    if (audio.readyState >= 2) {
-                        playAudio();
-                    }
-                    audio.removeEventListener('canplay', readyHandler);
-                }, 50);
-            }
-            
-            // Add fade out for hackOn
-            if (name === 'hackOn' && options.fadeOut) {
-                const fadeDuration = options.fadeOutDuration || 500; // Default 500ms fade
-                const fadeSteps = 20;
-                const fadeStepTime = fadeDuration / fadeSteps;
-                const startVolume = audio.volume;
-                let currentStep = 0;
-                
-                const fadeInterval = setInterval(() => {
-                    currentStep++;
-                    const progress = currentStep / fadeSteps;
-                    audio.volume = startVolume * (1 - progress);
-                    
-                    if (currentStep >= fadeSteps) {
-                        clearInterval(fadeInterval);
-                        audio.volume = 0;
-                        // Stop the audio after fade completes
-                        setTimeout(() => {
-                            audio.pause();
-                            audio.currentTime = 0;
-                        }, 100);
-                    }
-                }, fadeStepTime);
-            }
-            
-            return audio;
-        } else {
+        const debug = this._debug();
+        if (!this.sounds[name]) {
+            if (debug) console.warn('[SFX] play: sound not loaded:', name, 'loaded:', Object.keys(this.sounds));
             console.warn(`Sound effect "${name}" not loaded`);
             return null;
         }
+
+        // Unlock on first play in a user gesture (helps after timeline/WebGL load)
+        if (!this._audioUnlocked) this.unlock();
+
+        let volumeMultiplier = 1;
+        if (name === 'filterConfirm') volumeMultiplier = 0.5;
+        else if (name === 'hackOn' || name === 'hackOff') volumeMultiplier = 0.85;
+        else if (name === 'page') volumeMultiplier = 0.4;
+        const vol = Math.max(0, Math.min(1, this.volume)) * volumeMultiplier;
+
+        // Desktop Chrome often blocks clone.play() after WebGL; use original element so sound still works (no overlap)
+        if (this._cloneBlocked) {
+            return this._playOriginal(name, vol, options);
+        }
+
+        // Clone for overlapping playback
+        const audio = this.sounds[name].cloneNode();
+        audio.currentTime = 0;
+        if (options.playbackRate) audio.playbackRate = options.playbackRate;
+        audio.volume = vol;
+
+        const playAudio = (source, label) => {
+            const p = source.play();
+            if (p && typeof p.then === 'function') {
+                p.then(() => {
+                    if (debug) console.log('[SFX]', name, label, '→ played');
+                }).catch(err => {
+                    if (debug) console.warn('[SFX]', name, label, '→', err?.name || 'rejected', err?.message || '');
+                    if (err && err.name === 'NotAllowedError') {
+                        this._cloneBlocked = true; // Use original-only from now on (desktop Chrome after WebGL)
+                        console.info('Sound effects: switched to compatible mode for this browser. Try the same button again — it should play.');
+                        if (debug) console.log('[SFX] clone blocked; using original-only for future plays.');
+                    }
+                    // Fallback: play original element (no clone) — often works on desktop when clone fails
+                    if (source !== this.sounds[name]) {
+                        if (debug) console.log('[SFX] fallback: playing original for', name);
+                        this._playOriginal(name, vol, options);
+                    }
+                });
+            }
+        };
+
+        if (audio.readyState >= 2) {
+            playAudio(audio, 'clone');
+        } else {
+            const readyHandler = () => {
+                playAudio(audio, 'clone');
+                audio.removeEventListener('canplay', readyHandler);
+            };
+            audio.addEventListener('canplay', readyHandler);
+            setTimeout(() => {
+                if (audio.readyState >= 2) playAudio(audio, 'clone');
+                audio.removeEventListener('canplay', readyHandler);
+            }, 50);
+        }
+
+        if (name === 'hackOn' && options.fadeOut) {
+            const fadeDuration = options.fadeOutDuration || 500;
+            const fadeSteps = 20;
+            const fadeStepTime = fadeDuration / fadeSteps;
+            const startVolume = audio.volume;
+            let currentStep = 0;
+            const fadeInterval = setInterval(() => {
+                currentStep++;
+                audio.volume = startVolume * (1 - currentStep / fadeSteps);
+                if (currentStep >= fadeSteps) {
+                    clearInterval(fadeInterval);
+                    audio.volume = 0;
+                    setTimeout(() => { audio.pause(); audio.currentTime = 0; }, 100);
+                }
+            }, fadeStepTime);
+        }
+        return audio;
     }
     
     // Set volume for all sound effects
@@ -208,6 +248,17 @@ class SoundEffectsManager {
         
         // Setup sound effects volume slider (may not exist yet - music panel is created when timeline loads)
         this.setupSoundEffectsSlider();
+
+        // Unlock audio on first user interaction (helps after timeline/WebGL load on desktop)
+        const unlockOnInteraction = () => {
+            this.unlock();
+            document.removeEventListener('click', unlockOnInteraction, true);
+            document.removeEventListener('touchstart', unlockOnInteraction, true);
+            document.removeEventListener('keydown', unlockOnInteraction, true);
+        };
+        document.addEventListener('click', unlockOnInteraction, true);
+        document.addEventListener('touchstart', unlockOnInteraction, true);
+        document.addEventListener('keydown', unlockOnInteraction, true);
     }
     
     /**
