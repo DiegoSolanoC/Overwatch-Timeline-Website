@@ -135,6 +135,17 @@ body.color-palette-gray .events-list {
     border-color: rgba(33, 150, 243, 0.9);
 }
 
+/* Hide number input spinner (up/down arrows) */
+.events-pagination-input::-webkit-outer-spin-button,
+.events-pagination-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.events-pagination-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 .events-pagination-total {
     color: rgba(255, 255, 255, 0.6);
     font-size: 14px;

@@ -91,7 +91,7 @@
         right: -100% !important;
         left: auto !important;
         top: 60px !important;
-        bottom: 52px !important;
+        bottom: var(--footer-height) !important;
         margin: 0 !important;
         padding: 0 !important;
         border: none !important;
@@ -155,7 +155,7 @@
         max-width: 100% !important;
         min-width: 100% !important;
         top: calc(60px + (50vh - 30px)) !important;
-        bottom: 52px !important;
+        bottom: var(--footer-height) !important;
         height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -396,7 +396,7 @@
         right: -100% !important;
         left: auto !important;
         top: 60px;
-        bottom: 52px;
+        bottom: var(--footer-height);
         width: 280px;
         max-width: 85vw;
         flex-direction: column;

@@ -7,7 +7,7 @@
     position: fixed;
     right: -900px;
     top: 60px;
-    bottom: 52px;
+    bottom: var(--footer-height);
     width: 900px;
     background: #0a1929; /* Dark blue for default blue palette */
     box-shadow: none !important;
@@ -153,6 +153,139 @@ body.color-palette-gray .events-manage-title {
 
 .events-manage-action-btn.export-btn:hover {
     background: rgba(33, 150, 243, 0.5);
+}
+
+/* Event manager search bar */
+.events-manage-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin-bottom: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.events-search-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.events-search-input {
+    min-width: 160px;
+    max-width: 220px;
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid rgba(33, 150, 243, 0.5);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.events-search-input.events-search-input-small {
+    min-width: 70px;
+    max-width: 90px;
+    width: 80px;
+    text-align: center;
+}
+
+.events-search-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    font-weight: 500;
+    user-select: none;
+}
+
+.events-search-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+.events-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+.events-search-input:focus {
+    outline: none;
+    border-color: rgba(33, 150, 243, 0.9);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Filters textbox: turn red when current token has no matches */
+.events-search-input.no-filter-match {
+    border-color: rgba(244, 67, 54, 0.9) !important;
+    color: rgba(255, 120, 120, 1) !important;
+}
+
+.events-search-input.no-filter-match::placeholder {
+    color: rgba(255, 120, 120, 0.7);
+}
+body.color-palette-gray .events-search-input {
+    border-color: rgba(255, 102, 0, 0.5);
+}
+body.color-palette-gray .events-search-input:focus {
+    border-color: rgba(255, 102, 0, 0.9);
+}
+
+/* Wrapper for filters input + suggestions dropdown */
+.events-search-field {
+    position: relative;
+    display: inline-block;
+}
+
+.events-search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 1000;
+    background: rgba(10, 25, 41, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    padding: 6px 0;
+}
+
+.events-search-suggestion {
+    display: flex;
+    width: 100%;
+    padding: 8px 10px;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.92);
+    cursor: pointer;
+    text-align: left;
+    font-size: 13px;
+}
+
+.events-search-suggestion:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.events-search-suggestion .muted {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+}
+.events-search-clear-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.events-search-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Note: Events list, pagination, event items, and edit modal styles

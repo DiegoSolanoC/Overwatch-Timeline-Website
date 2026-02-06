@@ -415,8 +415,264 @@ class EventListenerService {
         }
 
         // Mark listeners as set up
+        this.setupEventManagerSearch();
         this.eventManager.listenersSetup = true;
         console.log('EventListenerService: All listeners set up successfully');
+    }
+
+    /**
+     * Setup event manager search bar: title input + single filter text box (comma-separated hero/faction names).
+     * Tokens that don't match any hero or faction are ignored.
+     */
+    setupEventManagerSearch() {
+        if (!this.eventManager) return;
+        const searchInput = document.getElementById('eventsSearchInput');
+        const filtersInput = document.getElementById('eventsSearchFilters');
+        const suggestionsEl = document.getElementById('eventsSearchFiltersSuggestions');
+        const perPageInput = document.getElementById('eventsPerPageInput');
+        const showAllCheckbox = document.getElementById('eventsShowAllCheckbox');
+        const clearBtn = document.getElementById('eventsSearchClear');
+        if (!searchInput || !filtersInput) return;
+
+        const buildFilterIndex = () => {
+            const heroes = this.eventManager.heroes || [];
+            const factions = this.eventManager.factions || [];
+            const heroByLower = new Map();
+            heroes.forEach(h => {
+                const key = (h || '').toString().toLowerCase();
+                if (key) heroByLower.set(key, h);
+            });
+            const factionEntries = (factions || []).map(f => {
+                const filename = typeof f === 'object' && f !== null && f.filename != null ? f.filename : f;
+                const displayName = typeof f === 'object' && f !== null && f.displayName != null ? f.displayName : filename;
+                return {
+                    filename: (filename || '').toString(),
+                    displayName: (displayName || '').toString(),
+                    filenameLower: (filename || '').toString().toLowerCase(),
+                    displayLower: (displayName || '').toString().toLowerCase(),
+                };
+            });
+            return { heroes, heroByLower, factionEntries };
+        };
+
+        let filterIndex = buildFilterIndex();
+
+        const parseFilterTokens = (text) => {
+            // Rebuild index lazily if data arrived after listeners were set up
+            if (!filterIndex || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)) {
+                filterIndex = buildFilterIndex();
+            }
+            const heroes = filterIndex.heroes || [];
+            const heroByLower = filterIndex.heroByLower || new Map();
+            const factionEntries = filterIndex.factionEntries || [];
+
+            const tokens = (text || '').split(',').map(t => t.trim()).filter(t => t.length > 0);
+            const matchedHeroes = [];
+            const matchedFactions = [];
+            const seenHero = new Set();
+            const seenFaction = new Set();
+
+            tokens.forEach(token => {
+                const lower = token.toLowerCase();
+                if (heroByLower.has(lower)) {
+                    const heroName = heroByLower.get(lower);
+                    if (heroName && !seenHero.has(heroName)) {
+                        seenHero.add(heroName);
+                        matchedHeroes.push(heroName);
+                    }
+                } else {
+                    const match = factionEntries.find(fe => fe.displayLower === lower || fe.filenameLower === lower);
+                    if (match && match.filename && !seenFaction.has(match.filename)) {
+                        seenFaction.add(match.filename);
+                        matchedFactions.push(match.filename);
+                    }
+                }
+            });
+
+            return { matchedHeroes, matchedFactions };
+        };
+
+        const getCurrentTokenInfo = () => {
+            const value = (filtersInput.value || '');
+            const lastComma = value.lastIndexOf(',');
+            const before = lastComma >= 0 ? value.slice(0, lastComma) : '';
+            const currentRaw = lastComma >= 0 ? value.slice(lastComma + 1) : value;
+            const current = currentRaw.trimStart();
+            return { before, current, lastComma };
+        };
+
+        const getTokenCandidates = (prefixLower) => {
+            if (!filterIndex) filterIndex = buildFilterIndex();
+            const results = [];
+            // Heroes: label is hero name
+            (filterIndex.heroes || []).forEach(h => {
+                const label = (h || '').toString();
+                if (!label) return;
+                if (label.toLowerCase().startsWith(prefixLower)) {
+                    results.push({ label, detail: 'Hero', insert: label });
+                }
+            });
+            // Factions: show displayName (and filename as muted detail), match displayName OR filename
+            (filterIndex.factionEntries || []).forEach(f => {
+                if (!f.displayName && !f.filename) return;
+                const match = f.displayLower.startsWith(prefixLower) || f.filenameLower.startsWith(prefixLower);
+                if (match) {
+                    const label = f.displayName || f.filename;
+                    const detail = f.displayName && f.filename ? f.filename : 'Faction';
+                    results.push({ label, detail, insert: label });
+                }
+            });
+            // Sort by label length then alpha
+            results.sort((a, b) => (a.label.length - b.label.length) || a.label.localeCompare(b.label));
+            return results;
+        };
+
+        const hideSuggestions = () => {
+            if (!suggestionsEl) return;
+            suggestionsEl.style.display = 'none';
+            suggestionsEl.innerHTML = '';
+        };
+
+        const showSuggestions = (items, beforePart) => {
+            if (!suggestionsEl) return;
+            suggestionsEl.innerHTML = '';
+            const max = Math.min(items.length, 8);
+            for (let i = 0; i < max; i++) {
+                const item = items[i];
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'events-search-suggestion';
+                btn.innerHTML = `<span>${item.label}</span><span class="muted">${item.detail || ''}</span>`;
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const before = (beforePart || '').trim();
+                    const nextValue = before ? `${before}, ${item.insert}, ` : `${item.insert}, `;
+                    filtersInput.value = nextValue;
+                    filtersInput.classList.remove('no-filter-match');
+                    hideSuggestions();
+                    filtersInput.focus();
+                    applySearch();
+                });
+                suggestionsEl.appendChild(btn);
+            }
+            suggestionsEl.style.display = max > 0 ? 'block' : 'none';
+        };
+
+        const updateFilterPredictions = () => {
+            if (!filtersInput) return;
+            // Rebuild index if data arrived after init
+            if (!filterIndex || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)) {
+                filterIndex = buildFilterIndex();
+            }
+            const { before, current } = getCurrentTokenInfo();
+            const prefix = (current || '').trim();
+            if (!prefix) {
+                filtersInput.classList.remove('no-filter-match');
+                hideSuggestions();
+                return;
+            }
+            const candidates = getTokenCandidates(prefix.toLowerCase());
+            if (candidates.length === 0) {
+                filtersInput.classList.add('no-filter-match');
+                hideSuggestions();
+            } else {
+                filtersInput.classList.remove('no-filter-match');
+                showSuggestions(candidates, before);
+            }
+        };
+
+        const applySearch = () => {
+            this.eventManager.searchQuery = (searchInput && searchInput.value) ? searchInput.value.trim() : '';
+            const filterText = (filtersInput && filtersInput.value) ? filtersInput.value.trim() : '';
+            const { matchedHeroes, matchedFactions } = parseFilterTokens(filterText);
+            this.eventManager.searchHeroFilters = matchedHeroes;
+            this.eventManager.searchFactionFilters = matchedFactions;
+            if (this.eventManager.applySearchAndRender) {
+                this.eventManager.applySearchAndRender();
+            }
+        };
+
+        const applyPerPageSettings = () => {
+            if (!this.eventManager) return;
+            const showAll = !!(showAllCheckbox && showAllCheckbox.checked);
+            this.eventManager.showAllEventsInManager = showAll;
+            if (perPageInput) {
+                perPageInput.disabled = showAll;
+                perPageInput.style.opacity = showAll ? '0.5' : '';
+                perPageInput.style.cursor = showAll ? 'not-allowed' : '';
+            }
+            if (!showAll && perPageInput) {
+                const value = parseInt(perPageInput.value, 10);
+                if (value && value > 0) {
+                    this.eventManager.eventsPerPageSetting = value;
+                }
+            }
+            this.eventManager.currentPage = 1;
+            if (this.eventManager.renderEvents) {
+                this.eventManager.renderEvents();
+            }
+        };
+
+        searchInput.addEventListener('input', applySearch);
+        searchInput.addEventListener('change', applySearch);
+        filtersInput.addEventListener('input', () => {
+            updateFilterPredictions();
+            applySearch();
+        });
+        filtersInput.addEventListener('change', () => {
+            updateFilterPredictions();
+            applySearch();
+        });
+        filtersInput.addEventListener('keydown', (e) => {
+            // ESC hides suggestions quickly
+            if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+        document.addEventListener('click', (e) => {
+            if (!suggestionsEl) return;
+            if (e.target === filtersInput || suggestionsEl.contains(e.target)) return;
+            hideSuggestions();
+        });
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (window.SoundEffectsManager) {
+                    window.SoundEffectsManager.play('filterClear');
+                }
+                searchInput.value = '';
+                filtersInput.value = '';
+                filtersInput.classList.remove('no-filter-match');
+                hideSuggestions();
+                this.eventManager.searchQuery = '';
+                this.eventManager.searchHeroFilters = [];
+                this.eventManager.searchFactionFilters = [];
+                if (this.eventManager.applySearchAndRender) {
+                    this.eventManager.applySearchAndRender();
+                }
+            });
+        }
+
+        // Per-page controls
+        if (perPageInput) {
+            // Initialize from EventManager state
+            perPageInput.value = (this.eventManager.eventsPerPageSetting || this.eventManager.eventsPerPage || 50).toString();
+            perPageInput.addEventListener('input', applyPerPageSettings);
+            perPageInput.addEventListener('change', applyPerPageSettings);
+        }
+        if (showAllCheckbox) {
+            showAllCheckbox.checked = !!this.eventManager.showAllEventsInManager;
+            showAllCheckbox.addEventListener('change', (e) => {
+                if (window.SoundEffectsManager) {
+                    window.SoundEffectsManager.play('filterConfirm');
+                }
+                applyPerPageSettings(e);
+            });
+        }
+        applyPerPageSettings();
+
+        // Initial prediction state
+        updateFilterPredictions();
     }
 }
 

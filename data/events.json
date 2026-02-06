@@ -546,7 +546,8 @@
       "description": "With all the new technologies that were arising, academic institutions were constantly growing, as more people wanted to get into the many new technological fields that were opening, and one of the schools that quickly took the lead in the world would be Wuxing University. According to the academy's teachings, centuries ago, a wise family had dedicated themselves to the understanding and application of the traditional Wuxing philosophy, and the study of the building blocks of the world. With the years of accumulated knowledge, they founded what later became the University, where traditional wisdom was to pioneer new science, for students to have all the knowledge of the past available to guide their future.\n\nThe University, true to its name, splits its fields of study into five categories, relating to the phases of the Wuxing teachings.\nThe Fire College, for the study of martial arts and defensive strategies.\nThe Metal College, for robotics and technological engineering.\nThe Water College, for traditional medicine and applications into new medical advancements.\nThe Earth College, for agricultural and sustainability studies.\nAnd Wood College, for civil and environmental engineering.\nEach of these faculties played major roles in China's major advancements during the following decades, quickly increasing the College's prestige across the world.",
       "image": "",
       "filters": [
-        "Wuyang"
+        "Wuyang",
+        "Anran"
       ],
       "factions": [],
       "sources": [
@@ -1640,7 +1641,8 @@
       "description": "As the Crisis went on, innovation became vital. All across the world it seemed  that warbots were actively learning from every encounter, and you could never defeat them the same way twice. It is no surprise, then, that some of the most vital discoveries came from university students and teachers.\n\n\n\nWuxing University was already a prestigious college known for taking knowledge of old things and applying it to new technology, and when the Crisis came, its students were well-prepared. The Metal College students and faculty were already working to develop some of the most cutting-edge weaponry available for China, with multiple Mech designs capable of fighting with the larger Omnic Units. But one of the calls to fame of the school was when a task force of Fire College Alumni were able to defeat an incoming fleet of warbots by themselves. This side of the school focused on martial arts and defensive strategy, making them particularly adept warriors that, on top of their own studies and discipline, wielded weapons unlike anything else Anubis had accounted for. Fiery gear, capable of bending and floating in the air, guided by the users, which combined well with their close combat.\n\n\n\nThis success during the Crisis boosted the school's reputation and prestige, particularly for the Metal and especially Fire Colleges, where, between their popularity, the desire people had to defend their homes, and the sense of honor and pedigree that came from Wuxing's standard, made both of these the top hardest college to be admitted into, til this day. The other colleges, of course, were just as vital, with Water students providing medical aid to civilians, while Wood and Earth Colleges managed the analytics and optics of the impact the war would leave on the world. But in the eyes of the world, the mechs and the fire-wielding fighters were the ones everyone admired, and the true source of pride for the school.",
       "image": "",
       "filters": [
-        "Wuyang"
+        "Wuyang",
+        "Anran"
       ],
       "factions": [
         "06Crisis"
@@ -2062,6 +2064,357 @@
       "lon": 106.827168
     },
     {
+      "name": "Adawe Departs",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "25Numbani",
+        "00Overwatch"
+      ],
+      "lat": 12.0022,
+      "lon": 8.5919
+    },
+    {
+      "name": "Energy For Mexico",
+      "locationType": "earth",
+      "cityDisplayName": "Mexico City, Mexico",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 19.3207722,
+      "lon": -99.1514678
+    },
+    {
+      "name": "New Leadership",
+      "locationType": "earth",
+      "cityDisplayName": "Zurich, Switzerland",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Emre",
+        "Soldier 76",
+        "Reaper",
+        "Widowmaker"
+      ],
+      "factions": [
+        "00Overwatch",
+        "02Blackwatch"
+      ],
+      "lat": 47.3744489,
+      "lon": 8.5410422
+    },
+    {
+      "name": "Loyal Guardian",
+      "locationType": "earth",
+      "cityDisplayName": "Bellaire, United States",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Ashe"
+      ],
+      "factions": [],
+      "lat": 29.7057858,
+      "lon": -95.4588299
+    },
+    {
+      "name": "Building the Future",
+      "locationType": "earth",
+      "cityDisplayName": "Toronto, Canada",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 43.6534817,
+      "lon": -79.3839347
+    },
+    {
+      "name": "Operation White Dome",
+      "locationType": "earth",
+      "cityDisplayName": "Istanbul, Turkey",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.006381,
+      "lon": 28.9758715
+    },
+    {
+      "name": "Brigitte Lindholm is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 57.7072326,
+      "lon": 11.9670171
+    },
+    {
+      "name": "Watching the Globe",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1408,
+      "lon": -5.3536
+    },
+    {
+      "name": "One with the Iris",
+      "locationType": "earth",
+      "cityDisplayName": "Shambali Monastery",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 28.3949,
+      "lon": 84.124
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Junkertown, Australia",
+      "variants": [
+        {
+          "name": "Australian Liberation",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": -25,
+          "lon": 135,
+          "cityDisplayName": "Junkertown, Australia"
+        },
+        {
+          "name": "Outcasted",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": -20.7274568,
+          "lon": 139.49896,
+          "cityDisplayName": "Outback Wasteland, Australia"
+        }
+      ],
+      "lat": -25,
+      "lon": 135
+    },
+    {
+      "name": "Deadlock Rebels",
+      "locationType": "earth",
+      "cityDisplayName": "Bellaire, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 29.7057858,
+      "lon": -95.4588299
+    },
+    {
+      "name": "Miracle Worker",
+      "locationType": "earth",
+      "cityDisplayName": "Zurich, Switzerland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 47.3744489,
+      "lon": 8.5410422
+    },
+    {
+      "name": "Ontario United",
+      "locationType": "earth",
+      "cityDisplayName": "Ontario, Canada",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 50.000678,
+      "lon": -86.000977
+    },
+    {
+      "name": "Findlay Docherty is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Glasgow, United Kingdom",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.861155,
+      "lon": -4.2501687
+    },
+    {
+      "name": "The New West",
+      "locationType": "earth",
+      "cityDisplayName": "Roud 66, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 40.0170005,
+      "lon": -105.2664724
+    },
+    {
+      "name": "Rebuilding the Past",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseum, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8909421,
+      "lon": 12.491903
+    },
+    {
+      "name": "Vancouver Floods",
+      "locationType": "earth",
+      "cityDisplayName": "British Columbia, Canada",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.001251,
+      "lon": -125.002441
+    },
+    {
+      "name": "Hana Song is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Busan, South Korea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.1799528,
+      "lon": 129.0752365
+    },
+    {
+      "name": "Building Coalitions",
+      "locationType": "earth",
+      "cityDisplayName": "Havana, Cuba",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 23.135305,
+      "lon": -82.3589631
+    },
+    {
+      "name": "Kiriko Kamori is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.3606,
+      "lon": 138.7274
+    },
+    {
+      "name": "The Architech Academy",
+      "locationType": "earth",
+      "cityDisplayName": "Roshani, India",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 23.2599,
+      "lon": 77.4126
+    },
+    {
+      "name": "Liao's Renaissance",
+      "locationType": "earth",
+      "cityDisplayName": "Zurich, Switzerland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 47.3744489,
+      "lon": 8.5410422
+    },
+    {
+      "name": "Ecological Initiative",
+      "locationType": "earth",
+      "cityDisplayName": "Apia, Samoa",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -13.8345235,
+      "lon": -171.7630955
+    },
+    {
+      "name": "The Scourge of Numbani",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 12.0022,
+      "lon": 8.5919
+    },
+    {
+      "name": "Gwishin",
+      "locationType": "earth",
+      "cityDisplayName": "Busan, South Korea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.1799528,
+      "lon": 129.0752365
+    },
+    {
+      "name": "Growing with the Clan",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.3606,
+      "lon": 138.7274
+    },
+    {
+      "name": "Black Ops",
+      "locationType": "earth",
+      "cityDisplayName": "Capetown, South Africa",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -33.9228378,
+      "lon": 18.426976
+    },
+    {
+      "name": "Pocket King",
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 43.7402961,
+      "lon": 7.426559
+    },
+    {
+      "name": "The Red Promise",
+      "locationType": "earth",
+      "cityDisplayName": "Lijiang City, China",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 26.8595868,
+      "lon": 100.2249797
+    },
+    {
       "name": "Juno Teo Minh is Born",
       "locationType": "mars",
       "cityDisplayName": "Red Promise Colony",
@@ -2071,6 +2424,50 @@
       "factions": [],
       "x": 45,
       "y": 35
+    },
+    {
+      "name": "Valkirie",
+      "locationType": "earth",
+      "cityDisplayName": "Zurich, Switzerland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 47.3744489,
+      "lon": 8.5410422
+    },
+    {
+      "name": "Ye Wuyang is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.659867,
+      "lon": 104.063315
+    },
+    {
+      "name": "Radiation Poisoning",
+      "locationType": "earth",
+      "cityDisplayName": "Melbourne, Australia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -37.8142454,
+      "lon": 144.9631732
+    },
+    {
+      "name": "Deep Rising",
+      "locationType": "earth",
+      "cityDisplayName": "Gwishin Omnium, East China Sea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 33,
+      "lon": 125
     },
     {
       "name": "Harnessing te Harness",
@@ -2088,6 +2485,1838 @@
           "url": "https://www.youtube.com/watch?v=onplsJSdp4A"
         }
       ]
+    },
+    {
+      "name": "Illari Quispe Ruiz is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Runasapi, Peru",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -13.1631,
+      "lon": -72.545
+    },
+    {
+      "name": "The Atlantic Arcology",
+      "locationType": "earth",
+      "cityDisplayName": "Atlantic Arcology",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 37.7412,
+      "lon": -25.6756
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "variants": [
+        {
+          "name": "Omnic Housing",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, United Kingdom"
+        },
+        {
+          "name": "Omnic Liberation",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, United Kingdom"
+        }
+      ],
+      "lat": 51.5074456,
+      "lon": -0.1277653
+    },
+    {
+      "name": "Fell Dragons",
+      "locationType": "earth",
+      "cityDisplayName": "Hanamura, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.6762,
+      "lon": 139.6503
+    },
+    {
+      "name": "Specimen 8 is Born",
+      "locationType": "moon",
+      "cityDisplayName": "Horizon Lunar Colony",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "x": 60,
+      "y": 70
+    },
+    {
+      "name": "Search and Rescue",
+      "locationType": "earth",
+      "cityDisplayName": "Copenhagen, Denmark",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.6867243,
+      "lon": 12.5700724
+    },
+    {
+      "name": "Project Echo Goes Online",
+      "locationType": "earth",
+      "cityDisplayName": "Oslo, Norway",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 59.9133301,
+      "lon": 10.7389701
+    },
+    {
+      "name": "Lost in Time",
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 51.5074456,
+      "lon": -0.1277653
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Hanamura, Japan",
+      "variants": [
+        {
+          "name": "Shimada Takedown",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 35.6762,
+          "lon": 139.6503,
+          "cityDisplayName": "Hanamura, Japan"
+        },
+        {
+          "name": "Shrine Maiden",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 35.3606,
+          "lon": 138.7274,
+          "cityDisplayName": "Kanezaka, Japan"
+        }
+      ],
+      "lat": 35.6762,
+      "lon": 139.6503
+    },
+    {
+      "name": "Taking the Throne",
+      "locationType": "earth",
+      "cityDisplayName": "Junkertown, Australia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -25,
+      "lon": 135
+    },
+    {
+      "name": "Biolight",
+      "locationType": "earth",
+      "cityDisplayName": "Roshani, India",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 23.2599,
+      "lon": 77.4126
+    },
+    {
+      "name": "Takeover",
+      "locationType": "earth",
+      "cityDisplayName": "Venice, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 45.4371908,
+      "lon": 12.3345898
+    },
+    {
+      "name": "Lunar Revolt",
+      "locationType": "moon",
+      "cityDisplayName": "Horizon Lunar Colony",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "x": 60,
+      "y": 70
+    },
+    {
+      "name": "Uneasy Alliance",
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 43.7402961,
+      "lon": 7.426559
+    },
+    {
+      "name": "Intrepit Adventurers",
+      "locationType": "earth",
+      "cityDisplayName": "Nova Scotia, Canada",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 45.1960403,
+      "lon": -63.1653789
+    },
+    {
+      "name": "Blacklisted",
+      "locationType": "earth",
+      "cityDisplayName": "Dublin, Ireland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 53.3493795,
+      "lon": -6.2605593
+    },
+    {
+      "name": "Cold Snap",
+      "locationType": "earth",
+      "cityDisplayName": "Ecoopint Antartica",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -67.107616,
+      "lon": -68099824
+    },
+    {
+      "name": "Chronal Dissociation",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1285933,
+      "lon": -5.3474761
+    },
+    {
+      "name": "Champion",
+      "locationType": "earth",
+      "cityDisplayName": "Junkertown, Australia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -25,
+      "lon": 135
+    },
+    {
+      "name": "The Oslo Attack",
+      "locationType": "earth",
+      "cityDisplayName": "Oslo, Norway",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 59.9133301,
+      "lon": 10.7389701
+    },
+    {
+      "name": "Retribution",
+      "locationType": "earth",
+      "cityDisplayName": "Rome,, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8933203,
+      "lon": 12.4829321
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Venice, Italy",
+      "variants": [
+        {
+          "name": "The Venice Incident",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 45.4371908,
+          "lon": 12.3345898,
+          "cityDisplayName": "Venice, Italy"
+        },
+        {
+          "name": "Stolen Future",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 41.8933203,
+          "lon": 12.4829321,
+          "cityDisplayName": "Rome, Italy"
+        }
+      ],
+      "lat": 45.4371908,
+      "lon": 12.3345898
+    },
+    {
+      "name": "Prodigy Child",
+      "locationType": "earth",
+      "cityDisplayName": "Runasapi, Peru",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -13.1631,
+      "lon": -72.545
+    },
+    {
+      "name": "Bad Company",
+      "locationType": "earth",
+      "cityDisplayName": "Oasis University, Iraq",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 29.5918,
+      "lon": 52.5836
+    },
+    {
+      "name": "Deep Sea Raiders",
+      "locationType": "earth",
+      "cityDisplayName": "Coral Sea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -20,
+      "lon": 155
+    },
+    {
+      "name": "Uprising",
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 51.5074456,
+      "lon": -0.1277653
+    },
+    {
+      "name": "La Lupa",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8909421,
+      "lon": 12.491903
+    },
+    {
+      "name": "Widowed",
+      "locationType": "earth",
+      "cityDisplayName": "Paris, France",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 48.8588897,
+      "lon": 2.320041
+    },
+    {
+      "name": "Failure at Sea",
+      "locationType": "earth",
+      "cityDisplayName": "Apia, Samoa",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -13.8345235,
+      "lon": -171.7630955
+    },
+    {
+      "name": "Forced Retirement",
+      "locationType": "earth",
+      "cityDisplayName": "Asuncion, Paraguay",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -25.2800459,
+      "lon": -57.6343814
+    },
+    {
+      "name": "Missing in Action",
+      "locationType": "earth",
+      "cityDisplayName": "Warsaw, Poland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 52.2333742,
+      "lon": 21.0711489
+    },
+    {
+      "name": "Another Job, Another Battlefield",
+      "locationType": "earth",
+      "cityDisplayName": "Port-de-Paix,, Haiti",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 20.0410035,
+      "lon": -72.785587
+    },
+    {
+      "name": "Fun with Friends",
+      "locationType": "earth",
+      "cityDisplayName": "Venice, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 45.4371908,
+      "lon": 12.3345898
+    },
+    {
+      "name": "Hacking Addiction",
+      "locationType": "earth",
+      "cityDisplayName": "Dorado, Mexico",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 19.1738,
+      "lon": -96.1342
+    },
+    {
+      "name": "MEKKA",
+      "locationType": "earth",
+      "cityDisplayName": "Busan, South Korea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.1799528,
+      "lon": 129.0752365
+    },
+    {
+      "name": "Fighting the System",
+      "locationType": "earth",
+      "cityDisplayName": "Paris, France",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 48.8588897,
+      "lon": 2.320041
+    },
+    {
+      "name": "Security Breach",
+      "locationType": "earth",
+      "cityDisplayName": "Helsinki, Finland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 60.1666204,
+      "lon": 24.9435408
+    },
+    {
+      "name": "The Conspiracy",
+      "locationType": "earth",
+      "cityDisplayName": "Dorado, Mexico",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 19.1738,
+      "lon": -96.1342
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Havana, Cuba",
+      "variants": [
+        {
+          "name": "Storm Rising",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 23.135305,
+          "lon": -82.3589631,
+          "cityDisplayName": "Havana, Cuba"
+        },
+        {
+          "name": "Doomed to Fail",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 30.0443879,
+          "lon": 31.2357257,
+          "cityDisplayName": "Cairo, Egypt"
+        }
+      ],
+      "lat": 23.135305,
+      "lon": -82.3589631
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Singapore",
+      "variants": [
+        {
+          "name": "Closed Fist",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 1.357107,
+          "lon": 103.8194992,
+          "cityDisplayName": "Singapore"
+        },
+        {
+          "name": "Open Talon",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 64.3984222,
+          "lon": -17.3178863,
+          "cityDisplayName": "Watchpoint Grímsvötn, Iceland"
+        }
+      ],
+      "lat": 1.357107,
+      "lon": 103.8194992
+    },
+    {
+      "name": "Colateral Damage",
+      "locationType": "earth",
+      "cityDisplayName": "Glasgow, Scotland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.861155,
+      "lon": -4.2501687
+    },
+    {
+      "name": "Back in Business",
+      "locationType": "earth",
+      "cityDisplayName": "Venice, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 45.4371908,
+      "lon": 12.3345898
+    },
+    {
+      "name": "The Zurich Attack",
+      "locationType": "earth",
+      "cityDisplayName": "Zurich, Switzerland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 47.3744489,
+      "lon": 8.5410422
+    },
+    {
+      "name": "Self Discovery",
+      "locationType": "earth",
+      "cityDisplayName": "Shambali Monastery, Nepal",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 28.3949,
+      "lon": 84.124
+    },
+    {
+      "name": "The Petras Act Hearings",
+      "locationType": "earth",
+      "cityDisplayName": "Petra, Jordan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.3258363,
+      "lon": 35.4745669
+    },
+    {
+      "name": "Found Family",
+      "locationType": "earth",
+      "cityDisplayName": "Glasgow, Scotland",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.861155,
+      "lon": -4.2501687
+    },
+    {
+      "name": "Code of Violence",
+      "locationType": "earth",
+      "cityDisplayName": "New Mexico, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.6876096,
+      "lon": -105.938456
+    },
+    {
+      "name": "Runs in the Family",
+      "locationType": "earth",
+      "cityDisplayName": "Deadlock Gorge, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 40.0170005,
+      "lon": -105.2664724
+    },
+    {
+      "name": "Treassure",
+      "locationType": "earth",
+      "cityDisplayName": "Junkertown, Australia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -25,
+      "lon": 135
+    },
+    {
+      "name": "Shrike",
+      "locationType": "earth",
+      "cityDisplayName": "Necropolis, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 29,
+      "lon": 31
+    },
+    {
+      "name": "Vanadium Strand",
+      "locationType": "earth",
+      "cityDisplayName": "Petra, Jordan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.3258363,
+      "lon": 35.4745669
+    },
+    {
+      "name": "A Better World",
+      "locationType": "earth",
+      "cityDisplayName": "Rio de Janeiro, Brazil",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -22.9110137,
+      "lon": -43.2093727
+    },
+    {
+      "name": "Anubis Escapes",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.0443879,
+      "lon": 31.2357257
+    },
+    {
+      "name": "Idina Troopers",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 12.0022,
+      "lon": 8.5919
+    },
+    {
+      "name": "Left Behind",
+      "locationType": "earth",
+      "cityDisplayName": "Monte Cristi, Dominican Republic",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 19.7177718,
+      "lon": -71.4448113
+    },
+    {
+      "name": "Siberian Front",
+      "locationType": "earth",
+      "cityDisplayName": "Novoanskoye, Russia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 60,
+      "lon": 100
+    },
+    {
+      "name": "Game On",
+      "locationType": "earth",
+      "cityDisplayName": "Busan, South Korea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.1799528,
+      "lon": 129.0752365
+    },
+    {
+      "name": "Bounty Hunter",
+      "locationType": "earth",
+      "cityDisplayName": "Copenhagen, Denmark",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.6867243,
+      "lon": 12.5700724
+    },
+    {
+      "name": "Legend of the Junker Queen",
+      "locationType": "earth",
+      "cityDisplayName": "Outback Wasteland, Australia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -20.7274568,
+      "lon": 139.49896
+    },
+    {
+      "name": "Fire Star",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.659867,
+      "lon": 104.063315
+    },
+    {
+      "name": "Train Hopper",
+      "locationType": "earth",
+      "cityDisplayName": "Houston, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 29.7589382,
+      "lon": -95.3676974
+    },
+    {
+      "name": "Crime Spree",
+      "locationType": "earth",
+      "cityDisplayName": "Sydney, Australia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -33.8698439,
+      "lon": 151.2082848
+    },
+    {
+      "name": "Sonic Policing",
+      "locationType": "earth",
+      "cityDisplayName": "Rio de Janeiro, Brazil",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -22.9110137,
+      "lon": -43.2093727
+    },
+    {
+      "name": "Apagando las Luces",
+      "locationType": "earth",
+      "cityDisplayName": "Dorado, Mexico",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 19.1738,
+      "lon": -96.1342
+    },
+    {
+      "name": "Dragon Slayer",
+      "locationType": "earth",
+      "cityDisplayName": "Bucharest, Romania",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 44.4361414,
+      "lon": 26.102684
+    },
+    {
+      "name": "Help for the Needy",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.0443879,
+      "lon": 31.2357257
+    },
+    {
+      "name": "Squire",
+      "locationType": "earth",
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 57.7072326,
+      "lon": 11.9670171
+    },
+    {
+      "name": "Destroyer",
+      "locationType": "earth",
+      "cityDisplayName": "Boklovo, Kurjikstan.",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 48.503904,
+      "lon": 50.667571
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Grand Mesa, United States",
+      "variants": [
+        {
+          "name": "Vigilante",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 39.1131257,
+          "lon": -108.0127646,
+          "cityDisplayName": "Watchpoint Grand Mesa, United States"
+        },
+        {
+          "name": "Hero",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 19.1738,
+          "lon": -96.1342,
+          "cityDisplayName": "Dorado, Mexico"
+        }
+      ],
+      "lat": 39.1131257,
+      "lon": -108.0127646
+    },
+    {
+      "name": "Shooting Star",
+      "locationType": "earth",
+      "cityDisplayName": "Busan, South Korea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.1799528,
+      "lon": 129.0752365
+    },
+    {
+      "name": "The Last Bastion",
+      "locationType": "earth",
+      "cityDisplayName": "Black Forest, Germany",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 48.2634439,
+      "lon": 8.1647488
+    },
+    {
+      "name": "Here to be heard",
+      "locationType": "earth",
+      "cityDisplayName": "Rio de Janeiro, Brazil",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -22.9110137,
+      "lon": -43.2093727
+    },
+    {
+      "name": "Lurking in the Water",
+      "locationType": "earth",
+      "cityDisplayName": "Ecopoint Monterrey, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.6537668,
+      "lon": -124
+    },
+    {
+      "name": "Recall",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1285933,
+      "lon": -5.3474761
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "variants": [
+        {
+          "name": "Assassination",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, United Kingdom"
+        },
+        {
+          "name": "London Calling",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, United Kingdom"
+        }
+      ],
+      "lat": 51.5074456,
+      "lon": -0.1277653
+    },
+    {
+      "name": "Rise and Shine",
+      "locationType": "earth",
+      "cityDisplayName": "Ecoopint Antartica",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -67.107616,
+      "lon": -68099824
+    },
+    {
+      "name": "Unfinished Business",
+      "locationType": "earth",
+      "cityDisplayName": "Port-de-Paix, Haiti",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 20.0410035,
+      "lon": -72.785587
+    },
+    {
+      "name": "Return of the Maiden",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.3606,
+      "lon": 138.7274
+    },
+    {
+      "name": "Ecological Network",
+      "locationType": "earth",
+      "cityDisplayName": "Mount Logan, Canada",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 60.5678461,
+      "lon": -140.4056911
+    },
+    {
+      "name": "Infiltration",
+      "locationType": "earth",
+      "cityDisplayName": "Saint Petersburg, Russia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 59.938732,
+      "lon": 30.316229
+    },
+    {
+      "name": "Old Dragons",
+      "locationType": "earth",
+      "cityDisplayName": "Hanamura, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.6762,
+      "lon": 139.6503
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Necropolis, Egypt",
+      "variants": [
+        {
+          "name": "Old Soldiers",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 29,
+          "lon": 31,
+          "cityDisplayName": "Necropolis, Egypt"
+        },
+        {
+          "name": "Bastet",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 30.0443879,
+          "lon": 31.2357257,
+          "cityDisplayName": "Cairo, Egypt"
+        }
+      ],
+      "lat": 29,
+      "lon": 31
+    },
+    {
+      "name": "Answering the Call",
+      "locationType": "earth",
+      "cityDisplayName": "Eichenwalde Castle, Germany",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 50,
+      "lon": 8
+    },
+    {
+      "name": "Genius Grant",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 12.0022,
+      "lon": 8.5919
+    },
+    {
+      "name": "A New Empire",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseum, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8909421,
+      "lon": 12.491903
+    },
+    {
+      "name": "Failed Recovery",
+      "locationType": "moon",
+      "cityDisplayName": "Horizon Lunar Colony",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "x": 60,
+      "y": 70
+    },
+    {
+      "name": "Protector",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.3606,
+      "lon": 138.7274
+    },
+    {
+      "name": "Heroes Never Die",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.0443879,
+      "lon": 31.2357257
+    },
+    {
+      "name": "The World could use more Heroes",
+      "locationType": "earth",
+      "cityDisplayName": "New York, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 40.7127281,
+      "lon": -74.0060152
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Grímsvötn, Iceland",
+      "variants": [
+        {
+          "name": "Doomfist Escapes",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 64.3984222,
+          "lon": -17.3178863,
+          "cityDisplayName": "Watchpoint Grímsvötn, Iceland"
+        },
+        {
+          "name": "Stolen Gauntlet",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 12.0022,
+          "lon": 8.5919,
+          "cityDisplayName": "City State of Numbani"
+        }
+      ],
+      "lat": 64.3984222,
+      "lon": -17.3178863
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "variants": [
+        {
+          "name": "Business Meeting",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 43.7402961,
+          "lon": 7.426559,
+          "cityDisplayName": "Monte-Carlo, Monaco"
+        },
+        {
+          "name": "Masquerade",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 45.4371908,
+          "lon": 12.3345898,
+          "cityDisplayName": "Venice, Italy"
+        }
+      ],
+      "lat": 43.7402961,
+      "lon": 7.426559
+    },
+    {
+      "name": "Idina Unit OR15A Goes Online",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 12.0022,
+      "lon": 8.5919
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Tiveden, Sweden",
+      "variants": [
+        {
+          "name": "Binary",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 59.3385984,
+          "lon": 17.9828394,
+          "cityDisplayName": "Tiveden, Sweden"
+        },
+        {
+          "name": "System Reboot",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 57.7072326,
+          "lon": 11.9670171,
+          "cityDisplayName": "Gothenburg, Sweden"
+        }
+      ],
+      "lat": 59.3385984,
+      "lon": 17.9828394
+    },
+    {
+      "name": "Stone by Stone",
+      "locationType": "earth",
+      "cityDisplayName": "Suravasa, India",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 23.2599,
+      "lon": 77.4126
+    },
+    {
+      "name": "Venture's Adventures",
+      "locationType": "earth",
+      "cityDisplayName": "Shambali Monastery, Nepal",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 28.3949,
+      "lon": 84.124
+    },
+    {
+      "name": "Failed Exams",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.659867,
+      "lon": 104.063315
+    },
+    {
+      "name": "Sending a Message",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseum, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8909421,
+      "lon": 12.491903
+    },
+    {
+      "name": "Searching",
+      "locationType": "earth",
+      "cityDisplayName": "Dorado, Mexico",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 19.1738,
+      "lon": -96.1342
+    },
+    {
+      "name": "Yokais",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.3606,
+      "lon": 138.7274
+    },
+    {
+      "name": "Tangle with Talon",
+      "locationType": "earth",
+      "cityDisplayName": "Illios, Greece",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1725297,
+      "lon": 27.9194016
+    },
+    {
+      "name": "Hero of Numbani",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 12.0022,
+      "lon": 8.5919
+    },
+    {
+      "name": "Last Child of the Sun",
+      "locationType": "earth",
+      "cityDisplayName": "Runasapi, Peru",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -13.1631,
+      "lon": -72.545
+    },
+    {
+      "name": "Reunion",
+      "locationType": "earth",
+      "cityDisplayName": "Roud 66, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 40.0170005,
+      "lon": -105.2664724
+    },
+    {
+      "name": "Worsening Atmosphere",
+      "locationType": "mars",
+      "cityDisplayName": "Red Promise Colony",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "x": 45,
+      "y": 35
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "variants": [
+        {
+          "name": "New Blood",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 30.0443879,
+          "lon": 31.2357257,
+          "cityDisplayName": "Cairo, Egypt"
+        },
+        {
+          "name": "Lost Family",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 30.0443879,
+          "lon": 31.2357257,
+          "cityDisplayName": "Cairo, Egypt"
+        }
+      ],
+      "lat": 30.0443879,
+      "lon": 31.2357257
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Junkertown, Australia",
+      "variants": [
+        {
+          "name": "The Plan",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": -25,
+          "lon": 135,
+          "cityDisplayName": "Junkertown, Australia"
+        },
+        {
+          "name": "Friendly Rivalry",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": -25,
+          "lon": 135,
+          "cityDisplayName": "Junkertown, Australia"
+        }
+      ],
+      "lat": -25,
+      "lon": 135
+    },
+    {
+      "name": "Stalker",
+      "locationType": "earth",
+      "cityDisplayName": "Bucharest, Romania",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 44.4361414,
+      "lon": 26.102684
+    },
+    {
+      "name": "Surprise attack",
+      "locationType": "earth",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 60,
+      "lon": 100
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Toronto, Canada",
+      "variants": [
+        {
+          "name": "Suspicious activity",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 43.6534817,
+          "lon": -79.3839347,
+          "cityDisplayName": "Toronto, Canada"
+        },
+        {
+          "name": "Shockwaves",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 43.6534817,
+          "lon": -79.3839347,
+          "cityDisplayName": "Toronto, Canada"
+        }
+      ],
+      "lat": 43.6534817,
+      "lon": -79.3839347
+    },
+    {
+      "name": "Zero Hour",
+      "locationType": "earth",
+      "cityDisplayName": "Paris, France",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 48.8534951,
+      "lon": 2.3483915
+    },
+    {
+      "name": "Luck of the Draw",
+      "locationType": "earth",
+      "cityDisplayName": "Las Vegas, United States",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1674263,
+      "lon": -115.1484131
+    },
+    {
+      "name": "Busan Defense",
+      "locationType": "earth",
+      "cityDisplayName": "Busan, South Korea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.1799528,
+      "lon": 129.0752365
+    },
+    {
+      "name": "Thoughtless Gods",
+      "locationType": "earth",
+      "cityDisplayName": "Lijiang, China",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 26.8595868,
+      "lon": 100.2249797
+    },
+    {
+      "name": "Where Honor Lives",
+      "locationType": "earth",
+      "cityDisplayName": "Tokyo, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.6768601,
+      "lon": 139.7638947
+    },
+    {
+      "name": "Resistance",
+      "locationType": "earth",
+      "cityDisplayName": "Rio de Janeiro, Brazil",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -22.9110137,
+      "lon": -43.2093727
+    },
+    {
+      "name": "Unity",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 12.0022,
+      "lon": 8.5919
+    },
+    {
+      "name": "Rebuilding Ruins",
+      "locationType": "earth",
+      "cityDisplayName": "Atlantic Arcology",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 37.7412,
+      "lon": -25.6756
+    },
+    {
+      "name": "Liberation",
+      "locationType": "earth",
+      "cityDisplayName": "Toronto, Canada",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 43.6534817,
+      "lon": -79.3839347
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Zurich, Switzerland",
+      "variants": [
+        {
+          "name": "Lost Ghosts",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 47.3744489,
+          "lon": 8.5410422,
+          "cityDisplayName": "Zurich, Switzerland"
+        },
+        {
+          "name": "Lucky Man",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 47.3744489,
+          "lon": 8.5410422,
+          "cityDisplayName": "Zurich, Switzerland"
+        }
+      ],
+      "lat": 47.3744489,
+      "lon": 8.5410422
+    },
+    {
+      "name": "Ironclad Help",
+      "locationType": "earth",
+      "cityDisplayName": "Gothenburg, Göteborgs Stad, Västra Götaland County, 411 10, Sweden",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 57.7072326,
+      "lon": 11.9670171
+    },
+    {
+      "name": "A great day",
+      "locationType": "earth",
+      "cityDisplayName": "Baltic Sea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 56,
+      "lon": 18
+    },
+    {
+      "name": "Water Fighter",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.659867,
+      "lon": 104.063315
+    },
+    {
+      "name": "Emergency Landing",
+      "locationType": "earth",
+      "cityDisplayName": "Dorado, Mexico",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 19.1738,
+      "lon": -96.1342
+    },
+    {
+      "name": "Vested Interests",
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 43.7402961,
+      "lon": 7.426559
+    },
+    {
+      "name": "Warm Welcome",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1285933,
+      "lon": -5.3474761
+    },
+    {
+      "name": "Partnership",
+      "locationType": "earth",
+      "cityDisplayName": "Atlantic Arcology",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 37.7412,
+      "lon": -25.6756
+    },
+    {
+      "name": "The Hunt Begins",
+      "locationType": "earth",
+      "cityDisplayName": "Copenhagen,, Denmark",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.6867243,
+      "lon": 12.5700724
+    },
+    {
+      "name": "Free the Phreaks",
+      "locationType": "earth",
+      "cityDisplayName": "Aatlis, Morocco",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 34.0209,
+      "lon": -6.8416
+    },
+    {
+      "name": "The Upper Hand",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8909421,
+      "lon": 12.491903
+    },
+    {
+      "name": "Hazardous Tactics",
+      "locationType": "earth",
+      "cityDisplayName": "Oasis University, Iraq",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 29.5918,
+      "lon": 52.5836
+    },
+    {
+      "name": "Futures Past",
+      "locationType": "earth",
+      "cityDisplayName": "Runasapi, Peru",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -13.1631,
+      "lon": -72.545
+    },
+    {
+      "name": "Old Friend",
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 43.7402961,
+      "lon": 7.426559
+    },
+    {
+      "name": "Elemental Kin",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.659867,
+      "lon": 104.063315
+    },
+    {
+      "name": "Reconciliation",
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 51.5074456,
+      "lon": -0.1277653
+    },
+    {
+      "name": "Sentinels",
+      "locationType": "earth",
+      "cityDisplayName": "Buenos Aires, Argentina",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -34.8222,
+      "lon": -58.5358
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Lijiang, China",
+      "variants": [
+        {
+          "name": "Signs of Life",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 26.8595868,
+          "lon": 100.2249797,
+          "cityDisplayName": "Lijiang, China"
+        },
+        {
+          "name": "Starpet",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 36.1285933,
+          "lon": -5.3474761,
+          "cityDisplayName": "Watchpoint Gibraltar"
+        }
+      ],
+      "lat": 26.8595868,
+      "lon": 100.2249797
+    },
+    {
+      "name": "The Invitation",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1285933,
+      "lon": -5.3474761
+    },
+    {
+      "name": "Search and Destroy",
+      "locationType": "earth",
+      "cityDisplayName": "Riyadh, Saudi Arabia",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 23.333333,
+      "lon": 45.333333
+    },
+    {
+      "name": "Reign of Talon",
+      "locationType": "earth",
+      "cityDisplayName": "Rome,, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8933203,
+      "lon": 12.4829321
     }
   ]
 }

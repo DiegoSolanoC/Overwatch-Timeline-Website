@@ -1,9 +1,9 @@
-﻿/* Sidebar Navigation */
+/* Sidebar Navigation */
 .sidebar {
     position: fixed;
     right: -200px;
     top: 60px;
-    bottom: 52px;
+    bottom: var(--footer-height);
     width: 200px;
     max-width: 90vw; /* Prevent full screen on mobile */
     background: #0D47A1;
@@ -37,7 +37,7 @@
     position: fixed;
     right: 0;
     top: 60px;
-    bottom: 48px;
+    bottom: var(--footer-height);
     width: 20px;
     z-index: 40;
     cursor: pointer;

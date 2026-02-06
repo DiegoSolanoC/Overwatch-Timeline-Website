@@ -444,6 +444,11 @@ export class ComponentOrchestrator {
         if (footer) {
             footer.classList.remove('timeline-loaded');
         }
+
+        // Clear/hide headlines ticker when returning to main menu
+        if (window.newsTickerService && typeof window.newsTickerService.clear === 'function') {
+            window.newsTickerService.clear();
+        }
         
         // Close any open panels
         const eventSlide = document.getElementById('eventSlide');

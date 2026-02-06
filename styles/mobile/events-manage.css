@@ -9,7 +9,7 @@
     position: fixed;
     right: -900px;
     top: 60px;
-    bottom: 52px;
+    bottom: var(--footer-height);
     width: 900px;
     background: #0a1929;
     box-shadow: none !important;

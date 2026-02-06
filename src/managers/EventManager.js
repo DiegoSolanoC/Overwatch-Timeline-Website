@@ -60,6 +60,11 @@ class EventManager {
         this.unsavedEventIndices = new Set(); // Track which events have unsaved changes
         this.currentPage = 1; // Current page number (1-indexed)
         this.eventsPerPage = 50; // Number of events per page
+        this.eventsPerPageSetting = 50; // User-selected events per page (when not showing all)
+        this.showAllEventsInManager = false; // If true, show all events in one long page
+        this.searchQuery = ''; // Event manager search: filter by title
+        this.searchHeroFilters = []; // Hero names (event.filters)
+        this.searchFactionFilters = []; // Faction filenames (event.factions, e.g. "04Talon")
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
         this.eventItemVariantIndices = new Map(); // Track current variant index for each event item
@@ -72,6 +77,51 @@ class EventManager {
      */
     get events() {
         return this.dataService ? this.dataService.getEvents() : [];
+    }
+
+    /**
+     * Get events filtered by search query and hero/faction filters (for event manager list)
+     * Title: case-insensitive contains. Heroes: event has any selected (event.filters).
+     * Factions: event has any selected (event.factions, by filename).
+     */
+    getFilteredEvents() {
+        const all = this.events;
+        const q = (this.searchQuery || '').trim().toLowerCase();
+        const heroFilters = this.searchHeroFilters || [];
+        const factionFilters = this.searchFactionFilters || [];
+        if (!q && heroFilters.length === 0 && factionFilters.length === 0) {
+            return all;
+        }
+        const matchesItem = (item) => {
+            const name = (item?.name || '').toLowerCase();
+            const matchTitle = !q || name.includes(q);
+            const itemHeroes = item?.filters || [];
+            const matchHeroes = heroFilters.length === 0 || heroFilters.some(h => itemHeroes.includes(h));
+            const itemFactions = item?.factions || [];
+            const matchFactions = factionFilters.length === 0 || factionFilters.some(f => itemFactions.includes(f));
+            return matchTitle && matchHeroes && matchFactions;
+        };
+
+        return all.filter(event => {
+            // Main event matches (single event or multi-event header)
+            if (matchesItem(event)) {
+                return true;
+            }
+
+            // Variant match: if any variant matches, include event and set preview to that variant
+            if (event?.variants && Array.isArray(event.variants) && event.variants.length > 0) {
+                const matchedIndex = event.variants.findIndex(v => matchesItem(v));
+                if (matchedIndex !== -1) {
+                    // Ensure preview shows the matching variant
+                    const fullIndex = all.indexOf(event);
+                    if (fullIndex !== -1 && this.eventItemVariantIndices) {
+                        this.eventItemVariantIndices.set(`event-${fullIndex}`, matchedIndex);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 
     /**
@@ -225,12 +275,21 @@ class EventManager {
      */
     renderEvents() {
         if (this.renderService) {
+            const displayed = this.getFilteredEvents();
+            const perPage = this.showAllEventsInManager ? Math.max(1, displayed.length) : Math.max(1, parseInt(this.eventsPerPageSetting || 50, 10) || 50);
+            this.eventsPerPage = perPage; // keep services in sync (pagination listener logic reads this)
+            if (this.showAllEventsInManager) {
+                this.currentPage = 1;
+            }
+            const totalPages = Math.max(1, Math.ceil(displayed.length / this.eventsPerPage));
+            if (this.currentPage > totalPages) {
+                this.currentPage = totalPages;
+            }
             this.renderService.renderEvents(
-                this.events,
+                displayed,
                 this.currentPage,
                 this.eventsPerPage,
                 () => {
-                    // Callback after rendering: setup drag and drop
                     this.setupDragAndDrop();
                 }
             );
@@ -239,9 +298,14 @@ class EventManager {
             this.updateStatus('EventManager: ERROR - EventRenderService not found', 'error');
         }
     }
-    
+
+    applySearchAndRender() {
+        this.currentPage = 1;
+        this.renderEvents();
+    }
+
     renderPaginationControls() {
-        this.renderService?.renderPaginationControls(this.events, this.currentPage, this.eventsPerPage);
+        this.renderService?.renderPaginationControls(this.getFilteredEvents(), this.currentPage, this.eventsPerPage);
     }
     
     setupPaginationListeners() {

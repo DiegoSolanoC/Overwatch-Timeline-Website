@@ -8,7 +8,7 @@
     top: 60px;
     left: 0;
     right: 0;
-    bottom: 52px;
+    bottom: var(--footer-height);
     background: rgba(0, 0, 0, 0); /* Transparent by default - will be set to black if no image */
     z-index: 150;
     display: none;

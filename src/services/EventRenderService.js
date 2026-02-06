@@ -73,18 +73,28 @@ class EventRenderService {
         eventsList.innerHTML = '';
 
         if (events.length === 0) {
-            eventsList.innerHTML = '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No events yet. Click "Add Event" to create one.</div>';
+            const hasSearch = this.eventManager && (
+                (this.eventManager.searchQuery && this.eventManager.searchQuery.trim()) ||
+                (this.eventManager.searchHeroFilters && this.eventManager.searchHeroFilters.length > 0) ||
+                (this.eventManager.searchFactionFilters && this.eventManager.searchFactionFilters.length > 0)
+            );
+            const msg = hasSearch
+                ? 'No matching events. Try changing search or filters.'
+                : 'No events yet. Click "Add Event" to create one.';
+            eventsList.innerHTML = `<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">${msg}</div>`;
             console.log('EventRenderService: No events to render');
             this.renderPaginationControls(events, validPage, eventsPerPage);
             return;
         }
 
-        // Create event items for current page using document fragment for better performance
+        // Create event items for current page; use index in full list for edit/delete/open (events may be filtered)
+        const fullList = this.eventManager && this.eventManager.events ? this.eventManager.events : events;
         const renderStartTime = performance.now();
         const fragment = document.createDocumentFragment();
         eventsToRender.forEach((event, pageIndex) => {
-            const actualIndex = startIndex + pageIndex; // Actual index in full events array
-            const eventItem = this.createEventItem(event, actualIndex, events);
+            const actualIndex = fullList.indexOf(event);
+            if (actualIndex === -1) return;
+            const eventItem = this.createEventItem(event, actualIndex, fullList);
             fragment.appendChild(eventItem);
         });
         eventsList.appendChild(fragment);
@@ -183,23 +193,21 @@ class EventRenderService {
         
         paginationContainer.style.display = 'flex';
         
-        // Build pagination HTML
+        // Build pagination HTML (prev/next wrap: no disabled state, wrap at ends)
         let paginationHTML = '<div class="events-pagination-controls">';
         
-        // Previous button
-        const prevDisabled = currentPage === 1 ? 'disabled' : '';
-        paginationHTML += `<button class="events-pagination-btn" id="eventsPrevPage" ${prevDisabled}>‹ Prev</button>`;
+        // Previous button (wraps to last page when on first page)
+        paginationHTML += `<button class="events-pagination-btn" id="eventsPrevPage" title="Previous (wrap to last)">‹ Prev</button>`;
         
-        // Page selector with text input
+        // Page selector with text input (no spinner - use type="text" with pattern or keep number and hide spinner via CSS)
         paginationHTML += `<span class="events-pagination-page-selector">`;
         paginationHTML += `<label for="eventsPageInput">Page:</label>`;
-        paginationHTML += `<input type="number" id="eventsPageInput" class="events-pagination-input" min="1" max="${totalPages}" value="${currentPage}" />`;
+        paginationHTML += `<input type="number" inputmode="numeric" id="eventsPageInput" class="events-pagination-input" min="1" max="${totalPages}" value="${currentPage}" />`;
         paginationHTML += `<span class="events-pagination-total">of ${totalPages}</span>`;
         paginationHTML += `</span>`;
         
-        // Next button
-        const nextDisabled = currentPage === totalPages ? 'disabled' : '';
-        paginationHTML += `<button class="events-pagination-btn" id="eventsNextPage" ${nextDisabled}>Next ›</button>`;
+        // Next button (wraps to first page when on last page)
+        paginationHTML += `<button class="events-pagination-btn" id="eventsNextPage" title="Next (wrap to first)">Next ›</button>`;
         
         paginationHTML += '</div>';
         paginationContainer.innerHTML = paginationHTML;
@@ -215,33 +223,47 @@ class EventRenderService {
     setupPaginationListeners() {
         if (!this.eventManager) return;
         
-        // Previous button
+        const getDisplayedEvents = () => this.eventManager.getFilteredEvents ? this.eventManager.getFilteredEvents() : this.eventManager.events;
+        const getTotalPages = () => Math.max(1, Math.ceil(getDisplayedEvents().length / this.eventManager.eventsPerPage));
+        
+        // Previous button: wrap to last page when on first page
         const prevBtn = document.getElementById('eventsPrevPage');
         if (prevBtn) {
             prevBtn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                if (window.SoundEffectsManager) {
+                    window.SoundEffectsManager.play('page');
+                }
+                const totalPages = getTotalPages();
                 if (this.eventManager.currentPage > 1) {
                     this.eventManager.currentPage--;
-                    if (this.eventManager.renderEvents) {
-                        this.eventManager.renderEvents();
-                    }
+                } else {
+                    this.eventManager.currentPage = totalPages;
+                }
+                if (this.eventManager.renderEvents) {
+                    this.eventManager.renderEvents();
                 }
             };
         }
         
-        // Next button
+        // Next button: wrap to first page when on last page
         const nextBtn = document.getElementById('eventsNextPage');
         if (nextBtn) {
             nextBtn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const totalPages = Math.max(1, Math.ceil(this.eventManager.events.length / this.eventManager.eventsPerPage));
+                if (window.SoundEffectsManager) {
+                    window.SoundEffectsManager.play('page');
+                }
+                const totalPages = getTotalPages();
                 if (this.eventManager.currentPage < totalPages) {
                     this.eventManager.currentPage++;
-                    if (this.eventManager.renderEvents) {
-                        this.eventManager.renderEvents();
-                    }
+                } else {
+                    this.eventManager.currentPage = 1;
+                }
+                if (this.eventManager.renderEvents) {
+                    this.eventManager.renderEvents();
                 }
             };
         }
@@ -252,15 +274,14 @@ class EventRenderService {
             pageInput.onchange = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const totalPages = Math.max(1, Math.ceil(this.eventManager.events.length / this.eventManager.eventsPerPage));
-                const page = parseInt(pageInput.value);
+                const totalPages = getTotalPages();
+                const page = parseInt(pageInput.value, 10);
                 if (page && page >= 1 && page <= totalPages && page !== this.eventManager.currentPage) {
                     this.eventManager.currentPage = page;
                     if (this.eventManager.renderEvents) {
                         this.eventManager.renderEvents();
                     }
                 } else {
-                    // Reset to current page if invalid
                     pageInput.value = this.eventManager.currentPage;
                 }
             };
@@ -271,7 +292,6 @@ class EventRenderService {
                     e.stopPropagation();
                     pageInput.onchange(e);
                 }
-                // Stop propagation for all keys to prevent panel closing
                 e.stopPropagation();
             };
             
