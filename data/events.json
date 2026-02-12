@@ -334,6 +334,29 @@
       "lon": -79.3839347
     },
     {
+      "name": "The Nuclear Solution",
+      "locationType": "earth",
+      "cityDisplayName": "Detroit, United States",
+      "description": "While green energy was enough to sustain small towns and daily activities for most households, industry at large required a lot more power still, and to solve this, they turned to a familiar solution, nuclear power. While the infamous accidents from the previous decades like Chernobyl and Fukushima made it a hard sell, breakthroughs in fusion reactors allowed for the first Fusion plant to be brought up online, and after that it wouldn't be long before this became the standard for metropolitan areas, government research centers and large industrial facilities. Omnica Corporation would use these nuclear reactors to facilitate the construction of their massive Omnium factories across the world.",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "05Omnica"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Nuclear Energy push finally breaks through on Fision development",
+        "Omnica Corporation quick to adopt new nuclear energy"
+      ],
+      "lat": 42.3315509,
+      "lon": -83.0466403
+    },
+    {
       "name": "Mako Rutledge is Born",
       "locationType": "earth",
       "cityDisplayName": "The Outback, Australia",
@@ -426,29 +449,6 @@
       "lon": -6.2605593
     },
     {
-      "name": "The Nuclear Solution",
-      "locationType": "earth",
-      "cityDisplayName": "Detroit, United States",
-      "description": "While green energy was enough to sustain small towns and daily activities for most households, industry at large required a lot more power still, and to solve this, they turned to a familiar solution, nuclear power. While the infamous accidents from the previous decades like Chernobyl and Fukushima made it a hard sell, breakthroughs in fusion reactors allowed for the first Fusion plant to be brought up online, and after that it wouldn't be long before this became the standard for metropolitan areas, government research centers and large industrial facilities. Omnica Corporation would use these nuclear reactors to facilitate the construction of their massive Omnium factories across the world.",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "05Omnica"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "Nuclear Energy push finally breaks through on Fision development",
-        "Omnica Corporation quick to adopt new nuclear energy"
-      ],
-      "lat": 42.3315509,
-      "lon": -83.0466403
-    },
-    {
       "name": "Akande Ogundimu is Born",
       "locationType": "earth",
       "cityDisplayName": "Oyo, Nigeria",
@@ -472,6 +472,25 @@
       "lon": 3.5642897
     },
     {
+      "name": "Emre Sarioglu is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Istanbul, Turkey",
+      "description": "On November 8 of 2034, Emre Sarioglu was born. A kind, social and stickler of the rules soul that would grow up to become a Local Hero, serving in the Special Forces for Turkey, where his natural leadership and sharp tactical mind shined. He made sure to build relationships with everyone around him, remaining close to his old squad mates even after years.",
+      "image": "",
+      "filters": [
+        "Emre"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Emre",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/emre/"
+        }
+      ],
+      "lat": 41.006381,
+      "lon": 28.9758715
+    },
+    {
       "name": "Mei-Ling Zhou is Born",
       "locationType": "earth",
       "cityDisplayName": "Xi'an, China",
@@ -492,6 +511,30 @@
       ],
       "lat": 34.261004,
       "lon": 108.9423363
+    },
+    {
+      "name": "Wuxing University",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "With all the new technologies that were arising, academic institutions were constantly growing, as more people wanted to get into the many new technological fields that were opening, and one of the schools that quickly took the lead in the world would be Wuxing University. According to the academy's teachings, centuries ago, a wise family had dedicated themselves to the understanding and application of the traditional Wuxing philosophy, and the study of the building blocks of the world. With the years of accumulated knowledge, they founded what later became the University, where traditional wisdom was to pioneer new science, for students to have all the knowledge of the past available to guide their future.\n\nThe University, true to its name, splits its fields of study into five categories, relating to the phases of the Wuxing teachings.\nThe Fire College, for the study of martial arts and defensive strategies.\nThe Metal College, for robotics and technological engineering.\nThe Water College, for traditional medicine and applications into new medical advancements.\nThe Earth College, for agricultural and sustainability studies.\nAnd Wood College, for civil and environmental engineering.\nEach of these faculties played major roles in China's major advancements during the following decades, quickly increasing the College's prestige across the world.",
+      "image": "",
+      "filters": [
+        "Wuyang",
+        "Anran"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Against the Tide",
+          "url": "https://blz-contentstack-assets.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltda027517bc96a819/6892813ccec4566b0c2fe2bc/OW_Aqua_EN.pdf"
+        }
+      ],
+      "headlines": [
+        "Wuxing University Opens its doors to the public",
+        "Chinese College makes the rounds online due to its unique new structure"
+      ],
+      "lat": 30.659867,
+      "lon": 104.063315
     },
     {
       "name": "The Rise of Omnics",
@@ -538,30 +581,6 @@
       ],
       "lat": 29.7057858,
       "lon": -95.4588299
-    },
-    {
-      "name": "Wuxing University",
-      "locationType": "earth",
-      "cityDisplayName": "Chengdu, China",
-      "description": "With all the new technologies that were arising, academic institutions were constantly growing, as more people wanted to get into the many new technological fields that were opening, and one of the schools that quickly took the lead in the world would be Wuxing University. According to the academy's teachings, centuries ago, a wise family had dedicated themselves to the understanding and application of the traditional Wuxing philosophy, and the study of the building blocks of the world. With the years of accumulated knowledge, they founded what later became the University, where traditional wisdom was to pioneer new science, for students to have all the knowledge of the past available to guide their future.\n\nThe University, true to its name, splits its fields of study into five categories, relating to the phases of the Wuxing teachings.\nThe Fire College, for the study of martial arts and defensive strategies.\nThe Metal College, for robotics and technological engineering.\nThe Water College, for traditional medicine and applications into new medical advancements.\nThe Earth College, for agricultural and sustainability studies.\nAnd Wood College, for civil and environmental engineering.\nEach of these faculties played major roles in China's major advancements during the following decades, quickly increasing the College's prestige across the world.",
-      "image": "",
-      "filters": [
-        "Wuyang",
-        "Anran"
-      ],
-      "factions": [],
-      "sources": [
-        {
-          "text": "Against the Tide",
-          "url": "https://blz-contentstack-assets.akamaized.net/v3/assets/blt2477dcaf4ebd440c/bltda027517bc96a819/6892813ccec4566b0c2fe2bc/OW_Aqua_EN.pdf"
-        }
-      ],
-      "headlines": [
-        "Wuxing University Opens its doors to the public",
-        "Chinese College makes the rounds online due to its unique new structure"
-      ],
-      "lat": 30.659867,
-      "lon": 104.063315
     },
     {
       "name": "Hanzo Shimada is Born",
@@ -770,7 +789,7 @@
     {
       "name": "Voslkaya Industries",
       "locationType": "earth",
-      "cityDisplayName": "Saint Petersburg, Northwestern Federal District, Russia",
+      "cityDisplayName": "Saint Petersburg, Russia",
       "description": "In Russia, Alisa Volskaya would return home after graduating as an engineer at MIT, and soon after she would serve in the Russian Defense Forces. Thanks to her ingenuity, she would be tasked with developing weaponry for the RDF, and to do so she would found the robotics manufacturing company, Volskaya Industries. Alisa was quite a quiet inventor, and while she enjoyed her craft and providing for the military, she never sought to grow the corporation privately.\n\n\n\nAlisa would innovate in the name of Russia for years, but her most ingenious ideas would stay private until the Crisis, where she would finally get the chance and the money to make them a reality.",
       "image": "",
       "filters": [],
@@ -1006,6 +1025,27 @@
       ],
       "lat": 57.7072326,
       "lon": 11.9670171
+    },
+    {
+      "name": "Vaira Singhania is Born",
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "description": "On August 28 of 2046, Vaira Singhania was born. As the granddaughter of Vishkar's founder, she was expected to eventually inherit the family business, which had placed immense pressure upon her since she was young and quickly shaped her into a perfectionist negotiator. But although she had a knack for corporate talk, she lacked the artistic vision of an architect, and over the years had become desperate to be perceived as flawless, spending fortunes on private lessons and customized assistive equipment to allow her to compete within the company.",
+      "image": "",
+      "filters": [
+        "Domina"
+      ],
+      "factions": [
+        "12Vishkar"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website, Domina",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/domina/"
+        }
+      ],
+      "lat": 51.5074456,
+      "lon": -0.1277653
     },
     {
       "name": "Olivia Colomar is Born",
@@ -1670,7 +1710,8 @@
         "Illari"
       ],
       "factions": [
-        "06Crisis"
+        "06Crisis",
+        "17Inti"
       ],
       "sources": [
         {
@@ -1765,10 +1806,23 @@
       "name": "The Svyatogor",
       "locationType": "earth",
       "cityDisplayName": "Moscow, Russia",
-      "description": "",
+      "description": "I need for better defenses to battle Anubis, the RDF pumped all the money and resources they could into Volskaya Industries, allowing the company to finish the development of their Svyatogor unit. Gigantic mechs that were deployed across Russia Midway through the Crisis. These defensive units were equipped with arm-mounted canons that decimated warbot waves, but they also retained mechanical hands, which proved useful for evacuating civilians and creating barricades. Their size also meant they could go one to one against one of the biggest threads in the conflict, the Titan units.\n\nTitans were mostly unstoppable, but their construction did not account for close combat with units around the same size. So if both a Titan and Svyatogor fell, only one of them would get back up. The Svyatogor was also designed to endure the Russian winters, and resistant to most kinds of attacks.\n\n\n\nThanks to the Volskaya mechs, Russia was able to fight the crisis alone all the way through, without the need of external help, a feat of which they are proud even today. The mechs were not only effective at protecting small, isolated towns, they were also capable of holding the line in Moscow, in spite of the brutal number of warbots that Anubis sent their way. The God program was unable to keep up with the efficiency and scale of the Svyagotor units, forcing it to redirect most of its resources towards Russia, which left Scandinavia largely spared from the massacre.",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "19Volskaya",
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Voslkaya Mechs fight Omic army back",
+        "Russia stays strong against the Warbots with giant Robots of their own"
+      ],
       "lat": 55.625578,
       "lon": 37.6063916
     },
@@ -2167,7 +2221,7 @@
     {
       "name": "One with the Iris",
       "locationType": "earth",
-      "cityDisplayName": "Shambali Monastery",
+      "cityDisplayName": "Shambali Monastery, Nepal",
       "description": "",
       "image": "",
       "filters": [],
@@ -2217,6 +2271,17 @@
       "lon": -95.4588299
     },
     {
+      "name": "Anima Weaponry",
+      "locationType": "earth",
+      "cityDisplayName": "Hanamura, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.6762,
+      "lon": 139.6503
+    },
+    {
       "name": "Miracle Worker",
       "locationType": "earth",
       "cityDisplayName": "Zurich, Switzerland",
@@ -2250,6 +2315,25 @@
       "lon": -4.2501687
     },
     {
+      "name": "Ye Anran is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Anran"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Anran",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/anran/"
+        }
+      ],
+      "lat": 30.659867,
+      "lon": 104.063315
+    },
+    {
       "name": "The New West",
       "locationType": "earth",
       "cityDisplayName": "Roud 66, United States",
@@ -2261,15 +2345,47 @@
       "lon": -105.2664724
     },
     {
+      "name": "Hana Song is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Busan, South Korea",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.1799528,
+      "lon": 129.0752365
+    },
+    {
       "name": "Rebuilding the Past",
       "locationType": "earth",
-      "cityDisplayName": "Colosseum, Italy",
+      "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
       "filters": [],
       "factions": [],
       "lat": 41.8909421,
       "lon": 12.491903
+    },
+    {
+      "name": "Mizuki Kawano is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Fukuoka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Mitzuki"
+      ],
+      "factions": [
+        "23Hashimoto"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website, Mizuki",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/mizuki/"
+        }
+      ],
+      "lat": 33.6251241,
+      "lon": 130.6180016
     },
     {
       "name": "Vancouver Floods",
@@ -2281,17 +2397,6 @@
       "factions": [],
       "lat": 55.001251,
       "lon": -125.002441
-    },
-    {
-      "name": "Hana Song is Born",
-      "locationType": "earth",
-      "cityDisplayName": "Busan, South Korea",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 35.1799528,
-      "lon": 129.0752365
     },
     {
       "name": "Building Coalitions",
@@ -2371,17 +2476,6 @@
       "lon": 129.0752365
     },
     {
-      "name": "Growing with the Clan",
-      "locationType": "earth",
-      "cityDisplayName": "Kanezaka, Japan",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 35.3606,
-      "lon": 138.7274
-    },
-    {
       "name": "Black Ops",
       "locationType": "earth",
       "cityDisplayName": "Capetown, South Africa",
@@ -2391,6 +2485,17 @@
       "factions": [],
       "lat": -33.9228378,
       "lon": 18.426976
+    },
+    {
+      "name": "Growing with the Clan",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.3606,
+      "lon": 138.7274
     },
     {
       "name": "Pocket King",
@@ -2594,36 +2699,6 @@
       "lon": -0.1277653
     },
     {
-      "locationType": "earth",
-      "cityDisplayName": "Hanamura, Japan",
-      "variants": [
-        {
-          "name": "Shimada Takedown",
-          "description": "",
-          "filters": [],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 35.6762,
-          "lon": 139.6503,
-          "cityDisplayName": "Hanamura, Japan"
-        },
-        {
-          "name": "Shrine Maiden",
-          "description": "",
-          "filters": [],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 35.3606,
-          "lon": 138.7274,
-          "cityDisplayName": "Kanezaka, Japan"
-        }
-      ],
-      "lat": 35.6762,
-      "lon": 139.6503
-    },
-    {
       "name": "Taking the Throne",
       "locationType": "earth",
       "cityDisplayName": "Junkertown, Australia",
@@ -2655,6 +2730,36 @@
       "factions": [],
       "lat": 45.4371908,
       "lon": 12.3345898
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Hanamura, Japan",
+      "variants": [
+        {
+          "name": "Shimada Takedown",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 35.6762,
+          "lon": 139.6503,
+          "cityDisplayName": "Hanamura, Japan"
+        },
+        {
+          "name": "Shrine Maiden",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 35.3606,
+          "lon": 138.7274,
+          "cityDisplayName": "Kanezaka, Japan"
+        }
+      ],
+      "lat": 35.6762,
+      "lon": 139.6503
     },
     {
       "name": "Lunar Revolt",
@@ -2940,13 +3045,17 @@
       "lon": 2.320041
     },
     {
-      "name": "Security Breach",
+      "name": "Overridden",
       "locationType": "earth",
       "cityDisplayName": "Helsinki, Finland",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Emre"
+      ],
+      "factions": [
+        "26Conspiracy"
+      ],
       "lat": 60.1666204,
       "lon": 24.9435408
     },
@@ -3132,17 +3241,6 @@
       "lon": 31
     },
     {
-      "name": "Vanadium Strand",
-      "locationType": "earth",
-      "cityDisplayName": "Petra, Jordan",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 30.3258363,
-      "lon": 35.4745669
-    },
-    {
       "name": "A Better World",
       "locationType": "earth",
       "cityDisplayName": "Rio de Janeiro, Brazil",
@@ -3163,17 +3261,6 @@
       "factions": [],
       "lat": 30.0443879,
       "lon": 31.2357257
-    },
-    {
-      "name": "Idina Troopers",
-      "locationType": "earth",
-      "cityDisplayName": "City State of Numbani",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 12.0022,
-      "lon": 8.5919
     },
     {
       "name": "Left Behind",
@@ -3209,6 +3296,17 @@
       "lon": 129.0752365
     },
     {
+      "name": "Vanadium Strand",
+      "locationType": "earth",
+      "cityDisplayName": "Petra, Jordan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 30.3258363,
+      "lon": 35.4745669
+    },
+    {
       "name": "Bounty Hunter",
       "locationType": "earth",
       "cityDisplayName": "Copenhagen, Denmark",
@@ -3240,6 +3338,17 @@
       "factions": [],
       "lat": 30.659867,
       "lon": 104.063315
+    },
+    {
+      "name": "Idina Troopers",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 12.0022,
+      "lon": 8.5919
     },
     {
       "name": "Train Hopper",
@@ -3380,6 +3489,25 @@
       "factions": [],
       "lat": 48.2634439,
       "lon": 8.1647488
+    },
+    {
+      "name": "Fika is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Lijiang, China",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Jetpack Cat"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Jetpack Cat",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/jetpack-cat/"
+        }
+      ],
+      "lat": 26.8595868,
+      "lon": 100.2249797
     },
     {
       "name": "Here to be heard",
@@ -3565,7 +3693,7 @@
     {
       "name": "A New Empire",
       "locationType": "earth",
-      "cityDisplayName": "Colosseum, Italy",
+      "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
       "filters": [],
@@ -3754,7 +3882,7 @@
     {
       "name": "Sending a Message",
       "locationType": "earth",
-      "cityDisplayName": "Colosseum, Italy",
+      "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
       "filters": [],
@@ -3913,6 +4041,7 @@
     {
       "name": "Surprise attack",
       "locationType": "earth",
+      "cityDisplayName": "Novoanskoye, Russia",
       "description": "",
       "image": "",
       "filters": [],
@@ -4082,7 +4211,7 @@
     {
       "name": "Ironclad Help",
       "locationType": "earth",
-      "cityDisplayName": "Gothenburg, Göteborgs Stad, Västra Götaland County, 411 10, Sweden",
+      "cityDisplayName": "Gothenburg, Sweden",
       "description": "",
       "image": "",
       "filters": [],
@@ -4308,13 +4437,32 @@
       "lon": 45.333333
     },
     {
-      "name": "Reign of Talon",
       "locationType": "earth",
       "cityDisplayName": "Rome,, Italy",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
+      "variants": [
+        {
+          "name": "Reign of Talon",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 41.8933203,
+          "lon": 12.4829321,
+          "cityDisplayName": "Rome,, Italy"
+        },
+        {
+          "name": "Vengance Comes",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 45.4371908,
+          "lon": 13,
+          "cityDisplayName": "Serenza, Italy"
+        }
+      ],
       "lat": 41.8933203,
       "lon": 12.4829321
     }
