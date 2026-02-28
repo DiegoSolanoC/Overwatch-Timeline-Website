@@ -291,6 +291,13 @@ body.color-palette-gray .event-number-btn.locked {
     left: 110px !important; /* Position next to rotation button */
 }
 
+/* Map View Toggle Button - third row, top-left */
+#mapViewToggle {
+    bottom: auto !important;
+    top: 170px !important; /* Below rotation/transport row */
+    left: 20px !important;
+}
+
 /* Top-left buttons (filters and event manager) - positioned at top left */
 .top-left-btn {
     bottom: auto !important;

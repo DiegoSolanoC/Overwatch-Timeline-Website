@@ -93,7 +93,9 @@ export class EventMarkerManager {
         } else {
             // If not animating, ensure markers are at full scale
             newMarkers.forEach(marker => {
-                marker.scale.set(1, 1, 1);
+                const base = (marker.userData && marker.userData.isLocked) ? 0.75 : 1.0;
+                const s = (marker.userData && marker.userData.originalScale) ? (base * marker.userData.originalScale) : base;
+                marker.scale.set(s, s, s);
             });
             newPinLines.forEach(line => {
                 if (line.material) {
@@ -164,6 +166,8 @@ export class EventMarkerManager {
                 if (line.parent) line.parent.remove(line);
             });
             removeOrphanedEventPins(globe);
+            const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+            if (earthMapPlane) removeOrphanedEventPins(earthMapPlane);
             const moon = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
             const mars = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
             if (moon) removeOrphanedEventPins(moon);
@@ -193,6 +197,28 @@ export class EventMarkerManager {
         if (!globe) {
             console.warn('EventMarkerManager: Cannot refresh event markers - globe not initialized yet');
             return;
+        }
+
+        // IMPORTANT: clear any pulse-ring meshes from the previous page immediately.
+        // Otherwise they can linger (parented to ISS/Moon/Mars) and appear to "snap/tilt" right after page switches.
+        const scene = this.sceneModel.getScene ? this.sceneModel.getScene() : null;
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
+        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
+        const issSatellite = window.globeController?.transportController?.findISS
+            ? window.globeController.transportController.findISS()
+            : null;
+        const containers = [scene, globe, earthMapPlane, moonPlane, marsPlane, issSatellite].filter(Boolean);
+        containers.forEach(parent => {
+            const toRemove = [];
+            parent.traverse(obj => {
+                if (obj?.userData?.isPulseRing) toRemove.push(obj);
+            });
+            toRemove.forEach(o => { if (o.parent) o.parent.remove(o); });
+        });
+        // Also reset hovered marker reference so no pulses keep scheduling across page boundaries.
+        if (window.globeController?.interactionController?.pulseService) {
+            window.globeController.interactionController.pulseService.setHoveredMarker(null);
         }
         
         // Animate removal, then add new markers with animation

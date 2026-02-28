@@ -1,15 +1,22 @@
-﻿/**
+/**
  * MarkerPositionHelpers - Utilities for calculating marker positions
  * Extracted from EventMarkerManager to reduce duplication
  */
 
-import { latLonToVector3, xyToPlanePosition } from '../../utils/GeometryUtils.js';
+import { latLonToVector3, latLonToMapPlanePosition, xyToPlanePosition } from '../../utils/GeometryUtils.js';
 
 /**
  * Calculates position and target parent for a marker based on location type
  */
 export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, moonPlane, marsPlane, issSatellite }) {
     const THREE = window.THREE;
+    const isMapView = window.globeController?.sceneModel?.getMapViewEnabled
+        ? window.globeController.sceneModel.getMapViewEnabled()
+        : !!window.globeController?.sceneModel?.isMapView;
+    const earthMapPlane = window.globeController?.sceneModel?.getEarthMapPlane
+        ? window.globeController.sceneModel.getEarthMapPlane()
+        : window.globeController?.sceneModel?.earthMapPlane;
+    const mapScaleFactor = (isMapView && earthMapPlane && earthMapPlane.scale) ? (earthMapPlane.scale.x || 1) : 1;
     
     if (locationType === 'station') {
         if (!issSatellite) {
@@ -17,6 +24,7 @@ export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, m
             return null;
         }
         return {
+            // Keep station marker close to the model (avoid huge "stick" in map view)
             position: new THREE.Vector3(0, 0, 0.03),
             targetParent: issSatellite
         };
@@ -27,8 +35,9 @@ export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, m
         }
         const finalX = x !== undefined ? x : 50;
         const finalY = y !== undefined ? y : 50;
+        const pos = xyToPlanePosition(finalX, finalY, 0.4, 0.4, moonPlane.position);
         return {
-            position: xyToPlanePosition(finalX, finalY, 0.4, 0.4, moonPlane.position),
+            position: pos,
             targetParent: moonPlane
         };
     } else if (locationType === 'mars') {
@@ -38,12 +47,21 @@ export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, m
         }
         const finalX = x !== undefined ? x : 50;
         const finalY = y !== undefined ? y : 50;
+        const pos = xyToPlanePosition(finalX, finalY, 0.4, 0.4, marsPlane.position);
         return {
-            position: xyToPlanePosition(finalX, finalY, 0.4, 0.4, marsPlane.position),
+            position: pos,
             targetParent: marsPlane
         };
     } else {
-        // Earth: use lat/lon coordinates
+        // Earth: use lat/lon on globe, or lat/lon projection on flat map (if enabled)
+        if (isMapView && earthMapPlane) {
+            return {
+                position: latLonToMapPlanePosition(lat, lon, 2.0, 1.0, 0.03),
+                targetParent: earthMapPlane
+            };
+        }
+
+        // Default Earth: use lat/lon coordinates on the sphere
         return {
             position: latLonToVector3(lat, lon, 1.02),
             targetParent: globe

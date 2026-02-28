@@ -1,13 +1,13 @@
 /**
  * GlobeView - Handles globe rendering, markers, and connection lines
  */
-import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition } from '../utils/GeometryUtils.js?v=3';
+import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition, latLonToMapPlanePosition } from '../utils/GeometryUtils.js?v=3';
 import { EventMarkerManager } from '../managers/EventMarkerManager.js';
 import { configureTexture, loadTexture, changePlaneTexture } from './helpers/GlobeTextureHelpers.js';
 import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './helpers/GlobePlaneHelpers.js';
 import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
 import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
-import { createGlobeMesh, setupCelestialPlanes } from './helpers/GlobeInitHelpers.js';
+import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes } from './helpers/GlobeInitHelpers.js';
 
 // THREE is loaded globally via script tag in index.html
 
@@ -75,6 +75,28 @@ export class GlobeView {
         );
         this.sceneModel.setGlobe(globe);
         scene.add(globe);
+
+        // Create flat Earth map plane (hidden by default; used for map view toggle)
+        const earthMapPlane = createEarthMapPlane(
+            textureLoader,
+            renderer,
+            initialTexturePath,
+            (texture) => {
+                const p = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+                if (p && p.material) {
+                    p.material.map = texture;
+                    p.material.needsUpdate = true;
+                }
+                this.textureCache.set(initialTexturePath, texture);
+            },
+            (err) => console.warn('Error loading Earth map plane texture:', err)
+        );
+        if (this.sceneModel.setEarthMapPlane) {
+            this.sceneModel.setEarthMapPlane(earthMapPlane);
+        } else {
+            this.sceneModel.earthMapPlane = earthMapPlane;
+        }
+        scene.add(earthMapPlane);
         
         // Preload the other texture to avoid delay when switching palettes
         const otherTexturePath = isGray ? 'assets/images/maps/MAP.png' : 'assets/images/maps/MAP Black.png';
@@ -105,12 +127,18 @@ export class GlobeView {
             return;
         }
 
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+
         // Check if texture is already cached
         if (this.textureCache.has(texturePath)) {
             const cachedTexture = this.textureCache.get(texturePath);
             console.log('Using cached texture:', texturePath);
             globe.material.map = cachedTexture;
             globe.material.needsUpdate = true;
+            if (earthMapPlane && earthMapPlane.material) {
+                earthMapPlane.material.map = cachedTexture;
+                earthMapPlane.material.needsUpdate = true;
+            }
             if (onTextureLoaded) {
                 onTextureLoaded();
             }
@@ -125,6 +153,10 @@ export class GlobeView {
                 this.textureCache.set(texturePath, texture);
                 globe.material.map = texture;
                 globe.material.needsUpdate = true;
+                if (earthMapPlane && earthMapPlane.material) {
+                    earthMapPlane.material.map = texture;
+                    earthMapPlane.material.needsUpdate = true;
+                }
                 if (onTextureLoaded) {
                     onTextureLoaded();
                 }
@@ -408,6 +440,10 @@ export class GlobeView {
                     curve: curve,
                     from: connection.from,
                     to: connection.to,
+                    fromLat: fromCity.lat,
+                    fromLon: fromCity.lon,
+                    toLat: toCity.lat,
+                    toLon: toCity.lon,
                     isMainRoute: true
                 });
             }
@@ -500,6 +536,114 @@ export class GlobeView {
                     userDataKey: 'isSeaportConnectionLine',
                     visible: false // Hide seaport connection lines
                 }
+            });
+        });
+    }
+
+    /**
+     * Render flat (straight) transport lines on the Earth map plane.
+     * - Main + secondary train connections are visible.
+     * - Seaport connections are created but hidden (match globe behavior).
+     * Uses horizontal wrapping (Pac-Man) when a connection crosses the map seam.
+     */
+    renderMapTransportLines() {
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        if (!earthMapPlane) return;
+
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const z = 0.008;
+
+        // Remove existing map transport lines to avoid duplicates
+        const toRemove = [];
+        earthMapPlane.traverse(obj => {
+            if (!obj?.userData) return;
+            if (obj.userData.isConnectionLine || obj.userData.isSecondaryLine || obj.userData.isSeaportConnectionLine) {
+                toRemove.push(obj);
+            }
+        });
+        toRemove.forEach(o => { if (o.parent) o.parent.remove(o); });
+
+        const addWrappedLine = ({ fromLat, fromLon, toLat, toLon, color, opacity, userDataKey, visible = true }) => {
+            const a = latLonToMapPlanePosition(fromLat, fromLon, planeWidth, 1.0, z);
+            const b = latLonToMapPlanePosition(toLat, toLon, planeWidth, 1.0, z);
+
+            // Choose shortest horizontal path by allowing b.x to shift by ±width
+            let bx = b.x;
+            const dx = bx - a.x;
+            if (dx > halfW) bx -= planeWidth;
+            else if (dx < -halfW) bx += planeWidth;
+
+            const bxWrapped = ((bx + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
+            const crossesRight = bx > halfW;
+            const crossesLeft = bx < -halfW;
+
+            const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+
+            const makeLine = (p1, p2) => {
+                const geom = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+                const line = new THREE.Line(geom, material);
+                if (userDataKey) line.userData[userDataKey] = true;
+                line.visible = visible;
+                earthMapPlane.add(line);
+            };
+
+            if (crossesRight || crossesLeft) {
+                const boundaryX = crossesRight ? halfW : -halfW;
+                const t = (boundaryX - a.x) / (bx - a.x);
+                const yAt = a.y + (b.y - a.y) * t;
+
+                makeLine(new THREE.Vector3(a.x, a.y, z), new THREE.Vector3(boundaryX, yAt, z));
+                makeLine(new THREE.Vector3(-boundaryX, yAt, z), new THREE.Vector3(bxWrapped, b.y, z));
+            } else {
+                makeLine(new THREE.Vector3(a.x, a.y, z), new THREE.Vector3(bxWrapped, b.y, z));
+            }
+        };
+
+        // Train connections (main + secondary)
+        const cities = this.dataModel.getAllCities();
+
+        this.dataModel.getTrainConnections().forEach(conn => {
+            const from = cities.find(c => c.name === conn.from);
+            const to = cities.find(c => c.name === conn.to);
+            if (!from || !to) return;
+            addWrappedLine({
+                fromLat: from.lat, fromLon: from.lon,
+                toLat: to.lat, toLon: to.lon,
+                color: 0xffd700,
+                opacity: 0.95,
+                userDataKey: 'isConnectionLine',
+                visible: true
+            });
+        });
+
+        this.dataModel.getSecondaryConnections().forEach(conn => {
+            const from = cities.find(c => c.name === conn.from);
+            const to = cities.find(c => c.name === conn.to);
+            if (!from || !to) return;
+            addWrappedLine({
+                fromLat: from.lat, fromLon: from.lon,
+                toLat: to.lat, toLon: to.lon,
+                color: 0xffffff,
+                opacity: 0.7,
+                userDataKey: 'isSecondaryLine',
+                visible: true
+            });
+        });
+
+        // Seaport connections (hidden, but present)
+        const ports = this.dataModel.getAllSeaports();
+        this.dataModel.getSeaportConnections().forEach(conn => {
+            const from = ports.find(p => p.name === conn.from);
+            const to = ports.find(p => p.name === conn.to);
+            if (!from || !to) return;
+            addWrappedLine({
+                fromLat: from.lat, fromLon: from.lon,
+                toLat: to.lat, toLon: to.lon,
+                color: 0xff0000,
+                opacity: 0.8,
+                userDataKey: 'isSeaportConnectionLine',
+                visible: false
             });
         });
     }

@@ -48,6 +48,8 @@ class MouseInteractionService {
         }
         
         if (!this.sceneModel.isDraggingState()) return;
+
+        const isMapView = this.sceneModel.getMapViewEnabled && this.sceneModel.getMapViewEnabled();
         
         window.mouseMoved = true;
         
@@ -63,25 +65,59 @@ class MouseInteractionService {
         
         const deltaX = event.clientX - this.sceneModel.getPreviousMousePosition().x;
         const deltaY = event.clientY - this.sceneModel.getPreviousMousePosition().y;
-        
-        const globe = this.sceneModel.getGlobe();
-        
-        if (globe) {
-            const rotationSpeed = 0.005;
-            const velocityX = deltaY * rotationSpeed;
-            const velocityY = deltaX * rotationSpeed;
-            
-            globe.rotation.y += velocityY;
-            globe.rotation.x += velocityX;
-            
-            // Limit vertical rotation
-            globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
-            
-            // Update rotation velocity for momentum
-            this.sceneModel.setRotationVelocity({
-                x: velocityX,
-                y: velocityY
-            });
+
+        if (isMapView) {
+            const camera = this.sceneModel.getCamera();
+            const renderer = this.sceneModel.getRenderer();
+            const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+            if (camera && renderer && earthMapPlane) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                const viewportW = Math.max(1, rect.width);
+                const viewportH = Math.max(1, rect.height);
+
+                const fovRad = (camera.fov * Math.PI) / 180;
+                const distance = Math.max(0.01, camera.position.z - earthMapPlane.position.z);
+                const halfViewH = Math.tan(fovRad / 2) * distance;
+                const worldPerPixel = (halfViewH * 2) / viewportH;
+
+                // Drag right => move view left (camera.x decreases), drag up => move view down (camera.y increases)
+                let nextX = camera.position.x - (deltaX * worldPerPixel);
+                let nextY = camera.position.y + (deltaY * worldPerPixel);
+
+                const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1); // base plane width 2.0 => half 1.0
+                const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1); // base plane height 1.0 => half 0.5
+                const aspect = viewportW / viewportH;
+                const halfViewW = halfViewH * aspect;
+
+                const maxPanX = Math.max(0, halfMapW - halfViewW);
+                const maxPanY = Math.max(0, halfMapH - halfViewH);
+
+                nextX = Math.max(-maxPanX, Math.min(maxPanX, nextX));
+                nextY = Math.max(-maxPanY, Math.min(maxPanY, nextY));
+
+                camera.position.x = nextX;
+                camera.position.y = nextY;
+                camera.lookAt(nextX, nextY, 0);
+            }
+        } else {
+            const globe = this.sceneModel.getGlobe();
+            if (globe) {
+                const rotationSpeed = 0.005;
+                const velocityX = deltaY * rotationSpeed;
+                const velocityY = deltaX * rotationSpeed;
+                
+                globe.rotation.y += velocityY;
+                globe.rotation.x += velocityX;
+                
+                // Limit vertical rotation
+                globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
+                
+                // Update rotation velocity for momentum
+                this.sceneModel.setRotationVelocity({
+                    x: velocityX,
+                    y: velocityY
+                });
+            }
         }
         
         this.sceneModel.setPreviousMousePosition({

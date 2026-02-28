@@ -2,6 +2,8 @@
  * BoatManager - Manages boat creation, updates, and spawning
  */
 
+import { latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+
 export class BoatManager {
     constructor(sceneModel, transportModel, routeController, transportView) {
         this.sceneModel = sceneModel;
@@ -28,10 +30,31 @@ export class BoatManager {
      */
     createBoat(routeData, isMultiStop = false) {
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const gltfLoader = this.sceneModel.getGLTFLoader();
-        const curve = routeData.curve;
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const mapZ = 0.01;
+        const buildWrappedMapLineCurve = (fromLat, fromLon, toLat, toLon) => {
+            const a = latLonToMapPlanePosition(fromLat, fromLon, planeWidth, 1.0, mapZ);
+            const b = latLonToMapPlanePosition(toLat, toLon, planeWidth, 1.0, mapZ);
+            let bx = b.x;
+            const dx = bx - a.x;
+            if (dx > halfW) bx -= planeWidth;
+            else if (dx < -halfW) bx += planeWidth;
+            const start = new THREE.Vector3(a.x, a.y, mapZ);
+            const end = new THREE.Vector3(bx, b.y, mapZ);
+            return new THREE.LineCurve3(start, end);
+        };
+
+        const curve = (isMapView && routeData?.fromLat != null && routeData?.fromLon != null && routeData?.toLat != null && routeData?.toLon != null)
+            ? buildWrappedMapLineCurve(routeData.fromLat, routeData.fromLon, routeData.toLat, routeData.toLon)
+            : routeData.curve;
         const distance = this.calculateRouteDistance(curve);
         const speed = distance > 1.0 ? 0.004 : 0.005;
+        const modelScale = isMapView ? (0.02 / 2) : 0.02;
+        const fallbackScale = isMapView ? (1 / 2) : 1;
         
         const boatGroup = new THREE.Group();
         
@@ -39,7 +62,7 @@ export class BoatManager {
             gltfLoader.load('assets/models/Boat.glb', 
                 (gltf) => {
                     const model = gltf.scene;
-                    model.scale.set(0.02, 0.02, 0.02);
+                    model.scale.set(modelScale, modelScale, modelScale);
                     model.visible = true;
                     
                     const boatColor = 0x0088cc; // Blue for boats (same as trains)
@@ -67,7 +90,7 @@ export class BoatManager {
                 undefined,
                 (error) => {
                     console.warn('⚠️ Boat model not found, using fallback geometry');
-                    const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
+                    const boatGeometry = new THREE.BoxGeometry(0.03 * fallbackScale, 0.01 * fallbackScale, 0.08 * fallbackScale);
                     const boatMaterial = new THREE.MeshPhongMaterial({
                         color: 0x0088cc, // Blue for boats (same as trains)
                         emissive: 0x440000,
@@ -81,7 +104,7 @@ export class BoatManager {
                 }
             );
         } else {
-            const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
+            const boatGeometry = new THREE.BoxGeometry(0.03 * fallbackScale, 0.01 * fallbackScale, 0.08 * fallbackScale);
             const boatMaterial = new THREE.MeshPhongMaterial({
                 color: 0xff0000, // Red for boats
                 emissive: 0x440000,
@@ -124,7 +147,8 @@ export class BoatManager {
         
         boatGroup.visible = false;
         boatGroup.position.set(0, 0, 0);
-        globe.add(boatGroup);
+        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
+        if (parent) parent.add(boatGroup);
         this.transportModel.addBoat(boatGroup);
         
         return boatGroup;
@@ -161,8 +185,27 @@ export class BoatManager {
      */
     updateBoats() {
         const globe = this.sceneModel.getGlobe();
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const boats = this.transportModel.getBoats();
+        const planeUp = new THREE.Vector3(0, 0, 1);
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const wrapX = (x) => ((x + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
+        const mapZ = 0.01;
+        const buildMapCurveForRoute = (route) => {
+            if (!route || route.fromLat == null || route.fromLon == null || route.toLat == null || route.toLon == null) return route?.curve;
+            const a = latLonToMapPlanePosition(route.fromLat, route.fromLon, planeWidth, 1.0, mapZ);
+            const b = latLonToMapPlanePosition(route.toLat, route.toLon, planeWidth, 1.0, mapZ);
+            let bx = b.x;
+            const dx = bx - a.x;
+            if (dx > halfW) bx -= planeWidth;
+            else if (dx < -halfW) bx += planeWidth;
+            return new THREE.LineCurve3(
+                new THREE.Vector3(a.x, a.y, mapZ),
+                new THREE.Vector3(bx, b.y, mapZ)
+            );
+        };
         
         for (let i = boats.length - 1; i >= 0; i--) {
             const boat = boats[i];
@@ -206,19 +249,19 @@ export class BoatManager {
                         this.routeController.reserveBoatRoute(nextRoute.from, nextRoute.to, data.boatId);
                         data.currentRouteIndex++;
                         
-                        data.curve = nextRoute.curve;
+                        data.curve = isMapView ? buildMapCurveForRoute(nextRoute) : nextRoute.curve;
                         data.from = nextRoute.from;
                         data.to = nextRoute.to;
                         data.previousPort = currentFrom;
                         data.needsReverse = nextRoute.needsReverse;
                         data.progress = 0;
                         
-                        const routeDistance = this.calculateRouteDistance(nextRoute.curve);
+                        const routeDistance = this.calculateRouteDistance(data.curve);
                         data.speed = routeDistance > 1.0 ? 0.004 : 0.005;
                     }
                 } else {
                     this.routeController.releaseBoatRoute(data.from, data.to, data.boatId);
-                    globe.remove(boat);
+                    if (boat.parent) boat.parent.remove(boat);
                     this.transportModel.removeBoat(boat);
                     continue;
                 }
@@ -226,7 +269,7 @@ export class BoatManager {
                 if (data.boatId) {
                     this.routeController.releaseBoatRoute(data.from, data.to, data.boatId);
                 }
-                globe.remove(boat);
+                if (boat.parent) boat.parent.remove(boat);
                 this.transportModel.removeBoat(boat);
                 continue;
             }
@@ -236,11 +279,12 @@ export class BoatManager {
             }
             
             if (data.progress > 0 && data.progress <= 1) {
-                const position = data.curve.getPointAt(data.progress);
+                const rawPos = data.curve.getPointAt(data.progress);
+                const position = isMapView ? new THREE.Vector3(wrapX(rawPos.x), rawPos.y, rawPos.z) : rawPos;
                 boat.position.copy(position);
                 
                 const tangent = data.curve.getTangentAt(data.progress).normalize();
-                const up = position.clone().normalize();
+                const up = isMapView ? planeUp : position.clone().normalize();
                 const right = new THREE.Vector3().crossVectors(tangent, up).normalize();
                 const correctedUp = new THREE.Vector3().crossVectors(right, tangent).normalize();
                 
@@ -278,8 +322,12 @@ export class BoatManager {
         this.boatSpawnInterval = setInterval(() => {
             const isPageVisible = this.sceneModel.getPageVisible();
             const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+            const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             
             if (!isPageVisible || !hyperloopVisible) return;
+
+            // Map view: reduce spawn frequency by ~half
+            if (isMapView && Math.random() < 0.5) return;
             
             // Limit number of boats (half the normal amount for mobile performance)
             const MAX_BOATS = 15;

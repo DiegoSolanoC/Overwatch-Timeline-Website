@@ -22,6 +22,47 @@ export function latLonToVector3(lat, lon, radius) {
 }
 
 /**
+ * Convert lat/lon to LOCAL 3D coordinates on a flat equirectangular map plane.
+ * Assumes the map texture is equirectangular and the plane is centered at origin.
+ * @param {number} lat - Latitude (-90..90)
+ * @param {number} lon - Longitude (-180..180)
+ * @param {number} planeWidth - Plane width in 3D units (default 2.0)
+ * @param {number} planeHeight - Plane height in 3D units (default 1.0)
+ * @param {number} z - Local Z offset to keep markers above plane surface
+ * @returns {THREE.Vector3}
+ */
+export function latLonToMapPlanePosition(lat, lon, planeWidth = 2.0, planeHeight = 1.0, z = 0.03) {
+    // Map lon [-180, 180] -> u [0,1], lat [90,-90] -> v [0,1]
+    const u = (lon + 180) / 360;
+    const v = (90 - lat) / 180;
+
+    const x = (u - 0.5) * planeWidth;
+    const y = (0.5 - v) * planeHeight;
+
+    return new THREE.Vector3(x, y, z);
+}
+
+/**
+ * Convert a 3D position on/near the Earth sphere back into lat/lon.
+ * Inverse of latLonToVector3's angle conventions.
+ * @param {THREE.Vector3} vec - World/local vector (radius can be any > 0)
+ * @returns {{lat:number, lon:number}}
+ */
+export function vector3ToLatLon(vec) {
+    const r = Math.max(1e-9, vec.length());
+    const y = vec.y / r;
+    const phi = Math.acos(Math.max(-1, Math.min(1, y))); // 0..pi
+    const theta = Math.atan2(vec.z, -vec.x); // matches (lon + 180) in radians
+
+    const lat = 90 - (phi * 180 / Math.PI);
+    const lon = (theta * 180 / Math.PI) - 180;
+
+    // Normalize lon to [-180, 180)
+    const normLon = ((((lon + 180) % 360) + 360) % 360) - 180;
+    return { lat, lon: normLon };
+}
+
+/**
  * Create arc between two lat/lon points
  * @param {number} lat1 - Start latitude
  * @param {number} lon1 - Start longitude

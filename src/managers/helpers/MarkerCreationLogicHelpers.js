@@ -21,6 +21,10 @@ import { createPinLinePoints, createPinLine } from './PinLineHelpers.js';
  */
 export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, marsPlane, issSatellite, animate }) {
     const eventLocationType = event.locationType || 'earth';
+    const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
+    const earthMapPlane = sceneModel.getEarthMapPlane ? sceneModel.getEarthMapPlane() : sceneModel.earthMapPlane;
+    const mapScaleFactor = (isMapView && earthMapPlane && earthMapPlane.scale) ? (earthMapPlane.scale.x || 1) : 1;
+    const wantsMapScaleBoost = isMapView && (eventLocationType === 'moon' || eventLocationType === 'mars' || eventLocationType === 'station');
     
     // Calculate position using helper
     const positionData = calculateMarkerPosition({
@@ -56,7 +60,8 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         marker.scale.set(0, 0, 0);
     } else if (shouldBeLocked) {
         // If locked and not animating, start at locked scale
-        marker.scale.set(0.75, 0.75, 0.75);
+        const s = (wantsMapScaleBoost ? mapScaleFactor : 1.0) * 0.75;
+        marker.scale.set(s, s, s);
         // Set locked color immediately
         marker.material.color.setHex(0x331100);
     }
@@ -74,9 +79,15 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         isMainVariant: true,
         pulseRings: [], // Store pulse rings for this marker
         isLocked: shouldBeLocked, // Set initial locked state based on filters
-        originalScale: 1.0, // Store original scale for unlocking
+        originalScale: wantsMapScaleBoost ? mapScaleFactor : 1.0, // Store original scale for unlocking
         originalColor: 0xff6600 // Store original color (orange) for restoration
     };
+
+    // If not animating and not locked, apply the intended base scale now.
+    if (!animate && !shouldBeLocked && marker.userData.originalScale !== 1.0) {
+        const s = marker.userData.originalScale;
+        marker.scale.set(s, s, s);
+    }
     
     targetParent.add(marker);
     const markers = sceneModel.getMarkers();
@@ -122,6 +133,9 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
 export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, marsPlane, issSatellite, animate }) {
     const results = [];
     const eventLocationType = event.locationType || 'earth';
+    const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
+    const earthMapPlane = sceneModel.getEarthMapPlane ? sceneModel.getEarthMapPlane() : sceneModel.earthMapPlane;
+    const mapScaleFactor = (isMapView && earthMapPlane && earthMapPlane.scale) ? (earthMapPlane.scale.x || 1) : 1;
     const activeFilters = sceneModel.activeFilters;
     const shouldBeLocked = shouldEventBeLocked(event, activeFilters);
     
@@ -164,7 +178,9 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
             marker.scale.set(0, 0, 0);
         } else if (shouldBeLocked) {
             // If locked and not animating, start at locked scale
-            marker.scale.set(0.75, 0.75, 0.75);
+            const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station');
+            const s = (wantsMapScaleBoost ? mapScaleFactor : 1.0) * 0.75;
+            marker.scale.set(s, s, s);
             // Set locked color immediately
             marker.material.color.setHex(0x331100);
         }
@@ -185,6 +201,15 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
             shouldBeLocked,
             originalColor: markerColor
         });
+
+        // Map view: make Moon/Mars/Station markers match Earth map marker sizing
+        const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station');
+        if (wantsMapScaleBoost) {
+            marker.userData.originalScale = mapScaleFactor;
+            if (!animate && !shouldBeLocked) {
+                marker.scale.set(mapScaleFactor, mapScaleFactor, mapScaleFactor);
+            }
+        }
         
         // Hide variant markers by default (only show when event is open)
         if (!isMainVariant) {

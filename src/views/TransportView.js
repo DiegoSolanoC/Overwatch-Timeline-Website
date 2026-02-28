@@ -46,6 +46,9 @@ export class TransportView {
      */
     createTrailSegment(position, direction) {
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         
         // Calculate position behind the plane
@@ -67,7 +70,7 @@ export class TransportView {
         };
         
         segment.visible = hyperloopVisible;
-        globe.add(segment);
+        if (parent) parent.add(segment);
         this.transportModel.addPlaneTrail(segment);
     }
 
@@ -75,7 +78,6 @@ export class TransportView {
      * Update all plane trail segments
      */
     updateTrailSegments() {
-        const globe = this.sceneModel.getGlobe();
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const planeTrails = this.transportModel.getPlaneTrails();
 
@@ -87,7 +89,9 @@ export class TransportView {
             trail.material.opacity = 0.8 * (1 - fadeProgress);
             
             if (trail.userData.age >= trail.userData.maxAge) {
-                globe.remove(trail);
+                if (trail.parent) {
+                    trail.parent.remove(trail);
+                }
                 this.transportModel.removePlaneTrail(trail);
             }
             
@@ -104,6 +108,9 @@ export class TransportView {
      */
     createBoatTrailSegment(position, forward, right, up) {
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         
         const triangleSize = 0.006; // Triangle size (reverted to original)
@@ -143,7 +150,7 @@ export class TransportView {
         };
         
         triangle.visible = hyperloopVisible;
-        globe.add(triangle);
+        if (parent) parent.add(triangle);
         this.transportModel.addBoatTrail(triangle);
     }
 
@@ -151,7 +158,6 @@ export class TransportView {
      * Update all boat trail segments
      */
     updateBoatTrailSegments() {
-        const globe = this.sceneModel.getGlobe();
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const boatTrails = this.transportModel.getBoatTrails();
 
@@ -167,7 +173,9 @@ export class TransportView {
             
             // Remove when fully faded
             if (trail.userData.age >= trail.userData.maxAge) {
-                globe.remove(trail);
+                if (trail.parent) {
+                    trail.parent.remove(trail);
+                }
                 this.transportModel.removeBoatTrail(trail);
             }
             
@@ -268,7 +276,12 @@ export class TransportView {
      */
     createSatelliteTrailDot(position) {
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const wrapX = (x) => ((x + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
         
         // Calculate random offset to the sides
         // Get a random perpendicular direction
@@ -289,11 +302,8 @@ export class TransportView {
         const dot = new THREE.Mesh(dotGeometry, dotMaterial);
         
         // Position with random side offset
-        dot.position.set(
-            position.x + offsetX,
-            position.y + offsetY,
-            position.z + offsetZ
-        );
+        const px = isMapView ? wrapX(position.x + offsetX) : (position.x + offsetX);
+        dot.position.set(px, position.y + offsetY, position.z + offsetZ);
         
         dot.userData = {
             age: 0,
@@ -301,7 +311,8 @@ export class TransportView {
         };
         
         dot.visible = hyperloopVisible;
-        globe.add(dot);
+        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
+        if (parent) parent.add(dot);
         this.transportModel.addPlaneTrail(dot); // Use plane trail system
     }
 }

@@ -2,6 +2,8 @@
  * TrainManager - Manages train creation, updates, and spawning
  */
 
+import { latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+
 export class TrainManager {
     constructor(sceneModel, transportModel, routeController) {
         this.sceneModel = sceneModel;
@@ -28,7 +30,31 @@ export class TrainManager {
      */
     createTrain(routeData, isMultiStop = false, journeyProgress = 0) {
         const globe = this.sceneModel.getGlobe();
-        const routeDistance = this.calculateRouteDistance(routeData.curve);
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+
+        // Map view: use a straight line between endpoints (no curvature)
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const mapZ = 0.01;
+        const buildWrappedMapLineCurve = (fromLat, fromLon, toLat, toLon) => {
+            const a = latLonToMapPlanePosition(fromLat, fromLon, planeWidth, 1.0, mapZ);
+            const b = latLonToMapPlanePosition(toLat, toLon, planeWidth, 1.0, mapZ);
+
+            let bx = b.x;
+            const dx = bx - a.x;
+            if (dx > halfW) bx -= planeWidth;
+            else if (dx < -halfW) bx += planeWidth;
+
+            const start = new THREE.Vector3(a.x, a.y, mapZ);
+            const end = new THREE.Vector3(bx, b.y, mapZ);
+            return new THREE.LineCurve3(start, end);
+        };
+
+        const activeCurve = (isMapView && routeData?.fromLat != null && routeData?.fromLon != null && routeData?.toLat != null && routeData?.toLon != null)
+            ? buildWrappedMapLineCurve(routeData.fromLat, routeData.fromLon, routeData.toLat, routeData.toLon)
+            : routeData.curve;
+        const routeDistance = this.calculateRouteDistance(activeCurve);
         
         // Determine number of wagons based on distance
         let maxWagons;
@@ -54,6 +80,8 @@ export class TrainManager {
         const gltfLoader = this.sceneModel.getGLTFLoader();
         const trainEndModelCache = this.transportModel.getTrainEndModelCache();
         const trainMiddleModelCache = this.transportModel.getTrainMiddleModelCache();
+        const modelScale = isMapView ? (0.02 / 2) : 0.02;
+        const fallbackScale = isMapView ? (1 / 2) : 1;
         
         // Train material (same as planes and boats)
         const trainColor = 0x0088cc;
@@ -87,7 +115,7 @@ export class TrainManager {
         const getTrainEndModel = (callback) => {
             if (trainEndModelCache) {
                 const model = trainEndModelCache.clone(); // Clone model (materials are cloned automatically)
-                model.scale.set(0.02, 0.02, 0.02);
+                model.scale.set(modelScale, modelScale, modelScale);
                 model.visible = true;
                 applyTrainMaterial(model);
                 callback(model);
@@ -97,7 +125,7 @@ export class TrainManager {
                     const cached = model.clone(); // Clone model (materials are cloned automatically)
                     this.transportModel.setTrainEndModelCache(cached);
                     
-                    model.scale.set(0.02, 0.02, 0.02);
+                    model.scale.set(modelScale, modelScale, modelScale);
                     model.visible = true;
                     applyTrainMaterial(model);
                     callback(model);
@@ -105,7 +133,7 @@ export class TrainManager {
                     console.error('Error loading TrainEnd.glb:', error);
                     // Fallback to simple box
                     const fallback = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.03, 0.01, 0.08),
+                        new THREE.BoxGeometry(0.03 * fallbackScale, 0.01 * fallbackScale, 0.08 * fallbackScale),
                         new THREE.MeshPhongMaterial({ color: trainColor, transparent: true, opacity: 0.85 })
                     );
                     callback(fallback);
@@ -117,7 +145,7 @@ export class TrainManager {
         const getTrainMiddleModel = (callback) => {
             if (trainMiddleModelCache) {
                 const model = trainMiddleModelCache.clone(true); // Deep clone to clone materials too
-                model.scale.set(0.02, 0.02, 0.02);
+                model.scale.set(modelScale, modelScale, modelScale);
                 model.visible = true;
                 applyTrainMaterial(model);
                 callback(model);
@@ -127,7 +155,7 @@ export class TrainManager {
                     const cached = model.clone(); // Clone model (materials are cloned automatically)
                     this.transportModel.setTrainMiddleModelCache(cached);
                     
-                    model.scale.set(0.02, 0.02, 0.02);
+                    model.scale.set(modelScale, modelScale, modelScale);
                     model.visible = true;
                     applyTrainMaterial(model);
                     callback(model);
@@ -135,7 +163,7 @@ export class TrainManager {
                     console.error('Error loading TrainMiddle.glb:', error);
                     // Fallback to simple box
                     const fallback = new THREE.Mesh(
-                        new THREE.BoxGeometry(0.03, 0.01, 0.08),
+                        new THREE.BoxGeometry(0.03 * fallbackScale, 0.01 * fallbackScale, 0.08 * fallbackScale),
                         new THREE.MeshPhongMaterial({ color: trainColor, transparent: true, opacity: 0.85 })
                     );
                     callback(fallback);
@@ -184,13 +212,13 @@ export class TrainManager {
         const speed = baseSpeed + Math.random() * 0.002;
         
         trainGroup.userData = {
-            curve: routeData.curve,
+            curve: activeCurve,
             progress: 0,
             speed: speed,
             from: routeData.from,
             to: routeData.to,
             wagons: wagons,
-            wagonSpacing: 0.045,
+            wagonSpacing: isMapView ? (0.045 / 2) : 0.045,
             isMultiStop: false,
             routes: null,
             currentRouteIndex: 0,
@@ -205,12 +233,13 @@ export class TrainManager {
             this.routeController.reserveRoute(routeData.from, routeData.to, trainGroup.userData.trainId);
         }
         
-        const startPos = routeData.curve.getPointAt(0);
+        const startPos = activeCurve.getPointAt(0);
         trainGroup.position.copy(startPos);
         trainGroup.visible = false;
         trainGroup.userData.isNewlySpawned = true;
         
-        globe.add(trainGroup);
+        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
+        if (parent) parent.add(trainGroup);
         this.transportModel.addTrain(trainGroup);
         
         return trainGroup;
@@ -247,8 +276,31 @@ export class TrainManager {
      */
     updateTrains() {
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const trains = this.transportModel.getTrains();
+        const planeUp = new THREE.Vector3(0, 0, 1);
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const wrapX = (x) => {
+            // Wrap x into [-halfW, halfW)
+            return ((x + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
+        };
+        const mapZ = 0.01;
+        const buildMapCurveForRoute = (route) => {
+            if (!route || route.fromLat == null || route.fromLon == null || route.toLat == null || route.toLon == null) return route?.curve;
+            const a = latLonToMapPlanePosition(route.fromLat, route.fromLon, planeWidth, 1.0, mapZ);
+            const b = latLonToMapPlanePosition(route.toLat, route.toLon, planeWidth, 1.0, mapZ);
+            let bx = b.x;
+            const dx = bx - a.x;
+            if (dx > halfW) bx -= planeWidth;
+            else if (dx < -halfW) bx += planeWidth;
+            return new THREE.LineCurve3(
+                new THREE.Vector3(a.x, a.y, mapZ),
+                new THREE.Vector3(bx, b.y, mapZ)
+            );
+        };
         
         for (let i = trains.length - 1; i >= 0; i--) {
             const train = trains[i];
@@ -305,14 +357,14 @@ export class TrainManager {
                         
                         const progressPercent = Math.round(data.journeyProgress * 100);
                         
-                        data.curve = nextRoute.curve;
+                        data.curve = isMapView ? buildMapCurveForRoute(nextRoute) : nextRoute.curve;
                         data.from = nextRoute.from;
                         data.to = nextRoute.to;
                         data.previousCity = currentFrom;
                         data.needsReverse = nextRoute.needsReverse;
                         data.progress = 0;
                         
-                        const routeDistance = this.calculateRouteDistance(nextRoute.curve);
+                        const routeDistance = this.calculateRouteDistance(data.curve);
                         let baseSpeed;
                         if (routeDistance < 0.5) {
                             baseSpeed = 0.006;
@@ -341,7 +393,10 @@ export class TrainManager {
                 try {
                     // Clamp train position to end of curve when progress > 1
                     const trainProgress = Math.min(data.progress, 1.0);
-                    const position = data.curve.getPointAt(trainProgress);
+                    const rawTrainPos = data.curve.getPointAt(trainProgress);
+                    const position = isMapView
+                        ? new THREE.Vector3(wrapX(rawTrainPos.x), rawTrainPos.y, rawTrainPos.z)
+                        : rawTrainPos;
                     
                     if (!position || isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) {
                         train.visible = false;
@@ -349,11 +404,12 @@ export class TrainManager {
                     }
                     
                     // Validate position like planes/boats do
-                    const distanceFromCenter = position.length();
-                    if (distanceFromCenter < 0.5 || distanceFromCenter > 2.0) {
-                        // Invalid position - hide train
-                        train.visible = false;
-                        continue;
+                    if (!isMapView) {
+                        const distanceFromCenter = position.length();
+                        if (distanceFromCenter < 0.5 || distanceFromCenter > 2.0) {
+                            train.visible = false;
+                            continue;
+                        }
                     }
                     
                     train.position.copy(position);
@@ -397,9 +453,11 @@ export class TrainManager {
                             }
                             
                             // Validate wagon position
-                            const wagonDistance = wagonPosition.length();
-                            if (wagonDistance < 0.5 || wagonDistance > 2.0) {
-                                return;
+                            if (!isMapView) {
+                                const wagonDistance = wagonPosition.length();
+                                if (wagonDistance < 0.5 || wagonDistance > 2.0) {
+                                    return;
+                                }
                             }
                             
                             let tangent = data.curve.getTangentAt(actualProgress).normalize();
@@ -408,9 +466,9 @@ export class TrainManager {
                                 tangent.negate();
                             }
                             
-                            const up = wagonPosition.clone().normalize();
-                            const offsetDistance = 0.006;
-                            const elevatedPosition = wagonPosition.clone().add(up.multiplyScalar(offsetDistance));
+                            const offsetDistance = isMapView ? 0.002 : 0.006;
+                            const up = isMapView ? planeUp : wagonPosition.clone().normalize();
+                            const elevatedPosition = wagonPosition.clone().add(up.clone().multiplyScalar(offsetDistance));
                             
                             const right = new THREE.Vector3().crossVectors(tangent, up.clone().normalize()).normalize();
                             const correctedUp = new THREE.Vector3().crossVectors(right, tangent).normalize();
@@ -419,7 +477,8 @@ export class TrainManager {
                             rotationMatrix.makeBasis(right, correctedUp, tangent.negate());
                             
                             wagon.quaternion.setFromRotationMatrix(rotationMatrix);
-                            wagon.position.copy(elevatedPosition).sub(train.position);
+                            // In map view, keep local offsets stable across seam-wrapping by subtracting the *raw* train position
+                            wagon.position.copy(elevatedPosition).sub(isMapView ? rawTrainPos : train.position);
                             
                             wagon.visible = hyperloopVisible;
                             anyWagonVisible = hyperloopVisible;
@@ -444,7 +503,7 @@ export class TrainManager {
                 if (!data.curve || typeof data.curve.getLength !== 'function') {
                     // Can't calculate, remove train
                     this.routeController.releaseRoute(data.from, data.to, data.trainId);
-                    globe.remove(train);
+                    if (train.parent) train.parent.remove(train);
                     this.transportModel.removeTrain(train);
                     continue;
                 }
@@ -465,7 +524,7 @@ export class TrainManager {
                 // Only remove train when ALL wagons have finished disappearing
                 if (allWagonsFinished) {
                     this.routeController.releaseRoute(data.from, data.to, data.trainId);
-                    globe.remove(train);
+                    if (train.parent) train.parent.remove(train);
                     this.transportModel.removeTrain(train);
                     continue;
                 }
@@ -493,8 +552,12 @@ export class TrainManager {
         this.trainSpawnInterval = setInterval(() => {
             const isPageVisible = this.sceneModel.getPageVisible();
             const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+            const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             
             if (!isPageVisible || !hyperloopVisible) return;
+
+            // Map view: reduce spawn frequency by ~half
+            if (isMapView && Math.random() < 0.5) return;
             
             // Limit number of trains (half the normal amount for mobile performance)
             const MAX_TRAINS = 15;

@@ -129,6 +129,15 @@ export async function loadControlsLogic({ createGlobeControlButton, createExitBu
         iconPath: 'assets/images/icons/Rotation Icon.png',
         iconAlt: 'Rotate'
     }, statusService);
+
+    // Add map view toggle (globe <-> flat map)
+    createGlobeControlButton({
+        id: 'mapViewToggle',
+        className: 'map-view-btn',
+        title: 'Toggle Map View',
+        iconPath: 'assets/images/icons/Location Icon.png',
+        iconAlt: 'Map'
+    }, statusService);
     
     // Add exit button using helper
     createExitButton({
@@ -138,6 +147,9 @@ export async function loadControlsLogic({ createGlobeControlButton, createExitBu
     
     if (controller.uiView) {
         controller.uiView.setupAutoRotateToggle();
+        if (typeof controller.uiView.setupMapViewToggle === 'function') {
+            controller.uiView.setupMapViewToggle();
+        }
         statusService.update('✓ Rotation toggle initialized', 'success');
     }
     
@@ -152,6 +164,7 @@ export async function unloadControlsLogic({ removeElementsByIds, statusService }
     // Remove control buttons using helper
     removeElementsByIds([
         { id: 'autoRotateToggle', message: 'Rotation toggle removed' },
+        { id: 'mapViewToggle', message: 'Map view toggle removed' },
         { id: 'exitButton', message: 'Exit button removed' }
     ], statusService);
 }

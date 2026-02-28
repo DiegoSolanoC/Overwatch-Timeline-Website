@@ -46,7 +46,9 @@ export function animateMarkersGrow(markers, pinLines) {
             
             // Animate markers growing from 0 to target scale (1.0 if unlocked, 0.75 if locked)
             markers.forEach(marker => {
-                const targetScale = (marker.userData && marker.userData.isLocked) ? 0.75 : 1.0;
+                const baseScale = (marker.userData && marker.userData.isLocked) ? 0.75 : 1.0;
+                const originalScale = marker.userData && marker.userData.originalScale ? marker.userData.originalScale : 1.0;
+                const targetScale = baseScale * originalScale;
                 const currentScale = easeProgress * targetScale;
                 marker.scale.set(currentScale, currentScale, currentScale);
                 
@@ -85,7 +87,9 @@ export function animateMarkersGrow(markers, pinLines) {
             } else {
                 // Ensure final scale is correct (1.0 if unlocked, 0.75 if locked)
                 markers.forEach(marker => {
-                    const targetScale = (marker.userData && marker.userData.isLocked) ? 0.75 : 1.0;
+                    const baseScale = (marker.userData && marker.userData.isLocked) ? 0.75 : 1.0;
+                    const originalScale = marker.userData && marker.userData.originalScale ? marker.userData.originalScale : 1.0;
+                    const targetScale = baseScale * originalScale;
                     marker.scale.set(targetScale, targetScale, targetScale);
                     
                     // Set final color

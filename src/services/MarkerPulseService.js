@@ -86,11 +86,14 @@ class MarkerPulseService {
     createPulseRing(marker) {
         const globe = this.sceneModel.getGlobe();
         if (!globe) return;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         
         // Determine parent (globe, moonPlane, or marsPlane)
         const locationType = marker.userData ? marker.userData.locationType : 'earth';
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
         const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
+        const scene = this.sceneModel.getScene ? this.sceneModel.getScene() : null;
         
         // Get ISS satellite for station events
         const issSatellite = window.globeController && window.globeController.transportController 
@@ -98,12 +101,20 @@ class MarkerPulseService {
             : null;
         
         let ringParent = globe; // Default to globe
-        if (locationType === 'moon' && moonPlane && marker.parent === moonPlane) {
+        if (locationType === 'earth' && earthMapPlane && marker.parent === earthMapPlane) {
+            ringParent = earthMapPlane;
+        } else if (locationType === 'moon' && moonPlane && marker.parent === moonPlane) {
             ringParent = moonPlane;
         } else if (locationType === 'mars' && marsPlane && marker.parent === marsPlane) {
             ringParent = marsPlane;
         } else if (locationType === 'station' && issSatellite && marker.parent === issSatellite) {
             ringParent = issSatellite;
+        }
+
+        // Unwrapped map mode: for Moon/Mars/Station, render rings in world space (scene) to avoid inheriting
+        // parent rotation or squash/stretch scaling that causes the 1-frame "snap" after page flips.
+        if (isMapView && (locationType === 'moon' || locationType === 'mars' || locationType === 'station') && scene) {
+            ringParent = scene;
         }
         
         // Create filled circle geometry (not a ring)
@@ -141,11 +152,11 @@ class MarkerPulseService {
      * Update ring position and orientation to be flat on globe surface or plane
      */
     updateRingPositionAndOrientation(ring, marker) {
-        // Copy marker position (local to parent)
-        ring.position.copy(marker.position);
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         
         // Check if marker is on Moon/Mars plane or Earth globe
         const locationType = marker.userData ? marker.userData.locationType : 'earth';
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
         const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
         
@@ -153,8 +164,25 @@ class MarkerPulseService {
         const issSatellite = window.globeController && window.globeController.transportController 
             ? window.globeController.transportController.findISS() 
             : null;
+
+        // Unwrapped map mode:
+        // - For Moon/Mars/Station we parent rings to the scene, so keep them flat (+Z) and place by world position.
+        if (isMapView && (locationType === 'moon' || locationType === 'mars' || locationType === 'station')) {
+            const markerWorldPos = new THREE.Vector3();
+            marker.getWorldPosition(markerWorldPos);
+            ring.position.copy(markerWorldPos);
+            ring.quaternion.identity(); // CircleGeometry faces +Z (toward camera in map view)
+            return;
+        }
+
+        // Default: copy marker position (local to parent)
+        ring.position.copy(marker.position);
         
-        if (locationType === 'moon' && moonPlane && marker.parent === moonPlane) {
+        if (locationType === 'earth' && earthMapPlane && marker.parent === earthMapPlane) {
+            // Flat map: ring should be flat on the plane
+            ring.quaternion.copy(earthMapPlane.quaternion);
+            ring.rotateZ(Math.PI / 2);
+        } else if (locationType === 'moon' && moonPlane && marker.parent === moonPlane) {
             // Moon plane: ring should be flat on the plane (same orientation as plane)
             ring.quaternion.copy(moonPlane.quaternion);
             // Rotate 90 degrees around Z to make ring horizontal (CircleGeometry faces +Z by default)
@@ -246,6 +274,9 @@ class MarkerPulseService {
         
         const globe = this.sceneModel.getGlobe();
         if (!globe) return;
+
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const scene = this.sceneModel.getScene ? this.sceneModel.getScene() : null;
         
         const markers = this.sceneModel.getMarkers();
         if (!markers || markers.length === 0) return;
@@ -281,6 +312,11 @@ class MarkerPulseService {
                         const locationType = marker.userData ? marker.userData.locationType : 'earth';
                         const scale = ring.userData.startScale + (ring.userData.maxScale - ring.userData.startScale) * progress;
                         if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
+                            // Map view: ensure these rings are in world space so they never inherit
+                            // ISS model rotation or Moon/Mars panel squash/stretch transforms.
+                            if (isMapView && scene && ring.parent !== scene) {
+                                scene.attach(ring);
+                            }
                             // Flat scaling for planes and station (only X and Y, Z stays at 1)
                             ring.scale.set(scale, scale, 1);
                         } else {
@@ -308,11 +344,48 @@ class MarkerPulseService {
     updateMarkerPulse() {
         if (!this.sceneModel) return;
         
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const markers = this.sceneModel.getMarkers();
         const currentTime = Date.now();
+
+        const setScaleWithMapViewPanelCompensation = (marker, desiredScale) => {
+            const locationType = marker?.userData?.locationType || 'earth';
+            if (!isMapView) {
+                if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
+                    marker.scale.set(desiredScale, desiredScale, 1);
+                } else {
+                    marker.scale.set(desiredScale, desiredScale, desiredScale);
+                }
+                return;
+            }
+
+            if ((locationType === 'moon' || locationType === 'mars') && marker.parent && marker.parent.scale) {
+                const parentScaleY = marker.parent.scale.y ?? 1;
+                if (parentScaleY > 0.05) {
+                    marker.scale.set(desiredScale, desiredScale / parentScaleY, desiredScale);
+                } else {
+                    marker.scale.set(0, 0, 0);
+                }
+                return;
+            }
+
+            // Earth map markers, station markers, and anything else in map view: uniform scale.
+            marker.scale.set(desiredScale, desiredScale, desiredScale);
+        };
         
         markers.forEach(marker => {
             if (marker && marker.userData && marker.userData.isEventMarker) {
+                // In map view, Moon/Mars panel meshes squash/stretch in Y during page switches.
+                // Even when markers are locked or mid-animation (where we skip pulsing),
+                // keep them visually circular by compensating for parent Y-scale.
+                if (isMapView) {
+                    const locationType = marker.userData ? marker.userData.locationType : 'earth';
+                    if ((locationType === 'moon' || locationType === 'mars') && marker.parent) {
+                        const current = marker.scale?.x ?? 1;
+                        setScaleWithMapViewPanelCompensation(marker, current);
+                    }
+                }
+
                 // Don't pulse non-interactive markers (variant markers) or locked events
                 if (marker.userData.isInteractive === false || marker.userData.isLocked) {
                     return;
@@ -325,30 +398,38 @@ class MarkerPulseService {
                 
                 // Initialize pulse data if not exists
                 if (!marker.userData.pulseData) {
+                    const base = (marker.userData.originalScale !== undefined && marker.userData.originalScale !== null)
+                        ? marker.userData.originalScale
+                        : 1.0;
                     marker.userData.pulseData = {
                         startTime: currentTime,
-                        baseScale: 1.0,
-                        minScale: 0.85,
-                        maxScale: 1.20,
+                        baseScale: base,
+                        minScale: base * 0.85,
+                        maxScale: base * 1.20,
                         pulseSpeed: 0.008
                     };
                 }
                 
                 const pulseData = marker.userData.pulseData;
+                // Keep pulse base in sync with the marker's intended scale (e.g. Moon/Mars/Station in map view)
+                const desiredBase = (marker.userData.originalScale !== undefined && marker.userData.originalScale !== null)
+                    ? marker.userData.originalScale
+                    : 1.0;
+                if (pulseData.baseScale !== desiredBase) {
+                    pulseData.baseScale = desiredBase;
+                    pulseData.minScale = desiredBase * 0.85;
+                    pulseData.maxScale = desiredBase * 1.20;
+                }
                 const elapsed = (currentTime - pulseData.startTime) * pulseData.pulseSpeed;
                 const pulse = Math.sin(elapsed);
-                let scale = pulseData.baseScale + (pulse * (pulseData.maxScale - pulseData.baseScale) * 0.5);
+                // Pulse around base scale (about ±10% by default)
+                let scale = pulseData.baseScale * (1 + 0.10 * pulse);
                 
                 // When hovering this marker, grow ~30% more (1.0 -> 1.3)
                 const hoverScaleMultiplier = (this.hoveredEventMarker === marker) ? 1.3 : 1.0;
                 scale *= hoverScaleMultiplier;
                 
-                const locationType = marker.userData ? marker.userData.locationType : 'earth';
-                if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
-                    marker.scale.set(scale, scale, 1);
-                } else {
-                    marker.scale.set(scale, scale, scale);
-                }
+                setScaleWithMapViewPanelCompensation(marker, scale);
             }
         });
         

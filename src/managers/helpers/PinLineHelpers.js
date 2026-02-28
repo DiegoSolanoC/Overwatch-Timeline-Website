@@ -22,6 +22,24 @@ export function createPinLinePoints({ locationType, markerPosition, lat, lon, gl
     const THREE = window.THREE;
     
     if (locationType === 'earth') {
+        const isMapView = window.globeController?.sceneModel?.getMapViewEnabled
+            ? window.globeController.sceneModel.getMapViewEnabled()
+            : !!window.globeController?.sceneModel?.isMapView;
+
+        const earthMapPlane = window.globeController?.sceneModel?.getEarthMapPlane
+            ? window.globeController.sceneModel.getEarthMapPlane()
+            : window.globeController?.sceneModel?.earthMapPlane;
+
+        if (isMapView && earthMapPlane && markerPosition) {
+            // Flat map: pin line from plane surface to marker (local space)
+            const markerLocalPos = markerPosition.clone();
+            const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
+            return {
+                linePoints: [lineStart, markerLocalPos],
+                lineParent: earthMapPlane
+            };
+        }
+
         return {
             linePoints: [
                 latLonToVector3(lat, lon, 1.0),

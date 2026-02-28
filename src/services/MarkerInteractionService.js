@@ -44,6 +44,16 @@ class MarkerInteractionService {
                 }
             });
         }
+
+        // Also check Earth map plane for event markers (map view)
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        if (earthMapPlane) {
+            earthMapPlane.traverse((child) => {
+                if (child.userData && child.userData.isEventMarker) {
+                    eventMarkers.push(child);
+                }
+            });
+        }
         
         // Also check Moon and Mars planes for event markers
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
@@ -257,6 +267,18 @@ class MarkerInteractionService {
                 }
             });
             console.log('[onMarkerClick] Added event markers from globe traverse:', foundInTraverse);
+        }
+
+        // Also traverse Earth map plane (map view) to catch markers that might not be in array
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        if (earthMapPlane) {
+            earthMapPlane.traverse((child) => {
+                if (child.userData && child.userData.isEventMarker) {
+                    if (!clickableObjects.includes(child)) {
+                        clickableObjects.push(child);
+                    }
+                }
+            });
         }
         
         // Also check Moon and Mars planes for event markers

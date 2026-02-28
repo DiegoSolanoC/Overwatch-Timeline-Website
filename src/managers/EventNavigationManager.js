@@ -628,6 +628,17 @@ export class EventNavigationManager {
 
                 // Use helper for hover behavior
                 if (window.globeController && window.globeController.sceneModel && window.globeController.interactionController) {
+                    // For hover previews (especially Moon/Mars which call resetCameraToDefault),
+                    // capture the current camera state so mouseleave restores to the true prior view
+                    // instead of falling back to a generic default.
+                    const camera = window.globeController.sceneModel.getCamera?.();
+                    const globe = window.globeController.sceneModel.getGlobe?.();
+                    if (!this.uiView.currentEventMarker && camera && !this.uiView.originalCameraPosition) {
+                        this.uiView.originalCameraPosition = camera.position.clone();
+                        this.uiView.originalGlobeRotation = globe
+                            ? { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z }
+                            : { x: 0, y: 0, z: 0 };
+                    }
                     handleNumberButtonMouseEnter(
                         marker,
                         window.globeController.sceneModel,

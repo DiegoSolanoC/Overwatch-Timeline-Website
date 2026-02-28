@@ -85,107 +85,7 @@ export class TransportController {
      * @returns {Object} Boat object
      */
     createBoat(routeData, isMultiStop = false) {
-        const globe = this.sceneModel.getGlobe();
-        const gltfLoader = this.sceneModel.getGLTFLoader();
-        const curve = routeData.curve;
-        const distance = this.calculateRouteDistance(curve);
-        const speed = distance > 1.0 ? 0.004 : 0.005;
-        
-        const boatGroup = new THREE.Group();
-        
-        if (gltfLoader) {
-            gltfLoader.load('assets/models/Boat.glb', 
-                (gltf) => {
-                    const model = gltf.scene;
-                    model.scale.set(0.02, 0.02, 0.02);
-                    model.visible = true;
-                    
-                    const boatColor = 0x0088cc; // Blue for boats (same as trains)
-                    const boatEmissive = 0x004488;
-                    model.traverse((child) => {
-                        if (child.isMesh) {
-                            child.material = new THREE.MeshPhongMaterial({
-                                color: boatColor,
-                                emissive: boatEmissive,
-                                emissiveIntensity: 0.3,
-                                transparent: true,
-                                opacity: 0.85,
-                                shininess: 30
-                            });
-                            child.visible = true;
-                            if (child.geometry) {
-                                child.geometry.computeBoundingBox();
-                                child.geometry.computeBoundingSphere();
-                            }
-                        }
-                    });
-                    
-                    boatGroup.add(model);
-                }, 
-                undefined,
-                (error) => {
-                    console.warn('⚠️ Boat model not found, using fallback geometry');
-                    const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
-                    const boatMaterial = new THREE.MeshPhongMaterial({
-                        color: 0x0088cc, // Blue for boats (same as trains)
-                        emissive: 0x440000,
-                        emissiveIntensity: 0.3,
-                        transparent: true,
-                        opacity: 0.85
-                    });
-                    const boatMesh = new THREE.Mesh(boatGeometry, boatMaterial);
-                    boatMesh.rotation.x = Math.PI / 2;
-                    boatGroup.add(boatMesh);
-                }
-            );
-        } else {
-            const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
-            const boatMaterial = new THREE.MeshPhongMaterial({
-                color: 0xff0000, // Red for boats
-                emissive: 0x440000,
-                emissiveIntensity: 0.3,
-                transparent: true,
-                opacity: 0.85
-            });
-            const boatMesh = new THREE.Mesh(boatGeometry, boatMaterial);
-            boatMesh.rotation.x = Math.PI / 2;
-            boatGroup.add(boatMesh);
-        }
-        
-        // Adjust trail spawn interval based on route distance for shorter trips
-        const routeDistance = this.calculateRouteDistance(curve);
-        let trailSpawnInterval = 1;
-        if (routeDistance < 0.3) {
-            trailSpawnInterval = 0.5; // More frequent for very short trips
-        } else if (routeDistance < 0.6) {
-            trailSpawnInterval = 0.75; // Slightly more frequent for short trips
-        }
-        
-        boatGroup.userData = {
-            curve: curve,
-            progress: 0,
-            speed: speed,
-            from: routeData.from,
-            to: routeData.to,
-            isBoat: true,
-            isMultiStop: isMultiStop,
-            isNewlySpawned: true,
-            boatId: Math.random().toString(36).substr(2, 9),
-            lastTrailSpawn: 0,
-            trailSpawnInterval: trailSpawnInterval,
-            routeDistance: routeDistance
-        };
-        
-        if (!isMultiStop) {
-            this.routeController.reserveBoatRoute(routeData.from, routeData.to, boatGroup.userData.boatId);
-        }
-        
-        boatGroup.visible = false;
-        boatGroup.position.set(0, 0, 0);
-        globe.add(boatGroup);
-        this.transportModel.addBoat(boatGroup);
-        
-        return boatGroup;
+        return this.boatManager.createBoat(routeData, isMultiStop);
     }
 
     /**
@@ -218,107 +118,7 @@ export class TransportController {
      * Update boats - handles movement, multi-stop transitions, and trail spawning
      */
     updateBoats() {
-        const globe = this.sceneModel.getGlobe();
-        const hyperloopVisible = this.sceneModel.getHyperloopVisible();
-        const boats = this.transportModel.getBoats();
-        
-        for (let i = boats.length - 1; i >= 0; i--) {
-            const boat = boats[i];
-            const data = boat.userData;
-            
-            if (data.isNewlySpawned) {
-                data.isNewlySpawned = false;
-                continue;
-            }
-            
-            if (!data.isWaiting) {
-                data.progress += data.speed;
-            }
-            
-            if (data.isMultiStop && data.progress >= 1.0 && !data.isTransitioning) {
-                if (data.currentRouteIndex < data.routes.length - 1) {
-                    const currentFrom = data.from;
-                    const currentTo = data.to;
-                    
-                    this.routeController.releaseBoatRoute(currentFrom, currentTo, data.boatId);
-                    
-                    let nextRoute = data.routes[data.currentRouteIndex + 1];
-                    let canDepart = false;
-                    
-                    if (!this.routeController.isBoatRouteAvailable(nextRoute.from, nextRoute.to)) {
-                        if (!data.isWaiting) {
-                            data.isWaiting = true;
-                            data.progress = 1.0;
-                        }
-                        canDepart = false;
-                    } else {
-                        canDepart = true;
-                    }
-                    
-                    if (canDepart) {
-                        data.isTransitioning = true;
-                        if (data.isWaiting) {
-                            data.isWaiting = false;
-                        }
-                        
-                        this.routeController.reserveBoatRoute(nextRoute.from, nextRoute.to, data.boatId);
-                        data.currentRouteIndex++;
-                        
-                        data.curve = nextRoute.curve;
-                        data.from = nextRoute.from;
-                        data.to = nextRoute.to;
-                        data.previousPort = currentFrom;
-                        data.needsReverse = nextRoute.needsReverse;
-                        data.progress = 0;
-                        
-                        const routeDistance = this.calculateRouteDistance(nextRoute.curve);
-                        data.speed = routeDistance > 1.0 ? 0.004 : 0.005;
-                    }
-                } else {
-                    this.routeController.releaseBoatRoute(data.from, data.to, data.boatId);
-                    globe.remove(boat);
-                    this.transportModel.removeBoat(boat);
-                    continue;
-                }
-            } else if (!data.isMultiStop && data.progress >= 1.0) {
-                if (data.boatId) {
-                    this.routeController.releaseBoatRoute(data.from, data.to, data.boatId);
-                }
-                globe.remove(boat);
-                this.transportModel.removeBoat(boat);
-                continue;
-            }
-            
-            if (data.isMultiStop && data.progress > 0.1 && data.progress < 0.9 && data.isTransitioning) {
-                data.isTransitioning = false;
-            }
-            
-            if (data.progress > 0 && data.progress <= 1) {
-                const position = data.curve.getPointAt(data.progress);
-                boat.position.copy(position);
-                
-                const tangent = data.curve.getTangentAt(data.progress).normalize();
-                const up = position.clone().normalize();
-                const right = new THREE.Vector3().crossVectors(tangent, up).normalize();
-                const correctedUp = new THREE.Vector3().crossVectors(right, tangent).normalize();
-                
-                const rotationMatrix = new THREE.Matrix4();
-                rotationMatrix.makeBasis(right, correctedUp, tangent.negate());
-                boat.quaternion.setFromRotationMatrix(rotationMatrix);
-                
-                if (!data.lastTrailSpawn) data.lastTrailSpawn = 0;
-                if (!data.trailSpawnInterval) data.trailSpawnInterval = 1;
-                
-                data.lastTrailSpawn += 1;
-                if (data.lastTrailSpawn >= data.trailSpawnInterval) {
-                    const forward = tangent.clone().negate();
-                    this.transportView.createBoatTrailSegment(position, forward, right, correctedUp);
-                    data.lastTrailSpawn = 0;
-                }
-                
-                boat.visible = hyperloopVisible;
-            }
-        }
+        this.boatManager.updateBoats();
     }
 
     /**
@@ -370,6 +170,12 @@ export class TransportController {
      */
     initializeSatellites() {
         this.satelliteManager.initializeSatellites();
+    }
+
+    setSatellitesMapViewEnabled(enabled) {
+        if (this.satelliteManager && typeof this.satelliteManager.setMapViewEnabled === 'function') {
+            this.satelliteManager.setMapViewEnabled(enabled);
+        }
     }
 
     /**

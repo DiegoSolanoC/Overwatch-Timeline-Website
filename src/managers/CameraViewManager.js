@@ -12,25 +12,61 @@ export class CameraViewManager {
      * Zoom out from event and restore original camera position and globe rotation
      */
     zoomOutFromEvent() {
-        if (!this.uiView.originalCameraPosition || !this.uiView.originalGlobeRotation) {
-            // No original state stored, use default
-            const camera = this.sceneModel.getCamera();
-            const globe = this.sceneModel.getGlobe();
-            
-            if (camera) {
-                // On mobile portrait, use more zoomed out position to show Moon/Mars panels
-                const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
-                const defaultZoom = isMobilePortrait ? 5.5 : 3.5;
-                const defaultPosition = new THREE.Vector3(0, 0, defaultZoom);
-                this.animateCameraToPosition(camera, defaultPosition, globe);
-            }
-            return;
-        }
-        
         const camera = this.sceneModel.getCamera();
         const globe = this.sceneModel.getGlobe();
-        
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const renderer = this.sceneModel.getRenderer ? this.sceneModel.getRenderer() : null;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+
         if (!camera || !globe) return;
+
+        const getMapFitZ = () => {
+            // Fit whole map in viewport (prevents revealing space)
+            const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+            let z = isMobilePortrait ? 5.5 : 3.5;
+            if (renderer && earthMapPlane) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                const viewportW = Math.max(1, rect.width);
+                const viewportH = Math.max(1, rect.height);
+                const aspect = viewportW / viewportH;
+                const fovRad = (camera.fov * Math.PI) / 180;
+                const tan = Math.tan(fovRad / 2);
+                const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+                const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+                const fitDistH = halfMapH / tan;
+                const fitDistW = halfMapW / (tan * aspect);
+                z = Math.max(1.6, Math.min(fitDistH, fitDistW) * 0.98);
+            }
+            return z;
+        };
+
+        const clampMapXYForZ = (x, y, z) => {
+            if (!renderer || !earthMapPlane) return { x, y };
+            const rect = renderer.domElement.getBoundingClientRect();
+            const viewportW = Math.max(1, rect.width);
+            const viewportH = Math.max(1, rect.height);
+            const aspect = viewportW / viewportH;
+            const fovRad = (camera.fov * Math.PI) / 180;
+            const distance = Math.max(0.01, z - earthMapPlane.position.z);
+            const halfViewH = Math.tan(fovRad / 2) * distance;
+            const halfViewW = halfViewH * aspect;
+            const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+            const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+            const maxPanX = Math.max(0, halfMapW - halfViewW);
+            const maxPanY = Math.max(0, halfMapH - halfViewH);
+            return {
+                x: Math.max(-maxPanX, Math.min(maxPanX, x)),
+                y: Math.max(-maxPanY, Math.min(maxPanY, y))
+            };
+        };
+
+        if (!this.uiView.originalCameraPosition || !this.uiView.originalGlobeRotation) {
+            // No original state stored, use default
+            const defaultZ = isMapView ? getMapFitZ() : ((window.innerWidth <= 768 && window.innerHeight > window.innerWidth) ? 5.5 : 3.5);
+            const defaultPosition = new THREE.Vector3(0, 0, defaultZ);
+            this.animateCameraToPosition(camera, defaultPosition, globe);
+            return;
+        }
         
         // Animate camera back to original position
         const startPosition = camera.position.clone();
@@ -45,6 +81,14 @@ export class CameraViewManager {
         const duration = 1000; // 1 second animation
         const startTime = Date.now();
         
+        // Map view: keep target inside bounds and prevent zoom-out beyond map fit.
+        if (isMapView) {
+            targetPosition.z = Math.min(targetPosition.z, getMapFitZ());
+            const clamped = clampMapXYForZ(targetPosition.x, targetPosition.y, targetPosition.z);
+            targetPosition.x = clamped.x;
+            targetPosition.y = clamped.y;
+        }
+
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
@@ -56,13 +100,20 @@ export class CameraViewManager {
             const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
             camera.position.copy(currentPosition);
             
-            // Interpolate globe rotation
-            globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
-            globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
-            globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
-            
-            // Look at origin
-            camera.lookAt(0, 0, 0);
+            if (!isMapView) {
+                // Interpolate globe rotation
+                globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+                globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+                globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
+                // Look at origin
+                camera.lookAt(0, 0, 0);
+            } else {
+                // Map view: clamp during animation and keep camera perpendicular (no tilt)
+                const clamped = clampMapXYForZ(camera.position.x, camera.position.y, camera.position.z);
+                camera.position.x = clamped.x;
+                camera.position.y = clamped.y;
+                camera.lookAt(camera.position.x, camera.position.y, 0);
+            }
             
             if (progress < 1) {
                 requestAnimationFrame(animate);
@@ -87,13 +138,32 @@ export class CameraViewManager {
     resetToDefault() {
         const camera = this.sceneModel.getCamera();
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const renderer = this.sceneModel.getRenderer ? this.sceneModel.getRenderer() : null;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         if (!camera || !globe) return;
 
         this.uiView.originalCameraPosition = null;
         this.uiView.originalGlobeRotation = null;
 
         const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
-        const defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+        let defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+
+        // Map view: choose a zoom that fits the whole map in the viewport (prevents revealing space).
+        if (isMapView && earthMapPlane && renderer) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            const viewportW = Math.max(1, rect.width);
+            const viewportH = Math.max(1, rect.height);
+            const aspect = viewportW / viewportH;
+            const fovRad = (camera.fov * Math.PI) / 180;
+            const tan = Math.tan(fovRad / 2);
+            const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+            const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+            const fitDistH = halfMapH / tan;
+            const fitDistW = halfMapW / (tan * aspect);
+            defaultZoom = Math.max(1.6, Math.min(fitDistH, fitDistW) * 0.98);
+        }
+
         const targetPosition = new THREE.Vector3(0, 0, defaultZoom);
         const startPosition = camera.position.clone();
         const startRotation = { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z };
@@ -107,10 +177,18 @@ export class CameraViewManager {
 
             const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
             camera.position.copy(currentPosition);
-            globe.rotation.x = startRotation.x + (0 - startRotation.x) * easeProgress;
-            globe.rotation.y = startRotation.y + (0 - startRotation.y) * easeProgress;
-            globe.rotation.z = startRotation.z + (0 - startRotation.z) * easeProgress;
-            camera.lookAt(0, 0, 0);
+
+            if (!isMapView) {
+                globe.rotation.x = startRotation.x + (0 - startRotation.x) * easeProgress;
+                globe.rotation.y = startRotation.y + (0 - startRotation.y) * easeProgress;
+                globe.rotation.z = startRotation.z + (0 - startRotation.z) * easeProgress;
+                camera.lookAt(0, 0, 0);
+            } else {
+                // Map view: never animate globe rotation (can tilt/reveal space); keep camera perpendicular.
+                camera.position.x = 0;
+                camera.position.y = 0;
+                camera.lookAt(0, 0, 0);
+            }
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
@@ -130,6 +208,28 @@ export class CameraViewManager {
         const startPosition = camera.position.clone();
         const duration = 1000;
         const startTime = Date.now();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const renderer = this.sceneModel.getRenderer ? this.sceneModel.getRenderer() : null;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const clampMapXYForZ = (x, y, z) => {
+            if (!renderer || !earthMapPlane) return { x, y };
+            const rect = renderer.domElement.getBoundingClientRect();
+            const viewportW = Math.max(1, rect.width);
+            const viewportH = Math.max(1, rect.height);
+            const aspect = viewportW / viewportH;
+            const fovRad = (camera.fov * Math.PI) / 180;
+            const distance = Math.max(0.01, z - earthMapPlane.position.z);
+            const halfViewH = Math.tan(fovRad / 2) * distance;
+            const halfViewW = halfViewH * aspect;
+            const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+            const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+            const maxPanX = Math.max(0, halfMapW - halfViewW);
+            const maxPanY = Math.max(0, halfMapH - halfViewH);
+            return {
+                x: Math.max(-maxPanX, Math.min(maxPanX, x)),
+                y: Math.max(-maxPanY, Math.min(maxPanY, y))
+            };
+        };
         
         const animate = () => {
             const elapsed = Date.now() - startTime;
@@ -138,7 +238,14 @@ export class CameraViewManager {
             
             const currentPosition = new THREE.Vector3().lerpVectors(startPosition, targetPosition, easeProgress);
             camera.position.copy(currentPosition);
-            camera.lookAt(0, 0, 0);
+            if (isMapView) {
+                const clamped = clampMapXYForZ(camera.position.x, camera.position.y, camera.position.z);
+                camera.position.x = clamped.x;
+                camera.position.y = clamped.y;
+                camera.lookAt(camera.position.x, camera.position.y, 0);
+            } else {
+                camera.lookAt(0, 0, 0);
+            }
             
             if (progress < 1) {
                 requestAnimationFrame(animate);

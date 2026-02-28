@@ -39,6 +39,9 @@ class StationFollowService {
             }
             
             const camera = this.sceneModel.getCamera();
+            const renderer = this.sceneModel.getRenderer();
+            const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+            const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             if (!camera || !marker) {
                 this.stopFollowingStation();
                 return;
@@ -47,37 +50,57 @@ class StationFollowService {
             // Get world position of marker (station moves, so this updates continuously)
             const markerWorldPosition = new THREE.Vector3();
             marker.getWorldPosition(markerWorldPosition);
-            
-            // Calculate target camera position (closer to marker, similar to zoomToMarker)
-            const targetDistance = 2.5;
-            const direction = markerWorldPosition.clone().normalize();
-            const targetPosition = direction.multiplyScalar(targetDistance);
-            
-            // Smoothly interpolate camera position to follow the station
-            camera.position.lerp(targetPosition, 0.1); // 10% interpolation per frame for smooth following
-            
-            // Look at the marker's current world position
-            const currentMarkerWorldPos = new THREE.Vector3();
-            marker.getWorldPosition(currentMarkerWorldPos);
-            
-            // On mobile, offset the lookAt point downward to position marker in top image area
-            const isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                const viewportHeight = window.innerHeight;
-                const topAreaHeight = (viewportHeight * 0.5) - 60;
-                const topAreaCenter = 60 + (topAreaHeight / 2);
-                const screenCenter = viewportHeight / 2;
-                const offsetY = (topAreaCenter - screenCenter) / viewportHeight;
+
+            if (isMapView && renderer && earthMapPlane) {
+                // Map view: pan camera to station without tilting, clamp within map borders.
+                const rect = renderer.domElement.getBoundingClientRect();
+                const viewportW = Math.max(1, rect.width);
+                const viewportH = Math.max(1, rect.height);
+                const aspect = viewportW / viewportH;
+                const fovRad = (camera.fov * Math.PI) / 180;
+                const distance = Math.max(0.01, camera.position.z - earthMapPlane.position.z);
+                const halfViewH = Math.tan(fovRad / 2) * distance;
+                const halfViewW = halfViewH * aspect;
+                const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+                const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+                const maxPanX = Math.max(0, halfMapW - halfViewW);
+                const maxPanY = Math.max(0, halfMapH - halfViewH);
+
+                const targetX = Math.max(-maxPanX, Math.min(maxPanX, markerWorldPosition.x));
+                const targetY = Math.max(-maxPanY, Math.min(maxPanY, markerWorldPosition.y));
+
+                camera.position.x += (targetX - camera.position.x) * 0.1;
+                camera.position.y += (targetY - camera.position.y) * 0.1;
+                camera.lookAt(camera.position.x, camera.position.y, 0);
+            } else {
+                // Globe view: follow by moving camera along radial direction toward marker.
+                const targetDistance = 2.5;
+                const direction = markerWorldPosition.clone().normalize();
+                const targetPosition = direction.multiplyScalar(targetDistance);
                 
-                const cameraToMarker = new THREE.Vector3().subVectors(currentMarkerWorldPos, camera.position).normalize();
-                const cameraRight = new THREE.Vector3().crossVectors(cameraToMarker, new THREE.Vector3(0, 1, 0)).normalize();
-                const cameraUp = new THREE.Vector3().crossVectors(cameraRight, cameraToMarker).normalize();
-                const offsetDistance = Math.abs(offsetY) * 1.5;
-                const offsetVector = cameraUp.multiplyScalar(-offsetDistance);
-                currentMarkerWorldPos.add(offsetVector);
+                camera.position.lerp(targetPosition, 0.1);
+                
+                const currentMarkerWorldPos = new THREE.Vector3();
+                marker.getWorldPosition(currentMarkerWorldPos);
+                
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const viewportHeight = window.innerHeight;
+                    const topAreaHeight = (viewportHeight * 0.5) - 60;
+                    const topAreaCenter = 60 + (topAreaHeight / 2);
+                    const screenCenter = viewportHeight / 2;
+                    const offsetY = (topAreaCenter - screenCenter) / viewportHeight;
+                    
+                    const cameraToMarker = new THREE.Vector3().subVectors(currentMarkerWorldPos, camera.position).normalize();
+                    const cameraRight = new THREE.Vector3().crossVectors(cameraToMarker, new THREE.Vector3(0, 1, 0)).normalize();
+                    const cameraUp = new THREE.Vector3().crossVectors(cameraRight, cameraToMarker).normalize();
+                    const offsetDistance = Math.abs(offsetY) * 1.5;
+                    const offsetVector = cameraUp.multiplyScalar(-offsetDistance);
+                    currentMarkerWorldPos.add(offsetVector);
+                }
+                
+                camera.lookAt(currentMarkerWorldPos);
             }
-            
-            camera.lookAt(currentMarkerWorldPos);
             
             // Continue following
             this.followStationAnimationId = requestAnimationFrame(followStation);
@@ -105,9 +128,9 @@ class StationFollowService {
      */
     updateStationPinLines() {
         if (!this.sceneModel) return;
-        
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const globe = this.sceneModel.getGlobe();
-        if (!globe) return;
+        if (!globe && !isMapView) return;
         
         const markers = this.sceneModel.getMarkers();
         const issSatellite = window.globeController && window.globeController.transportController 
@@ -124,18 +147,23 @@ class StationFollowService {
                     const satelliteWorldPos = new THREE.Vector3();
                     issSatellite.getWorldPosition(satelliteWorldPos);
                     
-                    // Calculate normal (direction from globe center to satellite's world position)
-                    // This gives us the direction along Earth's curvature
-                    const normal = satelliteWorldPos.clone().normalize();
-                    
-                    // Convert normal to satellite's local space
-                    const localNormal = normal.clone();
-                    const satelliteQuaternionInverse = issSatellite.quaternion.clone().invert();
-                    localNormal.applyQuaternion(satelliteQuaternionInverse);
-                    localNormal.normalize();
+                    // In globe view: extend marker outward from Earth center.
+                    // In map view: extend marker upward (+Z) from satellite.
+                    let localNormal;
+                    if (isMapView) {
+                        localNormal = new THREE.Vector3(0, 0, 1);
+                    } else {
+                        const normal = satelliteWorldPos.clone().normalize();
+                        localNormal = normal.clone();
+                        const satelliteQuaternionInverse = issSatellite.quaternion.clone().invert();
+                        localNormal.applyQuaternion(satelliteQuaternionInverse);
+                        localNormal.normalize();
+                    }
                     
                     // Pin line length - increased to push marker further out from model
-                    const pinLength = 0.06;
+                    // Pin line length - push marker out from model.
+                    // In map view, keep this subtle (match unwrapped-map pin feel).
+                    const pinLength = isMapView ? 0.03 : 0.06;
                     
                     // Update marker position to be at the end of the pin line
                     const newMarkerPosition = localNormal.multiplyScalar(pinLength);

@@ -247,6 +247,7 @@ async function unloadControls() {
         // Remove control buttons
         removeElementsByIds([
             { id: 'autoRotateToggle', message: 'Rotation toggle removed' },
+            { id: 'mapViewToggle', message: 'Map view toggle removed' },
             { id: 'exitButton', message: 'Exit button removed' }
         ]);
         
@@ -275,6 +276,15 @@ async function loadControls() {
             iconPath: 'assets/images/icons/Rotation Icon.png',
             iconAlt: 'Rotate'
         });
+
+        // Add map view toggle (globe <-> flat map)
+        createGlobeControlButton({
+            id: 'mapViewToggle',
+            className: 'map-view-btn',
+            title: 'Toggle Map View',
+            iconPath: 'assets/images/icons/Location Icon.png',
+            iconAlt: 'Map'
+        });
         
         // Add exit button (if not already present)
         // Use componentOrchestrator directly to avoid hoisting issues
@@ -283,6 +293,9 @@ async function loadControls() {
         // Setup rotation toggle
         if (controller.uiView) {
             controller.uiView.setupAutoRotateToggle();
+            if (typeof controller.uiView.setupMapViewToggle === 'function') {
+                controller.uiView.setupMapViewToggle();
+            }
             updateStatus('✓ Rotation toggle initialized', 'success');
         }
         

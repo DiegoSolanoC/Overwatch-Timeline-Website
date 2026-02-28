@@ -2,11 +2,179 @@
  * SatelliteManager - Manages satellite creation, updates, and initialization
  */
 
+import { vector3ToLatLon, latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+
 export class SatelliteManager {
     constructor(sceneModel, transportModel, transportView) {
         this.sceneModel = sceneModel;
         this.transportModel = transportModel;
         this.transportView = transportView;
+        this._mapOrbitsEnabled = false; // user-requested default: hidden
+    }
+
+    setMapViewEnabled(enabled) {
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const satellites = this.transportModel.getSatellites();
+        const isMapView = !!enabled;
+
+        satellites.forEach(satellite => {
+            if (!satellite?.userData?.isSatellite) return;
+            const data = satellite.userData;
+
+            // Toggle globe orbit tube visibility; map uses polylines instead.
+            const orbitTube = satellite.userData.orbitLine;
+            if (orbitTube) orbitTube.visible = !isMapView ? false : false; // keep hidden always (we render markers instead)
+
+            // Remove any existing map orbit lines so they rebuild cleanly
+            if (satellite.userData.mapOrbitLines) {
+                satellite.userData.mapOrbitLines.forEach(line => {
+                    if (line?.parent) line.parent.remove(line);
+                });
+                satellite.userData.mapOrbitLines = [];
+            }
+
+            // Reparent satellite to correct surface (keep world transform)
+            const targetParent = isMapView ? earthMapPlane : globe;
+            if (targetParent && typeof targetParent.attach === 'function' && satellite.parent !== targetParent) {
+                targetParent.attach(satellite);
+            }
+
+            // Map view sizing: satellites/station/mars ship should be 3x smaller
+            // We do this at the group level so it applies to GLTF + fallback meshes uniformly.
+            satellite.scale.setScalar(isMapView ? (1 / 3) : 1);
+
+            // Map view: show only ~half of small satellites to reduce clutter
+            if (data.type === 'small') {
+                // Deterministic: hide odd-numbered "Satellite N"
+                const match = (data.name || '').match(/Satellite\s+(\d+)/i);
+                const n = match ? parseInt(match[1], 10) : null;
+                data.hideInMap = isMapView ? (n != null ? (n % 2 === 1) : (Math.random() < 0.5)) : false;
+            } else {
+                data.hideInMap = false; // Keep ISS and Mars Ship visible
+            }
+            satellite.visible = this.sceneModel.getHyperloopVisible() && !(isMapView && data.hideInMap);
+        });
+
+        // Build polylines for orbit paths on the map plane (currently disabled by user request: hide orbit lines)
+        if (isMapView && this._mapOrbitsEnabled) {
+            this.buildMapOrbitLines();
+        } else {
+            // Ensure any existing map orbit lines are hidden/removed
+            if (earthMapPlane) {
+                const toRemove = [];
+                earthMapPlane.traverse(obj => {
+                    if (obj?.userData?.isSatelliteOrbitMapLine) toRemove.push(obj);
+                });
+                toRemove.forEach(o => { if (o.parent) o.parent.remove(o); });
+            }
+        }
+    }
+
+    buildMapOrbitLines() {
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        if (!earthMapPlane) return;
+
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const wrapX = (x) => ((x + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
+        const mapZ = 0.06;
+
+        const satellites = this.transportModel.getSatellites();
+        satellites.forEach(satellite => {
+            const data = satellite?.userData;
+            if (!data?.isSatellite) return;
+
+            // Sample the *3D* orbit circle, project to lat/lon, then to map X/Y.
+            const segments = 240;
+
+            const normalX = Math.sin(data.inclination) * Math.sin(data.rotationAngle);
+            const normalY = Math.sin(data.inclination) * Math.cos(data.rotationAngle);
+            const normalZ = Math.cos(data.inclination);
+            const normal = new THREE.Vector3(normalX, normalY, normalZ).normalize();
+
+            const up = new THREE.Vector3(0, 0, 1);
+            const right = new THREE.Vector3().crossVectors(normal, up).normalize();
+            if (right.length() < 0.1) {
+                const forwardRef = new THREE.Vector3(1, 0, 0);
+                right.crossVectors(normal, forwardRef).normalize();
+            }
+            const forward = new THREE.Vector3().crossVectors(right, normal).normalize();
+
+            const pts = [];
+            for (let i = 0; i <= segments; i++) {
+                const angle = (i / segments) * Math.PI * 2;
+                const p3 = new THREE.Vector3()
+                    .addScaledVector(right, data.orbitRadius * Math.cos(angle))
+                    .addScaledVector(forward, data.orbitRadius * Math.sin(angle));
+                const { lat, lon } = vector3ToLatLon(p3);
+                const p2 = latLonToMapPlanePosition(lat, lon, planeWidth, 1.0, mapZ);
+                pts.push(p2);
+            }
+
+            // Convert into seam-wrapped polyline segments
+            const segments2d = [];
+            let current = [];
+            let prevUnwrappedX = null;
+            let prev = null;
+
+            for (let i = 0; i < pts.length; i++) {
+                const p = pts[i];
+                const x = p.x;
+                const y = p.y;
+
+                let unwrappedX = x;
+                if (prevUnwrappedX != null) {
+                    const candidates = [x - planeWidth, x, x + planeWidth];
+                    unwrappedX = candidates.reduce((best, c) => {
+                        return Math.abs(c - prevUnwrappedX) < Math.abs(best - prevUnwrappedX) ? c : best;
+                    }, candidates[1]);
+                }
+
+                if (prevUnwrappedX != null) {
+                    const crossesRight = prevUnwrappedX <= halfW && unwrappedX > halfW;
+                    const crossesLeft = prevUnwrappedX >= -halfW && unwrappedX < -halfW;
+                    if (crossesRight || crossesLeft) {
+                        const boundaryX = crossesRight ? halfW : -halfW;
+                        const t = (boundaryX - prevUnwrappedX) / (unwrappedX - prevUnwrappedX);
+                        const yAt = prev.y + (y - prev.y) * t;
+
+                        // close current segment at boundary
+                        current.push(new THREE.Vector3(boundaryX, yAt, mapZ));
+                        if (current.length >= 2) segments2d.push(current);
+
+                        // start new segment on opposite side
+                        current = [new THREE.Vector3(-boundaryX, yAt, mapZ)];
+
+                        // shift unwrappedX to new side for continuity
+                        unwrappedX = crossesRight ? (unwrappedX - planeWidth) : (unwrappedX + planeWidth);
+                    }
+                }
+
+                current.push(new THREE.Vector3(wrapX(unwrappedX), y, mapZ));
+                prevUnwrappedX = unwrappedX;
+                prev = { x: unwrappedX, y };
+            }
+
+            if (current.length >= 2) segments2d.push(current);
+
+            // Render lines
+            const color = data.type === 'MarsShip' ? 0xff0000 : (data.type === 'ISS' ? 0x0088cc : 0x9b59b6);
+            const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.6 });
+
+            const mapLines = [];
+            segments2d.forEach(segPts => {
+                const geom = new THREE.BufferGeometry().setFromPoints(segPts);
+                const line = new THREE.Line(geom, material);
+                line.userData.isSatelliteOrbitMapLine = true;
+                line.userData.satelliteName = data.name;
+                line.visible = false; // user requested orbit lines hidden
+                earthMapPlane.add(line);
+                mapLines.push(line);
+            });
+
+            satellite.userData.mapOrbitLines = mapLines;
+        });
     }
     
     /**
@@ -227,7 +395,7 @@ export class SatelliteManager {
         orbitLine.userData.satelliteName = name; // Store satellite name for filtering
         // Hide orbit line (was visible for alignment, now hidden)
         orbitLine.visible = false;
-        globe.add(orbitLine);
+        if (globe) globe.add(orbitLine);
         this.transportModel.addSatelliteOrbitLine(orbitLine);
         
         satelliteGroup.userData = {
@@ -253,7 +421,7 @@ export class SatelliteManager {
         satelliteGroup.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
         
         satelliteGroup.visible = this.sceneModel.getHyperloopVisible();
-        globe.add(satelliteGroup);
+        if (globe) globe.add(satelliteGroup);
         this.transportModel.addSatellite(satelliteGroup);
         
         return satelliteGroup;
@@ -265,6 +433,20 @@ export class SatelliteManager {
     updateSatellites() {
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const satellites = this.transportModel.getSatellites();
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const wrapX = (x) => ((x + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
+        const mapZBase = 0.06;
+
+        // In case map view was enabled before satellites were created/loaded, enforce sizing here too.
+        if (isMapView) {
+            satellites.forEach(s => {
+                if (s?.userData?.isSatellite) s.scale.setScalar(1 / 3);
+            });
+        }
         
         // Check if any station markers are on the current page
         let hasStationMarkerOnPage = false;
@@ -305,6 +487,10 @@ export class SatelliteManager {
         
         satellites.forEach(satellite => {
             const data = satellite.userData;
+            if (isMapView && data?.hideInMap) {
+                satellite.visible = false;
+                return;
+            }
             
             // Apply speed multiplier (only to ISS for station events)
             const effectiveSpeed = data.type === 'ISS' ? data.orbitSpeed * speedMultiplier : data.orbitSpeed;
@@ -332,11 +518,24 @@ export class SatelliteManager {
             }
             const forward = new THREE.Vector3().crossVectors(right, normal).normalize();
             
-            const position = new THREE.Vector3()
+            const position3d = new THREE.Vector3()
                 .addScaledVector(right, data.orbitRadius * Math.cos(data.angle))
                 .addScaledVector(forward, data.orbitRadius * Math.sin(data.angle));
-            
-            satellite.position.set(position.x, position.y, position.z);
+
+            // In map view, project orbit position onto the flat map and seam-wrap.
+            // In globe view, keep true 3D orbit.
+            if (isMapView && earthMapPlane) {
+                if (satellite.parent !== earthMapPlane && earthMapPlane.attach) earthMapPlane.attach(satellite);
+
+                const { lat, lon } = vector3ToLatLon(position3d);
+                const mapZ = mapZBase + (data.orbitRadius - 1.0) * 0.25; // subtle separation by orbit radius
+                const mapPos = latLonToMapPlanePosition(lat, lon, planeWidth, 1.0, mapZ);
+                mapPos.x = wrapX(mapPos.x);
+                satellite.position.set(mapPos.x, mapPos.y, mapPos.z);
+            } else {
+                if (globe && satellite.parent !== globe && globe.attach) globe.attach(satellite);
+                satellite.position.set(position3d.x, position3d.y, position3d.z);
+            }
             
             // Only align ISS and Mars Ship with their path (like planes/trains/boats)
             // Small satellites keep their random rotation
@@ -344,26 +543,42 @@ export class SatelliteManager {
                 // Rotate satellite to face direction of travel
                 const nextAngle = data.angle + effectiveSpeed;
                 
-                const nextPosition = new THREE.Vector3()
+                const nextPosition3d = new THREE.Vector3()
                     .addScaledVector(right, data.orbitRadius * Math.cos(nextAngle))
                     .addScaledVector(forward, data.orbitRadius * Math.sin(nextAngle));
-                
-                const direction = new THREE.Vector3().subVectors(nextPosition, position).normalize();
-                const up = satellite.position.clone().normalize();
-                const rightDir = new THREE.Vector3().crossVectors(direction, up).normalize();
-                const correctedUp = new THREE.Vector3().crossVectors(rightDir, direction).normalize();
-                
-                const rotationMatrix = new THREE.Matrix4();
-                rotationMatrix.makeBasis(rightDir, correctedUp, direction.negate());
-                satellite.quaternion.setFromRotationMatrix(rotationMatrix);
+
+                if (isMapView) {
+                    const { lat: lat2, lon: lon2 } = vector3ToLatLon(nextPosition3d);
+                    const mapZ = satellite.position.z;
+                    const mapNext = latLonToMapPlanePosition(lat2, lon2, planeWidth, 1.0, mapZ);
+                    mapNext.x = wrapX(mapNext.x);
+                    const dir = new THREE.Vector3().subVectors(mapNext, satellite.position).normalize();
+
+                    const up2 = new THREE.Vector3(0, 0, 1);
+                    const rightDir = new THREE.Vector3().crossVectors(dir, up2).normalize();
+                    const correctedUp = new THREE.Vector3().crossVectors(rightDir, dir).normalize();
+                    const rotationMatrix = new THREE.Matrix4();
+                    rotationMatrix.makeBasis(rightDir, correctedUp, dir.negate());
+                    satellite.quaternion.setFromRotationMatrix(rotationMatrix);
+                } else {
+                    const direction = new THREE.Vector3().subVectors(nextPosition3d, position3d).normalize();
+                    const up3 = satellite.position.clone().normalize();
+                    const rightDir = new THREE.Vector3().crossVectors(direction, up3).normalize();
+                    const correctedUp = new THREE.Vector3().crossVectors(rightDir, direction).normalize();
+                    
+                    const rotationMatrix = new THREE.Matrix4();
+                    rotationMatrix.makeBasis(rightDir, correctedUp, direction.negate());
+                    satellite.quaternion.setFromRotationMatrix(rotationMatrix);
+                }
             }
             // Small satellites keep their random rotation (no alignment with path)
             
-            // Handle trail spawning (small dots offset to sides randomly) - slightly more prominent
+            // Handle trail spawning (small dots offset to sides randomly)
             data.lastTrailSpawn++;
             if (data.lastTrailSpawn >= data.trailSpawnInterval) {
                 // Random chance to spawn (slightly more common)
-                if (Math.random() < 0.25) { // 25% chance when interval is reached (increased from 15%)
+                const chance = isMapView ? 0.125 : 0.25; // Map view: half as many dots
+                if (Math.random() < chance) {
                     this.transportView.createSatelliteTrailDot(satellite.position);
                 }
                 data.lastTrailSpawn = 0;

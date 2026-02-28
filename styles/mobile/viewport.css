@@ -48,6 +48,13 @@
         left: 90px !important; /* 20 + 60 + 10, match filters column */
     }
 
+    /* Map View Toggle Button - next row down */
+    #mapViewToggle {
+        bottom: auto !important;
+        top: 140px !important; /* 80 + 50 + 10 gap */
+        left: 20px !important;
+    }
+
     .bottom-right-btn {
         width: 60px !important;
         height: 50px !important;

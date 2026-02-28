@@ -45,6 +45,49 @@ export function createGlobeMesh(textureLoader, renderer, initialTexturePath, nor
 }
 
 /**
+ * Creates the Earth flat map plane mesh with the same texture as the globe.
+ * Uses a 2:1 aspect ratio so equirectangular lat/lon projection aligns.
+ * @param {THREE.TextureLoader} textureLoader
+ * @param {THREE.WebGLRenderer} renderer
+ * @param {string} texturePath
+ * @param {Function} onTextureLoaded - Optional callback when texture loads
+ * @param {Function} onError - Optional error callback
+ * @returns {THREE.Mesh}
+ */
+export function createEarthMapPlane(textureLoader, renderer, texturePath, onTextureLoaded = null, onError = null) {
+    // 2:1 aspect ratio for equirectangular world maps
+    const planeWidth = 2.0;
+    const planeHeight = 1.0;
+    const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+
+    const earthTexture = loadTexture(
+        textureLoader,
+        texturePath,
+        renderer,
+        (texture) => {
+            if (onTextureLoaded) onTextureLoaded(texture);
+        },
+        onError
+    );
+
+    const material = new THREE.MeshStandardMaterial({
+        map: earthTexture,
+        side: THREE.DoubleSide,
+        transparent: false,
+        opacity: 1.0,
+        depthWrite: true,
+        metalness: 0.1,
+        roughness: 0.9
+    });
+
+    const plane = new THREE.Mesh(geometry, material);
+    plane.position.set(0, 0, 0);
+    plane.visible = false;
+    // PlaneGeometry faces +Z by default, which matches camera at +Z looking at origin.
+    return plane;
+}
+
+/**
  * Sets up Moon and Mars planes for the globe
  * @param {Object} params - Parameters
  * @param {THREE.Scene} params.scene - Scene to add planes to
@@ -100,5 +143,6 @@ if (typeof window !== 'undefined') {
         window.GlobeInitHelpers = {};
     }
     window.GlobeInitHelpers.createGlobeMesh = createGlobeMesh;
+    window.GlobeInitHelpers.createEarthMapPlane = createEarthMapPlane;
     window.GlobeInitHelpers.setupCelestialPlanes = setupCelestialPlanes;
 }

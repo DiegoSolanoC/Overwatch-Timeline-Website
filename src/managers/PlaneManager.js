@@ -2,7 +2,7 @@
  * PlaneManager - Manages plane creation, updates, and spawning
  */
 
-import { latLonToVector3, createArcBetweenPoints } from '../utils/GeometryUtils.js';
+import { latLonToVector3, createArcBetweenPoints, latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
 
 export class PlaneManager {
     constructor(sceneModel, transportModel, transportView, dataModel) {
@@ -21,8 +21,11 @@ export class PlaneManager {
      */
     createPlane(fromCity, toCity) {
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const gltfLoader = this.sceneModel.getGLTFLoader();
         const planeModelCache = this.transportModel.getPlaneModelCache();
+        const modelScale = isMapView ? (0.02 / 2) : 0.02;
         
         const groundStart = latLonToVector3(fromCity.lat, fromCity.lon, 1.005);
         const groundEnd = latLonToVector3(toCity.lat, toCity.lon, 1.005);
@@ -38,42 +41,59 @@ export class PlaneManager {
         const cruiseStart = takeoffPhase;
         const cruiseEnd = 1.0 - landingPhase;
         
-        const flightPoints = [];
-        const totalSegments = 60;
-        
-        for (let i = 0; i <= totalSegments; i++) {
-            const t = i / totalSegments;
-            const basePoint = createArcBetweenPoints(
+        let curve;
+        if (isMapView && earthMapPlane) {
+            // Map view: straight A->B line with horizontal seam-wrapping
+            const planeWidth = 2.0;
+            const halfW = planeWidth / 2;
+            const mapZ = 0.03;
+            const a = latLonToMapPlanePosition(fromCity.lat, fromCity.lon, planeWidth, 1.0, mapZ);
+            const b = latLonToMapPlanePosition(toCity.lat, toCity.lon, planeWidth, 1.0, mapZ);
+            let bx = b.x;
+            const dx = bx - a.x;
+            if (dx > halfW) bx -= planeWidth;
+            else if (dx < -halfW) bx += planeWidth;
+            curve = new THREE.LineCurve3(
+                new THREE.Vector3(a.x, a.y, mapZ),
+                new THREE.Vector3(bx, b.y, mapZ)
+            );
+        } else {
+            const flightPoints = [];
+            const totalSegments = 60;
+            const arcPoints = createArcBetweenPoints(
                 fromCity.lat, fromCity.lon,
                 toCity.lat, toCity.lon,
                 1.005, totalSegments, true
-            )[i];
-            
-            let altitude;
-            if (t < cruiseStart) {
-                const takeoffProgress = t / cruiseStart;
-                const easeOut = Math.sin(takeoffProgress * Math.PI / 2);
-                altitude = 1.005 + (cruiseAltitude - 1.005) * easeOut;
-            } else if (t > cruiseEnd) {
-                const landingProgress = (t - cruiseEnd) / (1.0 - cruiseEnd);
-                const easeIn = landingProgress * landingProgress;
-                altitude = cruiseAltitude - (cruiseAltitude - 1.005) * easeIn;
-            } else {
-                altitude = cruiseAltitude;
+            );
+            for (let i = 0; i <= totalSegments; i++) {
+                const t = i / totalSegments;
+                const basePoint = arcPoints[i];
+                
+                let altitude;
+                if (t < cruiseStart) {
+                    const takeoffProgress = t / cruiseStart;
+                    const easeOut = Math.sin(takeoffProgress * Math.PI / 2);
+                    altitude = 1.005 + (cruiseAltitude - 1.005) * easeOut;
+                } else if (t > cruiseEnd) {
+                    const landingProgress = (t - cruiseEnd) / (1.0 - cruiseEnd);
+                    const easeIn = landingProgress * landingProgress;
+                    altitude = cruiseAltitude - (cruiseAltitude - 1.005) * easeIn;
+                } else {
+                    altitude = cruiseAltitude;
+                }
+                
+                const normalizedPos = basePoint.clone().normalize();
+                flightPoints.push(normalizedPos.multiplyScalar(altitude));
             }
-            
-            const normalizedPos = basePoint.clone().normalize();
-            flightPoints.push(normalizedPos.multiplyScalar(altitude));
+            curve = new THREE.CatmullRomCurve3(flightPoints);
         }
-        
-        const curve = new THREE.CatmullRomCurve3(flightPoints);
         const speed = distance > 1.5 ? 0.0015 : 0.0020;
         
         const planeGroup = new THREE.Group();
         
         if (planeModelCache) {
             const planeModel = planeModelCache.clone(); // Clone model (materials are cloned automatically)
-            planeModel.scale.set(0.02, 0.02, 0.02);
+            planeModel.scale.set(modelScale, modelScale, modelScale);
             planeModel.visible = true;
             
             planeModel.traverse((child) => {
@@ -97,7 +117,7 @@ export class PlaneManager {
                     const cached = model.clone(); // Clone model (materials are cloned automatically)
                     this.transportModel.setPlaneModelCache(cached);
                 
-                model.scale.set(0.02, 0.02, 0.02);
+                model.scale.set(modelScale, modelScale, modelScale);
                 model.visible = true;
                 
                 model.traverse((child) => {
@@ -141,7 +161,8 @@ export class PlaneManager {
         };
         
         planeGroup.visible = false;
-        globe.add(planeGroup);
+        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
+        if (parent) parent.add(planeGroup);
         this.transportModel.addPlane(planeGroup);
         
         return planeGroup;
@@ -160,50 +181,68 @@ export class PlaneManager {
         for (let i = 0; i < airports.length - 1; i++) {
             const fromCity = airports[i];
             const toCity = airports[i + 1];
+            const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+            const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             
             const groundStart = latLonToVector3(fromCity.lat, fromCity.lon, 1.005);
             const groundEnd = latLonToVector3(toCity.lat, toCity.lon, 1.005);
             const distance = groundStart.distanceTo(groundEnd);
             
-            const minAltitude = 1.04;
-            const maxAltitude = 1.08;
-            const normalizedDistance = Math.min(distance / 1.5, 1.0);
-            const cruiseAltitude = minAltitude + (maxAltitude - minAltitude) * normalizedDistance;
-            
-            const takeoffPhase = 0.25 - (normalizedDistance * 0.05);
-            const landingPhase = 0.50 - (normalizedDistance * 0.10);
-            const cruiseStart = takeoffPhase;
-            const cruiseEnd = 1.0 - landingPhase;
-            
-            const flightPoints = [];
-            const totalSegments = 60;
-            
-            for (let j = 0; j <= totalSegments; j++) {
-                const t = j / totalSegments;
-                const basePoint = createArcBetweenPoints(
+            let curve;
+            if (isMapView && earthMapPlane) {
+                const planeWidth = 2.0;
+                const halfW = planeWidth / 2;
+                const mapZ = 0.03;
+                const a = latLonToMapPlanePosition(fromCity.lat, fromCity.lon, planeWidth, 1.0, mapZ);
+                const b = latLonToMapPlanePosition(toCity.lat, toCity.lon, planeWidth, 1.0, mapZ);
+                let bx = b.x;
+                const dx = bx - a.x;
+                if (dx > halfW) bx -= planeWidth;
+                else if (dx < -halfW) bx += planeWidth;
+                curve = new THREE.LineCurve3(
+                    new THREE.Vector3(a.x, a.y, mapZ),
+                    new THREE.Vector3(bx, b.y, mapZ)
+                );
+            } else {
+                const minAltitude = 1.04;
+                const maxAltitude = 1.08;
+                const normalizedDistance = Math.min(distance / 1.5, 1.0);
+                const cruiseAltitude = minAltitude + (maxAltitude - minAltitude) * normalizedDistance;
+                
+                const takeoffPhase = 0.25 - (normalizedDistance * 0.05);
+                const landingPhase = 0.50 - (normalizedDistance * 0.10);
+                const cruiseStart = takeoffPhase;
+                const cruiseEnd = 1.0 - landingPhase;
+                
+                const flightPoints = [];
+                const totalSegments = 60;
+                const arcPoints = createArcBetweenPoints(
                     fromCity.lat, fromCity.lon,
                     toCity.lat, toCity.lon,
                     1.005, totalSegments, true
-                )[j];
-                
-                let altitude;
-                if (t < cruiseStart) {
-                    const takeoffProgress = t / cruiseStart;
-                    const easeOut = Math.sin(takeoffProgress * Math.PI / 2);
-                    altitude = 1.005 + (cruiseAltitude - 1.005) * easeOut;
-                } else if (t > cruiseEnd) {
-                    const landingProgress = (t - cruiseEnd) / (1.0 - cruiseEnd);
-                    const easeIn = landingProgress * landingProgress;
-                    altitude = cruiseAltitude - (cruiseAltitude - 1.005) * easeIn;
-                } else {
-                    altitude = cruiseAltitude;
+                );
+                for (let j = 0; j <= totalSegments; j++) {
+                    const t = j / totalSegments;
+                    const basePoint = arcPoints[j];
+                    
+                    let altitude;
+                    if (t < cruiseStart) {
+                        const takeoffProgress = t / cruiseStart;
+                        const easeOut = Math.sin(takeoffProgress * Math.PI / 2);
+                        altitude = 1.005 + (cruiseAltitude - 1.005) * easeOut;
+                    } else if (t > cruiseEnd) {
+                        const landingProgress = (t - cruiseEnd) / (1.0 - cruiseEnd);
+                        const easeIn = landingProgress * landingProgress;
+                        altitude = cruiseAltitude - (cruiseAltitude - 1.005) * easeIn;
+                    } else {
+                        altitude = cruiseAltitude;
+                    }
+                    
+                    const normalizedPos = basePoint.clone().normalize();
+                    flightPoints.push(normalizedPos.multiplyScalar(altitude));
                 }
-                
-                const normalizedPos = basePoint.clone().normalize();
-                flightPoints.push(normalizedPos.multiplyScalar(altitude));
+                curve = new THREE.CatmullRomCurve3(flightPoints);
             }
-            
-            const curve = new THREE.CatmullRomCurve3(flightPoints);
             const speed = distance > 1.5 ? 0.0015 : 0.0020;
             
             routes.push({
@@ -240,8 +279,13 @@ export class PlaneManager {
      */
     updatePlanes() {
         const globe = this.sceneModel.getGlobe();
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const planes = this.transportModel.getPlanes();
+        const planeUp = new THREE.Vector3(0, 0, 1);
+        const planeWidth = 2.0;
+        const halfW = planeWidth / 2;
+        const wrapX = (x) => ((x + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
         
         for (let i = planes.length - 1; i >= 0; i--) {
             const plane = planes[i];
@@ -264,7 +308,7 @@ export class PlaneManager {
                     data.landingTimer = 0;
                 } else {
                     // Last stop - remove immediately
-                    globe.remove(plane);
+                    if (plane.parent) plane.parent.remove(plane);
                     this.transportModel.removePlane(plane);
                     continue;
                 }
@@ -273,7 +317,7 @@ export class PlaneManager {
             if (data.hasLanded) {
                 data.landingTimer += 1;
                 if (data.landingTimer > 60) {
-                    globe.remove(plane);
+                    if (plane.parent) plane.parent.remove(plane);
                     this.transportModel.removePlane(plane);
                     continue;
                 }
@@ -294,7 +338,8 @@ export class PlaneManager {
             }
             
             if (data.progress > 0 && data.progress <= 1) {
-                const position = data.curve.getPointAt(data.progress);
+                const rawPos = data.curve.getPointAt(data.progress);
+                const position = isMapView ? new THREE.Vector3(wrapX(rawPos.x), rawPos.y, rawPos.z) : rawPos;
                 plane.position.copy(position);
                 
                 data.lastTrailSpawn += 1;
@@ -319,7 +364,7 @@ export class PlaneManager {
                 data.bankAngle += (data.targetBankAngle - data.bankAngle) * 0.05;
                 
                 const tangent = data.curve.getTangentAt(data.progress).normalize();
-                const up = position.clone().normalize();
+                const up = isMapView ? planeUp : position.clone().normalize();
                 const right = new THREE.Vector3().crossVectors(tangent, up).normalize();
                 const correctedUp = new THREE.Vector3().crossVectors(right, tangent).normalize();
                 
@@ -348,8 +393,12 @@ export class PlaneManager {
         this.planeSpawnInterval = setInterval(() => {
             const isPageVisible = this.sceneModel.getPageVisible();
             const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+            const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             
             if (!isPageVisible || !hyperloopVisible) return;
+
+            // Map view: reduce spawn frequency by ~half
+            if (isMapView && Math.random() < 0.5) return;
             
             // Limit number of planes (half the normal amount for mobile performance)
             const MAX_PLANES = 10;
@@ -365,6 +414,7 @@ export class PlaneManager {
                 to = airports[Math.floor(Math.random() * airports.length)];
             }
             
+            // Use globe distance metric for spawn filtering (good enough for map view too)
             const fromPos = latLonToVector3(from.lat, from.lon, 1.0);
             const toPos = latLonToVector3(to.lat, to.lon, 1.0);
             const distance = fromPos.distanceTo(toPos);

@@ -179,4 +179,75 @@ export class ToggleManager {
         // Handle click events (desktop and fallback)
         toggleBtn.addEventListener('click', handleToggle);
     }
+
+    /**
+     * Setup map view toggle (Earth globe <-> flat map)
+     */
+    setupMapViewToggle() {
+        const toggleBtn = document.getElementById('mapViewToggle');
+        if (!toggleBtn) return;
+
+        const mapIcon = document.getElementById('mapViewToggleIcon');
+        const sceneModel = this.sceneModel;
+
+        // Set initial state
+        if (sceneModel.getMapViewEnabled && sceneModel.getMapViewEnabled()) {
+            toggleBtn.classList.add('active');
+        }
+
+        // Ensure icon uses local file
+        if (mapIcon) {
+            mapIcon.innerHTML = '<img src="assets/images/icons/Location Icon.png" alt="Map" style="width: 100%; height: 100%; object-fit: contain;">';
+        }
+
+        const handleToggle = (event) => {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const enabled = !(sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView);
+            if (sceneModel.setMapViewEnabled) {
+                sceneModel.setMapViewEnabled(enabled);
+            } else {
+                sceneModel.isMapView = enabled;
+            }
+
+            if (enabled) {
+                toggleBtn.classList.add('active');
+            } else {
+                toggleBtn.classList.remove('active');
+            }
+
+            // Apply mode switch via controller (also refreshes markers)
+            if (window.globeController && typeof window.globeController.setMapViewEnabled === 'function') {
+                window.globeController.setMapViewEnabled(enabled);
+            }
+
+            // Keep icon as image
+            if (mapIcon) {
+                mapIcon.innerHTML = '<img src="assets/images/icons/Location Icon.png" alt="Map" style="width: 100%; height: 100%; object-fit: contain;">';
+            }
+        };
+
+        // Prevent button from interfering with globe controls (mouse)
+        toggleBtn.addEventListener('mousedown', (event) => event.stopPropagation());
+        toggleBtn.addEventListener('mouseup', (event) => event.stopPropagation());
+
+        // Touch handling
+        let touchStartTime = 0;
+        toggleBtn.addEventListener('touchstart', (event) => {
+            event.stopPropagation();
+            touchStartTime = Date.now();
+        });
+        toggleBtn.addEventListener('touchend', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (Date.now() - touchStartTime < 300) {
+                handleToggle(event);
+            }
+        });
+
+        toggleBtn.addEventListener('click', handleToggle);
+    }
 }

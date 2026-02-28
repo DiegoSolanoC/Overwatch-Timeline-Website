@@ -12,9 +12,9 @@ export function animateMarkerLock(marker) {
     
     marker.userData.isLocked = true;
     
-    // Store original scale if not already stored
-    if (!marker.userData.originalScale) {
-        marker.userData.originalScale = marker.scale.x;
+    // Ensure originalScale exists (represents the "unlocked" target scale)
+    if (marker.userData.originalScale === undefined || marker.userData.originalScale === null) {
+        marker.userData.originalScale = 1.0;
     }
     
     // Store original color if not already stored
@@ -24,7 +24,7 @@ export function animateMarkerLock(marker) {
     
     // Get current values
     const startScale = marker.scale.x;
-    const targetScale = 0.75;
+    const targetScale = 0.75 * (marker.userData.originalScale || 1.0);
     const startColor = new THREE.Color();
     if (marker.material) {
         startColor.copy(marker.material.color);

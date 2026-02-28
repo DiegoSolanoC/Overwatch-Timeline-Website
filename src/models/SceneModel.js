@@ -10,6 +10,7 @@ export class SceneModel {
         this.renderer = null;
         this.globe = null;
         this.stars = null;
+        this.earthMapPlane = null;
         this.moonPlane = null;
         this.marsPlane = null;
 
@@ -31,6 +32,7 @@ export class SceneModel {
         this.hyperloopVisible = true;
         this.eventMarker = null; // Current event marker for recentering
         this.activeFilters = new Set(); // Currently active filter selections
+        this.isMapView = false; // Earth view mode: globe (false) or flat map (true)
 
         // Page visibility
         this.isPageVisible = true;
@@ -141,6 +143,38 @@ export class SceneModel {
      */
     getGlobe() {
         return this.globe;
+    }
+
+    /**
+     * Set earth map plane (flat unwrapped Earth)
+     * @param {THREE.Mesh} plane - Earth map plane mesh
+     */
+    setEarthMapPlane(plane) {
+        this.earthMapPlane = plane;
+    }
+
+    /**
+     * Get earth map plane
+     * @returns {THREE.Mesh|null}
+     */
+    getEarthMapPlane() {
+        return this.earthMapPlane;
+    }
+
+    /**
+     * Enable/disable flat map view for Earth
+     * @param {boolean} enabled
+     */
+    setMapViewEnabled(enabled) {
+        this.isMapView = !!enabled;
+    }
+
+    /**
+     * Is flat map view enabled?
+     * @returns {boolean}
+     */
+    getMapViewEnabled() {
+        return !!this.isMapView;
     }
 
 

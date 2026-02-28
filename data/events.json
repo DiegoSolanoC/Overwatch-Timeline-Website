@@ -1830,15 +1830,23 @@
       "name": "The Heroic Five",
       "locationType": "earth",
       "cityDisplayName": "Gothenburg, Sweden",
-      "description": "",
+      "description": "Gothenburg was able to avoid major damage, with Anubis focusing on Russia and the Ironclad defense systems. The city spent several months without major attacks. This calmed down most people in the city, and an influx of refugees came rushing in, but the brightest minds were already worrying about what could come next.\n\n\n\nIn an effort to plan ahead, the Hjältefemman came together. Five inventors from different fields, computer analysts, agricultural engineers, material engineers and business managers, who bent their intellects towards a single question: how to save nearly four million people from a surprise attack by Anubis. The Heroic Five collaborated using resources from each other to develop new technology, collaborating with local hardware companies to improve the designs using shielding technology and new materials created by the group. The result was the Portable Steel Blanket, an extremely durable bunked made to withstand concussive blasts, extreme heat and designed for quick deployment, easy to repair and capable of housing up to eight people inside of it. The group called for help by the government to manufacture these steel blankets in large numbers. Within six months, Gothenburg was equipped with hundreds of thousands of steel blanket units across the city, ensuring the people would be ready when the time came for another attack.",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Torbjörn"
+      ],
+      "factions": [
+        "10Ironclad",
+        "06Crisis"
+      ],
       "sources": [
         {
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
+      ],
+      "headlines": [
+        "Sweden scientists develop new portable Bunkers to combat Omnics"
       ],
       "lat": 57.7072326,
       "lon": 11.9670171
@@ -4220,7 +4228,7 @@
       "lon": 11.9670171
     },
     {
-      "name": "A great day",
+      "name": "A Great Day",
       "locationType": "earth",
       "cityDisplayName": "Baltic Sea",
       "description": "",
@@ -4400,7 +4408,7 @@
           "cityDisplayName": "Lijiang, China"
         },
         {
-          "name": "Starpet",
+          "name": "Jetpack Katt",
           "description": "",
           "filters": [],
           "factions": [],

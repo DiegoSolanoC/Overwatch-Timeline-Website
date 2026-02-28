@@ -111,6 +111,7 @@ footer p {
 footer.timeline-loaded {
     background: linear-gradient(to bottom, white 0%, white 75%, var(--bg-primary) 75%, var(--bg-primary) 100%);
     position: relative;
+    z-index: 250; /* Above sliding panels (z-index: 200), below modals (z-index: 1000) */
 }
 
 /* Gray palette: bottom 25% should match the gray background */
@@ -131,7 +132,7 @@ footer.timeline-loaded .footer-atlas-news {
     left: -10px; /* Moved slightly left from screen border */
     bottom: 0; /* Align bottom with screen bottom */
     top: auto; /* Remove top positioning */
-    z-index: 10; /* Ensure it's above footer */
+    z-index: 260; /* Ensure it's above panels, stays within footer layer */
     padding: 0.5rem; /* Reduced from 0.7rem */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Add shadow for depth */
     transform: none; /* Remove centering transform */

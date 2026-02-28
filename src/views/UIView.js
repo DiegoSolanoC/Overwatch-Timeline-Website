@@ -281,6 +281,13 @@ export class UIView {
     setupHyperloopToggle(onToggle) {
         this.toggleManager.setupHyperloopToggle(onToggle);
     }
+
+    /**
+     * Setup globe <-> map view toggle
+     */
+    setupMapViewToggle() {
+        this.toggleManager.setupMapViewToggle();
+    }
     
     /**
      * Start glitch animation for glitchy text overlays

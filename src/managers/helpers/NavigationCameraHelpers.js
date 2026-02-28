@@ -15,10 +15,13 @@ const DEFAULT_ZOOM = 3.5;
 export function animateCameraRestore(sceneModel, uiView) {
     const camera = sceneModel.getCamera();
     const globe = sceneModel.getGlobe();
+    const renderer = sceneModel.getRenderer ? sceneModel.getRenderer() : null;
+    const earthMapPlane = sceneModel.getEarthMapPlane ? sceneModel.getEarthMapPlane() : sceneModel.earthMapPlane;
+    const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
     
     if (!camera || !globe) return;
     
-    // Use stored position from zoomToMarker, or default view
+    // Use stored position from zoomToMarker/hover, or default view
     let targetPosition, targetRotation;
     
     if (uiView.originalCameraPosition && uiView.originalGlobeRotation) {
@@ -26,13 +29,46 @@ export function animateCameraRestore(sceneModel, uiView) {
         targetPosition = uiView.originalCameraPosition.clone();
         targetRotation = uiView.originalGlobeRotation;
     } else {
-        // Default zoomed-out view
-        // On mobile portrait, use more zoomed out position to show Moon/Mars panels
-        const isMobilePortrait = window.innerWidth <= MOBILE_BREAKPOINT && window.innerHeight > window.innerWidth;
-        const defaultZoom = isMobilePortrait ? MOBILE_PORTRAIT_ZOOM : DEFAULT_ZOOM;
+        // Default view.
+        // In map view, choose a zoom that fits the whole map in the viewport (prevents seeing beyond edges).
+        // In globe view, use the existing defaults (mobile portrait shows panels).
+        let defaultZoom;
+        if (isMapView && renderer && earthMapPlane) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            const viewportW = Math.max(1, rect.width);
+            const viewportH = Math.max(1, rect.height);
+            const aspect = viewportW / viewportH;
+            const fovRad = (camera.fov * Math.PI) / 180;
+            const tan = Math.tan(fovRad / 2);
+            const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+            const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+            const fitDistH = halfMapH / tan;
+            const fitDistW = halfMapW / (tan * aspect);
+            defaultZoom = Math.max(1.6, Math.min(fitDistH, fitDistW) * 0.98);
+        } else {
+            const isMobilePortrait = window.innerWidth <= MOBILE_BREAKPOINT && window.innerHeight > window.innerWidth;
+            defaultZoom = isMobilePortrait ? MOBILE_PORTRAIT_ZOOM : DEFAULT_ZOOM;
+        }
         const THREE = window.THREE;
         targetPosition = new THREE.Vector3(0, 0, defaultZoom);
         targetRotation = { x: 0, y: 0, z: 0 };
+    }
+
+    // Map view safety: clamp restored zoom so we never reveal outside-map space even if
+    // the stored position was captured at an overly zoomed-out value.
+    if (isMapView && renderer && earthMapPlane && targetPosition) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const viewportW = Math.max(1, rect.width);
+        const viewportH = Math.max(1, rect.height);
+        const aspect = viewportW / viewportH;
+        const fovRad = (camera.fov * Math.PI) / 180;
+        const tan = Math.tan(fovRad / 2);
+        const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+        const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+        const fitDistH = halfMapH / tan;
+        const fitDistW = halfMapW / (tan * aspect);
+        const maxSafeZoom = Math.max(1.6, Math.min(fitDistH, fitDistW) * 0.98);
+        targetPosition.z = Math.min(targetPosition.z, maxSafeZoom);
     }
     
     // Animate camera back to original/default position
@@ -57,24 +93,47 @@ export function animateCameraRestore(sceneModel, uiView) {
         
         // Interpolate camera position
         camera.position.lerpVectors(startPosition, targetPosition, easeProgress);
-        
-        // Interpolate globe rotation
-        globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
-        globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
-        globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
-        
-        // Look at origin
-        camera.lookAt(0, 0, 0);
+
+        if (!isMapView) {
+            // Interpolate globe rotation
+            globe.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeProgress;
+            globe.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeProgress;
+            globe.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeProgress;
+            camera.lookAt(0, 0, 0);
+        } else {
+            // Map view: no globe rotation changes, keep camera perpendicular and clamp within borders.
+            if (renderer && earthMapPlane) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                const viewportW = Math.max(1, rect.width);
+                const viewportH = Math.max(1, rect.height);
+                const aspect = viewportW / viewportH;
+                const fovRad = (camera.fov * Math.PI) / 180;
+                const distance = Math.max(0.01, camera.position.z - earthMapPlane.position.z);
+                const halfViewH = Math.tan(fovRad / 2) * distance;
+                const halfViewW = halfViewH * aspect;
+                const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
+                const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
+                const maxPanX = Math.max(0, halfMapW - halfViewW);
+                const maxPanY = Math.max(0, halfMapH - halfViewH);
+                camera.position.x = Math.max(-maxPanX, Math.min(maxPanX, camera.position.x));
+                camera.position.y = Math.max(-maxPanY, Math.min(maxPanY, camera.position.y));
+            }
+            camera.lookAt(camera.position.x, camera.position.y, 0);
+        }
         
         if (progress < 1) {
             requestAnimationFrame(animate);
         } else {
             // Animation complete
             camera.position.copy(targetPosition);
-            globe.rotation.x = targetRotation.x;
-            globe.rotation.y = targetRotation.y;
-            globe.rotation.z = targetRotation.z;
-            camera.lookAt(0, 0, 0);
+            if (!isMapView) {
+                globe.rotation.x = targetRotation.x;
+                globe.rotation.y = targetRotation.y;
+                globe.rotation.z = targetRotation.z;
+                camera.lookAt(0, 0, 0);
+            } else {
+                camera.lookAt(camera.position.x, camera.position.y, 0);
+            }
             
             // Restore plane visibility based on current page
             // Only restore if we're not transitioning to another hover (check if there's a hovered marker)

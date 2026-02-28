@@ -121,7 +121,11 @@ export class RouteController {
                     from: current.city,
                     to: neighbor.city,
                     isMainRoute: neighbor.routeData.isMainRoute,
-                    needsReverse: neighbor.routeData.from !== current.city
+                    needsReverse: neighbor.routeData.from !== current.city,
+                    fromLat: (neighbor.routeData.from !== current.city) ? neighbor.routeData.toLat : neighbor.routeData.fromLat,
+                    fromLon: (neighbor.routeData.from !== current.city) ? neighbor.routeData.toLon : neighbor.routeData.fromLon,
+                    toLat: (neighbor.routeData.from !== current.city) ? neighbor.routeData.fromLat : neighbor.routeData.toLat,
+                    toLon: (neighbor.routeData.from !== current.city) ? neighbor.routeData.fromLon : neighbor.routeData.toLon
                 };
                 
                 queue.push({
@@ -185,7 +189,11 @@ export class RouteController {
                     from: current.city,
                     to: neighbor.city,
                     isMainRoute: neighbor.routeData.isMainRoute,
-                    needsReverse: neighbor.routeData.from !== current.city
+                    needsReverse: neighbor.routeData.from !== current.city,
+                    fromLat: (neighbor.routeData.from !== current.city) ? neighbor.routeData.toLat : neighbor.routeData.fromLat,
+                    fromLon: (neighbor.routeData.from !== current.city) ? neighbor.routeData.toLon : neighbor.routeData.fromLon,
+                    toLat: (neighbor.routeData.from !== current.city) ? neighbor.routeData.fromLat : neighbor.routeData.toLat,
+                    toLon: (neighbor.routeData.from !== current.city) ? neighbor.routeData.fromLon : neighbor.routeData.toLon
                 };
                 
                 queue.push({
@@ -295,7 +303,11 @@ export class RouteController {
                     curve: neighbor.routeData.curve,
                     from: current.port,
                     to: neighbor.port,
-                    needsReverse: neighbor.routeData.from !== current.port
+                    needsReverse: neighbor.routeData.from !== current.port,
+                    fromLat: (neighbor.routeData.from !== current.port) ? neighbor.routeData.toLat : neighbor.routeData.fromLat,
+                    fromLon: (neighbor.routeData.from !== current.port) ? neighbor.routeData.toLon : neighbor.routeData.fromLon,
+                    toLat: (neighbor.routeData.from !== current.port) ? neighbor.routeData.fromLat : neighbor.routeData.toLat,
+                    toLon: (neighbor.routeData.from !== current.port) ? neighbor.routeData.fromLon : neighbor.routeData.toLon
                 };
                 
                 queue.push({

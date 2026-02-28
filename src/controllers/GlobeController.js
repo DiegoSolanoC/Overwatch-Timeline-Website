@@ -150,6 +150,11 @@ export class GlobeController {
             this.transportModel.addBoatRouteCurve(routeData);
         });
 
+        // Build the flat-map transport lines once (straight segments + wrap)
+        if (this.globeView && typeof this.globeView.renderMapTransportLines === 'function') {
+            this.globeView.renderMapTransportLines();
+        }
+
         // Build route graphs
         this.routeController.buildRouteGraph();
         this.routeController.buildBoatRouteGraph();
@@ -265,6 +270,8 @@ export class GlobeController {
         const camera = this.sceneModel.getCamera();
         const renderer = this.sceneModel.getRenderer();
         const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
 
         if (!scene || !camera || !renderer || !globe || this.isCleanedUp) return;
         
@@ -285,21 +292,30 @@ export class GlobeController {
         // Update Moon/Mars plane positions to stay on camera's right side
         this.planeManager.updatePlanePositions(camera);
 
-        // Auto-rotate - if viewing event, recenter to it; otherwise normal rotation
-        this.autoRotateController.updateAutoRotate(globe, camera);
+        if (!isMapView) {
+            // Auto-rotate - if viewing event, recenter to it; otherwise normal rotation
+            this.autoRotateController.updateAutoRotate(globe, camera);
 
-        // Apply rotation momentum
-        const velocity = this.sceneModel.getRotationVelocity();
-        if (Math.abs(velocity.x) > 0.001 || Math.abs(velocity.y) > 0.001) {
-            globe.rotation.x += velocity.x;
-            globe.rotation.y += velocity.y;
-            globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
-            
-            // Damping
-            this.sceneModel.setRotationVelocity({
-                x: velocity.x * 0.95,
-                y: velocity.y * 0.95
-            });
+            // Apply rotation momentum
+            const velocity = this.sceneModel.getRotationVelocity();
+            if (Math.abs(velocity.x) > 0.001 || Math.abs(velocity.y) > 0.001) {
+                globe.rotation.x += velocity.x;
+                globe.rotation.y += velocity.y;
+                globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x));
+                
+                // Damping
+                this.sceneModel.setRotationVelocity({
+                    x: velocity.x * 0.95,
+                    y: velocity.y * 0.95
+                });
+            }
+        } else {
+            // Map view: stop any leftover rotation momentum
+            const velocity = this.sceneModel.getRotationVelocity();
+            if (Math.abs(velocity.x) > 0.001 || Math.abs(velocity.y) > 0.001) {
+                this.sceneModel.setRotationVelocity({ x: 0, y: 0 });
+            }
+            // Keep the map plane fixed (no billboard/lookAt), camera pans instead.
         }
 
         // Update transport systems
@@ -328,6 +344,89 @@ export class GlobeController {
 
         // Render
         renderer.render(scene, camera);
+    }
+
+    /**
+     * Toggle Earth view mode between globe and flat map.
+     * Keeps event coordinates the same; markers are recreated onto the correct surface.
+     * @param {boolean} enabled
+     */
+    setMapViewEnabled(enabled) {
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        if (!globe || !earthMapPlane) return;
+
+        const isEnabled = !!enabled;
+        this.sceneModel.setMapViewEnabled(isEnabled);
+
+        // Swap visibility (globe includes its child routes/markers)
+        globe.visible = !isEnabled;
+        earthMapPlane.visible = isEnabled;
+
+        // Map plane visual style: semi-transparent overlay map
+        if (earthMapPlane.material) {
+            earthMapPlane.material.transparent = false;
+            earthMapPlane.material.opacity = 1.0;
+            earthMapPlane.material.depthWrite = true;
+            earthMapPlane.material.needsUpdate = true;
+        }
+
+        // Map plane should fill the center when enabled.
+        // Scaling the parent scales markers/transports consistently (they're parented to the plane).
+        if (isEnabled) {
+            earthMapPlane.scale.set(3.1, 3.1, 3.1);
+            earthMapPlane.rotation.set(0, 0, 0);
+        } else {
+            earthMapPlane.scale.set(1, 1, 1);
+            earthMapPlane.rotation.set(0, 0, 0);
+        }
+
+        // Flat map: rebuild flat transport lines (straight segments + wrapping)
+        if (isEnabled && this.globeView && typeof this.globeView.renderMapTransportLines === 'function') {
+            this.globeView.renderMapTransportLines();
+        }
+
+        // Satellites/station/mars ship: project orbits onto the flat map and seam-wrap
+        if (this.transportController && typeof this.transportController.setSatellitesMapViewEnabled === 'function') {
+            this.transportController.setSatellitesMapViewEnabled(isEnabled);
+        }
+
+        // Clear active transports & reservations so spawners repopulate cleanly on the current surface.
+        const clearReservations = (obj) => {
+            if (!obj) return;
+            Object.keys(obj).forEach(k => delete obj[k]);
+        };
+        clearReservations(this.transportModel.getRouteReservations());
+        clearReservations(this.transportModel.getBoatRouteReservations());
+
+        const removeAll = (arr) => {
+            if (!arr) return;
+            for (let i = arr.length - 1; i >= 0; i--) {
+                const o = arr[i];
+                if (o && o.parent) o.parent.remove(o);
+                arr.splice(i, 1);
+            }
+        };
+        removeAll(this.transportModel.getTrains());
+        removeAll(this.transportModel.getBoats());
+        removeAll(this.transportModel.getPlanes());
+        removeAll(this.transportModel.getPlaneTrails());
+        removeAll(this.transportModel.getBoatTrails());
+
+        // Reset camera to default framing for current mode
+        if (this.interactionController && typeof this.interactionController.resetCameraToDefault === 'function') {
+            this.interactionController.resetCameraToDefault();
+        }
+
+        // Close any open event slide to avoid "zoom to globe" assumptions lingering
+        if (this.uiView && this.uiView.currentEventMarker) {
+            this.uiView.hideEventSlide();
+        }
+
+        // Recreate event markers onto globe vs map plane
+        if (this.globeView && typeof this.globeView.refreshEventMarkers === 'function') {
+            this.globeView.refreshEventMarkers();
+        }
     }
 
 

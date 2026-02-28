@@ -47,7 +47,11 @@ export function createConnectionLine({
         onCurveCreated({
             curve: curve,
             from: fromLocation.name || fromLocation.from,
-            to: toLocation.name || toLocation.to
+            to: toLocation.name || toLocation.to,
+            fromLat: fromLocation.lat,
+            fromLon: fromLocation.lon,
+            toLat: toLocation.lat,
+            toLon: toLocation.lon
         });
     }
     
