@@ -223,7 +223,11 @@ class PaletteService {
             menu.style.pointerEvents = 'auto';
             menu.style.display = 'flex';
             menu.style.position = 'fixed';
-            menu.style.bottom = '150px';
+            // Desktop uses a scaled body (see styles/base.css). Compensate so the menu
+            // visually clears the footer/button area even under transform: scale(...).
+            const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+            const desktopBottomPx = 190; // tuned: 190*0.67 ≈ 127px visual
+            menu.style.bottom = isMobile ? '150px' : `${desktopBottomPx}px`;
             menu.style.right = '20px';
             menu.style.zIndex = '300';
             menu.style.flexDirection = 'column';

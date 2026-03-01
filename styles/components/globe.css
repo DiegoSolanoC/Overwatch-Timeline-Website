@@ -115,6 +115,15 @@ body.color-palette-gray main {
     font-size: 16px;
     z-index: 100; /* Higher than test-container to ensure buttons are clickable */
     pointer-events: auto; /* Ensure buttons are clickable */
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    user-select: none;
+    line-height: 1;
 }
 
 
@@ -127,25 +136,13 @@ body.color-palette-gray main {
     width: 100%;
     height: 100%;
 }
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
 
 .globe-control-btn:hover {
     background: rgba(13, 71, 161, 1);
     border-color: rgba(255, 255, 255, 0.6);
     transform: scale(1.1);
-    /* Slight white "halo" like number buttons, but subtle */
-    box-shadow:
-        0 0 0 2px rgba(255, 255, 255, 0.10),
-        0 0 14px rgba(255, 255, 255, 0.14),
-        0 6px 16px rgba(0, 0, 0, 0.4);
+    /* Match zoom/page hover styling */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* (intentionally no white-glow hover for panel toggle buttons; glow belongs to panel option buttons) */
@@ -338,10 +335,8 @@ body.color-palette-gray .event-number-btn.number-btn-marker-hover:not(:disabled)
 
 /* Gray palette: keep the same subtle white hover halo for control buttons */
 body.color-palette-gray .globe-control-btn:hover {
-    box-shadow:
-        0 0 0 2px rgba(255, 255, 255, 0.10),
-        0 0 14px rgba(255, 255, 255, 0.14),
-        0 6px 16px rgba(0, 0, 0, 0.4);
+    /* Match zoom/page hover styling in gray palette too */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Disabled state for gray palette */
@@ -434,7 +429,7 @@ body.map-view-enabled #autoRotateToggle {
 /* Palette Menu - appears when palette button is clicked */
 .palette-menu {
     position: fixed;
-    bottom: 150px; /* Pushed further up to avoid overlap (button is 65px tall + 20px bottom = 85px, so 150px gives 65px gap) */
+    bottom: 190px; /* Compensate for desktop body scale (0.67): 190*0.67 ≈ 127px visual */
     right: 20px; /* Align with palette button */
     display: flex;
     flex-direction: column;

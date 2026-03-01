@@ -12,7 +12,7 @@
     overflow: hidden;
     display: none; /* Hidden by default, shown when timeline is loaded */
     z-index: 5; /* Below Atlas News logo (z-index: 10) */
-    pointer-events: none; /* Allow clicks to pass through */
+    pointer-events: auto; /* Headlines are interactive (hover + click) */
     padding: 2px 0; /* Minimal vertical padding to reduce white space */
 }
 
@@ -52,6 +52,15 @@ footer.timeline-loaded .news-ticker-container {
     display: inline-block;
     margin: 0;
     padding: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.news-ticker-item:hover,
+.news-ticker-item:focus-visible {
+    color: var(--accent-primary); /* Blue on default palette, orange on gray palette */
+    text-shadow: 0 0 14px rgba(var(--accent-primary-rgb), 0.25);
 }
 
 /* Separator between headlines */

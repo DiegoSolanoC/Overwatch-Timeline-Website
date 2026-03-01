@@ -9,6 +9,7 @@ class NewsTickerService {
         this.tickerContent = null;
         this.currentHeadlines = [];
         this.animationId = null;
+        this._handlersAttached = false;
     }
 
     /**
@@ -32,6 +33,57 @@ class NewsTickerService {
             // Insert into footer
             footer.appendChild(this.tickerContainer);
         }
+
+        // One-time delegated handlers (work with duplicated content clones)
+        if (!this._handlersAttached && this.tickerContainer) {
+            this._handlersAttached = true;
+
+            this.tickerContainer.addEventListener('click', (e) => {
+                const item = e.target?.closest?.('.news-ticker-item');
+                if (!item) return;
+
+                const eventIndex = Number.parseInt(item.dataset.eventIndex || '', 10);
+                if (!Number.isFinite(eventIndex) || eventIndex < 0) return;
+
+                const variantIndex = Number.parseInt(item.dataset.variantIndex || '-1', 10);
+
+                // Use the same navigation path as number buttons (page switch + marker find + slide)
+                const uiView = window.globeController?.uiView;
+                const nav = uiView?.eventNavigationManager;
+                if (!nav || typeof nav.navigateToEvent !== 'function') return;
+
+                nav.navigateToEvent(eventIndex);
+
+                // If headline belongs to a multi-event variant, switch to that variant once slide is ready.
+                if (Number.isFinite(variantIndex) && variantIndex >= 0) {
+                    const allEvents = (window.eventManager && window.eventManager.events)
+                        ? window.eventManager.events
+                        : window.globeController?.dataModel?.getAllEvents?.() || [];
+                    const targetEvent = allEvents[eventIndex];
+
+                    let attempts = 0;
+                    const tryApplyVariant = () => {
+                        attempts += 1;
+                        const current = uiView?.currentEventData;
+                        if (current === targetEvent && current?.variants?.length > variantIndex) {
+                            uiView.switchEventVariant(variantIndex, current);
+                            return;
+                        }
+                        if (attempts < 12) setTimeout(tryApplyVariant, 50);
+                    };
+                    setTimeout(tryApplyVariant, 0);
+                }
+            });
+
+            // Keyboard accessibility: Enter/Space triggers click
+            this.tickerContainer.addEventListener('keydown', (e) => {
+                const item = e.target?.closest?.('.news-ticker-item');
+                if (!item) return;
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                e.preventDefault();
+                item.click();
+            });
+        }
     }
 
     /**
@@ -40,6 +92,7 @@ class NewsTickerService {
      * @returns {Array<string>} Array of headline strings
      */
     collectHeadlines(events) {
+        /** @type {{ text: string, sourceEvent: any, variantIndex: number }[]} */
         const headlines = [];
         
         if (!events || events.length === 0) {
@@ -50,11 +103,15 @@ class NewsTickerService {
             // Check if event has variants (multi-event)
             if (event.variants && event.variants.length > 0) {
                 // Collect headlines from all variants
-                event.variants.forEach(variant => {
+                event.variants.forEach((variant, variantIndex) => {
                     if (variant.headlines && Array.isArray(variant.headlines)) {
                         variant.headlines.forEach(headline => {
                             if (headline && headline.trim()) {
-                                headlines.push(headline.trim());
+                                headlines.push({
+                                    text: headline.trim(),
+                                    sourceEvent: event,
+                                    variantIndex
+                                });
                             }
                         });
                     }
@@ -64,7 +121,11 @@ class NewsTickerService {
                 if (event.headlines && Array.isArray(event.headlines)) {
                     event.headlines.forEach(headline => {
                         if (headline && headline.trim()) {
-                            headlines.push(headline.trim());
+                            headlines.push({
+                                text: headline.trim(),
+                                sourceEvent: event,
+                                variantIndex: -1
+                            });
                         }
                     });
                 }
@@ -126,11 +187,23 @@ class NewsTickerService {
         // Show ticker
         this.tickerContainer.style.display = 'block';
 
+        // Resolve headline -> global event index so clicks can open the correct event.
+        const allEvents = (window.eventManager && window.eventManager.events)
+            ? window.eventManager.events
+            : window.globeController?.dataModel?.getAllEvents?.() || [];
+
         // Create ticker items with separators
-        headlines.forEach((headline, index) => {
+        headlines.forEach((headlineObj, index) => {
             const tickerItem = document.createElement('span');
             tickerItem.className = 'news-ticker-item';
-            tickerItem.textContent = headline;
+            tickerItem.textContent = headlineObj.text;
+
+            const eventIndex = allEvents.indexOf(headlineObj.sourceEvent);
+            tickerItem.dataset.eventIndex = String(eventIndex);
+            tickerItem.dataset.variantIndex = String(headlineObj.variantIndex ?? -1);
+            tickerItem.tabIndex = 0;
+            tickerItem.setAttribute('role', 'button');
+            tickerItem.setAttribute('aria-label', `Open event: ${headlineObj.text}`);
             this.tickerContent.appendChild(tickerItem);
 
             // Add separator between items (except last)
