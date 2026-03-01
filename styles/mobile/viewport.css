@@ -330,7 +330,7 @@
     .event-pagination {
         /* Anchor near footer (like desktop) to avoid huge empty middle space on tall phones */
         top: auto !important;
-        bottom: calc(var(--footer-height) + 8px) !important;
+        bottom: calc(var(--footer-height) + 4px) !important;
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
@@ -353,10 +353,13 @@
         margin: 0 !important;
         padding: 0 !important;
         overflow-x: hidden !important;
+        overflow-y: hidden !important; /* Prevent page scroll; panels/slide handle their own scrolling */
         transform: none !important;
         width: 100% !important;
-        height: 100% !important;
-        min-height: 100vh !important;
+        height: 100vh !important;  /* fallback */
+        height: 100dvh !important; /* modern mobile viewport (prevents “scroll to see footer”) */
+        min-height: 100vh !important;  /* fallback */
+        min-height: 100dvh !important;
     }
 
     html {
@@ -364,7 +367,20 @@
         padding: 0 !important;
         overflow-x: hidden !important;
         height: 100% !important;
-        overflow-y: auto !important;
+        overflow-y: hidden !important; /* prevent the whole page from scrolling */
+    }
+
+    /* Force header + main + footer to fit in the visible viewport height */
+    .layout-container {
+        flex: none !important;
+        height: calc(100vh - var(--header-height) - var(--footer-height)) !important;  /* fallback */
+        height: calc(100dvh - var(--header-height) - var(--footer-height)) !important; /* modern mobile viewport */
+        overflow: hidden !important;
+    }
+
+    main#content {
+        height: 100% !important;
+        overflow: hidden !important;
     }
 
     .filters-grid,

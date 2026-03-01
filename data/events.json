@@ -14,10 +14,6 @@
         {
           "text": "Overwatch Website, Sigma",
           "url": "https://overwatch.blizzard.com/en-us/heroes/sigma/"
-        },
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
       "lat": 52.0799838,
@@ -1855,10 +1851,24 @@
       "name": "Building a Myth",
       "locationType": "earth",
       "cityDisplayName": "Berlin, Germany",
-      "description": "",
+      "description": "With the Crisis, the German Crusaders finally saw action, and proved to be quite effective defenders. Before the war, they were a niche group in the military with very few members, but once the Omnics attacked, they would become the center of Germany's military defense plans, as Honisch and Fischer worked on improving their capabilities, expanding their shield systems and equipping them with close-range weapons. Rocket Powered Axes and Hammers proved to be the most practical, and units were designed to charge into battle, ramming enemy waves at high speeds.\n\n\n\nThe appearance of a Crusader was enough to boost morale amongst the troops, in spite of the adversity and constant fire by Anubis. The initiative would see a surge in recruitments, as people from all walks of life, young and old, wished to defend their home, as a knight from tales of the old. The Crusader's power and cultural perspective lead to many of them fashioning themselves as chivalric heroes from fairy tales, acting by a strict code of conduct, based not on military orders, but rather on a mutual understanding, an unclaimed Oath that every Crusader was expected to follow, to live with honor, and die with glory.",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reinhardt"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "German recruitment offices full, a new Generation of Crusaders has been selected",
+        "Knights in shinig armor shield civillians from Omnic attacks"
+      ],
       "lat": 52.5173885,
       "lon": 13.3951309
     },
@@ -1866,10 +1876,23 @@
       "name": "Jamison Fawkes is Born",
       "locationType": "earth",
       "cityDisplayName": "The Outback, Australia",
-      "description": "",
+      "description": "On February 29th of 2052, Jamison Fawkes was born, in the middle of the Crisis to a family in the Outback. Born into chaos and having his life quickly stolen away after the Crisis, following the explosion of the Omnium, he would grow up as an outcast even amongst Junkers",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Junkrat"
+      ],
+      "factions": [
+        "08Junkers"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website, Junkrat",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/junkrat/"
+        }
+      ],
+      "headlines": [
+        "Civilians unite to fight the Omnics in the Australian Outback"
+      ],
       "lat": -25,
       "lon": 135
     },
@@ -1877,10 +1900,23 @@
       "name": "The Proposal",
       "locationType": "earth",
       "cityDisplayName": "Geneva, Switzerland",
-      "description": "",
+      "description": "The crisis had dragged on for months, and no progress had been made on ending it. Anubis learned from every battle, you could never beat troops down the same way. The United Nations did what they could to find a unified solution, but by the second month of the crisis, each country was reluctant to share information, fearing that sharing their success would render it useless as Anubis learned how to counter it. Here is where Dr. Gabrielle Adawe stepped forward with an audacious proposal. The Nigerian diplomat was the third-highest post in the UN and seeing the success of outstanding individuals like the Doomfist in her homeland gave her an idea. To form a team of gifted individuals, backed up by the international guide and authority of the United Nations. The team would travel around the world and respond to calls for help, in a faster, more flexible way than any other group could. \n\n\n\nThe proposal outlined a surgical strike team, operating based on the situation rather than national interests or orders. Acting in the moment, and combining their unique skill sets from across the globe would render them unpredictable by Anubis, ensuring no two fights against them were ever the same. In addition to this strike team, a selection of the greatest minds the world had to offer would operate in the background. Scientists, engineers, tacticians, medics, working together to organize the team's movements and ensure out-of-the-box thinking. In spite of resistance and criticism, after many special sessions, the code name Overwatch program was approved, and the process of selecting the team began.",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "00Overwatch",
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "UN Approves unified strike unti plan",
+        "Overwatch Initiative passes United Nations hearings, scouting for candidates begins shortly after"
+      ],
       "lat": 46.2017559,
       "lon": 6.1466014
     },
@@ -1918,10 +1954,28 @@
       "name": "Honor and Glory",
       "locationType": "earth",
       "cityDisplayName": "Eichenwalde Castle, Germany",
-      "description": "",
+      "description": "The UN had sent invitations to many heroes across the world. Few responded, some chose to defend their nations first, but some, tragically, wouldn't make it to see the team be formed. Balderich Von Adler was viewed as the best of the Crusaders, and was set to finish his last week on the program before reporting to Overwatch. His unit was positioned at the historic Eichenwalde Castle, in the middle of the black forest. The Crusaders would be surprised by the arrival of OR14 units, wielding shields of their own, and protecting the heavy-hitting Bastion warbots. The warbots overwhelmed the troops and forced them to retreat, with many veteran crusaders dying while protecting the infantry. Balderich would choose to stay behind, half wounded, luring the Omnics into the castle, buying time for his pupil, Reinhardt Wilhelm, to escape and aid the troops in their retreat.\n\n\n\nThe efforts of the Crusaders allowed the military to repel the assault and protect the nearby city of Stuttgart, at the cost of losing the fortress to the Omnics. The ruins of the Castle were never rebuilt, and to this day act as a monument to the horrors of the Crisis. The Recovering Reinhardt Wilhelm, trained by Balderich himself, was seen as the best choice to replace him in the Strike team, and several days after that battle he would arrive at the training facility, in his mentor's place.",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reinhardt"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Honor and Glory",
+          "url": "https://www.youtube.com/watch?v=sQfk5HykiEk"
+        },
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Germany loses Eichenwalde Stronghold to the Omnics",
+        "Veteran Crusader dies defending the Eichenwalde Castle"
+      ],
       "lat": 50,
       "lon": 8
     },
@@ -2055,10 +2109,23 @@
       "name": "Sloan Cameron is Born",
       "locationType": "earth",
       "cityDisplayName": "Nova Scotia, Canada",
-      "description": "",
+      "description": "On August 6th of 2052, Sloan Cameron was Born in Nova Scotia. Intrpid and curious since they were a child, with an affinity to find lost objects. Their family moved often. To Nevada,  then Buenos Aires, Reykjavik, Mexico City, Singapore, back and forward always on the move. For Sloan each trip was a new expedition, a chance to unearth trinked and traces of the past, born in a world left in ruin after the war meant everywhere they went, there was lost history to be found",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Venture"
+      ],
+      "factions": [
+        "14Wayfinders"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/venture/"
+        }
+      ],
+      "headlines": [
+        "Archeologist struggle to recover relics among the ruins left by the Crisis"
+      ],
       "lat": 45.1960403,
       "lon": -63.1653789
     },
@@ -4283,13 +4350,32 @@
       "lon": -5.3474761
     },
     {
-      "name": "Partnership",
       "locationType": "earth",
       "cityDisplayName": "Atlantic Arcology",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
+      "variants": [
+        {
+          "name": "Partnership",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 37.7412,
+          "lon": -25.6756,
+          "cityDisplayName": "Atlantic Arcology"
+        },
+        {
+          "name": "Picture of Sucesss",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, England"
+        }
+      ],
       "lat": 37.7412,
       "lon": -25.6756
     },
