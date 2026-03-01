@@ -17,6 +17,44 @@ class SoundEffectsManager {
         // Set window.DEBUG_SOUND_EFFECTS = true in console to log every play() and result
         this._debug = () => !!(typeof window !== 'undefined' && window.DEBUG_SOUND_EFFECTS);
     }
+
+    _clearFadeTimers(audioEl) {
+        if (!audioEl) return;
+        if (audioEl._fadeInterval) {
+            clearInterval(audioEl._fadeInterval);
+            audioEl._fadeInterval = null;
+        }
+        if (audioEl._fadeTimeout) {
+            clearTimeout(audioEl._fadeTimeout);
+            audioEl._fadeTimeout = null;
+        }
+    }
+
+    _scheduleFadeOut(audioEl, { fadeOutAfterMs = 0, fadeOutDurationMs = 0 } = {}) {
+        if (!audioEl) return;
+        const after = Math.max(0, fadeOutAfterMs || 0);
+        const dur = Math.max(0, fadeOutDurationMs || 0);
+        if (!after || !dur) return;
+
+        this._clearFadeTimers(audioEl);
+
+        audioEl._fadeTimeout = setTimeout(() => {
+            const steps = 30;
+            const stepMs = Math.max(10, Math.floor(dur / steps));
+            const startVol = audioEl.volume;
+            let i = 0;
+            audioEl._fadeInterval = setInterval(() => {
+                i++;
+                const t = Math.min(1, i / steps);
+                audioEl.volume = startVol * (1 - t);
+                if (t >= 1) {
+                    clearInterval(audioEl._fadeInterval);
+                    audioEl._fadeInterval = null;
+                    audioEl.volume = 0;
+                }
+            }, stepMs);
+        }, after);
+    }
     
     // Load saved volume from localStorage
     loadVolume() {
@@ -88,6 +126,7 @@ class SoundEffectsManager {
     _playOriginal(name, vol, options = {}) {
         const orig = this.sounds[name];
         if (!orig) return null;
+        this._clearFadeTimers(orig);
         orig.currentTime = 0;
         if (options.playbackRate) orig.playbackRate = options.playbackRate;
         orig.volume = vol;
@@ -97,6 +136,7 @@ class SoundEffectsManager {
                 if (this._debug()) console.warn('[SFX] _playOriginal failed:', name, err?.name || err);
             });
         }
+        this._scheduleFadeOut(orig, options);
         return orig;
     }
 
@@ -116,6 +156,7 @@ class SoundEffectsManager {
         if (name === 'filterConfirm') volumeMultiplier = 0.5;
         else if (name === 'hackOn' || name === 'hackOff') volumeMultiplier = 0.85;
         else if (name === 'page') volumeMultiplier = 0.4;
+        else if (name === 'spacePanelOn' || name === 'spacePanelOff') volumeMultiplier = 0.10;
         const vol = Math.max(0, Math.min(1, this.volume)) * volumeMultiplier;
 
         // Desktop Chrome often blocks clone.play() after WebGL; use original element so sound still works (no overlap)
@@ -163,6 +204,9 @@ class SoundEffectsManager {
                 audio.removeEventListener('canplay', readyHandler);
             }, 50);
         }
+
+        // Fade-out support for any sound (e.g. Space Panel On)
+        this._scheduleFadeOut(audio, options);
 
         if (name === 'hackOn' && options.fadeOut) {
             const fadeDuration = options.fadeOutDuration || 500;
@@ -241,6 +285,12 @@ class SoundEffectsManager {
         this.loadSound('colorChange', 'assets/audio/sfx/Color Change.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Mode Switch.mp3');
         this.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
+        if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Switch Map.mp3');
+        this.loadSound('switchMap', 'assets/audio/sfx/Switch Map.mp3');
+        if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Space Panel On.mp3');
+        this.loadSound('spacePanelOn', 'assets/audio/sfx/Space Panel On.mp3');
+        if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Space Panel Off.mp3');
+        this.loadSound('spacePanelOff', 'assets/audio/sfx/Space Panel Off.mp3');
         
         // Load saved volume and apply it
         const savedVolume = this.loadVolume();

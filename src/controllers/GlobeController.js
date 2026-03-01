@@ -359,6 +359,9 @@ export class GlobeController {
         const isEnabled = !!enabled;
         this.sceneModel.setMapViewEnabled(isEnabled);
 
+        // Expose mode to CSS so we can hide/show mode-specific controls (e.g. auto-rotate).
+        document.body.classList.toggle('map-view-enabled', isEnabled);
+
         // Swap visibility (globe includes its child routes/markers)
         globe.visible = !isEnabled;
         earthMapPlane.visible = isEnabled;

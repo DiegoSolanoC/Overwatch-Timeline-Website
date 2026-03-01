@@ -357,12 +357,12 @@ body.color-palette-gray .event-number-badge:hover {
     background: rgba(229, 90, 0, 0.9);
 }
 
+/* Multi-event trapezoid selector: always green (match blue palette) */
 body.color-palette-gray .multi-event-badge {
-    background: #ff6600;
+    background: #4caf50;
 }
-
 body.color-palette-gray .multi-event-badge:hover {
-    background: #e55a00;
+    background: #2e7d32;
 }
 
 /* Event Variants */

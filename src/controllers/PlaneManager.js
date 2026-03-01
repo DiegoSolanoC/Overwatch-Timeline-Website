@@ -7,6 +7,22 @@ export class PlaneManager {
     constructor(sceneModel, dataModel) {
         this.sceneModel = sceneModel;
         this.dataModel = dataModel;
+        this._lastSpacePanelSfxAt = 0;
+    }
+
+    _playSpacePanelSfx(show) {
+        if (!window.SoundEffectsManager) return;
+        const now = performance.now();
+        // Avoid double-trigger when Moon + Mars animate in the same tick or updatePlaneVisibility runs multiple times quickly.
+        if (now - this._lastSpacePanelSfxAt < 180) return;
+        this._lastSpacePanelSfxAt = now;
+
+        if (show) {
+            // Space Panel On: fade from 1.0s → 2.5s.
+            window.SoundEffectsManager.play('spacePanelOn', { fadeOutAfterMs: 1000, fadeOutDurationMs: 1500 });
+        } else {
+            window.SoundEffectsManager.play('spacePanelOff');
+        }
     }
     
     /**
@@ -220,6 +236,9 @@ export class PlaneManager {
             return;
         }
         
+        // Play panel easing SFX (only when we actually animate).
+        this._playSpacePanelSfx(show);
+
         // Check if already animating - if so, cancel and start new animation
         if (plane.userData && plane.userData.isAnimating) {
             // Cancel previous animation by clearing the flag

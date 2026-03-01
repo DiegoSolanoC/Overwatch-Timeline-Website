@@ -81,8 +81,8 @@ class MouseInteractionService {
                 const worldPerPixel = (halfViewH * 2) / viewportH;
 
                 // Drag right => move view left (camera.x decreases), drag up => move view down (camera.y increases)
-                let nextX = camera.position.x - (deltaX * worldPerPixel);
-                let nextY = camera.position.y + (deltaY * worldPerPixel);
+                const attemptedX = camera.position.x - (deltaX * worldPerPixel);
+                const attemptedY = camera.position.y + (deltaY * worldPerPixel);
 
                 const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1); // base plane width 2.0 => half 1.0
                 const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1); // base plane height 1.0 => half 0.5
@@ -92,8 +92,29 @@ class MouseInteractionService {
                 const maxPanX = Math.max(0, halfMapW - halfViewW);
                 const maxPanY = Math.max(0, halfMapH - halfViewH);
 
-                nextX = Math.max(-maxPanX, Math.min(maxPanX, nextX));
-                nextY = Math.max(-maxPanY, Math.min(maxPanY, nextY));
+                const nextX = Math.max(-maxPanX, Math.min(maxPanX, attemptedX));
+                const nextY = Math.max(-maxPanY, Math.min(maxPanY, attemptedY));
+
+                // Edge glow feedback when user tries to drag past borders
+                if (window.MapEdgeGlowService) {
+                    const container = document.getElementById('globe-container');
+                    const svc = window.MapEdgeGlowService.getInstance();
+                    if (container) svc.ensure(container);
+
+                    const eps = 1e-6;
+                    const hitLeft = attemptedX < (-maxPanX - eps);
+                    const hitRight = attemptedX > (maxPanX + eps);
+                    const hitBottom = attemptedY < (-maxPanY - eps);
+                    const hitTop = attemptedY > (maxPanY + eps);
+
+                    // Estimate how hard we're pushing based on overshoot distance (normalized)
+                    const ox = Math.abs(attemptedX - nextX);
+                    const oy = Math.abs(attemptedY - nextY);
+                    const denom = Math.max(1e-6, Math.max(maxPanX, maxPanY));
+                    const overshoot = Math.min(1, (Math.max(ox, oy) / denom) * 2.5);
+
+                    svc.hit({ left: hitLeft, right: hitRight, top: hitTop, bottom: hitBottom, overshoot });
+                }
 
                 camera.position.x = nextX;
                 camera.position.y = nextY;

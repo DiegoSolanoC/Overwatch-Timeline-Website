@@ -135,8 +135,8 @@ export async function loadControlsLogic({ createGlobeControlButton, createExitBu
         id: 'mapViewToggle',
         className: 'map-view-btn',
         title: 'Toggle Map View',
-        iconPath: 'assets/images/icons/Location Icon.png',
-        iconAlt: 'Map'
+        iconPath: 'assets/images/icons/Switch to Flat Icon.png',
+        iconAlt: 'Switch Map'
     }, statusService);
     
     // Add exit button using helper
@@ -155,6 +155,8 @@ export async function loadControlsLogic({ createGlobeControlButton, createExitBu
     
     // Load rotation sound effect using helper
     loadSoundEffect('rotationToggle', 'assets/audio/sfx/Rotation Toggle.mp3', statusService);
+    // Load map switch sound effect using helper
+    loadSoundEffect('switchMap', 'assets/audio/sfx/Switch Map.mp3', statusService);
 }
 
 /**

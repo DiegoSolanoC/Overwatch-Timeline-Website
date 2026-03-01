@@ -106,10 +106,16 @@ export function shouldEventBeLocked(event, activeFilters) {
  */
 export function getMarkerRadius(isMainVariant) {
     const isSmallMobile = window.innerWidth <= 480;
+    const isMapView = window.globeController?.sceneModel?.getMapViewEnabled
+        ? window.globeController.sceneModel.getMapViewEnabled()
+        : !!window.globeController?.sceneModel?.isMapView;
     
     if (isMainVariant) {
+        // Mobile unwrapped-map: markers read too large; shrink slightly only in map view.
+        if (isSmallMobile && isMapView) return 0.026;
         return isSmallMobile ? 0.030 : 0.015;
     } else {
+        if (isSmallMobile && isMapView) return 0.017;
         return isSmallMobile ? 0.020 : 0.010;
     }
 }

@@ -5,6 +5,10 @@
  */
 
 @media (max-width: 768px) {
+    :root {
+        /* Slightly shorter footer on tall phones to reduce dead space */
+        --footer-height: 60px;
+    }
     header h1 {
         font-size: 1.2rem;
     }
@@ -39,21 +43,30 @@
         left: 90px !important; /* 20 + 60 (button width) + 10 (gap) */
     }
 
-    /* Rotation and Transport buttons - below event manager/filter row, same 10px gap */
-    #autoRotateToggle {
-        top: 80px !important; /* Below event manager (20px top + 50px height + 10px gap = 80px) */
+    /* Map + Transport row (second row) */
+    #mapViewToggle {
+        bottom: auto !important;
+        top: 80px !important; /* Below event manager row */
+        left: 20px !important;
     }
     .hyperloop-btn {
         top: 80px !important;
-        left: 90px !important; /* 20 + 60 + 10, match filters column */
+        left: 90px !important; /* 20 + 60 + 10 gap */
     }
 
-    /* Map View Toggle Button - next row down */
-    #mapViewToggle {
-        bottom: auto !important;
-        top: 140px !important; /* 80 + 50 + 10 gap */
+    /* Rotation row (third row, globe view only) */
+    #autoRotateToggle {
+        top: 140px !important; /* Below map+transport row */
         left: 20px !important;
     }
+
+    /* Map view: hide rotation toggle (map has no auto-rotation) */
+    body.map-view-enabled #autoRotateToggle {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+    /* Map toggle stays on row 2 in all modes. */
 
     .bottom-right-btn {
         width: 60px !important;
@@ -315,12 +328,14 @@
     }
 
     .event-pagination {
-        top: 70px !important;
-        bottom: auto !important;
+        /* Anchor near footer (like desktop) to avoid huge empty middle space on tall phones */
+        top: auto !important;
+        bottom: calc(var(--footer-height) + 8px) !important;
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
         align-items: center;
+        gap: 6px !important;
     }
 
     .page-controls-row {

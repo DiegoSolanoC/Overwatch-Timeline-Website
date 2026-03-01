@@ -24,6 +24,81 @@ body.color-palette-gray main {
     height: 100%;
     position: relative;
     cursor: grab;
+    /* Mobile: prevent browser panning/scroll chaining while dragging the map */
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Ensure the WebGL canvas also opts out of touch gestures */
+#globe-container canvas {
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Unwrapped map edge feedback (white glow like main menu hover) */
+.map-edge-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5; /* below UI buttons, above canvas */
+}
+
+.map-edge-glow__edge {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 80ms linear;
+}
+
+/* Reuse main-menu hover "white glow" feel: layered bright edges */
+.map-edge-glow__edge--left,
+.map-edge-glow__edge--right {
+    top: 0;
+    bottom: 0;
+    width: 22px;
+}
+.map-edge-glow__edge--top,
+.map-edge-glow__edge--bottom {
+    left: 0;
+    right: 0;
+    height: 22px;
+}
+
+.map-edge-glow__edge--left {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    box-shadow:
+        inset 0 0 50px 10px rgba(255, 255, 255, 0.50),
+        0 0 30px 5px rgba(255, 255, 255, 0.55),
+        0 0 60px 10px rgba(255, 255, 255, 0.25);
+}
+.map-edge-glow__edge--right {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    box-shadow:
+        inset 0 0 50px 10px rgba(255, 255, 255, 0.50),
+        0 0 30px 5px rgba(255, 255, 255, 0.55),
+        0 0 60px 10px rgba(255, 255, 255, 0.25);
+}
+.map-edge-glow__edge--top {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    box-shadow:
+        inset 0 0 50px 10px rgba(255, 255, 255, 0.50),
+        0 0 30px 5px rgba(255, 255, 255, 0.55),
+        0 0 60px 10px rgba(255, 255, 255, 0.25);
+}
+.map-edge-glow__edge--bottom {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    box-shadow:
+        inset 0 0 50px 10px rgba(255, 255, 255, 0.50),
+        0 0 30px 5px rgba(255, 255, 255, 0.55),
+        0 0 60px 10px rgba(255, 255, 255, 0.25);
 }
 
 /* Globe Control Button */
@@ -66,8 +141,14 @@ body.color-palette-gray main {
     background: rgba(13, 71, 161, 1);
     border-color: rgba(255, 255, 255, 0.6);
     transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    /* Slight white "halo" like number buttons, but subtle */
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.10),
+        0 0 14px rgba(255, 255, 255, 0.14),
+        0 6px 16px rgba(0, 0, 0, 0.4);
 }
+
+/* (intentionally no white-glow hover for panel toggle buttons; glow belongs to panel option buttons) */
 
 .globe-control-btn:active {
     transform: scale(0.95);
@@ -255,6 +336,14 @@ body.color-palette-gray .event-number-btn.number-btn-marker-hover:not(:disabled)
     box-shadow: 0 0 0 2px rgba(255, 170, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
+/* Gray palette: keep the same subtle white hover halo for control buttons */
+body.color-palette-gray .globe-control-btn:hover {
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.10),
+        0 0 14px rgba(255, 255, 255, 0.14),
+        0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
 /* Disabled state for gray palette */
 body.color-palette-gray .event-number-btn:disabled,
 body.color-palette-gray .event-number-btn.locked {
@@ -280,23 +369,32 @@ body.color-palette-gray .event-number-btn.locked {
 /* Rotation Toggle Button - positioned below event manager button (second row, top-left) */
 #autoRotateToggle {
     bottom: auto !important;
-    top: 95px !important; /* Below event manager (20px top + 65px height + 10px gap = 95px) */
+    top: 170px !important; /* Third row (below map+transport row) */
     left: 20px !important;
+}
+
+/* Map view: auto-rotate is not applicable (no globe rotation). */
+body.map-view-enabled #autoRotateToggle {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 /* Hyperloop Toggle Button - positioned next to rotation button (second row, top-left) */
 .hyperloop-btn {
     bottom: auto !important;
-    top: 95px !important; /* Below filter button, same row as rotation */
-    left: 110px !important; /* Position next to rotation button */
+    top: 95px !important; /* Second row (map + transport) */
+    left: 110px !important; /* To the right of map toggle */
 }
 
 /* Map View Toggle Button - third row, top-left */
 #mapViewToggle {
     bottom: auto !important;
-    top: 170px !important; /* Below rotation/transport row */
+    top: 95px !important; /* Second row (map + transport) */
     left: 20px !important;
 }
+
+/* Map toggle stays on row 2 in all modes. */
 
 /* Top-left buttons (filters and event manager) - positioned at top left */
 .top-left-btn {

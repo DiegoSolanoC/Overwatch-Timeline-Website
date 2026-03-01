@@ -195,15 +195,29 @@ export class ToggleManager {
             toggleBtn.classList.add('active');
         }
 
-        // Ensure icon uses local file
-        if (mapIcon) {
-            mapIcon.innerHTML = '<img src="assets/images/icons/Location Icon.png" alt="Map" style="width: 100%; height: 100%; object-fit: contain;">';
-        }
+        const getIconPath = (enabled) => enabled
+            ? 'assets/images/icons/Switch to Globe Icon.png'
+            : 'assets/images/icons/Switch to Flat Icon.png';
+        const renderIcon = () => {
+            if (!mapIcon) return;
+            const enabled = (sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView);
+            const src = getIconPath(enabled);
+            const alt = enabled ? 'Switch to Globe' : 'Switch to Flat Map';
+            mapIcon.innerHTML = `<img src="${src}" alt="${alt}" style="width: 100%; height: 100%; object-fit: contain;">`;
+        };
+
+        // Ensure icon uses local file (stateful)
+        renderIcon();
 
         const handleToggle = (event) => {
             if (event) {
                 event.stopPropagation();
                 event.preventDefault();
+            }
+
+            // Play map switch sound
+            if (window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('switchMap');
             }
 
             const enabled = !(sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView);
@@ -224,10 +238,8 @@ export class ToggleManager {
                 window.globeController.setMapViewEnabled(enabled);
             }
 
-            // Keep icon as image
-            if (mapIcon) {
-                mapIcon.innerHTML = '<img src="assets/images/icons/Location Icon.png" alt="Map" style="width: 100%; height: 100%; object-fit: contain;">';
-            }
+            // Keep icon as image (stateful)
+            renderIcon();
         };
 
         // Prevent button from interfering with globe controls (mouse)

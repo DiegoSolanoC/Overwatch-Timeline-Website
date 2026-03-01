@@ -311,10 +311,16 @@ body.color-palette-gray .music-grid {
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
+    will-change: transform, box-shadow;
 }
 
 .music-grid-btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.06);
+    /* White glow like main menu hover */
+    box-shadow:
+        inset 0 0 22px 4px rgba(255, 255, 255, 0.45),
+        0 0 18px 3px rgba(255, 255, 255, 0.55),
+        0 0 38px 6px rgba(255, 255, 255, 0.22);
 }
 
 .music-grid-btn .music-icon-container {
