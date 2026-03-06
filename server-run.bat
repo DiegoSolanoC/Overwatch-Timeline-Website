@@ -6,6 +6,12 @@ echo.
 echo Starting Node server on http://localhost:8000
 echo.
 
+REM Ensure no other process is already using port 8000
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":8000" ^| findstr "LISTENING"') do (
+    echo Port 8000 is already in use - PID %%p - attempting to stop it...
+    taskkill /F /PID %%p >nul 2>nul
+)
+
 node server.js
 
 if errorlevel 1 (

@@ -204,6 +204,22 @@
         left: auto !important;
     }
 
+    /* Inline description edit buttons next to X */
+    #eventSlideSaveBtn {
+        right: 70px !important;
+        top: 14px !important;
+        height: 34px !important;
+        padding: 0 10px !important;
+        font-size: 13px !important;
+    }
+    #eventSlideEditBtn {
+        right: 130px !important;
+        top: 14px !important;
+        height: 34px !important;
+        padding: 0 10px !important;
+        font-size: 13px !important;
+    }
+
     .event-slide-content {
         width: 100% !important;
         max-width: 100% !important;

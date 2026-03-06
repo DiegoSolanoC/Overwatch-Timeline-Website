@@ -30,6 +30,409 @@ export class EventSlideManager {
         this.previousAutoRotateState = null;
         this.originalCameraPosition = null;
         this.originalGlobeRotation = null;
+
+        this._inlineDescEdit = {
+            active: false,
+            dirty: false,
+            originalText: '',
+            // snapshot of what we were editing (so cancel works even if state changes)
+            eventData: null,
+            variantIndex: -1,
+
+            // extended fields
+            originalName: '',
+            originalCityDisplayName: '',
+            originalFilters: [],
+            originalFactions: [],
+            originalSources: [],
+            originalHeadlines: []
+        };
+    }
+
+    _isInlineEditAllowed() {
+        // Keep behavior consistent with EventManager: disable editing on GitHub Pages.
+        try {
+            return !(window.eventManager && typeof window.eventManager.isGitHubPages === 'function' && window.eventManager.isGitHubPages());
+        } catch (e) {
+            return true;
+        }
+    }
+
+    _getCurrentDescriptionTarget() {
+        const eventData = this.uiView?.currentEventData || this.currentEventData;
+        if (!eventData) return { target: null, eventData: null, variantIndex: -1 };
+
+        const isMultiEvent = Array.isArray(eventData.variants) && eventData.variants.length > 0;
+        const variantIndex = isMultiEvent ? (this.uiView?.currentVariantIndex ?? this.currentVariantIndex ?? 0) : -1;
+        const target = isMultiEvent ? (eventData.variants[variantIndex] || eventData.variants[0]) : eventData;
+        return { target, eventData, variantIndex };
+    }
+
+    _ensureInlineEditControls() {
+        const editBtn = document.getElementById('eventSlideEditBtn');
+        const saveBtn = document.getElementById('eventSlideSaveBtn');
+        const eventSlide = document.getElementById('eventSlide');
+        if (!editBtn || !saveBtn || !eventSlide) return;
+
+        const allowed = this._isInlineEditAllowed();
+        editBtn.disabled = !allowed;
+        saveBtn.disabled = !allowed;
+        editBtn.style.opacity = allowed ? '' : '0.45';
+        saveBtn.style.opacity = allowed ? '' : '0.45';
+        editBtn.title = allowed ? 'Edit description' : 'Disabled on GitHub Pages';
+        saveBtn.title = allowed ? 'Save description' : 'Disabled on GitHub Pages';
+
+        if (editBtn.dataset.inlineEditSetup === 'true') return;
+        editBtn.dataset.inlineEditSetup = 'true';
+
+        const eventSlideText = document.getElementById('eventSlideText');
+        const eventSlideTitle = document.getElementById('eventSlideTitle');
+        const eventSlideScrollable = document.getElementById('eventSlideScrollable');
+        if (!eventSlideText) return;
+        if (!eventSlideTitle) return;
+        if (!eventSlideScrollable) return;
+
+        // Create the inline editor block once (structured inputs for non-text fields).
+        let editor = document.getElementById('eventSlideInlineEditor');
+        if (!editor) {
+            editor = document.createElement('div');
+            editor.id = 'eventSlideInlineEditor';
+            editor.className = 'event-slide-inline-editor';
+            editor.style.display = 'none';
+            editor.innerHTML = `
+                <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditCityDisplayName">Location label</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditCityDisplayName" type="text" spellcheck="true" autocomplete="on" autocorrect="on" autocapitalize="sentences" />
+                </div>
+                <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditFilters">Heroes (comma-separated)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditFilters" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" />
+                </div>
+                <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditFactions">Factions (comma-separated)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditFactions" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" />
+                </div>
+                <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditHeadlines">Headlines (one per line)</label>
+                    <textarea class="event-slide-inline-editor__textarea" id="eventSlideEditHeadlines" rows="4" spellcheck="true" autocomplete="on" autocorrect="on" autocapitalize="sentences"></textarea>
+                </div>
+                <div class="event-slide-inline-editor__row">
+                    <div class="event-slide-inline-editor__label">Sources</div>
+                    <div class="event-slide-inline-editor__sources" id="eventSlideEditSources"></div>
+                    <div class="event-slide-inline-editor__actions">
+                        <button type="button" class="event-slide-inline-editor__small-btn" id="eventSlideAddSourceBtn">+ Source</button>
+                    </div>
+                </div>
+            `;
+
+            // Insert near the top of the scrollable content (right above sources/filters).
+            const sourcesSection = document.getElementById('eventSourcesSection');
+            if (sourcesSection && sourcesSection.parentNode === eventSlideScrollable) {
+                eventSlideScrollable.insertBefore(editor, sourcesSection);
+            } else {
+                eventSlideScrollable.appendChild(editor);
+            }
+        }
+
+        const cityInput = document.getElementById('eventSlideEditCityDisplayName');
+        const filtersInput = document.getElementById('eventSlideEditFilters');
+        const factionsInput = document.getElementById('eventSlideEditFactions');
+        const headlinesInput = document.getElementById('eventSlideEditHeadlines');
+        const sourcesList = document.getElementById('eventSlideEditSources');
+        const addSourceBtn = document.getElementById('eventSlideAddSourceBtn');
+
+        const markDirty = () => {
+            if (!this._inlineDescEdit.active) return;
+            this._inlineDescEdit.dirty = true;
+        };
+
+        const renderSourcesEditor = (sources) => {
+            if (!sourcesList) return;
+            sourcesList.innerHTML = '';
+            const srcs = Array.isArray(sources) ? sources : [];
+            const normalized = srcs.length > 0 ? srcs : [{ text: '', url: '' }];
+            normalized.forEach((s, idx) => {
+                const row = document.createElement('div');
+                row.className = 'event-slide-inline-editor__source-row';
+                row.innerHTML = `
+                    <input class="event-slide-inline-editor__input" data-role="source-text" type="text" placeholder="Source text" spellcheck="true" autocomplete="on" autocorrect="on" autocapitalize="sentences" />
+                    <input class="event-slide-inline-editor__input" data-role="source-url" type="text" placeholder="URL (optional)" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="url" />
+                    <button type="button" class="event-slide-inline-editor__small-btn" data-role="source-remove" title="Remove">−</button>
+                `;
+                row.querySelector('[data-role="source-text"]').value = s?.text || '';
+                row.querySelector('[data-role="source-url"]').value = s?.url || '';
+                row.querySelector('[data-role="source-remove"]').addEventListener('click', () => {
+                    row.remove();
+                    markDirty();
+                });
+                row.querySelector('[data-role="source-text"]').addEventListener('input', markDirty, { passive: true });
+                row.querySelector('[data-role="source-url"]').addEventListener('input', markDirty, { passive: true });
+                sourcesList.appendChild(row);
+            });
+        };
+
+        const readSourcesEditor = () => {
+            if (!sourcesList) return [];
+            const rows = [...sourcesList.querySelectorAll('.event-slide-inline-editor__source-row')];
+            const out = [];
+            for (const row of rows) {
+                const text = row.querySelector('[data-role="source-text"]')?.value?.trim() || '';
+                const url = row.querySelector('[data-role="source-url"]')?.value?.trim() || '';
+                if (!text) continue;
+                out.push({ text, url: url || undefined });
+            }
+            return out;
+        };
+
+        if (addSourceBtn) {
+            addSourceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!this._inlineDescEdit.active) return;
+                renderSourcesEditor([...readSourcesEditor(), { text: '', url: '' }]);
+                markDirty();
+            });
+        }
+
+        // Dirty tracking for structured inputs
+        cityInput?.addEventListener('input', markDirty, { passive: true });
+        filtersInput?.addEventListener('input', markDirty, { passive: true });
+        factionsInput?.addEventListener('input', markDirty, { passive: true });
+        headlinesInput?.addEventListener('input', markDirty, { passive: true });
+
+        // Make the description field behave like a plain-text editor.
+        // This prevents browsers from inserting extra <div>/<br> nodes that can inflate blank lines.
+        const insertPlainTextAtCursor = (text) => {
+            const sel = window.getSelection?.();
+            if (!sel || sel.rangeCount === 0) return;
+            const range = sel.getRangeAt(0);
+            range.deleteContents();
+            const node = document.createTextNode(text);
+            range.insertNode(node);
+            range.setStartAfter(node);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        };
+
+        if (eventSlideText.dataset.inlinePlainTextSetup !== 'true') {
+            eventSlideText.dataset.inlinePlainTextSetup = 'true';
+
+            eventSlideText.addEventListener('keydown', (e) => {
+                if (!this._inlineDescEdit.active) return;
+                if (!eventSlideText.isContentEditable) return;
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                insertPlainTextAtCursor('\n');
+                markDirty();
+            });
+
+            eventSlideText.addEventListener('paste', (e) => {
+                if (!this._inlineDescEdit.active) return;
+                if (!eventSlideText.isContentEditable) return;
+                e.preventDefault();
+                const text = e.clipboardData?.getData('text/plain') ?? '';
+                if (!text) return;
+                insertPlainTextAtCursor(text.replace(/\r\n/g, '\n'));
+                markDirty();
+            });
+        }
+
+        editBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!this._isInlineEditAllowed()) return;
+
+            // Toggle: if already editing, cancel (discard).
+            if (this._inlineDescEdit.active) {
+                this._cancelInlineDescriptionEdit();
+                return;
+            }
+
+            const { target, eventData, variantIndex } = this._getCurrentDescriptionTarget();
+            if (!target) return;
+
+            // Start editing
+            this._inlineDescEdit.active = true;
+            this._inlineDescEdit.dirty = false;
+            this._inlineDescEdit.originalText = target.description || '';
+            this._inlineDescEdit.originalName = target.name || '';
+            this._inlineDescEdit.originalCityDisplayName = target.cityDisplayName || '';
+            this._inlineDescEdit.originalFilters = Array.isArray(target.filters) ? [...target.filters] : [];
+            this._inlineDescEdit.originalFactions = Array.isArray(target.factions) ? [...target.factions] : [];
+            this._inlineDescEdit.originalSources = Array.isArray(target.sources) ? JSON.parse(JSON.stringify(target.sources)) : [];
+            this._inlineDescEdit.originalHeadlines = Array.isArray(target.headlines) ? [...target.headlines] : [];
+            this._inlineDescEdit.eventData = eventData;
+            this._inlineDescEdit.variantIndex = variantIndex;
+
+            eventSlide.classList.add('event-slide--inline-editing');
+            saveBtn.style.display = 'inline-flex';
+            editBtn.textContent = 'Cancel';
+
+            // Make title editable too (raw text, not glitched)
+            eventSlideTitle.textContent = this._inlineDescEdit.originalName;
+            eventSlideTitle.setAttribute('contenteditable', 'true');
+            eventSlideTitle.setAttribute('spellcheck', 'true');
+
+            // Edit description "in place" (same element/layout as display).
+            // Use plain textContent so whitespace is controlled by CSS, not HTML nodes.
+            eventSlideText.textContent = this._inlineDescEdit.originalText;
+            eventSlideText.setAttribute('contenteditable', 'true');
+            eventSlideText.setAttribute('spellcheck', 'true');
+
+            // Show the structured editor block for the other fields
+            if (editor) editor.style.display = 'block';
+            if (cityInput) cityInput.value = this._inlineDescEdit.originalCityDisplayName;
+            if (filtersInput) filtersInput.value = this._inlineDescEdit.originalFilters.join(', ');
+            if (factionsInput) {
+                // Display factions without numeric prefix for readability
+                factionsInput.value = this._inlineDescEdit.originalFactions.map(f => String(f).replace(/^\d+/, '').trim()).join(', ');
+            }
+            if (headlinesInput) headlinesInput.value = (this._inlineDescEdit.originalHeadlines || []).join('\n');
+            renderSourcesEditor(this._inlineDescEdit.originalSources);
+
+            // Enable predictive/autocomplete behavior (same service used in EventManager edit modal).
+            // Reset setup flag each time we enter edit mode so options stay in sync.
+            if (filtersInput) filtersInput.dataset.autocompleteSetup = 'false';
+            if (factionsInput) factionsInput.dataset.autocompleteSetup = 'false';
+            const auto = window.eventManager?.formService?.autocompleteService || window.EventFormService?.autocompleteService;
+            if (auto && typeof auto.setupAutocomplete === 'function') {
+                const heroes = window.eventManager?.heroes || window.globeController?.dataModel?.heroes || [];
+                const factionDisplayNames = (window.eventManager?.factions || []).map(f => f.displayName).filter(Boolean);
+                if (filtersInput) auto.setupAutocomplete(filtersInput, heroes, 'heroes');
+                if (factionsInput) auto.setupAutocomplete(factionsInput, factionDisplayNames, 'factions');
+            }
+
+            // Track edits
+            eventSlideTitle.addEventListener('input', markDirty, { passive: true });
+            eventSlideText.addEventListener('input', markDirty, { passive: true });
+
+            // Focus description textarea by default
+            eventSlideText.focus();
+        });
+
+        saveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!this._isInlineEditAllowed()) return;
+            if (!this._inlineDescEdit.active) return;
+
+            const { target } = this._getCurrentDescriptionTarget();
+            if (!target) return;
+
+            const newName = (eventSlideTitle.innerText ?? eventSlideTitle.textContent ?? '').trim();
+            const newText = (eventSlideText.textContent ?? '').replace(/\r\n/g, '\n');
+            const newCity = (cityInput?.value || '').trim();
+            const newFilters = (filtersInput?.value || '')
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean);
+            const factionTokens = (factionsInput?.value || '')
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean);
+
+            // Map faction display names back to filenames when possible
+            const availableFactions = window.eventManager?.factions || [];
+            const newFactions = factionTokens.map(token => {
+                const found = availableFactions.find(f => (f?.displayName || '').toLowerCase() === token.toLowerCase());
+                return found?.filename || token;
+            });
+
+            const headlinesLines = (headlinesInput?.value || '')
+                .split('\n')
+                .map(s => s.trim())
+                .filter(Boolean);
+
+            const newSources = readSourcesEditor();
+
+            if (newName) target.name = newName;
+            target.description = newText;
+            target.cityDisplayName = newCity || undefined;
+            target.filters = newFilters;
+            target.factions = newFactions;
+            target.sources = newSources.length > 0 ? newSources : undefined;
+            target.headlines = headlinesLines.length > 0 ? headlinesLines : undefined;
+
+            // Persist the same way EventManager does: save to localStorage via EventDataService.
+            if (window.eventManager?.dataService?.saveEvents) {
+                window.eventManager.dataService.saveEvents();
+            }
+
+            // Exit edit mode and render display text
+            this._exitInlineDescriptionEdit(true);
+
+            // Quick feedback
+            const originalLabel = saveBtn.textContent;
+            saveBtn.textContent = 'Saved';
+            setTimeout(() => { saveBtn.textContent = originalLabel; }, 900);
+        });
+    }
+
+    _exitInlineDescriptionEdit(keepEdits) {
+        const eventSlide = document.getElementById('eventSlide');
+        const eventSlideText = document.getElementById('eventSlideText');
+        const eventSlideTitle = document.getElementById('eventSlideTitle');
+        const saveBtn = document.getElementById('eventSlideSaveBtn');
+        const editBtn = document.getElementById('eventSlideEditBtn');
+        const editor = document.getElementById('eventSlideInlineEditor');
+        if (!eventSlideText) return;
+        if (!eventSlideTitle) return;
+
+        const { target } = this._getCurrentDescriptionTarget();
+        const textToShow = keepEdits ? (target?.description || '') : (this._inlineDescEdit.originalText || '');
+        const nameToShow = keepEdits ? (target?.name || '') : (this._inlineDescEdit.originalName || '');
+        const getDisplayText = window.GlitchTextService
+            ? (t) => window.GlitchTextService.getDisplayText(t)
+            : (t) => t;
+        const getDisplayEventName = window.GlitchTextService
+            ? (t) => window.GlitchTextService.getDisplayEventName(t)
+            : (t) => t;
+
+        this.updateContentWithFade(eventSlideTitle, getDisplayEventName(nameToShow), true);
+        this.updateContentWithFade(eventSlideText, getDisplayText(textToShow), true);
+
+        // Restore rendered paragraph visibility
+        eventSlideText.removeAttribute('contenteditable');
+        eventSlideText.removeAttribute('spellcheck');
+        eventSlideTitle.removeAttribute('contenteditable');
+        eventSlideTitle.removeAttribute('spellcheck');
+        if (eventSlide) eventSlide.classList.remove('event-slide--inline-editing');
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (editBtn) editBtn.textContent = 'Edit';
+        if (editor) editor.style.display = 'none';
+
+        // After exiting edit mode (either save or cancel), ensure sources/filters reflect current target
+        if (keepEdits && target) {
+            this.uiView.updateEventSources(target);
+            this.uiView.updateEventFilters(target);
+
+            // Update location label based on edited cityDisplayName
+            const marker = this.uiView?.currentEventMarker || this.currentEventMarker;
+            const eventData = this.uiView?.currentEventData || this.currentEventData;
+            const isMulti = !!(eventData?.variants && eventData.variants.length > 0);
+            const eventSlideLocation = document.getElementById('eventSlideLocation');
+            if (eventSlideLocation && eventData) {
+                this.setupLocationDisplay(eventSlideLocation, eventData, marker, isMulti, this.uiView?.currentVariantIndex ?? this.currentVariantIndex, true);
+            }
+        }
+
+        this._inlineDescEdit.active = false;
+        this._inlineDescEdit.dirty = false;
+        this._inlineDescEdit.originalText = '';
+        this._inlineDescEdit.eventData = null;
+        this._inlineDescEdit.variantIndex = -1;
+        this._inlineDescEdit.originalName = '';
+        this._inlineDescEdit.originalCityDisplayName = '';
+        this._inlineDescEdit.originalFilters = [];
+        this._inlineDescEdit.originalFactions = [];
+        this._inlineDescEdit.originalSources = [];
+        this._inlineDescEdit.originalHeadlines = [];
+    }
+
+    _cancelInlineDescriptionEdit() {
+        if (!this._inlineDescEdit.active) return;
+        this._exitInlineDescriptionEdit(false);
     }
 
     // Process image path using helper
@@ -139,6 +542,9 @@ export class EventSlideManager {
      * @param {Object} eventData - Event data object
      */
     showEventSlide(eventName, imagePath = null, description = null, marker = null, eventData = null) {
+        // If user was inline-editing and didn't save, discard edits when switching/opening.
+        this._cancelInlineDescriptionEdit();
+
         // Play event click sound when opening event
         if (window.SoundEffectsManager) {
             window.SoundEffectsManager.play('eventClick');
@@ -373,6 +779,9 @@ export class EventSlideManager {
             });
         }
 
+        // Setup inline edit controls (Edit + Save next to X)
+        this._ensureInlineEditControls();
+
         // Setup navigation buttons and reset stillness tracking
         this.uiView.setupEventNavigation();
         const resetStillnessTracking = window.EventSlideStateHelpers?.resetStillnessTracking;
@@ -391,6 +800,9 @@ export class EventSlideManager {
      * Hide event slide panel
      */
     hideEventSlide() {
+        // Discard unsaved inline edits on close
+        this._cancelInlineDescriptionEdit();
+
         // Stop glitch animation when hiding slide
         if (window.GlitchTextService) {
             window.GlitchTextService.stopAnimation();
@@ -507,6 +919,9 @@ export class EventSlideManager {
      * @param {Object} eventData - Event data object
      */
     switchEventVariant(variantIndex, eventData) {
+        // Discard unsaved inline edits when switching variants
+        this._cancelInlineDescriptionEdit();
+
         if (!eventData || !eventData.variants || variantIndex >= eventData.variants.length) {
             return;
         }

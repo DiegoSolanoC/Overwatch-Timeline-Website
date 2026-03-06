@@ -22,6 +22,16 @@
     box-sizing: border-box;
 }
 
+/* GitHub Pages: view-only cards can be shorter (no Edit/Delete row) */
+.event-item.event-item--view-only {
+    height: 240px;
+}
+
+/* GitHub Pages: remove the big mid-card gap by not pinning actions to bottom */
+.event-item.event-item--view-only .event-item-actions {
+    margin-top: 10px;
+}
+
 .event-item.unsaved {
     background: rgba(255, 235, 59, 0.2);
     border-color: rgba(255, 235, 59, 0.5);
@@ -130,6 +140,9 @@ body.color-palette-gray .multi-event-badge:hover {
 .event-item:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(33, 150, 243, 0.5);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
+    z-index: 2;
 }
 
 body.color-palette-gray .event-item:hover {
@@ -324,4 +337,28 @@ body.color-palette-gray .event-item-title {
 
 .event-item-drag-handle:active {
     cursor: grabbing;
+}
+
+/* Staggered grow-in when changing pages (mobile too) */
+.event-item.event-item--enter {
+    opacity: 0;
+    transform: translateY(10px) scale(0.90);
+    will-change: transform, opacity;
+    transition-property: transform, opacity;
+    transition-duration: 520ms;
+    transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.event-item.event-item--enter.event-item--enter-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .event-item.event-item--enter,
+    .event-item.event-item--enter.event-item--enter-active {
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
 }

@@ -22,6 +22,12 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Kill any existing process listening on :8000 (prevents stale server.js from staying alive)
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":8000" ^| findstr "LISTENING"') do (
+    echo Found an existing server on port 8000 - PID %%p - stopping it...
+    taskkill /F /PID %%p >nul 2>nul
+)
+
 REM Start server in a new window (server-run.bat runs in project dir)
 echo Starting server...
 start "Timeline Overwatch Server" "%~dp0server-run.bat"

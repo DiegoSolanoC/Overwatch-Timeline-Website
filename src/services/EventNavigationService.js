@@ -327,6 +327,8 @@ class EventNavigationService {
                 // Open event manager (keep globe visible)
                 const panel = document.getElementById('eventsManagePanel');
                 const toggleBtn = document.getElementById('eventsManageToggle');
+                const em = window.eventManager;
+                em?.renderService?.requestPageEntranceAnimation?.();
                 if (panel) {
                     panel.classList.add('open');
                 }

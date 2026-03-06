@@ -89,6 +89,155 @@ body.color-palette-gray .event-slide {
     margin: 0;
 }
 
+.event-slide-action-btn {
+    position: absolute;
+    top: 16px;
+    z-index: 201;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: rgba(13, 71, 161, 0.9);
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.event-slide-action-btn:hover:not(:disabled) {
+    background: rgba(13, 71, 161, 1);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.event-slide-action-btn:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.event-slide-action-btn:disabled {
+    cursor: not-allowed;
+}
+
+.event-slide-edit-btn {
+    right: 140px; /* sits left of Save */
+}
+
+.event-slide-save-btn {
+    right: 75px; /* sits left of X (right: 15px, width 50px) */
+}
+
+.event-slide--inline-editing .event-slide-scrollable p#eventSlideText {
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.45);
+    border-radius: 8px;
+    padding: 10px 10px;
+    background: rgba(0, 0, 0, 0.22);
+    white-space: pre-wrap; /* keep blank lines stable while editing */
+}
+
+.event-slide--inline-editing .event-slide-scrollable p#eventSlideText:focus {
+    outline: none;
+    border-color: rgba(var(--accent-primary-rgb), 0.75);
+}
+
+/* Inline edit mode: hide rendered sections to save space */
+.event-slide--inline-editing #eventSourcesSection,
+.event-slide--inline-editing #eventFiltersSection {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.event-slide-inline-editor {
+    margin: 14px 0 14px 0;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(0, 0, 0, 0.14);
+}
+
+.event-slide-inline-editor__row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.event-slide-inline-editor__label {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.event-slide-inline-editor__input,
+.event-slide-inline-editor__textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+    padding: 10px 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.event-slide-inline-editor__textarea {
+    resize: vertical;
+    min-height: 86px;
+}
+
+.event-slide-inline-editor__input:focus,
+.event-slide-inline-editor__textarea:focus {
+    outline: none;
+    border-color: rgba(var(--accent-primary-rgb), 0.55);
+}
+
+.event-slide-inline-editor__sources {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-slide-inline-editor__source-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.3fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.event-slide-inline-editor__actions {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.event-slide-inline-editor__small-btn {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    background: rgba(13, 71, 161, 0.8);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.event-slide-inline-editor__small-btn:hover {
+    background: rgba(13, 71, 161, 1);
+    border-color: rgba(255, 255, 255, 0.45);
+    transform: scale(1.04);
+}
+
 .event-slide-close:hover {
     color: var(--accent-primary);
 }

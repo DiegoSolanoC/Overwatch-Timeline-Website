@@ -389,6 +389,7 @@ export class EventNavigationManager {
                     const totalPages = Math.max(1, Math.ceil(em.events.length / perPage));
                     const targetPage = Math.min(Math.max(1, Math.floor(currentIndex / perPage) + 1), totalPages);
                     em.currentPage = targetPage;
+                    em.renderService?.requestPageEntranceAnimation?.();
                     if (em.renderEvents) em.renderEvents();
                     if (em.renderPaginationControls) em.renderPaginationControls();
                 }

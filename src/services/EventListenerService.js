@@ -110,6 +110,7 @@ class EventListenerService {
                 if (isNowOpen) {
                     newToggleBtn.classList.add('active');
                     if (this.eventManager.renderEvents) {
+                        this.eventManager.renderService?.requestPageEntranceAnimation?.();
                         this.eventManager.renderEvents();
                     }
                 } else {

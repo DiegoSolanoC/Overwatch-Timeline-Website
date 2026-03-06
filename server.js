@@ -29,6 +29,53 @@ const mimeTypes = {
     '.eot': 'application/vnd.ms-fontobject'
 };
 
+function sendJson(res, code, data) {
+    res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(data, null, 2) + '\n');
+}
+
+function readJsonBody(req, res, cb) {
+    let body = '';
+    req.on('data', (chunk) => {
+        body += chunk;
+        // Basic size guard (10MB)
+        if (body.length > 10 * 1024 * 1024) {
+            sendJson(res, 413, { error: 'Payload too large' });
+            req.destroy();
+        }
+    });
+    req.on('end', () => {
+        try {
+            const parsed = body ? JSON.parse(body) : null;
+            cb(parsed);
+        } catch (e) {
+            sendJson(res, 400, { error: 'Invalid JSON' });
+        }
+    });
+}
+
+function writeEventsJson(events, res) {
+    if (!Array.isArray(events)) {
+        sendJson(res, 400, { error: 'Expected { events: [...] } or an array' });
+        return;
+    }
+
+    const outPath = path.join(__dirname, 'data', 'events.json');
+    const payload = { events };
+    const json = JSON.stringify(payload, null, 2) + '\n';
+
+    // Atomic write: temp then rename
+    const tmpPath = outPath + '.tmp';
+    try {
+        fs.writeFileSync(tmpPath, json, 'utf8');
+        fs.renameSync(tmpPath, outPath);
+        sendJson(res, 200, { ok: true, eventsCount: events.length });
+    } catch (e) {
+        try { if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath); } catch (_) {}
+        sendJson(res, 500, { ok: false, error: 'Write failed' });
+    }
+}
+
 const server = http.createServer((req, res) => {
     // Parse URL and decode it to handle spaces and special characters
     const parsedUrl = url.parse(req.url, true);
@@ -37,6 +84,32 @@ const server = http.createServer((req, res) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${decodedPath}`);
     
     // Handle custom routes
+    // Local API: persist events to data/events.json (works only when running this server)
+    if (decodedPath === '/api/events') {
+        if (req.method === 'GET') {
+            const p = path.join(__dirname, 'data', 'events.json');
+            try {
+                const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+                const events = Array.isArray(data) ? data : (Array.isArray(data?.events) ? data.events : []);
+                sendJson(res, 200, { events });
+            } catch (e) {
+                sendJson(res, 500, { error: 'Failed to read events.json' });
+            }
+            return;
+        }
+
+        if (req.method === 'POST' || req.method === 'PUT') {
+            readJsonBody(req, res, (body) => {
+                const events = Array.isArray(body) ? body : body?.events;
+                writeEventsJson(events, res);
+            });
+            return;
+        }
+
+        sendJson(res, 405, { error: 'Method not allowed' });
+        return;
+    }
+
     if (decodedPath === '/test' || decodedPath === '/test/') {
         serveFile(res, './test.html', 'text/html');
         return;
@@ -111,6 +184,7 @@ server.listen(PORT, () => {
     console.log(`  - http://localhost:${PORT}/main.html → main.html`);
     console.log(`  - http://localhost:${PORT}/test      → test.html`);
     console.log(`  - http://localhost:${PORT}/test.html → test.html`);
+    console.log(`  - http://localhost:${PORT}/api/events → GET/POST events.json`);
     console.log(`\nPress Ctrl+C to stop the server\n`);
 });
 

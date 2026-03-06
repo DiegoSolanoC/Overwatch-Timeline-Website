@@ -7,6 +7,8 @@ class EventRenderService {
     constructor() {
         // Will be set by EventManager
         this.eventManager = null;
+        this._animateNextPageRender = false;
+        this._entranceAnimToken = 0;
     }
 
     /**
@@ -14,6 +16,60 @@ class EventRenderService {
      */
     setEventManager(eventManager) {
         this.eventManager = eventManager;
+    }
+
+    /**
+     * Request a staggered entrance animation for the next render only.
+     * Used for page navigation (prev/next/page input).
+     */
+    requestPageEntranceAnimation() {
+        this._animateNextPageRender = true;
+    }
+
+    _runStaggeredEntranceAnimation(eventsList) {
+        if (!eventsList) return;
+        const items = Array.from(eventsList.querySelectorAll('.event-item'));
+        if (items.length === 0) return;
+
+        const token = ++this._entranceAnimToken;
+        const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReducedMotion) {
+            // Ensure visible even if classes linger.
+            items.forEach((el) => {
+                el.classList.remove('event-item--enter', 'event-item--enter-active');
+                el.style.transitionDelay = '';
+            });
+            return;
+        }
+
+        const staggerMs = 22;
+        const maxDelayMs = 480;
+
+        items.forEach((el, i) => {
+            el.classList.remove('event-item--enter-active');
+            el.classList.add('event-item--enter');
+            const delay = Math.min(i * staggerMs, maxDelayMs);
+            el.style.transitionDelay = `${delay}ms`;
+        });
+
+        requestAnimationFrame(() => {
+            if (token !== this._entranceAnimToken) return;
+            // One more frame improves reliability after DOM insert.
+            requestAnimationFrame(() => {
+                if (token !== this._entranceAnimToken) return;
+                items.forEach((el) => el.classList.add('event-item--enter-active'));
+            });
+        });
+
+        // Cleanup: remove special classes after the animation finishes.
+        const totalMs = 520 + Math.min((items.length - 1) * staggerMs, maxDelayMs);
+        window.setTimeout(() => {
+            if (token !== this._entranceAnimToken) return;
+            items.forEach((el) => {
+                el.classList.remove('event-item--enter', 'event-item--enter-active');
+                el.style.transitionDelay = '';
+            });
+        }, totalMs);
     }
 
     /**
@@ -102,6 +158,12 @@ class EventRenderService {
         const renderTime = performance.now() - renderStartTime;
         console.log(`EventRenderService: Rendered ${eventsToRender.length} event items (${renderTime.toFixed(0)}ms)`);
         this.updateStatus(`EventRenderService: Rendered page ${validPage} (${eventsToRender.length} events, ${renderTime.toFixed(0)}ms)`, 'success');
+
+        const shouldAnimateEntrance = this._animateNextPageRender;
+        this._animateNextPageRender = false;
+        if (shouldAnimateEntrance) {
+            this._runStaggeredEntranceAnimation(eventsList);
+        }
 
         // Call completion callback (for drag/drop setup, etc.)
         if (onRenderComplete && typeof onRenderComplete === 'function') {
@@ -235,6 +297,7 @@ class EventRenderService {
                 if (window.SoundEffectsManager) {
                     window.SoundEffectsManager.play('page');
                 }
+                this.requestPageEntranceAnimation();
                 const totalPages = getTotalPages();
                 if (this.eventManager.currentPage > 1) {
                     this.eventManager.currentPage--;
@@ -256,6 +319,7 @@ class EventRenderService {
                 if (window.SoundEffectsManager) {
                     window.SoundEffectsManager.play('page');
                 }
+                this.requestPageEntranceAnimation();
                 const totalPages = getTotalPages();
                 if (this.eventManager.currentPage < totalPages) {
                     this.eventManager.currentPage++;
@@ -277,6 +341,7 @@ class EventRenderService {
                 const totalPages = getTotalPages();
                 const page = parseInt(pageInput.value, 10);
                 if (page && page >= 1 && page <= totalPages && page !== this.eventManager.currentPage) {
+                    this.requestPageEntranceAnimation();
                     this.eventManager.currentPage = page;
                     if (this.eventManager.renderEvents) {
                         this.eventManager.renderEvents();
@@ -317,6 +382,9 @@ class EventRenderService {
         const item = document.createElement('div');
         item.className = 'event-item';
         const isGitHubPages = this.eventManager.isGitHubPages ? this.eventManager.isGitHubPages() : false;
+        if (isGitHubPages) {
+            item.classList.add('event-item--view-only');
+        }
         
         // Disable drag and drop on GitHub Pages
         if (!isGitHubPages) {

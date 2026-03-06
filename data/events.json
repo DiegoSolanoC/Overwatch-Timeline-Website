@@ -1597,7 +1597,7 @@
       "name": "To Hell With Them",
       "locationType": "earth",
       "cityDisplayName": "Manhattan, United States",
-      "description": "Anubis primarily targeted a curated list of major population centers that it had decided leading up to the crisis, as they were the greatest source of pollutants and the ones that required the most resources. As a result, large cities such as New York were hit the hardest across the globe. Anubis had targeted communication hubs, essentially making Manhattan disappear from any radar for several hours, as the bloodshed continued without outside help to come. The state governor was contacted at last during a short respite, but instead of getting the back up they desperately needed, they were left to die.\n\n\n\nThe military had been stretched tin from the waves of warbots coming from all sides, so the governor did the unthinkable and decided to declare New York City a lost cause, issuing an evacuation order and hoping that as people escaped the metropolitan area, it would ease pressure on the military. In spite of his advice, the people of NYC were not going to listen. City Major Michelle Aguirre, a former army engineer, was insulted by the decision and publicly disregarded the evacuation order, knowing only the rich would afford to escape, leaving common folk to die. Aguirre would come forth with the now informally known \"To hell with them\" address, where she urged New Yorkers to rally together, because if the state, and the country at large was willing to write them off, they would not do the same for each other. \n\n\n\nAlongside the commonfolk, a group of military forces was left behind to aid the evacuation, led by Colonel Liliana Fox. Fox was a Manhattan native and close to the mayor, so as the city chose to fight, she took their side and aided the effort. Working together, they outlined the New York City Defense Act, calling for veterans and citizens of fighting age to assemble for training. Here is where Anubis' endless intelligence showed flaws to predict human ingenuity and determination, as in focusing so much of its resources into such a defensible, fortified area as Manhattan, it set itself up to defeat. The New Yorkers dug up and fortified shelters using parts from ships and skyscrappers, and came together to organize attack plans against the machines. The wide cultural range and backgrounds of the many people involved allowed them to stay innovative and use the city's infrastructure to their advantage.",
+      "description": "Anubis primarily targeted a curated list of major population centers that it had decided leading up to the crisis, as they were the greatest source of pollutants and the ones that required the most resources. As a result, large cities such as New York were hit the hardest across the globe. Anubis had targeted communication hubs, essentially making Manhattan disappear from any radar for several hours, as the bloodshed continued without outside help to come. The state governor was contacted at last during a short respite, but instead of getting the back up they desperately needed, they were left to die.\n\n\n\nThe military had been stretched tin from the waves of warbots coming from all sides, so the governor did the unthinkable and decided to declare New York City a lost cause, issuing an evacuation order and hoping that as people escaped the metropolitan area, it would ease pressure on the military. In spite of his advice, the people of NYC were not going to listen. City Major Michelle Aguirre, a former army engineer, was insulted by the decision and publicly disregarded the evacuation order, knowing only the rich would afford to escape, leaving common folk to die. Aguirre would come forth with the now informally known \"To hell with them\" address, where she urged New Yorkers to rally together, because if the state, and the country at large was willing to write them off, they would not do the same for each other. \n\n\n\nAlongside the commonfolk, a group of military forces was left behind to aid the evacuation, led by Colonel Liliana Fox. Fox was a Manhattan native and close to the mayor, so as the city chose to fight, she took their side and aided the effort. Working together, they outlined the New York City Defense Act, calling for veterans and citizens of fighting age to assemble for training. Here is where Anubis' endless intelligence showed flaws to predict human ingenuity and determination, as in focusing so much of its resources into such a defensible, fortified area as Manhattan, it set itself up to defeat. The New Yorkers stood together to defend the city they loved, or die trying.",
       "image": "",
       "filters": [
         "Torbjörn"
@@ -1749,56 +1749,6 @@
       "lon": 3.3941795
     },
     {
-      "name": "Eye of Horus",
-      "locationType": "earth",
-      "cityDisplayName": "Cairo, Egypt",
-      "description": "For a long period in the Crisis, humanity did not know what was causing all the chaos. Anubis had targeted so many cities at once everyone was too busy to truly find the root of the Crisis, and what's more, the God program amassed a giant army in Cairo. While from the outside it looked like any other attack on a major city, in reality this was its personal guard, as it was trying to take shelter in the chaos.\n\n\n\nIn the endless struggle, a notorious face kept appearing on the news, Ana Amari. Widely regarded as the best sniper in the world, in great part due to her cybernetic eye, Amari had become an invaluable asset for the Egyptian military, supporting troops from afar, with impeccable aim and efficiency, confusing many of the warbot troops and drawing their attention away from civilians. While everywhere around the world news were appearing of inhuman soldiers and giant machines, Ana was a regular person with no major augmentation beyond what was accessible to the public. The war had split Amari's family off. Her husband Sam was busy with the carnage going on in Canada, and her young daughter Fareeha had to take shelter, watching as both her parents left to save the world, wondering if they would even come back.",
-      "image": "",
-      "filters": [
-        "Ana"
-      ],
-      "factions": [
-        "06Crisis"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "Top Sniper prevents massacre in Cairo"
-      ],
-      "lat": 30.0443879,
-      "lon": 31.2357257
-    },
-    {
-      "name": "Super Soldiers",
-      "locationType": "earth",
-      "cityDisplayName": "Wheeler County, United States",
-      "description": "The Soldier Enhancement Program had been kept secret for a long time due to the many human rights violations going on with its research, and in spite of years of progress, Naughton lacked the ethical green light to move on to human subjects. That all changed when the Crisis started.\n\n\n\nThe United States turned into multiple warzones overnight, and any measures they took to stop the bloodshed seemed only temporary. In desperation, the government decided to go public with the Soldier Enhancement Program. In spite of concerns, the program gathered plenty of public support due to the dire circumstances of the Crisis, and recruitment for human trials began, though at this time the concept was purely fictional.\n\n\n\nAt least two hundred military personnel volunteered for the SEP initially, but only a handful would survive the horrors that awaited them in Naughton's labs.  As recruits kept coming in, failed attempts piled up, with about sixty percent of them dying throughout the program. Anubis was also keenly aware of the situation and targeted the labs on multiple occasions. The initial lab at Camp Hale was destroyed within weeks of the announcement, and the team had to hop from one facility to another. In the end, the successful soldiers would be deployed around the country and quickly turn the tides in many battles where they showed up. \n\n\n\nThe two most notorious successes of the program were Soldier 24: Gabriel Reyes, and Soldier 76: Jack Morrison. The reputation of these two men was legendary even before Overwatch, the golden-haired hero who appeared out of nowhere and saved the day. And although Reyes was quieter and usually took less flashy missions, he was nonetheless just as effective and valuable, and even while he was still being actively tested on, he found time to communicate and coordinate with troops actively in battle.",
-      "image": "",
-      "filters": [
-        "Soldier 76",
-        "Reaper"
-      ],
-      "factions": [
-        "06Crisis"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "United States Government to begin recruitment for Super Soldier trials",
-        "National Heroes Jack Morrison and Gabriel Reyes to be deployed across battle scared cities"
-      ],
-      "lat": 35.3921902,
-      "lon": -100.2632764
-    },
-    {
       "name": "The Svyatogor",
       "locationType": "earth",
       "cityDisplayName": "Moscow, Russia",
@@ -1821,6 +1771,54 @@
       ],
       "lat": 55.625578,
       "lon": 37.6063916
+    },
+    {
+      "name": "The Proposal",
+      "locationType": "earth",
+      "cityDisplayName": "Geneva, Switzerland",
+      "description": "The crisis had dragged on for months, and no progress had been made on ending it. Anubis learned from every battle, you could never beat troops down the same way. The United Nations did what they could to find a unified solution, but by the second month of the crisis, each country was reluctant to share information, fearing that sharing their success would render it useless as Anubis learned how to counter it. Here is where Dr. Gabrielle Adawe stepped forward with an audacious proposal. The Nigerian diplomat was the third-highest post in the UN and seeing the success of outstanding individuals like the Doomfist in her homeland gave her an idea. To form a team of gifted individuals, backed up by the international guide and authority of the United Nations. The team would travel around the world and respond to calls for help, in a faster, more flexible way than any other group could. \n\n\n\nThe proposal outlined a surgical strike team, operating based on the situation rather than national interests or orders. Acting in the moment, and combining their unique skill sets from across the globe would render them unpredictable by Anubis, ensuring no two fights against them were ever the same. In addition to this strike team, a selection of the greatest minds the world had to offer would operate in the background. Scientists, engineers, tacticians, medics, working together to organize the team's movements and ensure out-of-the-box thinking. In spite of resistance and criticism, after many special sessions, the code name Overwatch program was approved, and the process of selecting the team began.",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "00Overwatch",
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "UN Approves unified strike unti plan",
+        "Overwatch Initiative passes United Nations hearings, scouting for candidates begins shortly after"
+      ],
+      "lat": 46.2017559,
+      "lon": 6.1466014
+    },
+    {
+      "name": "Eye of Horus",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "For a long period in the Crisis, humanity did not know what was causing all the chaos. Anubis had targeted so many cities at once everyone was too busy to truly find the root of the Crisis, and what's more, the God program amassed a giant army in Cairo. While from the outside it looked like any other attack on a major city, in reality this was its personal guard, as it was trying to take shelter in the chaos.\n\n\n\nIn the endless struggle, a notorious face kept appearing on the news, Ana Amari. Widely regarded as the best sniper in the world, in great part due to her cybernetic eye, Amari had become an invaluable asset for the Egyptian military, supporting troops from afar, with impeccable aim and efficiency, confusing many of the warbot troops and drawing their attention away from civilians. While everywhere around the world news were appearing of inhuman soldiers and giant machines, Ana was a regular person with no major augmentation beyond what was accessible to the public. The war had split Amari's family off. Her husband Sam was busy with the carnage going on in Canada, and her young daughter Fareeha had to take shelter, watching as both her parents left to save the world, wondering if they would even come back.",
+      "image": "",
+      "filters": [
+        "Ana"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Top Sniper prevents massacre in Cairo"
+      ],
+      "lat": 30.0443879,
+      "lon": 31.2357257
     },
     {
       "name": "The Heroic Five",
@@ -1851,7 +1849,7 @@
       "name": "Building a Myth",
       "locationType": "earth",
       "cityDisplayName": "Berlin, Germany",
-      "description": "With the Crisis, the German Crusaders finally saw action, and proved to be quite effective defenders. Before the war, they were a niche group in the military with very few members, but once the Omnics attacked, they would become the center of Germany's military defense plans, as Honisch and Fischer worked on improving their capabilities, expanding their shield systems and equipping them with close-range weapons. Rocket Powered Axes and Hammers proved to be the most practical, and units were designed to charge into battle, ramming enemy waves at high speeds.\n\n\n\nThe appearance of a Crusader was enough to boost morale amongst the troops, in spite of the adversity and constant fire by Anubis. The initiative would see a surge in recruitments, as people from all walks of life, young and old, wished to defend their home, as a knight from tales of the old. The Crusader's power and cultural perspective lead to many of them fashioning themselves as chivalric heroes from fairy tales, acting by a strict code of conduct, based not on military orders, but rather on a mutual understanding, an unclaimed Oath that every Crusader was expected to follow, to live with honor, and die with glory.",
+      "description": "With the Crisis, the German Crusaders finally saw action, and proved to be quite effective defenders. Before the war, they were a niche group in the military with very few members, but once the Omnics attacked, they would become the center of Germany's military defense plans, as Honisch and Fischer worked on improving their capabilities, expanding their shield systems and equipping them with close-range weapons. Rocket Powered Axes and Hammers proved to be the most practical, and units were designed to charge into battle, ramming enemy waves at high speeds.\n\nThe appearance of a Crusader was enough to boost morale amongst the troops, in spite of the adversity and constant fire by Anubis. The initiative would see a surge in recruitments, as people from all walks of life, young and old, wished to defend their home, as a knight from tales of the old. The Crusader's power and cultural perspective lead to many of them fashioning themselves as chivalric heroes from fairy tales, acting by a strict code of conduct, based not on military orders, but rather on a mutual understanding, an unclaimed Oath that every Crusader was expected to follow, to live with honor, and die with glory.",
       "image": "",
       "filters": [
         "Reinhardt"
@@ -1871,6 +1869,32 @@
       ],
       "lat": 52.5173885,
       "lon": 13.3951309
+    },
+    {
+      "name": "Super Soldiers",
+      "locationType": "earth",
+      "cityDisplayName": "Wheeler County, United States",
+      "description": "The Soldier Enhancement Program had been kept secret for a long time due to the many human rights violations going on with its research, and in spite of years of progress, Naughton lacked the ethical green light to move on to human subjects. That all changed when the Crisis started.\n\nThe United States turned into multiple warzones overnight, and any measures they took to stop the bloodshed seemed only temporary. In desperation, the government decided to go public with the Soldier Enhancement Program. In spite of concerns, the program gathered plenty of public support due to the dire circumstances of the Crisis, and recruitment for human trials began, though at this time the concept was purely fictional.\n\nAt least two hundred military personnel volunteered for the SEP initially, but only a handful would survive the horrors that awaited them in Naughton's labs. As recruits kept coming in, failed attempts piled up, with about sixty percent of them dying throughout the program. Anubis was also keenly aware of the situation and targeted the labs on multiple occasions. The initial lab at Camp Hale was destroyed within weeks of the announcement, and the team had to hop from one facility to another. In the end, the successful soldiers would be deployed around the country and quickly turn the tides in many battles where they showed up.\n\nThe two most notorious successes of the program were Soldier 24: Gabriel Reyes, and Soldier 76: Jack Morrison. The reputation of these two men was legendary even before Overwatch, the golden-haired hero who appeared out of nowhere and saved the day. And although Reyes was quieter and usually took less flashy missions, he was nonetheless just as effective and valuable, and even while he was still being actively tested on, he found time to communicate and coordinate with troops actively in battle.",
+      "image": "",
+      "filters": [
+        "Soldier 76",
+        "Reaper"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "United States Government to begin recruitment for Super Soldier trials",
+        "National Heroes Jack Morrison and Gabriel Reyes to be deployed across battle scared cities"
+      ],
+      "lat": 35.3921902,
+      "lon": -100.2632764
     },
     {
       "name": "Jamison Fawkes is Born",
@@ -1897,16 +1921,18 @@
       "lon": 135
     },
     {
-      "name": "The Proposal",
+      "name": "The Road of Bones",
       "locationType": "earth",
-      "cityDisplayName": "Geneva, Switzerland",
-      "description": "The crisis had dragged on for months, and no progress had been made on ending it. Anubis learned from every battle, you could never beat troops down the same way. The United Nations did what they could to find a unified solution, but by the second month of the crisis, each country was reluctant to share information, fearing that sharing their success would render it useless as Anubis learned how to counter it. Here is where Dr. Gabrielle Adawe stepped forward with an audacious proposal. The Nigerian diplomat was the third-highest post in the UN and seeing the success of outstanding individuals like the Doomfist in her homeland gave her an idea. To form a team of gifted individuals, backed up by the international guide and authority of the United Nations. The team would travel around the world and respond to calls for help, in a faster, more flexible way than any other group could. \n\n\n\nThe proposal outlined a surgical strike team, operating based on the situation rather than national interests or orders. Acting in the moment, and combining their unique skill sets from across the globe would render them unpredictable by Anubis, ensuring no two fights against them were ever the same. In addition to this strike team, a selection of the greatest minds the world had to offer would operate in the background. Scientists, engineers, tacticians, medics, working together to organize the team's movements and ensure out-of-the-box thinking. In spite of resistance and criticism, after many special sessions, the code name Overwatch program was approved, and the process of selecting the team began.",
+      "cityDisplayName": "Oymyakon, Russia",
+      "description": "The Kolyma Highway near the town of Oymkakon, known as the Road of Bones, was one of the most important places for Russia to defend during the Crisis, as the only viable access point to the Sea of Okhotsk, putting the isolated population in danger of becoming unreachable. When the RDF planned to deploy a Svyatogor to the town, Ksenia Popova, a local from Oymkakon took her chance to come back and defend her hometown.\n\nThe town was mostly spared from the Crisis, due to the non-existing Omnic presence and the isolation of the place, but one fateful day Anubis ordered a full-on attack, commanded by Ravager units. As the evacuation effort turned dire, Ksenia was given authorization to do anything it took to stop the robotic advance, and after finding herself outnumbered and outgunned, she decided to charge into a small nuclear plant, sacrificing her own life to ensure the blast from the explosion destroyed all Omnics in the area. The explosion created the Oymyakon exclusion zone, a radiated field unsuitable for both lifeforms and machines, as the radiation would fry their circuit without sufficient shielding. Ksenia's sacrifice saved hundreds and prevented Anubis from ever being able to reach Okhotsk again, but at the same time, it displaced the survivors away from their home, and to this day the government won't let them come back. ",
       "image": "",
       "filters": [],
       "factions": [
-        "00Overwatch",
+        "19Volskaya",
         "06Crisis"
       ],
+      "lat": 63.4629473,
+      "lon": 142.7869693,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -1914,41 +1940,9 @@
         }
       ],
       "headlines": [
-        "UN Approves unified strike unti plan",
-        "Overwatch Initiative passes United Nations hearings, scouting for candidates begins shortly after"
-      ],
-      "lat": 46.2017559,
-      "lon": 6.1466014
-    },
-    {
-      "locationType": "earth",
-      "cityDisplayName": "Manhattan, United States",
-      "variants": [
-        {
-          "name": "The Skycannon",
-          "description": "",
-          "filters": [],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 40.7579554,
-          "lon": -73.9855319,
-          "cityDisplayName": "Manhattan, United States"
-        },
-        {
-          "name": "Defense Network",
-          "description": "",
-          "filters": [],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 57.7072326,
-          "lon": 11.9670171,
-          "cityDisplayName": "Gothenburg, Sweden"
-        }
-      ],
-      "lat": 40.7579554,
-      "lon": -73.9855319
+        "War Hero dies defending Siberian town",
+        "Radiation Zone declared in Oymyakon, evacuation mandatory"
+      ]
     },
     {
       "name": "Honor and Glory",
@@ -1980,26 +1974,92 @@
       "lon": 8
     },
     {
-      "name": "The Road of Bones",
       "locationType": "earth",
-      "cityDisplayName": "Oymyakon, Russia",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 63.4629473,
-      "lon": 142.7869693
+      "cityDisplayName": "Manhattan, United States",
+      "variants": [
+        {
+          "name": "The Skycannon",
+          "description": "The New Yorkers managed to endure the crisis on their own for months, coming up with one plan after another to use the city itself against Anubis. The wide cultural range and backgrounds of the many people involved allowed them to stay innovative and use the city's infrastructure to their advantage. Together they dug up and fortified shelters using parts from ships and skyscrappers, and organized to turn all green areas in the city, from rooftop gardens to Central Park, into communal farms that kept the population fed. At some point, Torbjörn Lindholm managed to find a way to contact the defenders from within the city and under his guidance they managed to work on defensive strategies. \n\n\n\nThe citizens would mount battleship cannons onto Manhattan's Sky Scrappersm and used to fire strategically at Null Sector Carriers to prevent them from reaching their deployment zones. Anubis would quickly take action and focus on bringing down these armored sky scrappers, but for a good while they bought the survivors enough time to plan ahead and fight on the ground. It was around this time that Anubis deployed the R-700 Ravager units, designed to become its battle commanders. Thanks to their high processing power, they were able to give orders independently of Anubis itself. With their arrival, it was clear that taking down Anubis wouldn't be enough to win the war.",
+          "filters": [
+            "Torbjörn"
+          ],
+          "factions": [
+            "06Crisis"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "New Yorkers turn Empire State Building into an Anti Omnic Cannon",
+            "Ravager Units appear on battlefields across the world, highly dangerous"
+          ],
+          "image": "",
+          "locationType": "earth",
+          "lat": 40.7579554,
+          "lon": -73.9855319,
+          "cityDisplayName": "Manhattan, United States"
+        },
+        {
+          "name": "Defense Network",
+          "description": "A few weeks into the Crisis, Lindholm would be called by the Swedish government, asking him to complete a design for a countrywide Defense Network. After the success of his workshop's defenses in Gothenburg, he had gained quite the reputation, and if there was anyone capable of pulling this off, Sweden believed it was him.  The proposal was drawn by bureaucrats who didn't understand the scope of what they asked, wanting a miracle on a shoestring budget. An anti-aircraft weapons system that mimicked the functions of Finland's security God Ai Chernobog, capable of warning citizens about air strikes nationwide and with mass-produced turret systems across population centers in Sweden.\n\n\n\nWhat would have been an impossible task for anyone else, was exactly the challenge that Torbjörn had been waiting for his whole life. While working alongside a team of the greatest minds the nation could offer, they were able to roll out the systems at record time. His design for the Defense Network shared features that he would include to the sky cannons in New York, as well as the Siege systems he later deployed in Canada as part of Overwatch. While he was not formally invited into the strike team, he had heard of the program and believed he could be of use, having the reputation and expertise to back his claim up. Soon after visiting his family back home, he directed himself to the training facility and invited himself into the Overwatch Initiative.",
+          "filters": [
+            "Torbjörn"
+          ],
+          "factions": [
+            "06Crisis",
+            "10Ironclad"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "Linhholm's defense system expands across Sweden"
+          ],
+          "image": "",
+          "locationType": "earth",
+          "lat": 57.7072326,
+          "lon": 11.9670171,
+          "cityDisplayName": "Gothenburg, Sweden"
+        }
+      ],
+      "lat": 40.7579554,
+      "lon": -73.9855319
     },
     {
       "name": "The Original Strike Team",
       "locationType": "earth",
       "cityDisplayName": "Zurich, Switzerland",
-      "description": "",
+      "description": "After months of planning, Overwatch moved into place. The supporting staff was arranged with several of the most outstanding names of the last couple of decades, from Matthew Frank, to Namuaca and Lomakema, Esat and Borda, and of course, the Martins. Alongside the help of military experts like General David Ames from the US, and Litang Abhicandra from Indonesia. It took several months of  screening and a lot of discarded proposals, but the supporting teams across all fields were ready to start working.\n\n\n\nAs far as the Strike team, Adawe's first choice was Doomfist himself. Adhabu Ngumi had been identified as the savior of Nigeria, and partly inspired the proposal in the first place, but he declined, choosing to protect his home first and foremost, like many others did. In the end, the strike team was formed by five individuals. The two most successful soldiers from America's SEP program, Gabriel Reyes and Jack Morrison. The elite Egyptian Sniper Ana Amari, in spite of controversy around her inclusion among UN staff members. The German Crusader Reinhardt Wilhelm, taking his mentor's place, and the Ironclad engineer Torbjörn Lindholm, who showed up at the last minute and demanded to be a part of the team. Once the team was selected and trained, it was a matter of time before deployment began, and the tide finally began to turn.\n",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Soldier 76",
+        "Reaper",
+        "Ana",
+        "Reinhardt",
+        "Torbjörn"
+      ],
+      "factions": [
+        "00Overwatch",
+        "06Crisis"
+      ],
       "lat": 47.3744489,
-      "lon": 8.5410422
+      "lon": 8.5410422,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "United Nations assamble team of heroes from across the world",
+        "Overwatch Taskforce to start deployment soon"
+      ]
     },
     {
       "name": "Early Missions",
@@ -2639,6 +2699,27 @@
       "lon": 144.9631732
     },
     {
+      "name": "Cursed",
+      "locationType": "earth",
+      "cityDisplayName": "Tokyo, Japan",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Mitzuki"
+      ],
+      "factions": [
+        "23Hashimoto"
+      ],
+      "sources": [
+        {
+          "text": "CurseBreaker",
+          "url": "https://blz-contentstack-assets.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt5c9c4967bc1ece6a/699e363630b74e847e396ff3/Yokai_Micro_EN_Final.pdf"
+        }
+      ],
+      "lat": 35.6768601,
+      "lon": 139.7638947
+    },
+    {
       "name": "Deep Rising",
       "locationType": "earth",
       "cityDisplayName": "Gwishin Omnium, East China Sea",
@@ -2977,13 +3058,35 @@
       "lon": -72.545
     },
     {
-      "name": "Bad Company",
       "locationType": "earth",
       "cityDisplayName": "Oasis University, Iraq",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
+      "variants": [
+        {
+          "name": "Bad Company",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 29.5918,
+          "lon": 52.5836,
+          "cityDisplayName": "Oasis University, Iraq"
+        },
+        {
+          "name": "Networking",
+          "description": "",
+          "filters": [
+            "Domina",
+            "Moira"
+          ],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 45.4371908,
+          "lon": 12.3345898,
+          "cityDisplayName": "Venice, Italy"
+        }
+      ],
       "lat": 29.5918,
       "lon": 52.5836
     },
@@ -3052,6 +3155,17 @@
       "factions": [],
       "lat": -25.2800459,
       "lon": -57.6343814
+    },
+    {
+      "name": "Resolve",
+      "locationType": "earth",
+      "cityDisplayName": "Secret Omnium",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": -75.1,
+      "lon": 123.35
     },
     {
       "name": "Missing in Action",
@@ -4391,6 +4505,17 @@
       "lon": 12.5700724
     },
     {
+      "name": "Curse Breaker",
+      "locationType": "earth",
+      "cityDisplayName": "Tokyo, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.6768601,
+      "lon": 139.7638947
+    },
+    {
       "name": "Free the Phreaks",
       "locationType": "earth",
       "cityDisplayName": "Aatlis, Morocco",
@@ -4484,7 +4609,7 @@
       "variants": [
         {
           "name": "Signs of Life",
-          "description": "",
+          "description": "AER",
           "filters": [],
           "factions": [],
           "image": "",

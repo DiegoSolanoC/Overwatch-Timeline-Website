@@ -333,6 +333,44 @@ class EventDataService {
     saveEvents() {
         localStorage.setItem('timelineEvents', JSON.stringify(this.events));
         console.log('EventDataService: Events saved to localStorage');
+
+        // Dev server enhancement: if running locally, also persist to data/events.json via API.
+        // (Not available on GitHub Pages, and we keep that read-only.)
+        try {
+            const isGitHubPages = this.isGitHubPages();
+            const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+            // Allow mobile/LAN testing (hostname may be a local IP) as long as we're on the dev server port.
+            const isDevServerPort = String(window.location.port || '') === '8000';
+            const isLoopbackHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+            if (!isGitHubPages && isHttp && (isDevServerPort || isLoopbackHost)) {
+                fetch('/api/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ events: this.events })
+                })
+                    .then(async (res) => {
+                        if (!res.ok) {
+                            const data = await res.json().catch(() => ({}));
+                            throw new Error(data?.error || `HTTP ${res.status}`);
+                        }
+                        return res.json().catch(() => ({}));
+                    })
+                    .then((data) => {
+                        this.updateStatus(`✓ Saved to data/events.json (${data?.eventsCount ?? this.events.length} events)`, 'success');
+                    })
+                    .catch((e) => {
+                        console.warn('EventDataService: Failed to persist events.json via /api/events:', e);
+                        this.updateStatus(
+                            `Saved locally, but failed to write data/events.json (${e?.message || 'API error'}). ` +
+                            `If you just updated server code, restart the server.`,
+                            'warning'
+                        );
+                    });
+            }
+        } catch (e) {
+            // Ignore API persistence errors; localStorage is still updated.
+        }
     }
 
     /**
