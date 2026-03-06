@@ -10,7 +10,16 @@
 </head>
 <body>
     <header>
-        <h1>Timeline Overwatch</h1>
+        <div class="header-hub" id="headerHub" aria-label="Mode hub">
+            <button class="header-hub-btn" type="button" data-mode="globe" title="Global Timeline">Timeline</button>
+            <button class="header-hub-btn" type="button" data-mode="glossary" title="Concept Glossary">Glossary</button>
+            <button class="header-hub-btn" type="button" data-mode="biography" title="Character Bios">Bios</button>
+        </div>
+        <a class="header-title-badge header-title-badge--link" id="headerTitleBadge" href="https://overwatch.blizzard.com/en-us/" target="_blank" rel="noopener noreferrer" aria-label="Open official Overwatch website">
+            <img class="header-title-badge-logo" src="assets/images/misc/Website.png" alt="Overwatch Website" />
+            <span class="header-title-badge-sr">Timeline Overwatch</span>
+        </a>
+        <div class="header-hub-right" id="headerHubRight" aria-label="Exit hub"></div>
     </header>
 
     <div class="layout-container">

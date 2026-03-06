@@ -137,6 +137,52 @@ window.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+// Header hub: mode switching buttons (Timeline / Glossary / Bios)
+function setupHeaderHub() {
+    const hub = document.getElementById('headerHub');
+    if (!hub) return;
+
+    const setActive = (mode) => {
+        const effective = (mode === 'globe') ? 'globe' : (mode === 'menu' ? 'menu' : mode);
+        const btns = Array.from(hub.querySelectorAll('.header-hub-btn'));
+        btns.forEach((b) => b.classList.remove('header-hub-btn--active'));
+        // Only highlight Timeline when actually in globe mode.
+        if (effective === 'globe') {
+            const timelineBtn = hub.querySelector('.header-hub-btn[data-mode="globe"]');
+            if (timelineBtn) timelineBtn.classList.add('header-hub-btn--active');
+        }
+    };
+
+    hub.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('.header-hub-btn') : null;
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const mode = btn.dataset ? btn.dataset.mode : null;
+        if (typeof window.appModeSwitch === 'function') {
+            window.appModeSwitch(mode);
+        } else if (typeof window.restoreMainMenu === 'function') {
+            // Fallback if orchestrator isn't ready yet.
+            window.restoreMainMenu();
+        }
+    });
+
+    // Initial state
+    const currentMode = (localStorage.getItem('currentMode') || 'menu').toString().toLowerCase();
+    setActive(currentMode);
+
+    // Update on mode change
+    window.addEventListener('appmodechange', (ev) => {
+        setActive(ev?.detail?.mode || 'menu');
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupHeaderHub);
+} else {
+    setupHeaderHub();
+}
+
 // Zoom controls setup (shared between main/index pages)
 function setupZoomControls() {
     const zoomInBtn = document.getElementById('zoomInBtn');

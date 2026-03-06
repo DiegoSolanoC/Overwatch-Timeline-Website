@@ -18,37 +18,30 @@ export function createExitButton(setIsRunOperation, killGlobeComponents) {
         return document.getElementById('exitButton'); // Return existing button
     }
     
-    const contentEl = document.getElementById('content');
-    if (!contentEl) {
-        console.error('[Exit Button] Content element not found!');
-        updateStatus('✗ Error: Content element not found for exit button', 'error');
+    const headerRight = document.getElementById('headerHubRight');
+    const targetContainer = headerRight || document.querySelector('header');
+    if (!targetContainer) {
+        console.error('[Exit Button] Header element not found!');
+        updateStatus('✗ Error: Header not found for exit button', 'error');
         return null;
     }
     
     updateStatus('Adding exit button...', 'info');
     const exitBtn = document.createElement('button');
     exitBtn.id = 'exitButton';
-    exitBtn.className = 'globe-control-btn exit-btn';
-    exitBtn.style.position = 'absolute';
-    exitBtn.style.top = '20px';
-    exitBtn.style.right = '20px';
-    exitBtn.style.bottom = 'auto';
-    exitBtn.style.left = 'auto';
-    exitBtn.style.zIndex = '100'; // Lower than panels (200) so it stays behind when panels slide in
-    exitBtn.style.display = 'block'; // Ensure it's visible
-    exitBtn.style.visibility = 'visible'; // Ensure it's visible
+    exitBtn.className = 'header-hub-btn header-hub-btn--exit';
+    exitBtn.type = 'button';
     exitBtn.title = 'Exit to Main Menu';
-    exitBtn.innerHTML = `
-        <span id="exitIcon">
-            <img src="assets/images/icons/Home Button.png" alt="Exit" style="width: 100%; height: 100%; object-fit: contain;">
-        </span>
-    `;
-    contentEl.appendChild(exitBtn);
-    console.log('[Exit Button] Button created and appended to content element');
+    exitBtn.setAttribute('aria-label', 'Exit to Main Menu');
+    exitBtn.innerHTML = `<span class="header-hub-icon"><img src="assets/images/icons/Home Button.png" alt="" /></span>`;
+    targetContainer.appendChild(exitBtn);
+    console.log('[Exit Button] Button created and appended to header');
     updateStatus('✓ Exit button added', 'success');
     
     // Setup exit button click handler
-    exitBtn.addEventListener('click', async function() {
+    exitBtn.addEventListener('click', async function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('[Exit Button] Exit clicked, starting exit process...');
         setIsRunOperation(true);
         showLoadingOverlay();
@@ -69,7 +62,11 @@ export function createExitButton(setIsRunOperation, killGlobeComponents) {
         updateStatus('Exiting to main menu...', 'info');
         
         try {
-            await killGlobeComponents();
+            if (typeof window.appModeSwitch === 'function') {
+                await window.appModeSwitch('menu');
+            } else {
+                await killGlobeComponents();
+            }
         } catch (error) {
             console.error('[Exit Button] Error in killGlobeComponents:', error);
         } finally {

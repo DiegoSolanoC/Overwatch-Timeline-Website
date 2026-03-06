@@ -573,3 +573,65 @@ document.addEventListener('DOMContentLoaded', function() {
 window.runUniversalFeatures = runUniversalFeatures;
 window.runMenuComponents = runMenuComponents;
 window.runGlobeComponents = runGlobeComponents;
+
+// Expose kill operations for header hub mode switching
+window.killGlobeComponents = killGlobeComponents;
+window.killMenuComponents = killMenuComponents;
+window.runGlossaryComponents = runGlossaryComponents;
+window.killGlossaryComponents = killGlossaryComponents;
+window.runBiographyComponents = runBiographyComponents;
+window.killBiographyComponents = killBiographyComponents;
+
+// Header hub mode switch API
+// - Switches between "globe" and "menu" modes
+// - Glossary/Biography are not implemented yet; selecting them returns to main menu
+window.appModeSwitch = async function appModeSwitch(targetMode) {
+    const requested = (targetMode || '').toString().toLowerCase();
+    const normalized = (requested === 'timeline') ? 'globe' : requested;
+    const next = (normalized === 'globe' || normalized === 'glossary' || normalized === 'biography')
+        ? normalized
+        : 'menu';
+
+    // If "coming soon" modes are requested, route to main menu.
+    const effectiveNext = (next === 'glossary' || next === 'biography') ? 'menu' : next;
+
+    // Determine current mode. Globe orchestrator stores "globe" etc; menu uses absence.
+    const current = (localStorage.getItem('currentMode') || 'menu').toString().toLowerCase();
+
+    try {
+        // Unload current mode assets (universal features stay loaded)
+        if (current === 'globe') {
+            await window.killGlobeComponents?.();
+        } else if (current === 'glossary') {
+            await window.killGlossaryComponents?.();
+            await window.restoreMainMenu?.();
+        } else if (current === 'biography') {
+            await window.killBiographyComponents?.();
+            await window.restoreMainMenu?.();
+        } else {
+            // Already in menu; ensure menu visible
+            await window.restoreMainMenu?.();
+        }
+
+        // Load target mode assets
+        if (effectiveNext === 'globe') {
+            await window.runGlobeComponents?.(false);
+        } else {
+            await window.restoreMainMenu?.();
+            localStorage.setItem('currentMode', 'menu');
+            if (next === 'glossary' || next === 'biography') {
+                if (typeof window.updateStatus === 'function') {
+                    window.updateStatus('This mode is coming soon — returning to main menu.', 'info');
+                }
+            }
+        }
+
+        window.dispatchEvent(new CustomEvent('appmodechange', { detail: { mode: effectiveNext } }));
+    } catch (e) {
+        console.error('appModeSwitch failed:', e);
+        try {
+            await window.restoreMainMenu?.();
+        } catch (_) {}
+        window.dispatchEvent(new CustomEvent('appmodechange', { detail: { mode: 'menu' } }));
+    }
+};
