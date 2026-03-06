@@ -139,33 +139,44 @@ window.addEventListener('DOMContentLoaded', function () {
 
 // Header hub: mode switching buttons (Timeline / Glossary / Bios)
 function setupHeaderHub() {
-    const hub = document.getElementById('headerHub');
-    if (!hub) return;
+    const hubs = [
+        document.getElementById('headerHub'),
+        document.getElementById('headerHubRight')
+    ].filter(Boolean);
+    if (hubs.length === 0) return;
 
     const setActive = (mode) => {
         const effective = (mode === 'globe') ? 'globe' : (mode === 'menu' ? 'menu' : mode);
-        const btns = Array.from(hub.querySelectorAll('.header-hub-btn'));
-        btns.forEach((b) => b.classList.remove('header-hub-btn--active'));
-        // Only highlight Timeline when actually in globe mode.
+        hubs.forEach((hub) => {
+            const btns = Array.from(hub.querySelectorAll('.header-hub-btn'));
+            btns.forEach((b) => b.classList.remove('header-hub-btn--active'));
+        });
+        // Only highlight Timeline when actually in globe mode (left hub).
         if (effective === 'globe') {
-            const timelineBtn = hub.querySelector('.header-hub-btn[data-mode="globe"]');
+            const leftHub = document.getElementById('headerHub');
+            const timelineBtn = leftHub ? leftHub.querySelector('.header-hub-btn[data-mode="globe"]') : null;
             if (timelineBtn) timelineBtn.classList.add('header-hub-btn--active');
         }
     };
 
-    hub.addEventListener('click', (e) => {
+    const onHubClick = (e) => {
         const btn = e.target && e.target.closest ? e.target.closest('.header-hub-btn') : null;
         if (!btn) return;
         e.preventDefault();
         e.stopPropagation();
+
         const mode = btn.dataset ? btn.dataset.mode : null;
+        const action = btn.dataset ? btn.dataset.action : null;
+        const target = mode || (action === 'menu' ? 'menu' : null);
+
         if (typeof window.appModeSwitch === 'function') {
-            window.appModeSwitch(mode);
+            window.appModeSwitch(target);
         } else if (typeof window.restoreMainMenu === 'function') {
-            // Fallback if orchestrator isn't ready yet.
             window.restoreMainMenu();
         }
-    });
+    };
+
+    hubs.forEach((hub) => hub.addEventListener('click', onHubClick));
 
     // Initial state
     const currentMode = (localStorage.getItem('currentMode') || 'menu').toString().toLowerCase();

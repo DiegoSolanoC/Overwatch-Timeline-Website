@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Timeline Overwatch - Interactive 3D Timeline</title>
     <link rel="icon" type="image/png" href="assets/images/icons/Icon.png">
-    <link rel="stylesheet" href="styles.css?v=6">
-    <link rel="stylesheet" href="styles/entry.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles/entry.css?v=7">
 </head>
 <body>
     <header>
@@ -15,11 +15,18 @@
             <button class="header-hub-btn" type="button" data-mode="glossary" title="Concept Glossary">Glossary</button>
             <button class="header-hub-btn" type="button" data-mode="biography" title="Character Bios">Bios</button>
         </div>
+        <div class="header-hub header-hub--right" id="headerHubRight" aria-label="Main menu">
+            <button class="header-hub-btn header-hub-btn--exit header-hub-btn--icon" type="button" data-action="menu" title="Exit to Main Menu" aria-label="Exit to Main Menu">
+                <img class="header-hub-icon" src="assets/images/icons/Home Button.png" alt="" />
+            </button>
+        </div>
         <a class="header-title-badge header-title-badge--link" id="headerTitleBadge" href="https://overwatch.blizzard.com/en-us/" target="_blank" rel="noopener noreferrer" aria-label="Open official Overwatch website">
+            <svg class="header-title-badge-shape" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <path class="header-title-badge-path" vector-effect="non-scaling-stroke" d="M28 10 H72 Q76 10 78 14 L92 90 Q94 98 86 98 H14 Q6 98 8 90 L22 14 Q24 10 28 10 Z"></path>
+            </svg>
             <img class="header-title-badge-logo" src="assets/images/misc/Website.png" alt="Overwatch Website" />
             <span class="header-title-badge-sr">Timeline Overwatch</span>
         </a>
-        <div class="header-hub-right" id="headerHubRight" aria-label="Exit hub"></div>
     </header>
 
     <div class="layout-container">
@@ -242,69 +249,69 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     
     <!-- InteractionController dependencies - load before component-loader (which imports InteractionController) -->
-    <script src="src/services/MarkerPulseService.js?v=6"></script>
-    <script src="src/services/MapEdgeGlowService.js?v=6"></script>
-    <script src="src/services/CameraControlService.js?v=6"></script>
-    <script src="src/services/MouseInteractionService.js?v=6"></script>
-    <script src="src/services/TouchInteractionService.js?v=6"></script>
-    <script src="src/services/MarkerInteractionService.js?v=6"></script>
-    <script src="src/services/StationFollowService.js?v=6"></script>
+    <script src="src/services/MarkerPulseService.js?v=7"></script>
+    <script src="src/services/MapEdgeGlowService.js?v=7"></script>
+    <script src="src/services/CameraControlService.js?v=7"></script>
+    <script src="src/services/MouseInteractionService.js?v=7"></script>
+    <script src="src/services/TouchInteractionService.js?v=7"></script>
+    <script src="src/services/MarkerInteractionService.js?v=7"></script>
+    <script src="src/services/StationFollowService.js?v=7"></script>
     
     <!-- Load component loader for globe/menu/features -->
-    <script type="module" src="src/app/component-loader.js?v=6"></script>
+    <script type="module" src="src/app/component-loader.js?v=7"></script>
     
     <!-- Load services -->
-    <script src="src/services/SoundEffectsManager.js?v=6"></script>
-    <script src="src/services/GlitchTextService.js?v=6"></script>
-    <script src="src/services/EventDataService.js?v=6"></script>
-    <script src="src/services/LocationService.js?v=6"></script>
-    <script src="src/services/EventRenderService.js?v=6"></script>
-    <script src="src/services/EventEditService.js?v=6"></script>
-    <script src="src/services/NewsTickerService.js?v=6"></script>
+    <script src="src/services/SoundEffectsManager.js?v=7"></script>
+    <script src="src/services/GlitchTextService.js?v=7"></script>
+    <script src="src/services/EventDataService.js?v=7"></script>
+    <script src="src/services/LocationService.js?v=7"></script>
+    <script src="src/services/EventRenderService.js?v=7"></script>
+    <script src="src/services/EventEditService.js?v=7"></script>
+    <script src="src/services/NewsTickerService.js?v=7"></script>
     <!-- EventFormService dependencies - load before EventFormService -->
-    <script src="src/services/LocationFieldManager.js?v=6"></script>
-    <script src="src/services/SourceFieldManager.js?v=6"></script>
-    <script src="src/services/HeadlinesFieldManager.js?v=6"></script>
-    <script src="src/services/FormAutocompleteService.js?v=6"></script>
-    <script src="src/services/EventFormService.js?v=6"></script>
+    <script src="src/services/LocationFieldManager.js?v=7"></script>
+    <script src="src/services/SourceFieldManager.js?v=7"></script>
+    <script src="src/services/HeadlinesFieldManager.js?v=7"></script>
+    <script src="src/services/FormAutocompleteService.js?v=7"></script>
+    <script src="src/services/EventFormService.js?v=7"></script>
     <!-- ModalSaveService - load before EventManager -->
-    <script src="src/services/ModalSaveService.js?v=6"></script>
-    <script src="src/services/EventDragDropService.js?v=6"></script>
-    <script src="src/services/EventListenerService.js?v=6"></script>
-    <script src="src/services/EventInteractionService.js?v=6"></script>
-    <script src="src/services/EventInitService.js?v=6"></script>
-    <script src="src/services/CityLookupService.js?v=6"></script>
-    <script src="src/services/ImagePathService.js?v=6"></script>
-    <script src="src/services/GlobeSyncService.js?v=6"></script>
+    <script src="src/services/ModalSaveService.js?v=7"></script>
+    <script src="src/services/EventDragDropService.js?v=7"></script>
+    <script src="src/services/EventListenerService.js?v=7"></script>
+    <script src="src/services/EventInteractionService.js?v=7"></script>
+    <script src="src/services/EventInitService.js?v=7"></script>
+    <script src="src/services/CityLookupService.js?v=7"></script>
+    <script src="src/services/ImagePathService.js?v=7"></script>
+    <script src="src/services/GlobeSyncService.js?v=7"></script>
     <!-- MusicManager dependencies - load before MusicManager -->
-    <script src="src/services/MusicStateService.js?v=6"></script>
-    <script src="src/services/MusicShuffleService.js?v=6"></script>
-    <script src="src/services/MusicVolumeService.js?v=6"></script>
-    <script src="src/services/MusicProgressService.js?v=6"></script>
-    <script src="src/services/MusicPlaybackService.js?v=6"></script>
-    <script src="src/services/MusicFileService.js?v=6"></script>
-    <script src="src/services/MusicPanelService.js?v=6"></script>
-    <script src="src/services/MusicIconService.js?v=6"></script>
-    <script src="src/services/MusicControlService.js?v=6"></script>
-    <script src="src/services/helpers/MusicManagerInitHelpers.js?v=6"></script>
-    <script src="src/services/MusicManager.js?v=6"></script>
+    <script src="src/services/MusicStateService.js?v=7"></script>
+    <script src="src/services/MusicShuffleService.js?v=7"></script>
+    <script src="src/services/MusicVolumeService.js?v=7"></script>
+    <script src="src/services/MusicProgressService.js?v=7"></script>
+    <script src="src/services/MusicPlaybackService.js?v=7"></script>
+    <script src="src/services/MusicFileService.js?v=7"></script>
+    <script src="src/services/MusicPanelService.js?v=7"></script>
+    <script src="src/services/MusicIconService.js?v=7"></script>
+    <script src="src/services/MusicControlService.js?v=7"></script>
+    <script src="src/services/helpers/MusicManagerInitHelpers.js?v=7"></script>
+    <script src="src/services/MusicManager.js?v=7"></script>
     <!-- Filter services - load dependencies before FilterService -->
-    <script src="src/services/FilterStateManager.js?v=6"></script>
-    <script src="src/services/FilterImageService.js?v=6"></script>
+    <script src="src/services/FilterStateManager.js?v=7"></script>
+    <script src="src/services/FilterImageService.js?v=7"></script>
     <!-- FilterService helpers - load before FilterService -->
-    <script type="module" src="src/services/helpers/FilterButtonHelpers.js?v=6"></script>
-    <script type="module" src="src/services/helpers/FilterButtonSetupHelpers.js?v=6"></script>
-    <script type="module" src="src/services/helpers/FilterManifestHelpers.js?v=6"></script>
-    <script type="module" src="src/services/helpers/FilterTabHelpers.js?v=6"></script>
-    <script type="module" src="src/services/helpers/FilterCountHelpers.js?v=6"></script>
-    <script src="src/services/FilterService.js?v=6"></script>
-    <script src="src/services/SidebarService.js?v=6"></script>
+    <script type="module" src="src/services/helpers/FilterButtonHelpers.js?v=7"></script>
+    <script type="module" src="src/services/helpers/FilterButtonSetupHelpers.js?v=7"></script>
+    <script type="module" src="src/services/helpers/FilterManifestHelpers.js?v=7"></script>
+    <script type="module" src="src/services/helpers/FilterTabHelpers.js?v=7"></script>
+    <script type="module" src="src/services/helpers/FilterCountHelpers.js?v=7"></script>
+    <script src="src/services/FilterService.js?v=7"></script>
+    <script src="src/services/SidebarService.js?v=7"></script>
     
     <!-- Load main script for sidebar and other UI -->
-    <script src="script.js?v=6"></script>
+    <script src="script.js?v=7"></script>
     
     <!-- Shared page initialization (sidebar visibility, loader, zoom controls) -->
-    <script src="src/app/page-init.js?v=6"></script>
+    <script src="src/app/page-init.js?v=7"></script>
 </body>
 </html>
 

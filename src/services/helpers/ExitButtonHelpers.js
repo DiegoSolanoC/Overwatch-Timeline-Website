@@ -18,14 +18,20 @@ export function createExitButton({ overlayService, statusService }) {
     statusService.update('Adding exit button...', 'info');
     const exitBtn = document.createElement('button');
     exitBtn.id = 'exitButton';
-    exitBtn.className = 'header-hub-btn header-hub-btn--exit';
-    exitBtn.type = 'button';
+    exitBtn.className = 'globe-control-btn exit-btn';
+    exitBtn.style.position = 'absolute';
+    exitBtn.style.top = '20px';
+    exitBtn.style.right = '20px';
+    exitBtn.style.bottom = 'auto';
+    exitBtn.style.left = 'auto';
+    exitBtn.style.zIndex = '100'; // Lower than panels (200) so it stays behind when panels slide in
     exitBtn.title = 'Exit to Main Menu';
-    exitBtn.setAttribute('aria-label', 'Exit to Main Menu');
-    exitBtn.innerHTML = `<span class="header-hub-icon"><img src="assets/images/icons/Home Button.png" alt="" /></span>`;
-    const headerRight = document.getElementById('headerHubRight');
-    const target = headerRight || document.querySelector('header');
-    if (target) target.appendChild(exitBtn);
+    exitBtn.innerHTML = `
+        <span id="exitIcon">
+            <img src="assets/images/icons/Home Button.png" alt="Exit" style="width: 100%; height: 100%; object-fit: contain;">
+        </span>
+    `;
+    document.getElementById('content').appendChild(exitBtn);
     statusService.update('✓ Exit button added', 'success');
     
     // Setup exit button click handler
@@ -48,12 +54,8 @@ export function createExitButton({ overlayService, statusService }) {
         statusService.update('Exiting to main menu...', 'info');
         
         try {
-            if (typeof window.appModeSwitch === 'function') {
-                await window.appModeSwitch('menu');
-            } else if (window.killGlobeComponents) {
+            if (window.killGlobeComponents) {
                 await window.killGlobeComponents();
-            } else if (window.restoreMainMenu) {
-                await window.restoreMainMenu();
             }
         } catch (error) {
             console.error('[Exit Button] Error in killGlobeComponents:', error);

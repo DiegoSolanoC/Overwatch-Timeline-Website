@@ -8,9 +8,18 @@
     :root {
         /* Slightly shorter footer on tall phones to reduce dead space */
         --footer-height: 60px;
+        /* Include notch safe area in header height on mobile */
+        --header-height: calc(60px + env(safe-area-inset-top));
     }
-    header h1 {
-        font-size: 1.2rem;
+
+    header {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    /* Title badge: keep it fully visible below notch */
+    .header-title-badge {
+        top: 0 !important;
+        height: calc(var(--header-height) + 8px) !important;
     }
 
     /* Reduce button sizes for mobile vertical displays */
