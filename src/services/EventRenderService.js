@@ -9,6 +9,7 @@ class EventRenderService {
         this.eventManager = null;
         this._animateNextPageRender = false;
         this._entranceAnimToken = 0;
+        this._eventManagerImgObserver = null;
     }
 
     /**
@@ -70,6 +71,48 @@ class EventRenderService {
                 el.style.transitionDelay = '';
             });
         }, totalMs);
+    }
+
+    _setupEventManagerImageLazyLoading(eventsList) {
+        if (!eventsList) return;
+
+        const imgs = Array.from(eventsList.querySelectorAll('img[data-src]'));
+        if (imgs.length === 0) return;
+
+        // Fallback: older browsers
+        if (!('IntersectionObserver' in window)) {
+            imgs.forEach((img) => {
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    delete img.dataset.src;
+                }
+            });
+            return;
+        }
+
+        // Root should be the scroll container.
+        if (this._eventManagerImgObserver) {
+            this._eventManagerImgObserver.disconnect();
+        }
+
+        this._eventManagerImgObserver = new IntersectionObserver((entries, obs) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                const img = entry.target;
+                const src = img.dataset ? img.dataset.src : null;
+                if (src) {
+                    img.src = src;
+                    delete img.dataset.src;
+                }
+                obs.unobserve(img);
+            });
+        }, {
+            root: eventsList,
+            rootMargin: '200px 0px',
+            threshold: 0.01
+        });
+
+        imgs.forEach((img) => this._eventManagerImgObserver.observe(img));
     }
 
     /**
@@ -154,6 +197,7 @@ class EventRenderService {
             fragment.appendChild(eventItem);
         });
         eventsList.appendChild(fragment);
+        this._setupEventManagerImageLazyLoading(eventsList);
 
         const renderTime = performance.now() - renderStartTime;
         console.log(`EventRenderService: Rendered ${eventsToRender.length} event items (${renderTime.toFixed(0)}ms)`);
@@ -513,7 +557,7 @@ class EventRenderService {
         
         // Always use the same container structure to maintain consistent sizing
         const imageHtml = imagePathWithCache
-            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img src="${imagePathWithCache}" alt="${displayEvent.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload=""></div>`
+            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img data-src="${imagePathWithCache}" alt="${displayEvent.name}" decoding="async" fetchpriority="low" style="width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.18s ease;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload="this.style.opacity='1';"></div>`
             : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">No Image</div>`;
 
         // Multi-event indicator badge - show current variant / total (e.g., "1/2")
