@@ -17,6 +17,17 @@ export class ComponentOrchestrator {
         this.unloaders = unloaders; // Object with unload functions: { palette: unloadPalette, music: unloadMusic, ... }
     }
 
+    dispatchAppModeChange(mode) {
+        try {
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('appmodechange', { detail: { mode } }));
+            }
+        } catch (e) {
+            // Non-fatal; mode switching should still work even if CustomEvent is unavailable.
+            console.warn('dispatchAppModeChange failed:', e);
+        }
+    }
+
     /**
      * Play mode switch sound effect
      * @param {boolean} isAutoLoad - If true, don't play sound
@@ -64,6 +75,7 @@ export class ComponentOrchestrator {
             if (menuButtons) {
                 menuButtons.style.display = 'flex';
                 updateStatus('✓ Menu Components are running!', 'success');
+                this.dispatchAppModeChange('menu');
             } else {
                 updateStatus('⚠ Menu buttons not found', 'error');
             }
@@ -274,6 +286,10 @@ export class ComponentOrchestrator {
                 };
                 updateTickerDelayed();
             }
+
+            // Ensure header hub state updates even when globe is started from the main menu button
+            // (which runs loaders directly and doesn't go through appModeSwitch()).
+            this.dispatchAppModeChange('globe');
         } catch (error) {
             console.error('Error in Globe Components auto-load:', error);
             updateStatus(`✗ Error in Globe Components auto-load: ${error.message}`, 'error');
@@ -464,6 +480,9 @@ export class ComponentOrchestrator {
         const filtersToggle = document.getElementById('filtersToggle');
         if (eventsManageToggle) eventsManageToggle.classList.remove('active');
         if (filtersToggle) filtersToggle.classList.remove('active');
+
+        // Keep header hub (and Home button visibility) in sync with the actual loaded state.
+        this.dispatchAppModeChange('menu');
     }
 
     /**

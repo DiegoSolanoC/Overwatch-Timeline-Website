@@ -145,8 +145,16 @@ function setupHeaderHub() {
     ].filter(Boolean);
     if (hubs.length === 0) return;
 
+    const isTimelineActuallyLoaded = () => {
+        const globeContainer = document.getElementById('globe-container');
+        return !!(globeContainer && globeContainer.classList.contains('loaded') && window.globeController);
+    };
+
     const setActive = (mode) => {
-        const effective = (mode === 'globe') ? 'globe' : (mode === 'menu' ? 'menu' : mode);
+        const requested = (mode === 'globe') ? 'globe' : (mode === 'menu' ? 'menu' : mode);
+        // If someone refreshes while localStorage says "globe", we should still start in menu mode
+        // until timeline assets are actually loaded.
+        const effective = (requested === 'globe' && !isTimelineActuallyLoaded()) ? 'menu' : requested;
         hubs.forEach((hub) => {
             const btns = Array.from(hub.querySelectorAll('.header-hub-btn'));
             btns.forEach((b) => b.classList.remove('header-hub-btn--active'));
@@ -156,6 +164,22 @@ function setupHeaderHub() {
             const leftHub = document.getElementById('headerHub');
             const timelineBtn = leftHub ? leftHub.querySelector('.header-hub-btn[data-mode="globe"]') : null;
             if (timelineBtn) timelineBtn.classList.add('header-hub-btn--active');
+        }
+
+        // Home/Exit should only appear while a mode's assets are actually loaded.
+        // Right now only Timeline (globe) has assets, so it should only show there.
+        const rightHub = document.getElementById('headerHubRight');
+        const exitBtn = rightHub
+            ? (rightHub.querySelector('.header-hub-btn--exit') || rightHub.querySelector('.header-hub-btn[data-action="menu"]'))
+            : null;
+        if (exitBtn) {
+            const show = (effective === 'globe') && isTimelineActuallyLoaded();
+            exitBtn.style.display = show ? '' : 'none';
+        }
+
+        // Keep storage sane: if we aren't actually in globe (assets not loaded), store "menu".
+        if (effective === 'menu') {
+            localStorage.setItem('currentMode', 'menu');
         }
     };
 

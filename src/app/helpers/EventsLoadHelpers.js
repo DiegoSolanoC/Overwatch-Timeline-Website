@@ -18,19 +18,31 @@ export function setupEventUIComponents({ updateStatus }) {
     // Add filter button
     createGlobeControlButton({
         id: 'filtersToggle',
-        className: 'filters-btn top-left-btn',
+        className: '',
         title: 'Open Filters',
         iconPath: 'assets/images/icons/Filter Icon.png',
-        iconAlt: 'Filters'
+        iconAlt: 'Filters',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 20,
+        mobileParentId: 'content',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'filters-btn top-left-btn'
     });
     
     // Add event manager button
     createGlobeControlButton({
         id: 'eventsManageToggle',
-        className: 'events-manage-btn top-left-btn',
+        className: '',
         title: 'Manage Events',
         iconPath: 'assets/images/icons/Event Manager Icon.png',
-        iconAlt: 'Event Manager'
+        iconAlt: 'Event Manager',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 10,
+        mobileParentId: 'content',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'events-manage-btn top-left-btn'
     });
     
     // Add event pagination

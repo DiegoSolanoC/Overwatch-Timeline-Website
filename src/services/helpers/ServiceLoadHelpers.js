@@ -17,27 +17,79 @@ if (typeof window !== 'undefined') {
  * @param {string} config.iconPath - Path to icon image
  * @param {string} config.iconAlt - Alt text for icon
  * @param {string} config.parentId - ID of parent element to append to
+ * @param {string} config.baseClass - Base CSS class(es) for the button (default: globe-control-btn)
+ * @param {string} config.iconSpanId - Optional explicit ID for the icon span
+ * @param {number} config.headerOrder - Optional ordering for header hub placement
  * @param {Object} statusService - Status service for updates
  * @returns {HTMLElement|null} - The created button element or existing one
  */
-export function createGlobeControlButton({ id, className, title, iconPath, iconAlt, parentId = 'content' }, statusService) {
+export function createGlobeControlButton({
+    id,
+    className,
+    title,
+    iconPath,
+    iconAlt,
+    parentId = 'content',
+    baseClass = 'globe-control-btn',
+    iconSpanId = null,
+    headerOrder = null
+}, statusService) {
     if (document.getElementById(id)) {
         return document.getElementById(id);
     }
+
+    const finalIconSpanId = iconSpanId || `${id}Icon`;
     
     const button = document.createElement('button');
     button.id = id;
-    button.className = `globe-control-btn ${className || ''}`;
+    button.className = `${baseClass} ${className || ''}`.trim();
     button.title = title;
+    if (title) {
+        button.setAttribute('aria-label', title);
+    }
+    const isHeaderHubBtn = (baseClass || '').includes('header-hub-btn');
+    const imgClass = isHeaderHubBtn ? 'header-hub-icon' : '';
+    const imgStyle = isHeaderHubBtn
+        ? 'object-fit: contain;'
+        : 'width: 100%; height: 100%; object-fit: contain;';
+
     button.innerHTML = `
-        <span id="${id}Icon">
-            <img src="${iconPath}" alt="${iconAlt}" style="width: 100%; height: 100%; object-fit: contain;">
+        <span id="${finalIconSpanId}">
+            <img class="${imgClass}" src="${iconPath}" alt="${iconAlt}" style="${imgStyle}">
         </span>
     `;
     
     const parent = document.getElementById(parentId);
     if (parent) {
         parent.appendChild(button);
+
+        if (headerOrder !== null && headerOrder !== undefined) {
+            button.dataset.headerOrder = String(headerOrder);
+        }
+
+        if (parentId === 'headerHubRight') {
+            const exitBtn =
+                parent.querySelector('.header-hub-btn--exit') ||
+                parent.querySelector('[data-action="menu"]');
+            const buttons = Array.from(parent.querySelectorAll('button'))
+                .filter(b => b !== exitBtn);
+
+            buttons.sort((a, b) => {
+                const ao = a.dataset.headerOrder ? parseFloat(a.dataset.headerOrder) : 9999;
+                const bo = b.dataset.headerOrder ? parseFloat(b.dataset.headerOrder) : 9999;
+                if (ao !== bo) return ao - bo;
+                return (a.id || '').localeCompare(b.id || '');
+            });
+
+            buttons.forEach(b => {
+                if (exitBtn) {
+                    parent.insertBefore(b, exitBtn);
+                } else {
+                    parent.appendChild(b);
+                }
+            });
+        }
+
         if (statusService) {
             statusService.update(`✓ ${title} button added`, 'success');
         }

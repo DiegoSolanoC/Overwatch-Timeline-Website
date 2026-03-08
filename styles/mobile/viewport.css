@@ -18,8 +18,20 @@
 
     /* Title badge: keep it fully visible below notch */
     .header-title-badge {
-        top: 0 !important;
-        height: calc(var(--header-height) + 8px) !important;
+        /* Pull slightly upward so it doesn't look "below" the header */
+        top: -8px !important;
+        height: calc(var(--header-height) + 12px) !important;
+        /* Let `styles/layout.css` control the 40/20/40 proportions */
+        min-width: 0 !important;
+        width: var(--header-center-width) !important;
+        max-width: unset !important;
+        padding: 0 6px !important;
+    }
+
+    .header-title-badge-logo {
+        max-width: 100% !important;
+        height: 66% !important;
+        max-height: 40px !important;
     }
 
     /* Reduce button sizes for mobile vertical displays */
@@ -41,59 +53,59 @@
         font-size: 14px !important;
     }
 
-    .top-left-btn {
+    .globe-control-btn.top-left-btn {
         width: 60px !important;
         height: 50px !important;
         font-size: 12px !important;
     }
 
     /* Left-side spacing: match right-side gap (10px between buttons, same as music/palette) */
-    .filters-btn {
+    .globe-control-btn.filters-btn {
         left: 90px !important; /* 20 + 60 (button width) + 10 (gap) */
     }
 
     /* Map + Transport row (second row) */
-    #mapViewToggle {
+    .globe-control-btn#mapViewToggle {
         bottom: auto !important;
         top: 80px !important; /* Below event manager row */
         left: 20px !important;
     }
-    .hyperloop-btn {
+    .globe-control-btn.hyperloop-btn {
         top: 80px !important;
         left: 90px !important; /* 20 + 60 + 10 gap */
     }
 
     /* Rotation row (third row, globe view only) */
-    #autoRotateToggle {
+    .globe-control-btn#autoRotateToggle {
         top: 140px !important; /* Below map+transport row */
         left: 20px !important;
     }
 
     /* Map view: hide rotation toggle (map has no auto-rotation) */
-    body.map-view-enabled #autoRotateToggle {
+    body.map-view-enabled .globe-control-btn#autoRotateToggle {
         display: none !important;
         visibility: hidden !important;
         pointer-events: none !important;
     }
     /* Map toggle stays on row 2 in all modes. */
 
-    .bottom-right-btn {
+    .globe-control-btn.bottom-right-btn {
         width: 60px !important;
         height: 50px !important;
         font-size: 12px !important;
     }
 
     /* Music and Color Palette – below exit button on mobile (exit is top: 20px, height 50px → start at 80px) */
-    .music-btn.bottom-right-btn,
-    .color-palette-btn.bottom-right-btn {
+    .globe-control-btn.music-btn.bottom-right-btn,
+    .globe-control-btn.color-palette-btn.bottom-right-btn {
         bottom: auto !important;
         top: 80px !important;
         right: 20px !important;
     }
-    .music-btn.bottom-right-btn {
+    .globe-control-btn.music-btn.bottom-right-btn {
         right: 90px !important; /* Next to palette (60px width + 10px gap) */
     }
-    .color-palette-btn.bottom-right-btn {
+    .globe-control-btn.color-palette-btn.bottom-right-btn {
         right: 20px !important; /* Rightmost, aligned with exit */
     }
 
@@ -103,12 +115,11 @@
     }
 
     .palette-menu {
-        top: 200px !important; /* Below palette button (80 + 50 + 20px gap so circles don’t overlap) */
-        bottom: auto !important;
-        transform: translateY(-20px) !important; /* Start above; will slide down when open */
+        /* Palette menu is positioned dynamically under the palette toggle. */
+        transform: translate(-50%, -20px) !important; /* Start above; keep centered under icon */
     }
     .palette-menu.open {
-        transform: translateY(0) !important; /* Slide down into place */
+        transform: translate(-50%, 0) !important; /* Slide down into place */
     }
 
     /* Panels: full width, slide in/out from right */

@@ -73,10 +73,14 @@ async function loadPalette() {
         // Add palette button (if not already present)
         createGlobeControlButton({
             id: 'colorPaletteToggle',
-            className: 'color-palette-btn bottom-right-btn',
+            className: '',
             title: 'Toggle Color Palette',
             iconPath: 'assets/images/icons/Palette Icon.png',
-            iconAlt: 'Color Palette'
+            iconAlt: 'Color Palette',
+            parentId: 'headerHubRight',
+            baseClass: 'header-hub-btn header-hub-btn--icon',
+            iconSpanId: 'colorPaletteIcon',
+            headerOrder: 50
         });
         
         // Load palette sound effect
@@ -210,10 +214,17 @@ async function loadTransport() {
         // Add transport toggle (if not already present)
         createGlobeControlButton({
             id: 'hyperloopToggle',
-            className: 'hyperloop-btn active',
+            className: 'active',
             title: 'Toggle Transport Systems',
             iconPath: 'assets/images/icons/Train Icon.png',
-            iconAlt: 'Transport'
+            iconAlt: 'Transport',
+            parentId: 'headerHubRight',
+            baseClass: 'header-hub-btn header-hub-btn--icon',
+            iconSpanId: 'hyperloopIcon',
+            headerOrder: 40,
+            mobileParentId: 'content',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'hyperloop-btn'
         });
         
         // Setup transport toggle
@@ -274,16 +285,24 @@ async function loadControls() {
             className: '',
             title: 'Toggle Auto-Rotation',
             iconPath: 'assets/images/icons/Rotation Icon.png',
-            iconAlt: 'Rotate'
+            iconAlt: 'Rotate',
+            iconSpanId: 'rotateIcon'
         });
 
         // Add map view toggle (globe <-> flat map)
         createGlobeControlButton({
             id: 'mapViewToggle',
-            className: 'map-view-btn',
+            className: '',
             title: 'Toggle Map View',
             iconPath: 'assets/images/icons/Location Icon.png',
-            iconAlt: 'Map'
+            iconAlt: 'Map',
+            parentId: 'headerHubRight',
+            baseClass: 'header-hub-btn header-hub-btn--icon',
+            iconSpanId: 'mapViewToggleIcon',
+            headerOrder: 30,
+            mobileParentId: 'content',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: ''
         });
         
         // Add exit button (if not already present)
@@ -345,10 +364,13 @@ async function loadMusic() {
         // Add music toggle button (if not already present)
         createGlobeControlButton({
             id: 'musicToggle',
-            className: 'music-btn bottom-right-btn',
+            className: '',
             title: 'Music Options',
             iconPath: 'assets/images/icons/Music Icon.png',
-            iconAlt: 'Music'
+            iconAlt: 'Music',
+            parentId: 'headerHubRight',
+            baseClass: 'header-hub-btn header-hub-btn--icon',
+            headerOrder: 60
         });
         
         // Add music panel HTML (if not already present)

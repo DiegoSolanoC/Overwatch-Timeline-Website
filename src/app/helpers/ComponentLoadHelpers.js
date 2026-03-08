@@ -7,6 +7,86 @@ import { showLoadingOverlay, hideLoadingOverlay } from '../../managers/LoadingOv
 import { updateStatus } from '../../managers/StatusManager.js';
 import { setButtonState } from '../../managers/ButtonStateManager.js';
 
+let responsiveMountingInitialized = false;
+
+function _isMobileHeaderMode() {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function _getHeaderHubRight() {
+    return typeof document !== 'undefined' ? document.getElementById('headerHubRight') : null;
+}
+
+function _sortHeaderHubRight(parent) {
+    if (!parent) return;
+    const exitBtn =
+        parent.querySelector('.header-hub-btn--exit') ||
+        parent.querySelector('[data-action="menu"]');
+    const buttons = Array.from(parent.querySelectorAll('button')).filter(b => b !== exitBtn);
+
+    buttons.sort((a, b) => {
+        const ao = a.dataset.headerOrder ? parseFloat(a.dataset.headerOrder) : 9999;
+        const bo = b.dataset.headerOrder ? parseFloat(b.dataset.headerOrder) : 9999;
+        if (ao !== bo) return ao - bo;
+        return (a.id || '').localeCompare(b.id || '');
+    });
+
+    buttons.forEach(b => {
+        if (exitBtn) {
+            parent.insertBefore(b, exitBtn);
+        } else {
+            parent.appendChild(b);
+        }
+    });
+}
+
+function _applyResponsiveMount(button) {
+    if (!button?.dataset?.responsiveMount) return;
+
+    const isMobile = _isMobileHeaderMode();
+    const targetParentId = isMobile ? button.dataset.mobileParentId : button.dataset.desktopParentId;
+    const targetBaseClass = isMobile ? button.dataset.mobileBaseClass : button.dataset.desktopBaseClass;
+    const targetExtraClass = isMobile ? button.dataset.mobileClassName : button.dataset.desktopClassName;
+
+    const preserve = [];
+    if (button.classList.contains('active')) preserve.push('active');
+
+    if (targetBaseClass) {
+        button.className = `${targetBaseClass} ${targetExtraClass || ''}`.trim();
+        preserve.forEach(c => button.classList.add(c));
+    }
+
+    const targetParent = targetParentId ? document.getElementById(targetParentId) : null;
+    if (targetParent && button.parentElement !== targetParent) {
+        targetParent.appendChild(button);
+    }
+
+    // If we moved into the header hub, re-sort so Exit stays last.
+    if (!isMobile && targetParentId === 'headerHubRight') {
+        _sortHeaderHubRight(_getHeaderHubRight());
+    }
+}
+
+function _initResponsiveMounting() {
+    if (responsiveMountingInitialized) return;
+    responsiveMountingInitialized = true;
+
+    if (typeof window === 'undefined') return;
+    const mq = (typeof window.matchMedia === 'function') ? window.matchMedia('(max-width: 768px)') : null;
+
+    const reflow = () => {
+        const buttons = Array.from(document.querySelectorAll('button[data-responsive-mount="true"]'));
+        buttons.forEach(_applyResponsiveMount);
+    };
+
+    if (mq && typeof mq.addEventListener === 'function') {
+        mq.addEventListener('change', reflow);
+    } else {
+        window.addEventListener('resize', reflow);
+    }
+}
+
 /**
  * Wraps a component load function with standard error handling and overlay management
  * @param {Function} loadFn - The async load function to wrap
@@ -118,26 +198,89 @@ export function loadSoundEffects(sounds, statusMessage = 'Loading sound effects.
  * @param {string} config.iconPath - Path to icon image
  * @param {string} config.iconAlt - Alt text for icon
  * @param {string} config.parentId - ID of parent element to append to
+ * @param {string} config.baseClass - Base CSS class(es) for the button (default: globe-control-btn)
+ * @param {string} config.iconSpanId - Optional explicit ID for the icon span
+ * @param {number} config.headerOrder - Optional ordering for header hub placement
+ * @param {string} config.mobileParentId - Optional parentId override for mobile
+ * @param {string} config.mobileBaseClass - Optional baseClass override for mobile
+ * @param {string} config.mobileClassName - Optional className override for mobile
  * @returns {HTMLElement} - The created button element
  */
-export function createGlobeControlButton({ id, className, title, iconPath, iconAlt, parentId = 'content' }) {
+export function createGlobeControlButton({
+    id,
+    className,
+    title,
+    iconPath,
+    iconAlt,
+    parentId = 'content',
+    baseClass = 'globe-control-btn',
+    iconSpanId = null,
+    headerOrder = null,
+    mobileParentId = null,
+    mobileBaseClass = null,
+    mobileClassName = null
+}) {
     if (document.getElementById(id)) {
         return document.getElementById(id);
     }
+
+    const finalIconSpanId = iconSpanId || `${id}Icon`;
+    const isMobile = _isMobileHeaderMode();
+    const resolvedParentId = isMobile && mobileParentId ? mobileParentId : parentId;
+    const resolvedBaseClass = isMobile && mobileBaseClass ? mobileBaseClass : baseClass;
+    const resolvedClassName = isMobile && mobileClassName !== null && mobileClassName !== undefined
+        ? mobileClassName
+        : className;
     
     const button = document.createElement('button');
     button.id = id;
-    button.className = `globe-control-btn ${className || ''}`;
+    button.className = `${resolvedBaseClass} ${resolvedClassName || ''}`.trim();
     button.title = title;
+    if (title) {
+        button.setAttribute('aria-label', title);
+    }
+    const isHeaderHubBtn = (resolvedBaseClass || '').includes('header-hub-btn');
+    const imgClass = isHeaderHubBtn ? 'header-hub-icon' : '';
+    const imgStyle = isHeaderHubBtn
+        ? 'object-fit: contain;'
+        : 'width: 100%; height: 100%; object-fit: contain;';
+
     button.innerHTML = `
-        <span id="${id}Icon">
-            <img src="${iconPath}" alt="${iconAlt}" style="width: 100%; height: 100%; object-fit: contain;">
+        <span id="${finalIconSpanId}">
+            <img class="${imgClass}" src="${iconPath}" alt="${iconAlt}" style="${imgStyle}">
         </span>
     `;
     
-    const parent = document.getElementById(parentId);
+    const parent = document.getElementById(resolvedParentId);
     if (parent) {
         parent.appendChild(button);
+
+        if (headerOrder !== null && headerOrder !== undefined) {
+            button.dataset.headerOrder = String(headerOrder);
+        }
+
+        // If the caller provided a mobile/desktop layout split, store it and mount responsively.
+        if (mobileParentId || mobileBaseClass || mobileClassName) {
+            button.dataset.responsiveMount = 'true';
+            button.dataset.desktopParentId = parentId;
+            button.dataset.desktopBaseClass = baseClass;
+            button.dataset.desktopClassName = className || '';
+            button.dataset.mobileParentId = mobileParentId || parentId;
+            button.dataset.mobileBaseClass = mobileBaseClass || baseClass;
+            button.dataset.mobileClassName = (mobileClassName !== null && mobileClassName !== undefined)
+                ? mobileClassName
+                : (className || '');
+            _initResponsiveMounting();
+            // Apply immediately in case we created it in the "wrong" parent due to load timing.
+            _applyResponsiveMount(button);
+        }
+
+        // If these buttons are being added into the header hub, keep their order stable
+        // (regardless of which component loads first) and keep Exit last.
+        if (resolvedParentId === 'headerHubRight') {
+            _sortHeaderHubRight(parent);
+        }
+
         updateStatus(`✓ ${title} button added`, 'success');
     } else {
         console.warn(`Parent element '${parentId}' not found for button ${id}`);

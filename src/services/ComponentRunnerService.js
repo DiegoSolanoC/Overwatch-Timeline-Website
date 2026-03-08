@@ -122,6 +122,12 @@ class ComponentRunnerService {
                 }
                 this.progressService.updateGlobeComponentsProgress(1);
             }
+
+            // Ensure header hub state updates even when globe is started from a menu button
+            // that calls runner services directly.
+            try {
+                window.dispatchEvent(new CustomEvent('appmodechange', { detail: { mode: 'globe' } }));
+            } catch (_) {}
             
             if (!this.loaderService.isLoaded('transport')) {
                 this.statusService.update('→ Loading Transport...', 'info');

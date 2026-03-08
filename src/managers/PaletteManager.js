@@ -236,24 +236,89 @@ export function setupPaletteToggle() {
         const toggle = document.getElementById('colorPaletteToggle');
         console.log('[Palette] openPaletteMenu called, menu:', menu, 'toggle:', toggle);
         if (menu) {
+            // Position the palette menu directly under the palette button (header or floating).
+            const getBodyScale = () => {
+                try {
+                    const t = window.getComputedStyle(document.body).transform;
+                    if (!t || t === 'none') return 1;
+                    // matrix(a, b, c, d, tx, ty)
+                    const m = t.match(/^matrix\(([^)]+)\)$/);
+                    if (!m) return 1;
+                    const parts = m[1].split(',').map(s => parseFloat(s.trim()));
+                    const a = parts[0];
+                    return (Number.isFinite(a) && a > 0) ? a : 1;
+                } catch (_) {
+                    return 1;
+                }
+            };
+
+            const positionMenuUnderToggle = () => {
+                if (!toggle) return;
+                const gap = 8;
+
+                // NOTE: Desktop uses `body { transform: scale(...) }`, which means `position: fixed`
+                // elements are positioned in the body's unscaled coordinate space. Convert all
+                // viewport rect coordinates into that same space so we stay perfectly aligned.
+                const scale = getBodyScale();
+                const rect = toggle.getBoundingClientRect();
+                const cx = (rect.left + (rect.width / 2)) / scale;
+                const belowY = (rect.bottom + gap) / scale;
+                const aboveY = (rect.top - gap) / scale;
+
+                const vw = Math.max(1, (window.innerWidth || 1) / scale);
+                const vh = Math.max(1, (window.innerHeight || 1) / scale);
+
+                const firstBtn = menu.querySelector('.palette-option-btn');
+                const btnW = firstBtn ? parseFloat(window.getComputedStyle(firstBtn).width) : 45;
+                const btnH = firstBtn ? parseFloat(window.getComputedStyle(firstBtn).height) : 45;
+                const menuGap = parseFloat(window.getComputedStyle(menu).gap) || 10;
+                const menuWidth = (btnW * 2) + menuGap;
+                const menuHeight = btnH;
+                const halfW = menuWidth / 2;
+                const margin = 8;
+
+                let left = cx;
+                let top = belowY;
+
+                if (left - halfW < margin) left = halfW + margin;
+                if (left + halfW > vw - margin) left = vw - halfW - margin;
+
+                // If we would go off the bottom, pop the menu above the button.
+                if (top + menuHeight > vh - margin) {
+                    top = aboveY - menuHeight;
+                }
+
+                menu.style.left = `${left}px`;
+                menu.style.top = `${top}px`;
+                menu.style.right = 'auto';
+                menu.style.bottom = 'auto';
+            };
+
+            positionMenuUnderToggle();
             menu.classList.add('open');
             // Force visibility with inline styles as fallback
             menu.style.opacity = '1';
             menu.style.visibility = 'visible';
-            menu.style.transform = 'translateY(0)';
+            menu.style.transform = '';
             menu.style.pointerEvents = 'auto';
             menu.style.display = 'flex';
             menu.style.position = 'fixed';
-            // Desktop uses a scaled body (see styles/base.css). Compensate so the menu
-            // visually clears the footer/button area even under transform: scale(...).
-            const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-            const desktopBottomPx = 190; // tuned: 190*0.67 ≈ 127px visual
-            menu.style.bottom = isMobile ? '150px' : `${desktopBottomPx}px`;
-            menu.style.right = '20px';
             menu.style.zIndex = '300';
-            menu.style.flexDirection = 'column';
-            menu.style.gap = '10px';
-            menu.style.alignItems = 'flex-end'; // Align circles to the right
+            menu.style.flexDirection = 'row';
+            menu.style.gap = '';
+            menu.style.alignItems = '';
+
+            // Keep it perfectly aligned even if the header shifts or the right hub scrolls.
+            try {
+                if (menu._paletteFollowRafId) cancelAnimationFrame(menu._paletteFollowRafId);
+            } catch (_) {}
+            const follow = () => {
+                if (!menu.classList.contains('open')) return;
+                positionMenuUnderToggle();
+                menu._paletteFollowRafId = requestAnimationFrame(follow);
+            };
+            menu._paletteFollowRafId = requestAnimationFrame(follow);
+
             console.log('[Palette] Added "open" class to menu, classes:', menu.className);
             console.log('[Palette] Menu computed styles:', {
                 opacity: window.getComputedStyle(menu).opacity,
@@ -283,6 +348,10 @@ export function setupPaletteToggle() {
         const toggle = document.getElementById('colorPaletteToggle');
         if (menu) {
             menu.classList.remove('open');
+            try {
+                if (menu._paletteFollowRafId) cancelAnimationFrame(menu._paletteFollowRafId);
+                menu._paletteFollowRafId = null;
+            } catch (_) {}
             // Reset inline styles
             menu.style.opacity = '';
             menu.style.visibility = '';
