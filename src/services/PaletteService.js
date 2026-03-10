@@ -191,6 +191,11 @@ class PaletteService {
             const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
+
+            // Update rim glow to match palette (blue → light blue, gray → white)
+            if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
+                window.globeController.globeView.updateRimGlowPalette(palette);
+            }
         }
         
         if (window.globeController && window.globeController.sceneModel) {

@@ -129,7 +129,9 @@ body.color-palette-gray main {
 
 /* Color Palette Button (bottom right) - now handled by .bottom-right-btn */
 
-#colorPaletteIcon {
+/* Scope palette icon sizing to globe-control buttons only.
+   The header hub can also contain `#colorPaletteIcon`, and its sizing is handled in `styles/layout.css`. */
+.globe-control-btn #colorPaletteIcon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -361,11 +363,13 @@ body.color-palette-gray .event-number-btn.locked {
     object-fit: contain;
 }
 
-/* Rotation Toggle Button - positioned below event manager button (second row, top-left) */
+/* Rotation Toggle Button (desktop) - top-left (header holds other controls) */
 .globe-control-btn#autoRotateToggle {
     bottom: auto !important;
-    top: 170px !important; /* Third row (below map+transport row) */
+    top: 20px !important;
     left: 20px !important;
+    right: auto !important;
+    transform: none !important;
 }
 
 /* Map view: auto-rotate is not applicable (no globe rotation). */
@@ -560,7 +564,9 @@ body.color-palette-gray .palette-option-btn.active {
     object-fit: contain;
 }
 
-#hyperloopIcon {
+/* Scope hyperloop icon sizing to globe-control buttons only.
+   The header hub also uses `#hyperloopIcon`, but header icon sizing is handled in `styles/layout.css`. */
+.globe-control-btn #hyperloopIcon {
     display: inline-block;
     width: 100%;
     height: 100%;

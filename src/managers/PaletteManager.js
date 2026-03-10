@@ -156,6 +156,11 @@ export function setupPaletteToggle() {
             const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
+
+            // Update rim glow to match palette (blue → light blue, gray → white)
+            if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
+                window.globeController.globeView.updateRimGlowPalette(palette);
+            }
         }
         
         // Change scene background color (starfield background) (only on pages with globe)

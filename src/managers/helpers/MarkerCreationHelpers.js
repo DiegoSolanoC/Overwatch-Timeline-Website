@@ -109,15 +109,13 @@ export function getMarkerRadius(isMainVariant) {
     const isMapView = window.globeController?.sceneModel?.getMapViewEnabled
         ? window.globeController.sceneModel.getMapViewEnabled()
         : !!window.globeController?.sceneModel?.isMapView;
-    
-    if (isMainVariant) {
-        // Mobile unwrapped-map: markers read too large; shrink slightly only in map view.
-        if (isSmallMobile && isMapView) return 0.026;
-        return isSmallMobile ? 0.030 : 0.015;
-    } else {
-        if (isSmallMobile && isMapView) return 0.017;
-        return isSmallMobile ? 0.020 : 0.010;
-    }
+
+    const base = isMainVariant
+        ? (isSmallMobile ? 0.030 : 0.015)
+        : (isSmallMobile ? 0.020 : 0.010);
+
+    // Map view: event pins should be smaller (desktop + mobile).
+    return isMapView ? (base * 0.7) : base;
 }
 
 /**

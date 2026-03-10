@@ -200,6 +200,7 @@ export function loadSoundEffects(sounds, statusMessage = 'Loading sound effects.
  * @param {string} config.parentId - ID of parent element to append to
  * @param {string} config.baseClass - Base CSS class(es) for the button (default: globe-control-btn)
  * @param {string} config.iconSpanId - Optional explicit ID for the icon span
+ * @param {string} config.label - Optional visible label text (used in header hub)
  * @param {number} config.headerOrder - Optional ordering for header hub placement
  * @param {string} config.mobileParentId - Optional parentId override for mobile
  * @param {string} config.mobileBaseClass - Optional baseClass override for mobile
@@ -215,6 +216,7 @@ export function createGlobeControlButton({
     parentId = 'content',
     baseClass = 'globe-control-btn',
     iconSpanId = null,
+    label = null,
     headerOrder = null,
     mobileParentId = null,
     mobileBaseClass = null,
@@ -240,16 +242,32 @@ export function createGlobeControlButton({
         button.setAttribute('aria-label', title);
     }
     const isHeaderHubBtn = (resolvedBaseClass || '').includes('header-hub-btn');
-    const imgClass = isHeaderHubBtn ? 'header-hub-icon' : '';
-    const imgStyle = isHeaderHubBtn
-        ? 'object-fit: contain;'
-        : 'width: 100%; height: 100%; object-fit: contain;';
+    const isHeaderRightHub = resolvedParentId === 'headerHubRight';
 
-    button.innerHTML = `
-        <span id="${finalIconSpanId}">
-            <img class="${imgClass}" src="${iconPath}" alt="${iconAlt}" style="${imgStyle}">
-        </span>
-    `;
+    const iconWrap = document.createElement('span');
+    iconWrap.id = finalIconSpanId;
+    if (isHeaderHubBtn) iconWrap.className = 'header-hub-icon-wrap';
+
+    const img = document.createElement('img');
+    if (isHeaderHubBtn) {
+        img.className = 'header-hub-icon';
+        img.style.objectFit = 'contain';
+    } else {
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+    }
+    img.src = iconPath;
+    img.alt = iconAlt || '';
+    iconWrap.appendChild(img);
+    button.appendChild(iconWrap);
+
+    if (isHeaderHubBtn && isHeaderRightHub && label) {
+        const labelEl = document.createElement('span');
+        labelEl.className = 'header-hub-btn-label';
+        labelEl.textContent = String(label);
+        button.appendChild(labelEl);
+    }
     
     const parent = document.getElementById(resolvedParentId);
     if (parent) {

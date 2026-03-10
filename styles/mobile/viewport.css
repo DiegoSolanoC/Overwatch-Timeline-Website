@@ -79,6 +79,7 @@
     .globe-control-btn#autoRotateToggle {
         top: 140px !important; /* Below map+transport row */
         left: 20px !important;
+        transform: none !important;
     }
 
     /* Map view: hide rotation toggle (map has no auto-rotation) */

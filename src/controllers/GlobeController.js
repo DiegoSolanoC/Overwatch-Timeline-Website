@@ -94,6 +94,29 @@ export class GlobeController {
             // Start animation once texture is loaded
             this.animate();
         });
+
+        // Mobile default: start in the flat "unwrapped map" view.
+        // Do this BEFORE markers/transport are created so everything mounts onto the correct surface.
+        const shouldDefaultToMapView = window.innerWidth <= 768;
+        if (shouldDefaultToMapView) {
+            const globe = this.sceneModel.getGlobe();
+            const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+            if (globe && earthMapPlane) {
+                this.sceneModel.setMapViewEnabled(true);
+                document.body.classList.add('map-view-enabled');
+                globe.visible = false;
+                earthMapPlane.visible = true;
+                earthMapPlane.scale.set(3.1, 3.1, 3.1);
+                earthMapPlane.rotation.set(0, 0, 0);
+
+                if (earthMapPlane.material) {
+                    earthMapPlane.material.transparent = false;
+                    earthMapPlane.material.opacity = 1.0;
+                    earthMapPlane.material.depthWrite = true;
+                    earthMapPlane.material.needsUpdate = true;
+                }
+            }
+        }
         
         // Position Moon/Mars panels immediately after globe initialization
         // (planes are created synchronously in initGlobe, before texture load callback)
@@ -161,6 +184,11 @@ export class GlobeController {
 
         // Setup controls
         this.interactionController.setupControls(container);
+
+        // If we defaulted into map view on mobile, make sure the camera framing matches.
+        if (shouldDefaultToMapView && this.interactionController && typeof this.interactionController.resetCameraToDefault === 'function') {
+            this.interactionController.resetCameraToDefault();
+        }
 
         // Setup UI toggles
         this.uiView.setupAutoRotateToggle();

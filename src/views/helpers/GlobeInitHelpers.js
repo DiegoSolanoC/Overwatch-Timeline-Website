@@ -6,6 +6,62 @@
 import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './GlobePlaneHelpers.js';
 import { loadTexture } from './GlobeTextureHelpers.js';
 
+function _createRadialGlowTexture({ size = 256 } = {}) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size / 2;
+
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0.0, 'rgba(255, 250, 230, 1.0)');
+    g.addColorStop(0.25, 'rgba(255, 230, 160, 0.85)');
+    g.addColorStop(0.55, 'rgba(255, 200, 120, 0.35)');
+    g.addColorStop(1.0, 'rgba(255, 200, 120, 0.0)');
+
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.needsUpdate = true;
+    return tex;
+}
+
+function _createRingGlowTexture({ size = 256 } = {}) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size / 2;
+
+    // Donut-like glow: transparent center → bright rim → soft falloff.
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0.0, 'rgba(255,255,255,0.0)');
+    g.addColorStop(0.55, 'rgba(255,255,255,0.0)');
+    g.addColorStop(0.70, 'rgba(255,255,255,0.55)');
+    g.addColorStop(0.82, 'rgba(255,255,255,0.28)');
+    g.addColorStop(1.0, 'rgba(255,255,255,0.0)');
+
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.needsUpdate = true;
+    return tex;
+}
+
 /**
  * Creates the Earth globe mesh with material
  * @param {THREE.TextureLoader} textureLoader - Texture loader instance
@@ -42,6 +98,82 @@ export function createGlobeMesh(textureLoader, renderer, initialTexturePath, nor
     });
     
     return new THREE.Mesh(geometry, material);
+}
+
+/**
+ * Adds a simple "sun" background element for immersion.
+ * Visual: additive sprite with radial gradient.
+ * Lighting: subtle warm directional light.
+ * @param {Object} params
+ * @param {THREE.Scene} params.scene
+ * @returns {{sprite: THREE.Sprite, light: THREE.DirectionalLight}|null}
+ */
+export function addSunBackground({ scene }) {
+    if (!scene) return null;
+
+    const tex = _createRadialGlowTexture({ size: 256 });
+    if (!tex) return null;
+
+    const mat = new THREE.SpriteMaterial({
+        map: tex,
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        depthTest: true,
+        blending: THREE.AdditiveBlending
+    });
+
+    const sprite = new THREE.Sprite(mat);
+    sprite.position.set(-35, 20, -90);
+    sprite.scale.set(10, 10, 1);
+    sprite.renderOrder = -10;
+    sprite.frustumCulled = false;
+    scene.add(sprite);
+
+    const light = new THREE.DirectionalLight(0xfff0d6, 0.45);
+    light.position.copy(sprite.position);
+    scene.add(light);
+    scene.add(light.target);
+    light.target.position.set(0, 0, 0);
+
+    return { sprite, light };
+}
+
+/**
+ * Creates a blurry rim/atmosphere glow around the globe using the same technique as the sun:
+ * a single additive sprite with a donut-shaped radial gradient texture.
+ * @param {Object} params
+ * @param {number} params.color
+ * @param {number} params.scale
+ * @param {number} params.opacity
+ * @returns {THREE.Sprite|null}
+ */
+export function createGlobeRimGlowSprite({ color = 0x6fd3ff, scale = 2.7, opacity = 0.75, intensity = 1.0 } = {}) {
+    const tex = _createRingGlowTexture({ size: 256 });
+    if (!tex) return null;
+
+    const mat = new THREE.SpriteMaterial({
+        map: tex,
+        color: new THREE.Color(color),
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        depthTest: true,
+        blending: THREE.AdditiveBlending
+    });
+    if (Number.isFinite(intensity) && intensity !== 1.0) {
+        // Additive sprites can safely use >1.0 for a brighter "emissive" look.
+        mat.color.multiplyScalar(intensity);
+    }
+
+    const sprite = new THREE.Sprite(mat);
+    sprite.name = 'globeRimGlowSprite';
+    sprite.scale.set(scale, scale, 1);
+    sprite.renderOrder = 1;
+    sprite.frustumCulled = false;
+    sprite.userData.rimIntensity = (Number.isFinite(intensity) && intensity > 0) ? intensity : 1.0;
+    return sprite;
 }
 
 /**
@@ -145,4 +277,6 @@ if (typeof window !== 'undefined') {
     window.GlobeInitHelpers.createGlobeMesh = createGlobeMesh;
     window.GlobeInitHelpers.createEarthMapPlane = createEarthMapPlane;
     window.GlobeInitHelpers.setupCelestialPlanes = setupCelestialPlanes;
+    window.GlobeInitHelpers.addSunBackground = addSunBackground;
+    window.GlobeInitHelpers.createGlobeRimGlowSprite = createGlobeRimGlowSprite;
 }

@@ -142,6 +142,8 @@ header {
 .header-hub.header-hub--right .header-hub-btn {
     border-right: none;
     border-left: 1px solid rgba(255, 255, 255, 0.14);
+    /* Evenly distribute buttons across the right hub width. */
+    flex: 1 1 0;
 }
 
 .header-hub-btn.header-hub-btn--exit {
@@ -153,37 +155,51 @@ header {
 }
 
 .header-hub-btn.header-hub-btn--icon {
-    padding: 0;
+    /* Icon buttons can have a label; align icon + text nicely */
+    padding: 0 12px;
+    gap: 4px;
+    justify-content: flex-start;
     /* Let icon buttons shrink to fit (we can have many on the right hub) */
     width: auto;
     min-width: 0;
 }
 
-.header-hub-btn.header-hub-btn--icon > span {
+.header-hub-icon-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
-    width: 100%;
+    flex: 0 0 auto;
 }
 
 /* Force consistent icon sizing even if JS injects inline width/height */
 .header-hub-btn.header-hub-btn--icon img {
     width: auto !important;
-    height: 84% !important;
-    max-height: 52px;
+    height: 72% !important;
+    max-height: 44px;
     object-fit: contain !important;
 }
 
 .header-hub-icon {
     width: auto;
-    height: 84%;
-    max-height: 52px;
+    height: 72%;
+    max-height: 44px;
     display: block;
     object-fit: contain;
     pointer-events: none;
     user-select: none;
     filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+
+.header-hub-btn-label {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 1;
+    white-space: nowrap;
+    opacity: 0.92;
 }
 
 /* Hide old floating exit button in favor of header section */
@@ -201,6 +217,16 @@ header {
     border: none;
     border-right: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 0;
+    /* Parallelogram button shape (clip-path keeps hover highlight aligned) */
+    --hub-btn-slant: 14px;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(
+        var(--hub-btn-slant) 0%,
+        100% 0%,
+        calc(100% - var(--hub-btn-slant)) 100%,
+        0% 100%
+    );
     /* Blend into header by default; highlight on hover only */
     background: transparent;
     color: rgba(255, 255, 255, 0.90);
@@ -217,9 +243,14 @@ header {
     justify-content: center;
 }
 
+/* Overlap neighboring buttons so angled edges meet cleanly */
+.header-hub .header-hub-btn + .header-hub-btn {
+    margin-left: calc(var(--hub-btn-slant) * -1);
+}
+
 /* Icon buttons must override the base padding rule above. */
 .header-hub-btn.header-hub-btn--icon {
-    padding: 0;
+    padding: 0 12px;
 }
 
 .header-hub-btn:last-child {
@@ -284,6 +315,12 @@ header {
     .header-hub.header-hub--right .header-hub-btn.header-hub-btn--icon {
         width: 46px;
         min-width: 46px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .header-hub-btn-label {
+        display: none;
     }
 
     .header-title-badge {
@@ -293,6 +330,18 @@ header {
         height: calc(var(--header-height) + 16px);
         top: -8px;
         padding: 0 8px;
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Labels are great on desktop; hide on narrower screens to prevent crowding. */
+    .header-hub-btn-label {
+        display: none;
+    }
+
+    .header-hub-btn.header-hub-btn--icon {
+        padding: 0;
+        justify-content: center;
     }
 }
 

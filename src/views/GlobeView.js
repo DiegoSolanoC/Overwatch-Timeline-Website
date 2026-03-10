@@ -7,7 +7,7 @@ import { configureTexture, loadTexture, changePlaneTexture } from './helpers/Glo
 import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './helpers/GlobePlaneHelpers.js';
 import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
 import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
-import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes } from './helpers/GlobeInitHelpers.js';
+import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite } from './helpers/GlobeInitHelpers.js';
 
 // THREE is loaded globally via script tag in index.html
 
@@ -19,6 +19,8 @@ export class GlobeView {
         this.textureCache = new Map();
         // Initialize EventMarkerManager
         this.eventMarkerManager = new EventMarkerManager(sceneModel, dataModel);
+
+        this._rimGlowSprite = null;
     }
 
     /**
@@ -76,6 +78,19 @@ export class GlobeView {
         this.sceneModel.setGlobe(globe);
         scene.add(globe);
 
+        // Rim glow color depends on palette: blue → light blue, gray → white.
+        const rimColor = isGray ? 0xffffff : 0x6fd3ff;
+        const rimGlow = createGlobeRimGlowSprite({
+            color: rimColor,
+            scale: 2.15,
+            opacity: 2.75,
+            intensity: 1.5
+        });
+        if (rimGlow) {
+            this._rimGlowSprite = rimGlow;
+            globe.add(rimGlow);
+        }
+
         // Create flat Earth map plane (hidden by default; used for map view toggle)
         const earthMapPlane = createEarthMapPlane(
             textureLoader,
@@ -97,6 +112,9 @@ export class GlobeView {
             this.sceneModel.earthMapPlane = earthMapPlane;
         }
         scene.add(earthMapPlane);
+
+        // Add a background "sun" element (sprite + warm light).
+        addSunBackground({ scene });
         
         // Preload the other texture to avoid delay when switching palettes
         const otherTexturePath = isGray ? 'assets/images/maps/MAP.png' : 'assets/images/maps/MAP Black.png';
@@ -113,6 +131,21 @@ export class GlobeView {
             isGray,
             sceneModel: this.sceneModel
         });
+    }
+
+    /**
+     * Update rim glow color when palette changes.
+     * @param {string} palette - 'blue' | 'gray'
+     */
+    updateRimGlowPalette(palette) {
+        const isGray = String(palette).toLowerCase() === 'gray';
+        const color = isGray ? 0xffffff : 0x6fd3ff;
+        const s = this._rimGlowSprite;
+        if (s && s.material && s.material.color) {
+            s.material.color.setHex(color);
+            const k = (s.userData && Number.isFinite(s.userData.rimIntensity)) ? s.userData.rimIntensity : 1.0;
+            if (k !== 1.0) s.material.color.multiplyScalar(k);
+        }
     }
 
     /**

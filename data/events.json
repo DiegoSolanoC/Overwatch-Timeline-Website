@@ -2032,45 +2032,72 @@
       "lon": -73.9855319
     },
     {
-      "name": "The Original Strike Team",
       "locationType": "earth",
       "cityDisplayName": "Zurich, Switzerland",
-      "description": "After months of planning, Overwatch moved into place. The supporting staff was arranged with several of the most outstanding names of the last couple of decades, from Matthew Frank, to Namuaca and Lomakema, Esat and Borda, and of course, the Martins. Alongside the help of military experts like General David Ames from the US, and Litang Abhicandra from Indonesia. It took several months of  screening and a lot of discarded proposals, but the supporting teams across all fields were ready to start working.\n\n\n\nAs far as the Strike team, Adawe's first choice was Doomfist himself. Adhabu Ngumi had been identified as the savior of Nigeria, and partly inspired the proposal in the first place, but he declined, choosing to protect his home first and foremost, like many others did. In the end, the strike team was formed by five individuals. The two most successful soldiers from America's SEP program, Gabriel Reyes and Jack Morrison. The elite Egyptian Sniper Ana Amari, in spite of controversy around her inclusion among UN staff members. The German Crusader Reinhardt Wilhelm, taking his mentor's place, and the Ironclad engineer Torbjörn Lindholm, who showed up at the last minute and demanded to be a part of the team. Once the team was selected and trained, it was a matter of time before deployment began, and the tide finally began to turn.\n",
-      "image": "",
-      "filters": [
-        "Soldier 76",
-        "Reaper",
-        "Ana",
-        "Reinhardt",
-        "Torbjörn"
-      ],
-      "factions": [
-        "00Overwatch",
-        "06Crisis"
-      ],
-      "lat": 47.3744489,
-      "lon": 8.5410422,
-      "sources": [
+      "variants": [
         {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+          "name": "The Original Strike Team",
+          "description": "After months of planning, Overwatch moved into place. The supporting staff was arranged with several of the most outstanding names of the last couple of decades, from Matthew Frank, to Namuaca and Lomakema, Esat and Borda, and of course, the Martins. Alongside the help of military experts like General David Ames from the US, and Litang Abhicandra from Indonesia. It took several months of  screening and a lot of discarded proposals, but the supporting teams across all fields were ready to start working.\n\n\n\nAs far as the Strike team, Adawe's first choice was Doomfist himself. Adhabu Ngumi had been identified as the savior of Nigeria, and partly inspired the proposal in the first place, but he declined, choosing to protect his home first and foremost, like many others did. In the end, the strike team was formed by five individuals. The two most successful soldiers from America's SEP program, Gabriel Reyes and Jack Morrison. The elite Egyptian Sniper Ana Amari, in spite of controversy around her inclusion among UN staff members. The German Crusader Reinhardt Wilhelm, taking his mentor's place, and the Ironclad engineer Torbjörn Lindholm, who showed up at the last minute and demanded to be a part of the team. Once the team was selected and trained, it was a matter of time before deployment began, and the tide finally began to turn.",
+          "filters": [
+            "Soldier 76",
+            "Reaper",
+            "Ana",
+            "Reinhardt",
+            "Torbjörn"
+          ],
+          "factions": [
+            "00Overwatch",
+            "06Crisis"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "United Nations assamble team of heroes from across the world",
+            "Overwatch Taskforce to start deployment soon"
+          ],
+          "image": "",
+          "locationType": "earth",
+          "lat": 47.3744489,
+          "lon": 8.5410422,
+          "cityDisplayName": "Zurich, Switzerland"
+        },
+        {
+          "name": "Early Missions",
+          "description": "After training, the strike team was dispatched for its first series of missions. It was decided they would not take place in their home countries to avoid claims of bias. Instead, there was an effort to begin deployment in areas where they were needed the most. The first couple of missions on Darkhan and Shenzhen are classified, but details about the Kyoto mission are known. The team was deployed without prior announcement, to prevent Anubis from getting word of their approach. After clearing the airspace, the team landed and quickly took ground back from the warbots. The image of Gabriel Reyes helping a child into the arms of her mother made headlines across the globe, and thus Overwatch became the champions of humanity.\n\n\n\nFor months, Overwatch would turn the tides against Anubis on several fronts across the planet, inspiring people to keep fighting, and saving many lives. Further missions in Karachi and Shanghai were projected to result in the casualties of millions had it not been for Overwatch support. By working with local military efforts, Overwatch allowed many regions to experience a slight return to normalcy during the war. People were able to go back to work, and kids went to school without fearing the machines, but even with the help of heroes, the war still went on. Anubis learned quickly, and it was a matter of time before it found a way to take the strike team down.",
+          "filters": [
+            "Soldier 76",
+            "Reaper",
+            "Ana",
+            "Reinhardt",
+            "Torbjörn"
+          ],
+          "factions": [
+            "00Overwatch",
+            "06Crisis"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "Overwatch missions are a sucess across the globe",
+            "Overwatch agent rescues child in Japan"
+          ],
+          "image": "",
+          "locationType": "earth",
+          "lat": 35.0115754,
+          "lon": 135.7681441,
+          "cityDisplayName": "Kyoto, Japan"
         }
       ],
-      "headlines": [
-        "United Nations assamble team of heroes from across the world",
-        "Overwatch Taskforce to start deployment soon"
-      ]
-    },
-    {
-      "name": "Early Missions",
-      "locationType": "earth",
-      "cityDisplayName": "Kyoto, Japan",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 35.0115754,
-      "lon": 135.7681441
+      "lat": 47.3744489,
+      "lon": 8.5410422
     },
     {
       "name": "Who knew Better",
