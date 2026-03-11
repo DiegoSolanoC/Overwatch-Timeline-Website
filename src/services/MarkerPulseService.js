@@ -8,6 +8,62 @@ class MarkerPulseService {
         this.hoveredEventMarker = null;
     }
 
+    smoothstep(edge0, edge1, x) {
+        const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+    }
+
+    getMapViewViewportRadiusAtWorldPoint(worldPoint) {
+        const camera = this.sceneModel.getCamera ? this.sceneModel.getCamera() : null;
+        if (!camera || !worldPoint) return null;
+
+        // Orthographic camera: world units are directly defined by the frustum.
+        if (camera.isOrthographicCamera) {
+            const zoom = (Number.isFinite(camera.zoom) && camera.zoom > 0) ? camera.zoom : 1;
+            const halfW = Math.abs((camera.right - camera.left) / 2) / zoom;
+            const halfH = Math.abs((camera.top - camera.bottom) / 2) / zoom;
+            return Math.sqrt(halfW * halfW + halfH * halfH);
+        }
+
+        // Perspective camera: compute the max distance from worldPoint to the view frustum corners
+        // on the plane perpendicular to the camera through worldPoint.
+        if (camera.isPerspectiveCamera) {
+            const camDir = new THREE.Vector3();
+            camera.getWorldDirection(camDir);
+            const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, worldPoint);
+
+            const corners = [
+                new THREE.Vector2(-1, -1),
+                new THREE.Vector2(1, -1),
+                new THREE.Vector2(1, 1),
+                new THREE.Vector2(-1, 1)
+            ];
+
+            let maxDist = 0;
+            const tmp = new THREE.Vector3();
+            const ray = new THREE.Ray();
+            for (let i = 0; i < corners.length; i++) {
+                tmp.set(corners[i].x, corners[i].y, 0.5).unproject(camera);
+                ray.origin.copy(camera.position);
+                ray.direction.copy(tmp).sub(camera.position).normalize();
+                const hit = ray.intersectPlane(plane, new THREE.Vector3());
+                if (hit) {
+                    const d = hit.distanceTo(worldPoint);
+                    if (d > maxDist) maxDist = d;
+                }
+            }
+
+            return maxDist > 0 ? maxDist : null;
+        }
+
+        return null;
+    }
+
+    isAwakeningEventMarker(marker) {
+        const name = marker?.userData?.event?.name;
+        return typeof name === 'string' && name.trim().toLowerCase() === 'the awakening';
+    }
+
     /**
      * Start pulse effect on event marker
      */
@@ -31,6 +87,11 @@ class MarkerPulseService {
         if (marker.userData.pulseInterval) {
             clearTimeout(marker.userData.pulseInterval);
         }
+
+        const ringDuration = Number.isFinite(marker.userData?.pulseWaveDurationMs)
+            ? marker.userData.pulseWaveDurationMs
+            : 1200;
+        const nextDelay = ringDuration + 300; // small buffer to ensure the wave completes
         
         // Schedule next pulse after current duration
         marker.userData.pulseInterval = setTimeout(() => {
@@ -53,7 +114,7 @@ class MarkerPulseService {
             } else {
                 marker.userData.pulseInterval = null;
             }
-        }, 1500); // Wait for current wave to finish (1200ms duration + buffer)
+        }, nextDelay);
     }
 
     /**
@@ -117,24 +178,139 @@ class MarkerPulseService {
             ringParent = scene;
         }
         
-        // Create filled circle geometry (not a ring)
-        const circleGeometry = new THREE.CircleGeometry(0.02, 32);
+        const isAwakening = this.isAwakeningEventMarker(marker);
+        if (isAwakening && isMapView && scene) {
+            // In map view we want a screen-aligned, map-wide wave.
+            ringParent = scene;
+        }
+
+        // Special case: "The Awakening" in globe mode should wrap across the sphere surface.
+        // We render a thin sphere "shell" over the globe and animate angular radius in shader.
+        if (isAwakening && !isMapView && locationType === 'earth') {
+            const sphereRadius = 1.012;
+            const geometry = new THREE.SphereGeometry(sphereRadius, 64, 64);
+            const centerDir = marker.position.clone().normalize();
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uCenter: { value: centerDir },
+                    uRadius: { value: 0.0 }, // radians, expands to PI
+                    // Keep edge mostly crisp like the normal filled-circle wave,
+                    // just enough smoothing to avoid aliasing on the sphere.
+                    uFeather: { value: 0.008 }, // radians
+                    uOpacity: { value: 0.9 },
+                    uColor: { value: new THREE.Color(0xffaa00) }
+                },
+                transparent: true,
+                depthTest: true,
+                depthWrite: false,
+                side: THREE.FrontSide,
+                blending: THREE.NormalBlending,
+                vertexShader: `
+                    varying vec3 vDir;
+                    void main() {
+                        vDir = normalize(position);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform vec3 uCenter;
+                    uniform float uRadius;
+                    uniform float uFeather;
+                    uniform float uOpacity;
+                    uniform vec3 uColor;
+                    varying vec3 vDir;
+                    void main() {
+                        float d = acos(clamp(dot(normalize(vDir), normalize(uCenter)), -1.0, 1.0));
+                        float inside = 1.0 - smoothstep(uRadius, uRadius + uFeather, d);
+                        float a = inside * uOpacity;
+                        if (a <= 0.001) discard;
+                        gl_FragColor = vec4(uColor, a);
+                    }
+                `
+            });
+
+            const ring = new THREE.Mesh(geometry, material);
+            ring.renderOrder = 999;
+            ring.userData.isPulseRing = true;
+            ring.userData.isAwakeningSphereWave = true;
+            ring.userData.startTime = Date.now();
+            ring.userData.duration = 2600;
+            ring.userData.marker = marker;
+
+            // Let scheduling know how long this marker's wave runs.
+            marker.userData.pulseWaveDurationMs = ring.userData.duration;
+
+            this.updateRingPositionAndOrientation(ring, marker);
+            ringParent.add(ring);
+            marker.userData.pulseRings.push(ring);
+
+            if (window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('radiate');
+            }
+            return;
+        }
+
+        // Default: filled circle geometry (not a ring)
+        const baseRadius = 0.02;
+        // For map-wide waves we need more segments so the edge stays smooth when scaled up.
+        const circleSegments = (isAwakening && isMapView) ? 192 : 32;
+        const circleGeometry = new THREE.CircleGeometry(baseRadius, circleSegments);
         const ringMaterial = new THREE.MeshBasicMaterial({
             color: 0xffaa00, // More yellowish orange for wave
             transparent: true,
             opacity: 0.9, // Start more opaque in center
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            depthWrite: isAwakening ? false : true
         });
         
         const ring = new THREE.Mesh(circleGeometry, ringMaterial);
+        if (isAwakening) {
+            ring.renderOrder = 999; // ensure it draws on top
+        }
         
         // Store initial properties
         ring.userData.isPulseRing = true;
         ring.userData.startTime = Date.now();
         ring.userData.startScale = 1;
-        ring.userData.maxScale = 5.2; // ~30% more expansion than 4 (4 * 1.3)
-        ring.userData.duration = 1200; // 1.2 seconds - faster wave
+        ring.userData.maxScale = 5.2; // default wave expansion
+        ring.userData.duration = 1200; // default wave speed
         ring.userData.marker = marker;
+
+        // Special case: "The Awakening" should be map-wide (cover the whole map/globe) and repeat.
+        if (isAwakening) {
+            // Longer, slower wave so the map-wide expansion reads clearly.
+            ring.userData.duration = 2600;
+
+            let targetWorldRadius = 2.5; // sensible default for globe view
+
+            // Map view: cover the entire Earth map plane (diagonal/2), taking plane scaling into account.
+            if (isMapView) {
+                // Prefer viewport-based radius so the wave fills the whole visible unwrapped map.
+                const markerWorldPos = new THREE.Vector3();
+                marker.getWorldPosition(markerWorldPos);
+                const viewportRadius = this.getMapViewViewportRadiusAtWorldPoint(markerWorldPos);
+                if (Number.isFinite(viewportRadius) && viewportRadius > 0) {
+                    targetWorldRadius = viewportRadius * 1.18; // overshoot corners so it fully covers before vanishing
+                } else {
+                    // Fallback to map-plane diagonal if camera info isn't available.
+                    const parent = marker.parent;
+                    const isEarthMapPlane = parent && parent === earthMapPlane;
+                    if (isEarthMapPlane && earthMapPlane?.geometry?.parameters) {
+                        const w = (earthMapPlane.geometry.parameters.width ?? 2) * (earthMapPlane.scale?.x ?? 1);
+                        const h = (earthMapPlane.geometry.parameters.height ?? 1) * (earthMapPlane.scale?.y ?? 1);
+                        targetWorldRadius = Math.sqrt(Math.pow(w / 2, 2) + Math.pow(h / 2, 2)) * 1.15;
+                    } else {
+                        targetWorldRadius = 3.5;
+                    }
+                }
+            }
+
+            ring.userData.maxScale = Math.max(5.2, targetWorldRadius / baseRadius);
+        }
+
+        // Let scheduling know how long this marker's wave runs.
+        marker.userData.pulseWaveDurationMs = ring.userData.duration;
         
         // Position and orient the ring (will be updated in updatePulseRings)
         this.updateRingPositionAndOrientation(ring, marker);
@@ -153,6 +329,28 @@ class MarkerPulseService {
      */
     updateRingPositionAndOrientation(ring, marker) {
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const isAwakening = this.isAwakeningEventMarker(marker);
+
+        if (ring?.userData?.isAwakeningSphereWave) {
+            ring.position.set(0, 0, 0);
+            ring.quaternion.identity();
+            return;
+        }
+
+        // Special case: "The Awakening" wave should expand across the view (billboard) in map view only.
+        if (isAwakening && isMapView) {
+            const markerWorldPos = new THREE.Vector3();
+            marker.getWorldPosition(markerWorldPos);
+            ring.position.copy(markerWorldPos);
+
+            const camera = this.sceneModel.getCamera ? this.sceneModel.getCamera() : null;
+            if (camera?.quaternion) {
+                ring.quaternion.copy(camera.quaternion);
+            } else {
+                ring.quaternion.identity();
+            }
+            return;
+        }
         
         // Check if marker is on Moon/Mars plane or Earth globe
         const locationType = marker.userData ? marker.userData.locationType : 'earth';
@@ -308,6 +506,24 @@ class MarkerPulseService {
                         }
                         pulseRings.splice(i, 1);
                     } else {
+                        if (ring.userData.isAwakeningSphereWave && ring.material && ring.material.uniforms) {
+                            // Expand angular radius across the globe surface (0 -> PI).
+                            const p = Math.max(0, Math.min(1, progress));
+                            ring.material.uniforms.uRadius.value = Math.PI * p;
+
+                            // Match the normal event-wave fade curve (more visible early, fades as it expands).
+                            const fadeCurve = Math.pow(1 - p, 0.5);
+                            ring.material.uniforms.uOpacity.value = 0.9 * fadeCurve;
+
+                            // Keep center direction synced (globe-local).
+                            if (ring.material.uniforms.uCenter?.value && marker?.position) {
+                                ring.material.uniforms.uCenter.value.copy(marker.position).normalize();
+                            }
+
+                            this.updateRingPositionAndOrientation(ring, marker);
+                            continue;
+                        }
+
                         // Animate ring - for Moon/Mars/Station, scale only in X and Y (flat), keep Z at 1
                         const locationType = marker.userData ? marker.userData.locationType : 'earth';
                         const scale = ring.userData.startScale + (ring.userData.maxScale - ring.userData.startScale) * progress;

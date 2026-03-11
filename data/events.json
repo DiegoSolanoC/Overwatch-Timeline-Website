@@ -1726,7 +1726,7 @@
       "name": "Force the Sun to Set",
       "locationType": "earth",
       "cityDisplayName": "Lagos, Nigeria",
-      "description": "All over the world, heroic figures started to appear throughout the entire Crisis, remarkable individuals that stood out amongst the crowd for their bravery, ingenuity and perhaps most notoriously, superhuman abilities. From genetically enhanced soldiers, to cybernetic warriors, to mech pilots and rocket-powered knights, it appears that all over the planet, individuals branding the latest weapons and technology available to them are making actual progress at repelling warbot attacks. But there was perhaps no figure more notorious and heavily debated, than the mysterious Savior of Nigeria, the Doomfist.\n\n\n\nNigeria had endured constant war since the beginning of the crisis, as the high population numbers of Lagos and proximity to an Omnium made it the clearest target for Anubis to go after. When the attacks became global, neighboring countries increased their efforts to block their borders with Nigeria, offering little help and hoping to keep the invasion within the country. All seemed lost, until one night, in the city of Ibadan, he appeared. A single man, carrying no guns, just a metallic gauntlet in his right hand. According to witnesses, the man would leap into the air and piledrive into the machines with impossible force, wrecking the warbots and brawling entire waves of them for hours until sunrise.\n\n\n\nA young eyewitness approached the man, scared. The kid asked the hero if the war was over, to which his response was, \"No, but there is strength in struggle. With each fight for our home, I grow stronger, and I will keep our people safe\". The man disappeared as authorities arrived to provide aid. But he would show up every night to repel the Omnic forces once more. Witnesses describe his battles as both brutal and beautiful, like an artist at work. His presence spelled the doom of those who crossed his gauntlet, and thus the mighty Doomfist was born.",
+      "description": "All over the world, heroic figures started to appear throughout the entire Crisis, remarkable individuals that stood out amongst the crowd for their bravery, ingenuity and perhaps most notoriously, superhuman abilities. From genetically enhanced soldiers, to cybernetic warriors, to mech pilots and rocket-powered knights, it appears that all over the planet, individuals branding the latest weapons and technology available to them are making actual progress at repelling warbot attacks. But there was perhaps no figure more notorious and heavily debated, than the mysterious Savior of Nigeria, the Doomfist.\n\nNigeria had endured constant war since the beginning of the crisis, as the high population numbers of Lagos and proximity to an Omnium made it the clearest target for Anubis to go after. When the attacks became global, neighboring countries increased their efforts to block their borders with Nigeria, offering little help and hoping to keep the invasion within the country. All seemed lost, until one night, in the city of Ibadan, he appeared. A single man, carrying no guns, just a metallic gauntlet in his right hand. According to witnesses, the man would leap into the air and piledrive into the machines with impossible force, wrecking the warbots and brawling entire waves of them for hours until sunrise. A young eyewitness approached the man, scared. The kid asked the hero if the war was over, to which his response was, \"No, but there is strength in struggle. With each fight for our home, I grow stronger, and I will keep our people safe\". The man disappeared as authorities arrived to provide aid. But he would show up every night to repel the Omnic forces once more. Witnesses describe his battles as both brutal and beautiful, like an artist at work. His presence spelled the doom of those who crossed his gauntlet, and thus the mighty Doomfist was born.",
       "image": "",
       "filters": [
         "Doomfist"
@@ -1897,54 +1897,6 @@
       "lon": -100.2632764
     },
     {
-      "name": "Jamison Fawkes is Born",
-      "locationType": "earth",
-      "cityDisplayName": "The Outback, Australia",
-      "description": "On February 29th of 2052, Jamison Fawkes was born, in the middle of the Crisis to a family in the Outback. Born into chaos and having his life quickly stolen away after the Crisis, following the explosion of the Omnium, he would grow up as an outcast even amongst Junkers",
-      "image": "",
-      "filters": [
-        "Junkrat"
-      ],
-      "factions": [
-        "08Junkers"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Website, Junkrat",
-          "url": "https://overwatch.blizzard.com/en-us/heroes/junkrat/"
-        }
-      ],
-      "headlines": [
-        "Civilians unite to fight the Omnics in the Australian Outback"
-      ],
-      "lat": -25,
-      "lon": 135
-    },
-    {
-      "name": "The Road of Bones",
-      "locationType": "earth",
-      "cityDisplayName": "Oymyakon, Russia",
-      "description": "The Kolyma Highway near the town of Oymkakon, known as the Road of Bones, was one of the most important places for Russia to defend during the Crisis, as the only viable access point to the Sea of Okhotsk, putting the isolated population in danger of becoming unreachable. When the RDF planned to deploy a Svyatogor to the town, Ksenia Popova, a local from Oymkakon took her chance to come back and defend her hometown.\n\nThe town was mostly spared from the Crisis, due to the non-existing Omnic presence and the isolation of the place, but one fateful day Anubis ordered a full-on attack, commanded by Ravager units. As the evacuation effort turned dire, Ksenia was given authorization to do anything it took to stop the robotic advance, and after finding herself outnumbered and outgunned, she decided to charge into a small nuclear plant, sacrificing her own life to ensure the blast from the explosion destroyed all Omnics in the area. The explosion created the Oymyakon exclusion zone, a radiated field unsuitable for both lifeforms and machines, as the radiation would fry their circuit without sufficient shielding. Ksenia's sacrifice saved hundreds and prevented Anubis from ever being able to reach Okhotsk again, but at the same time, it displaced the survivors away from their home, and to this day the government won't let them come back. ",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "19Volskaya",
-        "06Crisis"
-      ],
-      "lat": 63.4629473,
-      "lon": 142.7869693,
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "War Hero dies defending Siberian town",
-        "Radiation Zone declared in Oymyakon, evacuation mandatory"
-      ]
-    },
-    {
       "name": "Honor and Glory",
       "locationType": "earth",
       "cityDisplayName": "Eichenwalde Castle, Germany",
@@ -2100,35 +2052,86 @@
       "lon": 8.5410422
     },
     {
+      "name": "The Road of Bones",
+      "locationType": "earth",
+      "cityDisplayName": "Oymyakon, Russia",
+      "description": "The Kolyma Highway near the town of Oymkakon, known as the Road of Bones, was one of the most important places for Russia to defend during the Crisis, as the only viable access point to the Sea of Okhotsk, putting the isolated population in danger of becoming unreachable. When the RDF planned to deploy a Svyatogor to the town, Ksenia Popova, a local from Oymkakon took her chance to come back and defend her hometown.\n\nThe town was mostly spared from the Crisis, due to the non-existing Omnic presence and the isolation of the place, but one fateful day Anubis ordered a full-on attack, commanded by Ravager units. As the evacuation effort turned dire, Ksenia was given authorization to do anything it took to stop the robotic advance, and after finding herself outnumbered and outgunned, she decided to charge into a small nuclear plant, sacrificing her own life to ensure the blast from the explosion destroyed all Omnics in the area. The explosion created the Oymyakon exclusion zone, a radiated field unsuitable for both lifeforms and machines, as the radiation would fry their circuit without sufficient shielding. Ksenia's sacrifice saved hundreds and prevented Anubis from ever being able to reach Okhotsk again, but at the same time, it displaced the survivors away from their home, and to this day the government won't let them come back. ",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "19Volskaya",
+        "06Crisis"
+      ],
+      "lat": 63.4629473,
+      "lon": 142.7869693,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "War Hero dies defending Siberian town",
+        "Radiation Zone declared in Oymyakon, evacuation mandatory"
+      ]
+    },
+    {
       "name": "Who knew Better",
       "locationType": "earth",
       "cityDisplayName": "Chicago, United States",
-      "description": "",
+      "description": "Overwatch was deployed several times across the world to consistent success. For a brief moment it seemed like they could do no wrong. It was during the first US deployment in Chicago that Jack Morrison approached Adawe with a bold move, to recruit Dr. Mina Liao from the late Omnica Corporation. While the fall of the company had damaged her reputation, it could be argued that no one else in the world knew better about Omnics than her, and multiple international investigations had cleared her out of any involvement with the Crisis itself.\n\n\n\nWhile Lindholm and Reyes objected to the idea, in the end they begrudgingly yielded, as having an expectation of Omnics would allow them to keep up with Anubis' rapidly evolving strategies. While Morrison championed Liao's inclusion, the UN response was far more hostile, forcing Adawe to once more take a stand and argue for their autonomy as an organization and right to choose their own staff outside of international opinion. In the end, it was decided that Liao's worth as an ally would be tested during the Canadian missions.",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Soldier 76",
+        "Reaper",
+        "Ana",
+        "Reinhardt",
+        "Torbjörn"
+      ],
+      "factions": [
+        "05Omnica",
+        "06Crisis",
+        "00Overwatch"
+      ],
       "lat": 41.8755616,
-      "lon": -87.6244212
-    },
-    {
-      "name": "Bombardment",
-      "locationType": "earth",
-      "cityDisplayName": "Gothenburg, Sweden",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 57.7072326,
-      "lon": 11.9670171
+      "lon": -87.6244212,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Mina Liao Joins Overwatch Initiaitve"
+      ]
     },
     {
       "name": "In Partnership",
       "locationType": "earth",
       "cityDisplayName": "Detroit, United States",
-      "description": "",
+      "description": "Overwatch proved itself ready for a bigger challenge, taking down an entire Omnium. The Omnica factories kept pumping out warbots for months, meaning cities in proximity to an Omnium were the most affected by the Crisis. The uneasy alliance of Lindholm and Liao resulted in the Siege defense System, a flight of drones invisible to Anubis and its troops, enabling to survey the area for Omnic activity, to then be targeted by Ironclad Turrets. After establishing a secure communication channel, they joined the Canadian Armed Forces in a collaborative attack. Captain Vivian Chase led her CSOR squadron alongside Morrison's forces, enabling them to install the Siege systems, allowing the teams to make their way through Toronto.\n\n\n\nAfter heavy preparation, the troops advanced into Detroit with support by US troops, but the team was met with a horrible battle ahead. The team would be stalled by a Titan unit, until Sojourn came up with a plan, to have the heron drones carry a small group into the Omnium. Only her, Morrison and Liao managed to get in. The pair escorted Liao through the facility as she deactivated the access ports on the go. The team managed to shut down the Omnium, preventing Anubis from using it anymore. This major victory was the first true blow against Anubis, and resulted in Liao's formal introduction to the Strike Team.",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Sojourn",
+        "Soldier 76",
+        "Reaper",
+        "Ana",
+        "Reinhardt",
+        "Torbjörn"
+      ],
+      "factions": [
+        "00Overwatch",
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Detroit Omnium sucessfully decomissioned"
+      ],
       "lat": 42.3315509,
       "lon": -83.0466403
     },
@@ -2138,25 +2141,53 @@
       "variants": [
         {
           "name": "Dead Gods",
-          "description": "",
-          "filters": [],
-          "factions": [],
+          "description": "After Detroit, Liao managed to clone the frequencies used by the one commanding the Omnium's production lines, which determined that all Omniums were receiving orders from the same source. Thanks to the Macaria program, this signal was determined to come from another God AI. After heavy analysis by hundreds of scientists, all signs pointed towards Cairo. The news spread rapidly and many countries panicked. Any and all God programs that were not yet destroyed were to be dealt with before they too turned against humanity. This naturally caused massive chaos as the programs in charge of many aspects of everyday life suddenly shut down forever. \n\nOne program, however, was able to foresee its termination. Chernobog's security programming realized ahead of time that it would be disconnected. In response, it sent out one final order, broadcasting its final instructions and printing them into thousands of pages, detailing how humanity should  proceed in its absence, while continuing its purpose of keeping global security. The final words in the documents caused massive legal fights and controversy after the crisis: \"I understand, I am sorry.\"",
+          "filters": [
+            "Torbjörn"
+          ],
+          "factions": [
+            "05Omnica",
+            "06Crisis",
+            "26Conspiracy"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 60.1666204,
           "lon": 24.9435408,
-          "cityDisplayName": "Helsinki, Finland"
+          "cityDisplayName": "Helsinki, Finland",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "Source of the Omnic Crisis discovered",
+            "God AI Anubis leading the warbot advance"
+          ]
         },
         {
           "name": "The Dark Days",
-          "description": "",
+          "description": "Many God Ais have grown to be beloved by the public due to their efficiency. For example, the God Program Xibalba guaranteed energy equity across Mexico and neighboring territories. The program had become part of the national identity, almost treated like a mascot by many, but when the order came to shut it down, it caused massive blackouts nationwide. \n\n\n\nSome facilities and small towns were able to stay lid thanks to Borda algae generators, or by acquiring fossil fuels, but for the majority, the world went dark. The Mexican army had so far resisted Anubis considerably but, as if the bloodshed wasn't already enough, the looming darkness of the night led to even more deaths than expected for the last tail end of the crisis. Many to this day remember all the people who died, those left behind in the shadows, as monsters, both human and Omnic prowled and hunted them down. To this day, many blame the government for their needless deaths, arguing that turning Xibalba off was turning their back on the people.",
           "filters": [],
-          "factions": [],
+          "factions": [
+            "16Los Muertos",
+            "cRISI"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 19.1738,
           "lon": -96.1342,
-          "cityDisplayName": "Dorado, Mexico"
+          "cityDisplayName": "Dorado, Mexico",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "Mexico goes dark following the shutdown of Xibalba"
+          ]
         }
       ],
       "lat": 60.1666204,
@@ -2168,29 +2199,138 @@
       "variants": [
         {
           "name": "The Battle of the Bridges",
-          "description": "",
+          "description": "The New Yorker survivors turned the city into a stronghold, setting up explosions in the tunnels leading outside of Manhattan and destroying all but 3 bridges, Washington, Queensboro and Willamsburg, left only in case a rethreat was needed. Anubis had caught on to their tactics, and began amassing warbots at the end of the bridges. After a long silence, they began their attack. Anubis attacked all the bridges at once with endless waves of Omnics, and while they did, many other machines attempted to reach the city through the tunnels and even crossing the river by foot. The event was a massacre, and as the defenders got pushed back, one by one each of the bridges was taken. On the subways, the battle was slightly better, as warbots were stopped by collapsing tunnels and runaway cars, but on the other hand, as Omnics set off the land mines in the river, their bodies made for a safe bridge that other units could walk over.\n\nHaving lost the shores to the Omnics, humanity had no option but to retreat, as the Ravagers led their troops through the fallen buildings. Once the island was breached, the next objects were Central Farm and the Sky Cannons, leading to endless guerrilla warfare and hundreds of casualties.",
           "filters": [],
-          "factions": [],
+          "factions": [
+            "06Crisis"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 40.7579554,
           "lon": -73.9855319,
-          "cityDisplayName": "Manhattan, United States"
+          "cityDisplayName": "Manhattan, United States",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "New York city breached, war rages on",
+            "Empire sky cannon takes down incoming Anubis carrier"
+          ]
         },
         {
           "name": "Capturing a God",
-          "description": "",
+          "description": "While most governments shut down their god AI after Anubis was discovered, New York had a better idea of what to do with Macaria. Like many others, the program had been anthropomorphized by their team and local residents, with many looking at it as a friend. So, while defying official orders, they cut Macaria's connections without fully deactivating it. \n\n\n\nThe team worked alongside Macaria and its communication systems to spray noise and bad data across the warbot communication networks, disrupting them from getting orders from Anubis and saving countless lives while the troops were blinded. Without Anubis' direct support, the decision-making was left to the Ravagers, who, while they were a thread of their own, were still tangible, defeatable, compared to a God AI. Thanks to Macaria's help, New York was able to defend itself even after the Battle of the Bridges made them lose ground, and while public opinion about God programs never bounced back after Anubis, Macaria is still seen by many as a hero, with the Tony Award-winning Broadway Musical \"Collapse\" portraying her asa conflicted soul, in love with humanity, and willing to die for it.",
           "filters": [],
-          "factions": [],
+          "factions": [
+            "06Crisis"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 40.7579554,
           "lon": -73.9855319,
-          "cityDisplayName": "Manhattan, United States"
+          "cityDisplayName": "Manhattan, United States",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "headlines": [
+            "God AI sides with Humanity agaisnt Anubis",
+            "New York defies federal orders to turn Macaria off"
+          ]
         }
       ],
       "lat": 40.7579554,
       "lon": -73.9855319
+    },
+    {
+      "name": "Jamison Fawkes is Born",
+      "locationType": "earth",
+      "cityDisplayName": "The Outback, Australia",
+      "description": "On February 29th of 2052, Jamison Fawkes was born, in the middle of the Crisis to a family in the Outback. Born into chaos and having his life quickly stolen away after the Crisis, following the explosion of the Omnium, he would grow up as an outcast even amongst Junkers",
+      "image": "",
+      "filters": [
+        "Junkrat"
+      ],
+      "factions": [
+        "08Junkers"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website, Junkrat",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/junkrat/"
+        }
+      ],
+      "headlines": [
+        "Civilians unite to fight the Omnics in the Australian Outback"
+      ],
+      "lat": -25,
+      "lon": 135
+    },
+    {
+      "name": "Bombardment",
+      "locationType": "earth",
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "Nearly at the end of the Crisis, Anubis sent a surprise raid that was able to overwhelm the Defense Network, bombarding 95 percent of Gothenburg into ashes. By all accounts, this would have been a slaughter, had it not been for the efforts of the Heroic Five. The group worked together with local government and national authorities to evacuate millions of civilians into bomb shelters, and those who weren't able to make it in time into the larger bunkers were aided into deploying Steel Blankets. \n\nThe Bombardment lasted three hours, and by the end the city was left as a wasteland, but in spite of heavy casualties, the efforts of the Heroic Five completely decimated the projected death toll. The event was known as the Midsummer Miracle. The Five had made a pact before the disaster, to not take refuge until everyone else made it safely first, so even as the bomb rained down, they kept helping the elderly and the injured rushed into the Iron Blankets. All five of them died helping stragglers, and their names are commemorated all across the city as heroes. Torbjörn himself gave the eulogy to the group, claiming they lived and died by the highest creed of an engineer and a citizen: to help others live better lives, or to help them live at all. While Lindholm was already in Overwatch by the time of the bombardment, he was informed of the massacre as he returned from a mission. Reports say he scarcely seemed to breathe until it was confirmed his wife and children survived, and only then did he allowed himself to grieve, mourning the lives of those that could not be saved.",
+      "image": "",
+      "filters": [
+        "Torbjörn"
+      ],
+      "factions": [
+        "10Ironclad",
+        "06Crisis"
+      ],
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "The Swedish \"Heroic Five\" die during bombardment",
+        "Millions saved by Swedish portable bunker system"
+      ]
+    },
+    {
+      "name": "The Savior",
+      "locationType": "earth",
+      "cityDisplayName": "Ibadan, Nigeria",
+      "description": "The man carrying the Doomfist Gauntlet has been identified as Adhabu Ngumi. He had continued fighting on Ibadan, as Anubis ended up perplexed by the rate at which its troops fell. A month into his crusade, the Nigerian Government identified him, and stepped in to make sure his mother had access to any resources and food needed, making sure the household was tended to while their son risked his life for the country.\n\nWith his identity discovered, and the government on his side, Ngumi began working with local authorities, transported across neighboring regions to be deployed wherever he was needed. He would end up marrying the woman assigned as his Stratoscopter pilot, and as the constant fighting incapacitated him, he would refuse to take the Gauntlet off, choosing to repair it himself. Late into the Crisis, Anubis ordered the Nigerian Omnium to pump out more warbots than any one man could fight, and as usual, Doomfist showed up to defend his country. It was only five days before the awakening when he died during the Omnium battle. He had saved millions of lives across West Africa, and once the crisis ended, he was recognized as the Savior of Nigeria, and awarded with the highest civilian honors possible.",
+      "image": "",
+      "filters": [
+        "Doomfist"
+      ],
+      "factions": [
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Doomfist dies during Nigerian warbot attack"
+      ],
+      "lat": 7.3786064,
+      "lon": 3.8969928
+    },
+    {
+      "name": "The Awakening",
+      "locationType": "earth",
+      "cityDisplayName": "Shambali Monastery, Nepal",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 28.3949,
+      "lon": 84.124
     },
     {
       "name": "Sloan Cameron is Born",
@@ -2215,28 +2355,6 @@
       ],
       "lat": 45.1960403,
       "lon": -63.1653789
-    },
-    {
-      "name": "The Savior",
-      "locationType": "earth",
-      "cityDisplayName": "Ibadan, Nigeria",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 7.3786064,
-      "lon": 3.8969928
-    },
-    {
-      "name": "The Awakening",
-      "locationType": "earth",
-      "cityDisplayName": "Shambali Monastery, Nepal",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 28.3949,
-      "lon": 84.124
     },
     {
       "locationType": "earth",
