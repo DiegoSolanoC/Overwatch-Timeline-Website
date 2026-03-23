@@ -430,6 +430,7 @@ class EventListenerService {
         const searchInput = document.getElementById('eventsSearchInput');
         const filtersInput = document.getElementById('eventsSearchFilters');
         const suggestionsEl = document.getElementById('eventsSearchFiltersSuggestions');
+        const useSelectionCheckbox = document.getElementById('eventsUseFilterSelectionCheckbox');
         const perPageInput = document.getElementById('eventsPerPageInput');
         const showAllCheckbox = document.getElementById('eventsShowAllCheckbox');
         const clearBtn = document.getElementById('eventsSearchClear');
@@ -457,6 +458,8 @@ class EventListenerService {
         };
 
         let filterIndex = buildFilterIndex();
+        let manualFilterText = '';
+        let isSyncingSelection = false;
 
         const parseFilterTokens = (text) => {
             // Rebuild index lazily if data arrived after listeners were set up
@@ -491,6 +494,51 @@ class EventListenerService {
             });
 
             return { matchedHeroes, matchedFactions };
+        };
+
+        const getSelectedFilterKeys = () => {
+            try {
+                // Prefer current in-panel selection (even before confirm) when available.
+                const fs = window.FilterService;
+                const selected = fs?.stateManager?.toArray?.();
+                if (Array.isArray(selected)) return selected;
+
+                // Fallback: confirmed/active filters applied to the globe scene.
+                const active = window.globeController?.sceneModel?.activeFilters;
+                if (active && (active instanceof Set)) return Array.from(active);
+                if (Array.isArray(active)) return active;
+            } catch (_) {
+                // no-op
+            }
+            return [];
+        };
+
+        const selectionKeysToFilterText = (keys) => {
+            // Rebuild index if data arrived after init
+            if (!filterIndex || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)) {
+                filterIndex = buildFilterIndex();
+            }
+            const factionEntries = filterIndex.factionEntries || [];
+            const factionByFilenameLower = new Map();
+            factionEntries.forEach(fe => {
+                if (!fe?.filenameLower) return;
+                factionByFilenameLower.set(fe.filenameLower, fe.displayName || fe.filename);
+            });
+
+            const tokens = [];
+            (keys || []).forEach((k) => {
+                const raw = (k ?? '').toString().trim();
+                if (!raw) return;
+                const lower = raw.toLowerCase();
+                // If it matches a known faction filename, prefer using its displayName token.
+                if (factionByFilenameLower.has(lower)) {
+                    tokens.push(factionByFilenameLower.get(lower));
+                } else {
+                    // For heroes, raw is already the hero name; for unknown tokens, keep raw.
+                    tokens.push(raw);
+                }
+            });
+            return tokens.join(', ');
         };
 
         const getCurrentTokenInfo = () => {
@@ -562,6 +610,11 @@ class EventListenerService {
 
         const updateFilterPredictions = () => {
             if (!filtersInput) return;
+            if (useSelectionCheckbox && useSelectionCheckbox.checked) {
+                // When locked to selection, don't show predictions.
+                hideSuggestions();
+                return;
+            }
             // Rebuild index if data arrived after init
             if (!filterIndex || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)) {
                 filterIndex = buildFilterIndex();
@@ -594,6 +647,31 @@ class EventListenerService {
             }
         };
 
+        const syncFiltersInputFromSelection = () => {
+            if (!useSelectionCheckbox || !useSelectionCheckbox.checked) return;
+            if (isSyncingSelection) return;
+            isSyncingSelection = true;
+            try {
+                const keys = getSelectedFilterKeys();
+                const text = selectionKeysToFilterText(keys);
+                filtersInput.value = text;
+                filtersInput.readOnly = true;
+                filtersInput.style.cursor = 'not-allowed';
+                filtersInput.style.opacity = '0.75';
+                filtersInput.classList.remove('no-filter-match');
+                hideSuggestions();
+                applySearch();
+            } finally {
+                isSyncingSelection = false;
+            }
+        };
+
+        const unlockFiltersInput = () => {
+            filtersInput.readOnly = false;
+            filtersInput.style.cursor = '';
+            filtersInput.style.opacity = '';
+        };
+
         const applyPerPageSettings = () => {
             if (!this.eventManager) return;
             const showAll = !!(showAllCheckbox && showAllCheckbox.checked);
@@ -618,10 +696,19 @@ class EventListenerService {
         searchInput.addEventListener('input', applySearch);
         searchInput.addEventListener('change', applySearch);
         filtersInput.addEventListener('input', () => {
+            if (useSelectionCheckbox && useSelectionCheckbox.checked) {
+                // Ignore manual typing while locked to selection.
+                syncFiltersInputFromSelection();
+                return;
+            }
             updateFilterPredictions();
             applySearch();
         });
         filtersInput.addEventListener('change', () => {
+            if (useSelectionCheckbox && useSelectionCheckbox.checked) {
+                syncFiltersInputFromSelection();
+                return;
+            }
             updateFilterPredictions();
             applySearch();
         });
@@ -642,6 +729,10 @@ class EventListenerService {
                     window.SoundEffectsManager.play('filterClear');
                 }
                 searchInput.value = '';
+                if (useSelectionCheckbox) {
+                    useSelectionCheckbox.checked = false;
+                }
+                unlockFiltersInput();
                 filtersInput.value = '';
                 filtersInput.classList.remove('no-filter-match');
                 hideSuggestions();
@@ -651,6 +742,35 @@ class EventListenerService {
                 if (this.eventManager.applySearchAndRender) {
                     this.eventManager.applySearchAndRender();
                 }
+            });
+        }
+
+        if (useSelectionCheckbox) {
+            useSelectionCheckbox.addEventListener('change', () => {
+                if (window.SoundEffectsManager) {
+                    window.SoundEffectsManager.play(useSelectionCheckbox.checked ? 'filterConfirm' : 'filterClear');
+                }
+                if (useSelectionCheckbox.checked) {
+                    manualFilterText = (filtersInput.value || '').toString();
+                    syncFiltersInputFromSelection();
+                } else {
+                    unlockFiltersInput();
+                    filtersInput.value = manualFilterText || '';
+                    updateFilterPredictions();
+                    applySearch();
+                }
+            });
+
+            // If the user changes filter selections while this is enabled,
+            // keep the Event Manager filter search synced.
+            document.addEventListener('click', (e) => {
+                if (!useSelectionCheckbox.checked) return;
+                const t = e.target;
+                const isFilterBtn = !!(t && (t.classList?.contains('filter-btn') || t.closest?.('.filter-btn')));
+                const isConfirm = !!(t && (t.id === 'confirmFiltersBtn' || t.closest?.('#confirmFiltersBtn')));
+                const isClear = !!(t && (t.id === 'clearFiltersBtn' || t.closest?.('#clearFiltersBtn')));
+                if (!isFilterBtn && !isConfirm && !isClear) return;
+                setTimeout(() => syncFiltersInputFromSelection(), 0);
             });
         }
 
@@ -674,6 +794,8 @@ class EventListenerService {
 
         // Initial prediction state
         updateFilterPredictions();
+        // Initial selection sync (if checkbox defaulted on for any reason)
+        syncFiltersInputFromSelection();
     }
 }
 

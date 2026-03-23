@@ -158,12 +158,69 @@ body.color-palette-gray .events-manage-title {
 /* Event manager search bar */
 .events-manage-search {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
     margin-bottom: 15px;
     padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.events-manage-search-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    width: 100%;
+}
+
+/* Keep Search + Filters on one line (desktop). */
+.events-manage-search-row--primary {
+    flex-wrap: nowrap;
+}
+
+/* Expand row 1 inputs to fill available width. */
+.events-manage-search-row--primary #eventsSearchInput.events-search-input {
+    flex: 1 1 220px;
+    max-width: none;
+}
+
+.events-manage-search-row--primary .events-search-field {
+    flex: 2 1 360px;
+    min-width: 260px;
+}
+
+.events-manage-search-row--primary .events-search-field .events-search-input {
+    width: 100%;
+    max-width: none;
+}
+
+/* Use full width on row 2; push Clear to the far right. */
+/* Use full width on row 2; distribute 4 controls evenly. */
+.events-manage-search-row--secondary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    justify-items: center;
+}
+
+.events-per-page-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .events-manage-search-row--primary {
+        flex-wrap: wrap;
+    }
+    .events-manage-search-row--secondary {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        justify-items: unset;
+    }
 }
 .events-search-label {
     color: rgba(255, 255, 255, 0.8);

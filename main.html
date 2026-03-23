@@ -128,20 +128,30 @@
                     </div>
                 </div>
                 <div class="events-manage-search" id="eventsManageSearch">
-                    <label for="eventsSearchInput" class="events-search-label">Search:</label>
-                    <input type="text" id="eventsSearchInput" class="events-search-input" placeholder="By title..." autocomplete="off" />
-                    <label for="eventsSearchFilters" class="events-search-label">Filters:</label>
-                    <div class="events-search-field">
-                        <input type="text" id="eventsSearchFilters" class="events-search-input" placeholder="Hero or faction, comma-separated..." autocomplete="off" />
-                        <div id="eventsSearchFiltersSuggestions" class="events-search-suggestions" style="display: none;"></div>
+                    <div class="events-manage-search-row events-manage-search-row--primary">
+                        <label for="eventsSearchInput" class="events-search-label">Search:</label>
+                        <input type="text" id="eventsSearchInput" class="events-search-input" placeholder="By title..." autocomplete="off" />
+                        <label for="eventsSearchFilters" class="events-search-label">Filters:</label>
+                        <div class="events-search-field">
+                            <input type="text" id="eventsSearchFilters" class="events-search-input" placeholder="Hero or faction, comma-separated..." autocomplete="off" />
+                            <div id="eventsSearchFiltersSuggestions" class="events-search-suggestions" style="display: none;"></div>
+                        </div>
                     </div>
-                    <label for="eventsPerPageInput" class="events-search-label">Per page:</label>
-                    <input type="number" id="eventsPerPageInput" class="events-search-input events-search-input-small" min="1" step="1" value="50" />
-                    <label class="events-search-checkbox" title="Show all events in one long page">
-                        <input type="checkbox" id="eventsShowAllCheckbox" />
-                        Show all
-                    </label>
-                    <button type="button" id="eventsSearchClear" class="events-search-clear-btn">Clear</button>
+                    <div class="events-manage-search-row events-manage-search-row--secondary">
+                        <label class="events-search-checkbox" title="Use the currently selected Filters panel items for this search">
+                            <input type="checkbox" id="eventsUseFilterSelectionCheckbox" />
+                            Use filter selection
+                        </label>
+                        <div class="events-per-page-group">
+                            <label for="eventsPerPageInput" class="events-search-label">Per page:</label>
+                            <input type="number" id="eventsPerPageInput" class="events-search-input events-search-input-small" min="1" step="1" value="50" />
+                        </div>
+                        <label class="events-search-checkbox" title="Show all events in one long page">
+                            <input type="checkbox" id="eventsShowAllCheckbox" />
+                            Show all
+                        </label>
+                        <button type="button" id="eventsSearchClear" class="events-search-clear-btn">Clear</button>
+                    </div>
                 </div>
                 <div class="events-list" id="eventsList">
                     <!-- Events will be dynamically generated here -->
