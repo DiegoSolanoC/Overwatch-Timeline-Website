@@ -164,6 +164,15 @@ body.color-palette-gray .multi-event-badge:hover {
     background: rgba(25, 118, 210, 0.9); /* Darker blue on hover */
 }
 
+/* Overlap warning: two events in the same globe page (groups of 10) share location name or coordinates */
+.event-number-badge.event-number-badge--overlap {
+    background: rgba(244, 67, 54, 0.92); /* Red */
+}
+
+.event-number-badge.event-number-badge--overlap:hover {
+    background: rgba(211, 47, 47, 0.92); /* Darker red */
+}
+
 /* Gray palette: orange badge for event number */
 body.color-palette-gray .event-number-badge {
     background: rgba(255, 102, 0, 0.9);
@@ -171,6 +180,15 @@ body.color-palette-gray .event-number-badge {
 
 body.color-palette-gray .event-number-badge:hover {
     background: rgba(229, 90, 0, 0.9);
+}
+
+/* Gray palette: keep overlap warnings red */
+body.color-palette-gray .event-number-badge.event-number-badge--overlap {
+    background: rgba(244, 67, 54, 0.92);
+}
+
+body.color-palette-gray .event-number-badge.event-number-badge--overlap:hover {
+    background: rgba(211, 47, 47, 0.92);
 }
 
 /* Event Item Preview Image */

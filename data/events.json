@@ -28,7 +28,9 @@
       "filters": [
         "Reinhardt"
       ],
-      "factions": [],
+      "factions": [
+        "09Crusaders"
+      ],
       "sources": [
         {
           "text": "Overwatch Website, Reinhardt",
@@ -518,7 +520,9 @@
         "Wuyang",
         "Anran"
       ],
-      "factions": [],
+      "factions": [
+        "10Wuxing University"
+      ],
       "sources": [
         {
           "text": "Against the Tide",
@@ -655,7 +659,9 @@
       "cityDisplayName": "Zurich, Switzerland",
       "description": "On May 13th of 2039, Angela Zeigler was born in Zurich. Medicine ran in the family, and during the crisis, her parents would often serve as volunteers in local hospitals to aid those in need. Sadly, however, both of them were killed in an air strike during these visits. Orphaned in dire times and at such a young age, this gave Angela a very strong and vocal distaste for war.",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Mercy"
+      ],
       "factions": [],
       "sources": [
         {
@@ -675,7 +681,9 @@
       "cityDisplayName": "Austin, United States",
       "description": "On July 31st of 2039, Cole Cassidy was born. Records of his early life are scarce and unreliable, as the man enjoyed the mystery atmosphere he leaned onto. It's believed he came from Texas, and like many others, got orphaned by the Crisis at an early age. Due to these dire circumstances, he never finished formal schooling, leading him to a job hoping to survive, and eventually a life of crime.",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Cassidy"
+      ],
       "factions": [],
       "sources": [
         {
@@ -711,6 +719,32 @@
       ],
       "lat": 12.9767936,
       "lon": 77.590082
+    },
+    {
+      "name": "Resource Management",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "The world had overall become a better place, with more available food, miracle cures for all kinds of medical problems, cleaner energy solutions, highly advanced but complex transport systems, and an abundance of machinery helping on all kinds of tasks around the world. But with these perks, came complexity, and with all of these resources available, the global population also grew immensely. Humanity would soon become overwhelmed by the task of managing all of these sectors on a global scale the traditional way. It was here when God Ais got conceptualized.\n\nHighly advanced artificial intelligence systems will be developed across the world. While most AIs were limited by their processing and resources, a God program was designed to have full global control and authority over specific aspects of industry in modern society. Among many others, there was Xibalbá, in Mexico City, charged with the management of energy equity across the region. Chernobog in Helsinki, Finland, with a high focus on global security and international affairs. Macaria from Brigeport, Connecticut, in charge of communication systems across the States, and the most infamous of them all, Anubis from Cairo, Egypt, made to pursue ecological solutions for the preservation of life.\n\nOn a smaller scale, less complex AIs were also established to control local traffic, stocking stores, and manage public work projects, among other things, while on a global level, the God Programs handled these resources and many more with an international perspective in mind, ensuring equity, efficiency and progress.\n\nWhile their power allowed humanity to take a back seat as the world moved forward, many skeptics worried that these God programs were given too much power, and had too much leeway to make decisions, and to calm these fears. Each God Ai was under a constant feedback loop by a dedicated team of programmers that provided its maintenance and supervision, allowing humanity to catch any possible mistakes or concerning choices before it was too late.",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "05Omnica",
+        "06Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Hyperloop Train is set to finally open next year",
+        "Many governments approve the delegation of duties across many fields to the new so caleld \"God programs\"",
+        "Controversy follows as more and more aspects of daily live are taken over by machines",
+        "Germany invests on science development, and ocean exploration, hoping to open jobs as AI takes over"
+      ],
+      "lat": 30.0443879,
+      "lon": 31.2357257
     },
     {
       "name": "Jean-Baptiste Augustin is Born",
@@ -755,32 +789,6 @@
       ],
       "lat": -13.8345235,
       "lon": -171.7630955
-    },
-    {
-      "name": "Resource Management",
-      "locationType": "earth",
-      "cityDisplayName": "Cairo, Egypt",
-      "description": "The world had overall become a better place, with more available food, miracle cures for all kinds of medical problems, cleaner energy solutions, highly advanced but complex transport systems, and an abundance of machinery helping on all kinds of tasks around the world. But with these perks, came complexity, and with all of these resources available, the global population also grew immensely. Humanity would soon become overwhelmed by the task of managing all of these sectors on a global scale the traditional way. It was here when God Ais got conceptualized.\n\nHighly advanced artificial intelligence systems will be developed across the world. While most AIs were limited by their processing and resources, a God program was designed to have full global control and authority over specific aspects of industry in modern society. Among many others, there was Xibalbá, in Mexico City, charged with the management of energy equity across the region. Chernobog in Helsinki, Finland, with a high focus on global security and international affairs. Macaria from Brigeport, Connecticut, in charge of communication systems across the States, and the most infamous of them all, Anubis from Cairo, Egypt, made to pursue ecological solutions for the preservation of life.\n\nOn a smaller scale, less complex AIs were also established to control local traffic, stocking stores, and manage public work projects, among other things, while on a global level, the God Programs handled these resources and many more with an international perspective in mind, ensuring equity, efficiency and progress.\n\nWhile their power allowed humanity to take a back seat as the world moved forward, many skeptics worried that these God programs were given too much power, and had too much leeway to make decisions, and to calm these fears. Each God Ai was under a constant feedback loop by a dedicated team of programmers that provided its maintenance and supervision, allowing humanity to catch any possible mistakes or concerning choices before it was too late.",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "05Omnica",
-        "06Crisis"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "Hyperloop Train is set to finally open next year",
-        "Many governments approve the delegation of duties across many fields to the new so caleld \"God programs\"",
-        "Controversy follows as more and more aspects of daily live are taken over by machines",
-        "Germany invests on science development, and ocean exploration, hoping to open jobs as AI takes over"
-      ],
-      "lat": 30.0443879,
-      "lon": 31.2357257
     },
     {
       "name": "Voslkaya Industries",
@@ -1074,7 +1082,9 @@
       "filters": [
         "Winston"
       ],
-      "factions": [],
+      "factions": [
+        "07Lucheng"
+      ],
       "sources": [
         {
           "text": "Overwatch Website, Winston",
@@ -1118,7 +1128,9 @@
       "cityDisplayName": "The Outback, Australia",
       "description": "On June 14th of 2047, Odessa Stone was born in a small outback settlement. She was one of six children, often fighting to prove her dominance. The life of the Stones would be marked by the crisis, and especially by the events that followed with the Australian government.",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Junker Queen"
+      ],
       "factions": [],
       "sources": [
         {
@@ -1264,7 +1276,9 @@
       "cityDisplayName": "Chiang Mai City, Thailand",
       "description": "On April 28 of 2048, Niran Pruksamanee was born in the city of Chiang Mai. As the middle child of a wealthy family, he had his life planned and high expectations to fulfill, although the young Niran would resist this structure by wandering through their compound's gardens and mending plants alongside their gardeners.\n\nHe was too intelligent for the expensive schools his family chose for him, completing assignments more thoroughly than needed and annoying his teachers, which caused his parents to get frustrated and continue to attempt to install order in his life.",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Lifeweaver"
+      ],
       "factions": [],
       "sources": [
         {
@@ -1284,7 +1298,9 @@
       "filters": [
         "Reinhardt"
       ],
-      "factions": [],
+      "factions": [
+        "09Crusaders"
+      ],
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -1506,7 +1522,8 @@
         "Baptiste"
       ],
       "factions": [
-        "06Crisis"
+        "12Crisis",
+        "15Caribbean Coalition"
       ],
       "sources": [
         {
@@ -1681,7 +1698,8 @@
         "Anran"
       ],
       "factions": [
-        "06Crisis"
+        "12Crisis",
+        "10Wuxing University"
       ],
       "sources": [
         {
@@ -1855,7 +1873,8 @@
         "Reinhardt"
       ],
       "factions": [
-        "06Crisis"
+        "12Crisis",
+        "09Crusaders"
       ],
       "sources": [
         {
@@ -1906,7 +1925,8 @@
         "Reinhardt"
       ],
       "factions": [
-        "06Crisis"
+        "12Crisis",
+        "09Crusaders"
       ],
       "sources": [
         {
@@ -2171,8 +2191,8 @@
           "description": "Many God Ais have grown to be beloved by the public due to their efficiency. For example, the God Program Xibalba guaranteed energy equity across Mexico and neighboring territories. The program had become part of the national identity, almost treated like a mascot by many, but when the order came to shut it down, it caused massive blackouts nationwide. \n\n\n\nSome facilities and small towns were able to stay lid thanks to Borda algae generators, or by acquiring fossil fuels, but for the majority, the world went dark. The Mexican army had so far resisted Anubis considerably but, as if the bloodshed wasn't already enough, the looming darkness of the night led to even more deaths than expected for the last tail end of the crisis. Many to this day remember all the people who died, those left behind in the shadows, as monsters, both human and Omnic prowled and hunted them down. To this day, many blame the government for their needless deaths, arguing that turning Xibalba off was turning their back on the people.",
           "filters": [],
           "factions": [
-            "16Los Muertos",
-            "cRISI"
+            "20Los Muertos",
+            "12Crisis"
           ],
           "image": "",
           "locationType": "earth",
@@ -2325,12 +2345,31 @@
       "name": "The Awakening",
       "locationType": "earth",
       "cityDisplayName": "Shambali Monastery, Nepal",
-      "description": "",
+      "description": "Liao approached Adawe with a theory, as she believed there was another way to stop the crisis without having to expend all military resources on endless battle. Her team had tracked down Aurora and found out that her sentience allowed her to stay unaffected by Anubis. Liao believed Aurora's sentience was the result of a one in a billion quantum event. It was irreplaceable, but if they could find a way to broadcast her sentience globally, it would spark the same gift onto the vast majority of Anubis' forces, overriding their programming and potentially turning the tides.\n\nAfter heavy research, Liao's team traveled to Nepal, to reunite with Aurora and explain to them their plan. Unfortunately, the only method Liao was able to come up with, required them to take Aurora's consciousness and spread the same quantum event within her as a giant pulse. The sheer power required to do this would overload Aurora's own mind, meaning she would likely die, her soul lost forever. Liao was determined to find another way, but Aurora decided for herself that she would do it, if it meant casualties, both for humans and for what would be her people, finally stopped. At her request, the procedure was done within the Nepalese Himalayas, her new home. When the procedure started, for a brief moment, Aurora's consciousness was projected onto every compatible Omnic on the planet, and in turn each of them echoed her gift, and gained Autonomy away from Anubis. This event is now known as the Awakening, and in her dying moments Aurora sent one last message to her people, about her life, her wishes and why she chose to share this with them. At that moment, all the newly born Omnics had one phrase echoing through their heads: \"You have this one life, Choose well.\"",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "05Omnica",
+        "13Shambali",
+        "06Crisis",
+        "00Overwatch"
+      ],
       "lat": 28.3949,
-      "lon": 84.124
+      "lon": 84.124,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        },
+        {
+          "text": "Overwatch Genesis, Part three: Rebirth",
+          "url": "https://www.youtube.com/watch?v=S5_5aYk4WMo&t=2s"
+        }
+      ],
+      "headlines": [
+        "Omnic troops stop fighting world wide",
+        "Warbot drops gun and helps human troops"
+      ]
     },
     {
       "name": "Sloan Cameron is Born",
@@ -2362,25 +2401,67 @@
       "variants": [
         {
           "name": "Striking the Source",
-          "description": "",
-          "filters": [],
-          "factions": [],
+          "description": "The Awakening caught Anubis by surprise, but it didn't take long for it to scan Omnics and figure out what happened. In no time, it had figured out how to protect its troops against being awakened, unaware this was impossible to do a second time to begin with. Not only that, but while the vast majority of Omnics chose to fight alongside humans, there were many who remained at Anubis' side, and a sizable portion of the army, like the dangerous Bastion and Idina units that went unaffected. In spite of this blow, statistics showed that it would take barely a week for Anubis to bounce back, and as it called its army to congregate in Cairo, the window of opportunity was closing. Without time to lose, Reyes decided to strike while they still had the upper hand. \n\nAfter allying with local forces, Ana guided the team through the city, as she was the most familiar with it, and had worked with the troops before. The team followed Lindholm and Liao's guidelines as to how to deal with both Anubis and the remaining troops, most of which were Torbjörn's designs. Wilhelm, Reyes and Morrison pushed the advance into the Omnium and fought hordes of both sentient loyalists and mindless warbots for hours, as they made way for Lindholm's engineer team to get in and quarantine the facility. At last, Anubis had been trapped, and without its instructions, all the remaining Omniums would stop producing any more units, making it easier to seize and deactivate.",
+          "filters": [
+            "Soldier 76",
+            "Reaper",
+            "Ana",
+            "Reinhardt",
+            "Torbjörn"
+          ],
+          "factions": [
+            "06Crisis",
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 30.0443879,
           "lon": 31.2357257,
-          "cityDisplayName": "Cairo, Egypt"
+          "cityDisplayName": "Cairo, Egypt",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            },
+            {
+              "text": "Overwatch Genesis, Part three: Rebirth",
+              "url": "https://www.youtube.com/watch?v=S5_5aYk4WMo&t=2s"
+            }
+          ],
+          "headlines": [
+            "Overwatch breaks into Anubis facility",
+            "Is the Crisis finally over? War rages on across the world"
+          ]
         },
         {
           "name": "The Temple of Anubis",
-          "description": "",
-          "filters": [],
-          "factions": [],
+          "description": "Following the quarantining of Anubis, most people expected the God program would be outright destroyed, but against most wishes, Lindholm and Liao had different plans. The construction of the aptly called Temple of Anubis began shortly after its imprisonment. A high security facility designed to look like a pyramid from the outside, blending into the landscape of the city. The Temple was to serve as Anubis' tomb, ensuring that no trace of the God AI escapes and attempts to start another Crisis.\n\n\n\nMany criticized the choice to keep the program at all, with some going as far as to say Overwatch did so to guarantee the world would need them again in the future. However, most experts in the field supported the Temple's construction, as heavy monitoring of the facility ensured that no scraps of its code felt into the wrong hands, as well as allowing them to compare remaining Omnic threads with Anubis, in case it's possible to trace it back as its source. Not only that, but the facility allowed experts to study the AI and find out what exactly went wrong with it, hopefully preventing something like this from ever happening again.",
+          "filters": [
+            "Torbjörn"
+          ],
+          "factions": [
+            "00Overwatch",
+            "06Crisis"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 30.0443879,
           "lon": 31.2357257,
-          "cityDisplayName": "Cairo, Egypt"
+          "cityDisplayName": "Cairo, Egypt",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            },
+            {
+              "text": "Overwatch Genesis, Part three: Rebirth",
+              "url": "https://www.youtube.com/watch?v=S5_5aYk4WMo&t=2s"
+            }
+          ],
+          "headlines": [
+            "Overwatch scientists refuse to destroy Anubis Program",
+            "Controversial AI prison begins construction"
+          ]
         }
       ],
       "lat": 30.0443879,
@@ -2390,12 +2471,52 @@
       "name": "Cleaning the leftovers",
       "locationType": "earth",
       "cityDisplayName": "Jakarta, Indonesia",
-      "description": "",
+      "description": "Anubis being defeated did not mean the immediate end of the Crisis. The remaining units, while decentralized, were still dangerous and the sizable number of Omnics who remained against humanity needed to be dealt with as soon as possible. Many Omnics blamed humanity for their condition, seeing sentiment as a punishment or curse to be released from, while others simply did not see the logic in going against their creator. However, plenty more Omnics chose to defy Anubis and gladly fought alonside humans.\n\n\n\nOverwatch, of course, helped clean up the remaining troops across the globe. A notorious case involved a brigade of submersible warbots that surfaced near Wellington, New Zealand. Overwatch showed up quickly and saved thousands of lives, but after action, cleaning had not finished when they got word of another coastal strike, this time in Jakarta. Casualties were minimized as the Omnics focused on damaging infrastructure, but what concerned Overwatch the most was that later analysis showed both attacks were related. It appears they were members of the same unit that had split on their trip across the South Pacific Ocean. It remained unclear what their path was or if there were any left.\n\n\n\nAfter two years of worldwide horrors, the last official action took place in Aviles, Spain. The Omnic Crisis is over, after taking more than one billion lives across the Planet. The impact of the event can still be felt in many nations to this day, nearly 30 years later, but at the very least, it ended, and humanity had someone watching over them.",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "00Overwatch",
+        "06Crisis"
+      ],
       "lat": -6.1754049,
-      "lon": 106.827168
+      "lon": 106.827168,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Troops in Baltimore fight alonside Omnics to stop remaining warbots",
+        "Omnic Crisis officially over, can humanity ever recover?"
+      ]
+    },
+    {
+      "name": "Prejudice",
+      "locationType": "earth",
+      "cityDisplayName": "Manhattan, United States",
+      "description": "Reception to Omnic sentience was very mixed and volatile across the world. The Awakening caused global confusion, and while some welcomed a helping hand at the time, not everyone was as kind.\n\nMany humans took their chance to strike against Omnics, even as they laid down their weapons. Some did not buy the sudden change in motivations, others were far too damaged by the crisis to ever forgive the machines, and a depressingly high number of people outright rejected them, appalled by the idea of sentience, watching the robots that once served humanity, turning against them and causing endless bloodshed, only to suddenly ask to be seen as equals. \n\n\n\nFollowing the Crisis, many Omnics were hunted down mercilessly purely out of resentment for actions they had no control over. Ravager units specifically were killed to near extinction. It was going to take quite a long time for humanity to heal from the Crisis, and even longer for them to adapt to sentient Omnics, but for many Omnics out there, it was clear they were never meant to coexist, and trying to share this world with humanity was futile.",
+      "image": "",
+      "filters": [
+        "Ramattra"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Ramattra",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/ramattra/"
+        },
+        {
+          "text": "Ramattra Origin Story",
+          "url": "https://youtu.be/vd_SPOkaZZ4"
+        }
+      ],
+      "headlines": [
+        "Omnic violence on the rise, can we truly co exist",
+        "Clashes between war survivors and newly sentient machines continue"
+      ],
+      "lat": 40.7579554,
+      "lon": -73.9855319
     },
     {
       "name": "Adawe Departs",
@@ -2844,6 +2965,36 @@
       "lon": 144.9631732
     },
     {
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "variants": [
+        {
+          "name": "Omnic Housing",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, United Kingdom"
+        },
+        {
+          "name": "Omnic Liberation",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, United Kingdom"
+        }
+      ],
+      "lat": 51.5074456,
+      "lon": -0.1277653
+    },
+    {
       "name": "Cursed",
       "locationType": "earth",
       "cityDisplayName": "Tokyo, Japan",
@@ -2913,36 +3064,6 @@
       "factions": [],
       "lat": 37.7412,
       "lon": -25.6756
-    },
-    {
-      "locationType": "earth",
-      "cityDisplayName": "London, United Kingdom",
-      "variants": [
-        {
-          "name": "Omnic Housing",
-          "description": "",
-          "filters": [],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 51.5074456,
-          "lon": -0.1277653,
-          "cityDisplayName": "London, United Kingdom"
-        },
-        {
-          "name": "Omnic Liberation",
-          "description": "",
-          "filters": [],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 51.5074456,
-          "lon": -0.1277653,
-          "cityDisplayName": "London, United Kingdom"
-        }
-      ],
-      "lat": 51.5074456,
-      "lon": -0.1277653
     },
     {
       "name": "Fell Dragons",
@@ -3031,6 +3152,17 @@
       "factions": [],
       "lat": 45.4371908,
       "lon": 12.3345898
+    },
+    {
+      "name": "Pressure Makes a DIamond",
+      "locationType": "earth",
+      "cityDisplayName": "London, England",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 51.5074456,
+      "lon": -0.1277653
     },
     {
       "locationType": "earth",
@@ -3203,35 +3335,13 @@
       "lon": -72.545
     },
     {
+      "name": "Bad Company",
       "locationType": "earth",
       "cityDisplayName": "Oasis University, Iraq",
-      "variants": [
-        {
-          "name": "Bad Company",
-          "description": "",
-          "filters": [],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 29.5918,
-          "lon": 52.5836,
-          "cityDisplayName": "Oasis University, Iraq"
-        },
-        {
-          "name": "Networking",
-          "description": "",
-          "filters": [
-            "Domina",
-            "Moira"
-          ],
-          "factions": [],
-          "image": "",
-          "locationType": "earth",
-          "lat": 45.4371908,
-          "lon": 12.3345898,
-          "cityDisplayName": "Venice, Italy"
-        }
-      ],
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
       "lat": 29.5918,
       "lon": 52.5836
     },
@@ -3520,17 +3630,6 @@
       "lon": 35.4745669
     },
     {
-      "name": "Found Family",
-      "locationType": "earth",
-      "cityDisplayName": "Glasgow, Scotland",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 55.861155,
-      "lon": -4.2501687
-    },
-    {
       "name": "Code of Violence",
       "locationType": "earth",
       "cityDisplayName": "New Mexico, United States",
@@ -3575,13 +3674,43 @@
       "lon": 31
     },
     {
-      "name": "A Better World",
+      "name": "Found Family",
       "locationType": "earth",
-      "cityDisplayName": "Rio de Janeiro, Brazil",
+      "cityDisplayName": "Glasgow, Scotland",
       "description": "",
       "image": "",
       "filters": [],
       "factions": [],
+      "lat": 55.861155,
+      "lon": -4.2501687
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Rio de Janeiro, Brazil",
+      "variants": [
+        {
+          "name": "A Better World",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": -22.9110137,
+          "lon": -43.2093727,
+          "cityDisplayName": "Rio de Janeiro, Brazil"
+        },
+        {
+          "name": "Networking",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 51.5074456,
+          "lon": -0.1277653,
+          "cityDisplayName": "London, England"
+        }
+      ],
       "lat": -22.9110137,
       "lon": -43.2093727
     },
@@ -4609,6 +4738,28 @@
       "lon": -5.3474761
     },
     {
+      "name": "The Hunt Begins",
+      "locationType": "earth",
+      "cityDisplayName": "Copenhagen,, Denmark",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 55.6867243,
+      "lon": 12.5700724
+    },
+    {
+      "name": "Curse Breaker",
+      "locationType": "earth",
+      "cityDisplayName": "Tokyo, Japan",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 35.6768601,
+      "lon": 139.7638947
+    },
+    {
       "locationType": "earth",
       "cityDisplayName": "Atlantic Arcology",
       "variants": [
@@ -4639,28 +4790,6 @@
       "lon": -25.6756
     },
     {
-      "name": "The Hunt Begins",
-      "locationType": "earth",
-      "cityDisplayName": "Copenhagen,, Denmark",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 55.6867243,
-      "lon": 12.5700724
-    },
-    {
-      "name": "Curse Breaker",
-      "locationType": "earth",
-      "cityDisplayName": "Tokyo, Japan",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 35.6768601,
-      "lon": 139.7638947
-    },
-    {
       "name": "Free the Phreaks",
       "locationType": "earth",
       "cityDisplayName": "Aatlis, Morocco",
@@ -4672,17 +4801,6 @@
       "lon": -6.8416
     },
     {
-      "name": "The Upper Hand",
-      "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 41.8909421,
-      "lon": 12.491903
-    },
-    {
       "name": "Hazardous Tactics",
       "locationType": "earth",
       "cityDisplayName": "Oasis University, Iraq",
@@ -4692,6 +4810,17 @@
       "factions": [],
       "lat": 29.5918,
       "lon": 52.5836
+    },
+    {
+      "name": "The Upper Hand",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 41.8909421,
+      "lon": 12.491903
     },
     {
       "name": "Futures Past",
@@ -4725,6 +4854,17 @@
       "factions": [],
       "lat": 30.659867,
       "lon": 104.063315
+    },
+    {
+      "name": "The Invitation",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "lat": 36.1285933,
+      "lon": -5.3474761
     },
     {
       "name": "Reconciliation",
@@ -4779,17 +4919,6 @@
       "lon": 100.2249797
     },
     {
-      "name": "The Invitation",
-      "locationType": "earth",
-      "cityDisplayName": "Watchpoint Gibraltar",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 36.1285933,
-      "lon": -5.3474761
-    },
-    {
       "name": "Search and Destroy",
       "locationType": "earth",
       "cityDisplayName": "Riyadh, Saudi Arabia",
@@ -4829,6 +4958,23 @@
       ],
       "lat": 41.8933203,
       "lon": 12.4829321
+    },
+    {
+      "name": "From the Ashes",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [],
+      "sources": [
+        {
+          "text": "From the Ashes",
+          "url": "https://overwatch.blizzard.com/en-us/media/comic/from-the-ashes/"
+        }
+      ],
+      "lat": 36.1408,
+      "lon": -5.3536
     }
   ]
 }

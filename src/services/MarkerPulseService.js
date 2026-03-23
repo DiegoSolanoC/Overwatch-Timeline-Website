@@ -8,6 +8,63 @@ class MarkerPulseService {
         this.hoveredEventMarker = null;
     }
 
+    _ensureMarkerGlowState(marker) {
+        if (!marker || !marker.userData) return;
+        if (marker.userData._hoverGlowBase) return;
+        const mat = marker.material;
+        const baseColorHex = Number.isFinite(marker.userData.originalColor)
+            ? marker.userData.originalColor
+            : (mat?.color?.getHex ? mat.color.getHex() : 0xff6600);
+        marker.userData._hoverGlowBase = {
+            colorHex: baseColorHex,
+            opacity: (mat && typeof mat.opacity === 'number') ? mat.opacity : 1
+        };
+    }
+
+    _applyMarkerHoverGlow(marker, fadeCurve) {
+        if (!marker?.material) return;
+        this._ensureMarkerGlowState(marker);
+
+        const base = marker.userData?._hoverGlowBase;
+        if (!base) return;
+
+        // fadeCurve matches the wave: 1.0 at start, 0.0 at end.
+        const fc = Math.max(0, Math.min(1, Number.isFinite(fadeCurve) ? fadeCurve : 0));
+
+        // Brighten the marker itself at the start, then decay back to normal.
+        // Keep conservative so it doesn't blow out on different displays.
+        const glowStrength = 0.85;
+        const intensity = 1 + (glowStrength * fc);
+
+        // Apply by scaling RGB; Three.js Color can exceed 1.0 and still appear brighter depending on pipeline.
+        if (marker.material.color && typeof marker.material.color.setHex === 'function') {
+            const c = new THREE.Color(base.colorHex);
+            c.multiplyScalar(intensity);
+            marker.material.color.copy(c);
+        }
+
+        // Optional: slightly increase opacity early, then return to base opacity.
+        // Ensure material is transparent so opacity changes take effect.
+        if (typeof marker.material.opacity === 'number') {
+            marker.material.transparent = true;
+            marker.material.opacity = Math.min(1, base.opacity + (0.25 * fc));
+        }
+
+        marker.material.needsUpdate = true;
+    }
+
+    _resetMarkerHoverGlow(marker) {
+        if (!marker?.material || !marker?.userData?._hoverGlowBase) return;
+        const base = marker.userData._hoverGlowBase;
+        if (marker.material.color && typeof marker.material.color.setHex === 'function') {
+            marker.material.color.setHex(base.colorHex);
+        }
+        if (typeof marker.material.opacity === 'number') {
+            marker.material.opacity = base.opacity;
+        }
+        marker.material.needsUpdate = true;
+    }
+
     smoothstep(edge0, edge1, x) {
         const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
         return t * t * (3 - 2 * t);
@@ -71,6 +128,9 @@ class MarkerPulseService {
         if (!marker.userData.pulseRings) {
             marker.userData.pulseRings = [];
         }
+
+        // Capture base material state so we can restore after hover.
+        this._ensureMarkerGlowState(marker);
         
         // Create first pulse ring immediately
         this.createPulseRing(marker);
@@ -139,6 +199,9 @@ class MarkerPulseService {
             });
             marker.userData.pulseRings = [];
         }
+
+        // Restore marker material brightness/opacity.
+        this._resetMarkerHoverGlow(marker);
     }
 
     /**
@@ -482,6 +545,7 @@ class MarkerPulseService {
         markers.forEach(marker => {
             if (marker && marker.userData && marker.userData.isEventMarker && marker.userData.pulseRings) {
                 const pulseRings = marker.userData.pulseRings;
+                let bestFadeCurve = null; // used for marker hover glow sync
                 
                 // Update each pulse ring
                 for (let i = pulseRings.length - 1; i >= 0; i--) {
@@ -514,6 +578,7 @@ class MarkerPulseService {
                             // Match the normal event-wave fade curve (more visible early, fades as it expands).
                             const fadeCurve = Math.pow(1 - p, 0.5);
                             ring.material.uniforms.uOpacity.value = 0.9 * fadeCurve;
+                            bestFadeCurve = (bestFadeCurve === null) ? fadeCurve : Math.max(bestFadeCurve, fadeCurve);
 
                             // Keep center direction synced (globe-local).
                             if (ring.material.uniforms.uCenter?.value && marker?.position) {
@@ -544,11 +609,23 @@ class MarkerPulseService {
                         if (ring.material) {
                             const fadeCurve = Math.pow(1 - progress, 0.5); // Slower fade at start, faster at end
                             ring.material.opacity = 0.9 * fadeCurve;
+                            bestFadeCurve = (bestFadeCurve === null) ? fadeCurve : Math.max(bestFadeCurve, fadeCurve);
                         }
                         
                         // Update position and orientation to follow marker
                         this.updateRingPositionAndOrientation(ring, marker);
                     }
+                }
+
+                // Sync hovered marker brightness with the ring fade timing.
+                if (this.hoveredEventMarker === marker && bestFadeCurve !== null) {
+                    this._applyMarkerHoverGlow(marker, bestFadeCurve);
+                } else if (this.hoveredEventMarker !== marker) {
+                    // If not hovered, ensure we don't leave it brightened.
+                    this._resetMarkerHoverGlow(marker);
+                } else if (this.hoveredEventMarker === marker && bestFadeCurve === null) {
+                    // Hovered but no active ring (edge cases): reset to base.
+                    this._resetMarkerHoverGlow(marker);
                 }
             }
         });
@@ -657,6 +734,10 @@ class MarkerPulseService {
      * Set currently hovered marker
      */
     setHoveredMarker(marker) {
+        // Reset previous marker glow immediately when switching hover.
+        if (this.hoveredEventMarker && this.hoveredEventMarker !== marker) {
+            this._resetMarkerHoverGlow(this.hoveredEventMarker);
+        }
         this.hoveredEventMarker = marker;
     }
 

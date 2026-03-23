@@ -997,7 +997,23 @@ export class EventSlideManager {
                 if (!imagePath?.trim()) {
                     imagePath = `assets/images/events/${encodeURIComponent(variant.name.replace(/\s+/g, ' ').trim())}.png`;
                 }
-                loadEventImage(eventImage, eventImageOverlay, this.processImagePath(imagePath));
+                const processed = this.processImagePath(imagePath);
+                // Keep slide + overlay in sync: switching variants must update the pending path
+                // so "Show Image" and auto-show use the correct image.
+                if (this.uiView) {
+                    this.uiView.pendingImagePath = processed || null;
+                }
+                loadEventImage(eventImage, eventImageOverlay, processed);
+                // The overlay CSS keeps images at opacity:0 unless `.fade-in` is applied.
+                // When switching variants we must re-trigger the fade-in so the newly loaded image becomes visible.
+                setupImageFadeIn(eventImage, eventImageOverlay, processed, null, 0);
+
+                // If the overlay is currently open, ensure we keep showing the new image.
+                const mgr = this.uiView?.imageOverlayManager;
+                if (mgr && mgr.imageToggleState && mgr.imageOverlayVisible) {
+                    // No need to re-run full fade sequence; just keep it open.
+                    eventImageOverlay.classList.add('open');
+                }
             }
         }
 

@@ -92,11 +92,13 @@ export class ComponentOrchestrator {
      * Run all Universal Features sequentially
      * Loads: Palette, then Music
      */
-    async runUniversalFeatures() {
+    async runUniversalFeatures(options = {}) {
         const runBtn = document.getElementById('runUniversalBtn');
         if (runBtn) {
             runBtn.disabled = true;
         }
+
+        const keepOverlay = !!(options && options.keepOverlay);
         
         const isRunOperation = getRunOperation();
         // Note: isRunOperation and overlay should already be set by the button click handler
@@ -131,8 +133,12 @@ export class ComponentOrchestrator {
             console.error('Error in Universal Features auto-load:', error);
             updateStatus(`✗ Error in Universal Features auto-load: ${error.message}`, 'error');
         } finally {
-            setRunOperation(false);
-            hideLoadingOverlay();
+            // If we're in a boot chain (e.g., page-init), keep the overlay up
+            // so the user doesn't see a "menu flash" between Universal and Globe loads.
+            if (!keepOverlay) {
+                setRunOperation(false);
+                hideLoadingOverlay();
+            }
             if (runBtn) {
                 runBtn.disabled = false;
             }

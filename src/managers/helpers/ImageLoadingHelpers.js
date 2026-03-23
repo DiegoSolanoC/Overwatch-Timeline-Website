@@ -39,6 +39,16 @@ export function setupImageHandlers(imageElement, overlayElement, imagePath) {
     imageElement.onload = () => {
         imageElement.style.display = 'block';
         overlayElement.style.background = 'rgba(0, 0, 0, 0)';
+        // Overlay CSS sets base opacity:0; ensure a loaded image becomes visible.
+        // Using rAF ensures the browser has applied `display:block` first.
+        try {
+            imageElement.classList.remove('fade-out');
+            requestAnimationFrame(() => {
+                imageElement.classList.add('fade-in');
+            });
+        } catch (_) {
+            // no-op
+        }
     };
 }
 

@@ -3,48 +3,48 @@
    ======================================== */
 
 /* Design Tokens & Variables */
-@import url('styles/variables.css');
+@import url('styles/variables.css?v=8');
 
 /* Base & Reset Styles */
-@import url('styles/base.css');
+@import url('styles/base.css?v=8');
 
 /* Layout Components */
-@import url('styles/layout.css');
+@import url('styles/layout.css?v=8');
 
 /* Main Content & Globe */
-@import url('styles/components/globe.css');
+@import url('styles/components/globe.css?v=8');
 
 /* Gray Palette Theme Overrides */
-@import url('styles/themes/gray-palette.css');
+@import url('styles/themes/gray-palette.css?v=8');
 
 /* Animations */
-@import url('styles/animations.css');
+@import url('styles/animations.css?v=8');
 
 /* Mobile Responsive Styles */
-@import url('styles/mobile.css');
+@import url('styles/mobile.css?v=8');
 
 /* Sidebar Navigation */
-@import url('styles/components/sidebar.css');
+@import url('styles/components/sidebar.css?v=8');
 
 /* Modals & Forms */
-@import url('styles/components/modals.css');
+@import url('styles/components/modals.css?v=8');
 
 /* Hero Section */
-@import url('styles/components/hero.css');
+@import url('styles/components/hero.css?v=8');
 
 /* Event Components */
-@import url('styles/components/variants.css');
-@import url('styles/components/event-filters.css');
-@import url('styles/components/event-sources.css');
-@import url('styles/components/event-buttons.css');
-@import url('styles/components/event-image-overlay.css');
-@import url('styles/components/event-item.css');
-@import url('styles/components/event-pagination.css');
-@import url('styles/components/event-edit-modal.css');
-@import url('styles/components/news-ticker.css');
+@import url('styles/components/variants.css?v=8');
+@import url('styles/components/event-filters.css?v=8');
+@import url('styles/components/event-sources.css?v=8');
+@import url('styles/components/event-buttons.css?v=8');
+@import url('styles/components/event-image-overlay.css?v=8');
+@import url('styles/components/event-item.css?v=8');
+@import url('styles/components/event-pagination.css?v=8');
+@import url('styles/components/event-edit-modal.css?v=8');
+@import url('styles/components/news-ticker.css?v=8');
 
 /* Panel Components */
-@import url('styles/components/panels/event-slide.css');
-@import url('styles/components/panels/filters.css');
-@import url('styles/components/panels/music.css');
-@import url('styles/components/panels/events-manage.css');
+@import url('styles/components/panels/event-slide.css?v=8');
+@import url('styles/components/panels/filters.css?v=8');
+@import url('styles/components/panels/music.css?v=8');
+@import url('styles/components/panels/events-manage.css?v=8');

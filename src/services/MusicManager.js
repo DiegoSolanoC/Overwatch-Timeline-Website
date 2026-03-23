@@ -18,6 +18,12 @@ class MusicManager {
         this.currentSong = null;
         this.musicFiles = [];
         this.hasStartedPlaying = false;
+        this.nowPlayingBadge = null;
+        this.nowPlayingBadgeText = null;
+        this._nowPlayingLastText = null;
+        this._nowPlayingSwapTimeout = null;
+        this._nowPlayingSwapTimeout2 = null;
+        this._nowPlayingFollowRafId = null;
         this.musicStateSaveTimeout = null;
         this.stateService = null;
         this.shuffleService = null;
@@ -43,6 +49,138 @@ class MusicManager {
         this.skipBtnIcon = null;
         this.shuffleBtnIcon = null;
     }
+
+    _getBodyScale() {
+        try {
+            const t = window.getComputedStyle(document.body).transform;
+            if (!t || t === 'none') return 1;
+            const m = t.match(/^matrix\(([^)]+)\)$/);
+            if (!m) return 1;
+            const parts = m[1].split(',').map(s => parseFloat(s.trim()));
+            const a = parts[0];
+            return (Number.isFinite(a) && a > 0) ? a : 1;
+        } catch (_) {
+            return 1;
+        }
+    }
+
+    _ensureNowPlayingBadge() {
+        if (this.nowPlayingBadge && this.nowPlayingBadgeText) return;
+        let badge = document.getElementById('musicNowPlayingBadge');
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.id = 'musicNowPlayingBadge';
+            badge.className = 'music-now-playing-badge';
+            badge.setAttribute('aria-hidden', 'true');
+            badge.innerHTML = `
+                <div class="music-now-playing-label">Now playing:</div>
+                <div class="music-now-playing-song"></div>
+            `;
+            document.body.appendChild(badge);
+        }
+        this.nowPlayingBadge = badge;
+        this.nowPlayingBadgeText = badge.querySelector('.music-now-playing-song');
+    }
+
+    _positionNowPlayingBadge() {
+        if (!this.musicButton) return;
+        this._ensureNowPlayingBadge();
+        const badge = this.nowPlayingBadge;
+        if (!badge) return;
+
+        const scale = this._getBodyScale();
+        const rect = this.musicButton.getBoundingClientRect();
+        const gap = 2;
+        const cx = (rect.left + (rect.width / 2)) / scale;
+        const top = (rect.bottom + gap) / scale;
+
+        // Clamp horizontally so the badge never goes off-screen.
+        const vw = Math.max(1, (window.innerWidth || 1) / scale);
+        const margin = 8;
+        const w = badge.offsetWidth || 280;
+        const half = w / 2;
+        let left = cx;
+        if (left - half < margin) left = half + margin;
+        if (left + half > vw - margin) left = vw - half - margin;
+
+        badge.style.left = `${left}px`;
+        badge.style.top = `${top}px`;
+    }
+
+    _startNowPlayingBadgeFollow() {
+        this._stopNowPlayingBadgeFollow();
+        const tick = () => {
+            if (!this.nowPlayingBadge) return;
+            if (!this.nowPlayingBadge.classList.contains('music-now-playing-badge--visible')) return;
+            this._positionNowPlayingBadge();
+            this._nowPlayingFollowRafId = requestAnimationFrame(tick);
+        };
+        this._nowPlayingFollowRafId = requestAnimationFrame(tick);
+    }
+
+    _stopNowPlayingBadgeFollow() {
+        try {
+            if (this._nowPlayingFollowRafId) cancelAnimationFrame(this._nowPlayingFollowRafId);
+        } catch (_) {}
+        this._nowPlayingFollowRafId = null;
+    }
+
+    _setNowPlayingBadgeVisible(visible) {
+        this._ensureNowPlayingBadge();
+        if (!this.nowPlayingBadge) return;
+        // Never show on mobile (too cramped; user requested hidden).
+        try {
+            if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+                this.nowPlayingBadge.classList.remove('music-now-playing-badge--visible');
+                this._stopNowPlayingBadgeFollow();
+                return;
+            }
+        } catch (_) {}
+        this.nowPlayingBadge.classList.toggle('music-now-playing-badge--visible', !!visible);
+        if (visible) this._startNowPlayingBadgeFollow();
+        else this._stopNowPlayingBadgeFollow();
+    }
+
+    _transitionNowPlayingBadgeText(nextText) {
+        this._ensureNowPlayingBadge();
+        if (!this.nowPlayingBadge || !this.nowPlayingBadgeText) return;
+        const textEl = this.nowPlayingBadgeText;
+
+        // Clear pending swaps.
+        try {
+            if (this._nowPlayingSwapTimeout) clearTimeout(this._nowPlayingSwapTimeout);
+            if (this._nowPlayingSwapTimeout2) clearTimeout(this._nowPlayingSwapTimeout2);
+        } catch (_) {}
+        this._nowPlayingSwapTimeout = null;
+        this._nowPlayingSwapTimeout2 = null;
+
+        // If first paint, set immediately.
+        if (!this._nowPlayingLastText) {
+            textEl.textContent = nextText;
+            textEl.classList.remove('music-now-playing-song--swap-out', 'music-now-playing-song--swap-in');
+            this._nowPlayingLastText = nextText;
+            this._positionNowPlayingBadge();
+            return;
+        }
+
+        if (nextText === this._nowPlayingLastText) return;
+
+        // Fade out quickly, swap, fade in.
+        textEl.classList.remove('music-now-playing-song--swap-in');
+        textEl.classList.add('music-now-playing-song--swap-out');
+
+        this._nowPlayingSwapTimeout = setTimeout(() => {
+            textEl.textContent = nextText;
+            this._nowPlayingLastText = nextText;
+            this._positionNowPlayingBadge();
+            textEl.classList.remove('music-now-playing-song--swap-out');
+            textEl.classList.add('music-now-playing-song--swap-in');
+
+            this._nowPlayingSwapTimeout2 = setTimeout(() => {
+                textEl.classList.remove('music-now-playing-song--swap-in');
+            }, 220);
+        }, 140);
+    }
     
     init() {
         if (this.initialized && this.musicButton && this.musicPanel) {
@@ -67,6 +205,9 @@ class MusicManager {
             console.warn('MusicManager: Required DOM elements not found yet.');
             return;
         }
+
+        // Create the passive "Now Playing" badge under the Music button.
+        this._ensureNowPlayingBadge();
         
         this.initialized = true;
         console.log('MusicManager: Initializing with all elements present');
@@ -164,7 +305,12 @@ class MusicManager {
 
         window.encodeMusicPath = function (path) { return self.playbackService.encodeMusicPath(path); };
 
-        this.controlService.setupAllControls(this.musicFiles, this.currentSong, playNextSong);
+        // Pass providers so shuffle uses latest async-loaded file list + current song.
+        this.controlService.setupAllControls(
+            () => this.musicFiles,
+            () => this.currentSong,
+            playNextSong
+        );
 
         this.backgroundMusic.addEventListener('play', function () {
             if (self.pauseBtn) {
@@ -189,7 +335,17 @@ class MusicManager {
 
         this.updateNowPlaying = function () {
             var el = document.getElementById('musicCurrentSong');
-            if (el) el.textContent = getCurrentSongName();
+            var name = getCurrentSongName();
+            if (el) el.textContent = name;
+
+            // Passive badge: show current song under Music button.
+            // It will be behind the music panel (z-index) and also hidden when the panel is open.
+            var panelOpen = !!(self.musicPanel && self.musicPanel.classList.contains('open'));
+            var shouldShow = !!(self.currentSong && !panelOpen);
+            self._setNowPlayingBadgeVisible(shouldShow);
+            if (shouldShow) {
+                self._transitionNowPlayingBadgeText(name);
+            }
         };
         this.updateProgressBar = function () { self.progressService.updateProgressBar(); };
         this.formatTime = function (sec) { return self.progressService.formatTime(sec); };
@@ -253,7 +409,19 @@ class MusicManager {
             console.error('MusicManager: panelService or musicButton is null');
             return;
         }
-        this.panelService.setupToggleButton();
+        this.panelService.setupToggleButton(function (isOpen) {
+            // Keep passive badge hidden while panel is open (manual switching).
+            if (isOpen) {
+                self._setNowPlayingBadgeVisible(false);
+                return;
+            }
+
+            // Panel closed: refresh + show current song (song may have changed while panel was open).
+            try {
+                self.updateNowPlaying();
+                self._positionNowPlayingBadge();
+            } catch (_) {}
+        });
         this.panelService.setupCloseButton();
         this.panelService.setupClickOutsideHandler();
         

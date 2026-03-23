@@ -18,6 +18,10 @@ function _getHeaderHubRight() {
     return typeof document !== 'undefined' ? document.getElementById('headerHubRight') : null;
 }
 
+function _getHeaderHubLeft() {
+    return typeof document !== 'undefined' ? document.getElementById('headerHub') : null;
+}
+
 function _sortHeaderHubRight(parent) {
     if (!parent) return;
     const exitBtn =
@@ -39,6 +43,33 @@ function _sortHeaderHubRight(parent) {
             parent.appendChild(b);
         }
     });
+}
+
+function _sortHeaderHubLeft(parent) {
+    if (!parent) return;
+    // Only sort direct children so nested button groups (e.g. Map/Rotate stack)
+    // keep their internal layout.
+    const children = Array.from(parent.children);
+    const sortable = children.filter(el => el && (el.tagName === 'BUTTON' || el.id === 'headerHubMapStack'));
+
+    const getOrder = (el) => {
+        if (el?.dataset?.headerOrder) {
+            const n = parseFloat(el.dataset.headerOrder);
+            if (Number.isFinite(n)) return n;
+        }
+        // Keep the Map/Rotate stack after Events/Filters by default.
+        if (el?.id === 'headerHubMapStack') return 30;
+        return 9999;
+    };
+
+    sortable.sort((a, b) => {
+        const ao = getOrder(a);
+        const bo = getOrder(b);
+        if (ao !== bo) return ao - bo;
+        return (a.id || '').localeCompare(b.id || '');
+    });
+
+    sortable.forEach(el => parent.appendChild(el));
 }
 
 function _applyResponsiveMount(button) {
@@ -65,6 +96,9 @@ function _applyResponsiveMount(button) {
     // If we moved into the header hub, re-sort so Exit stays last.
     if (!isMobile && targetParentId === 'headerHubRight') {
         _sortHeaderHubRight(_getHeaderHubRight());
+    }
+    if (!isMobile && targetParentId === 'headerHub') {
+        _sortHeaderHubLeft(_getHeaderHubLeft());
     }
 }
 
@@ -262,7 +296,7 @@ export function createGlobeControlButton({
     iconWrap.appendChild(img);
     button.appendChild(iconWrap);
 
-    if (isHeaderHubBtn && isHeaderRightHub && label) {
+    if (isHeaderHubBtn && label) {
         const labelEl = document.createElement('span');
         labelEl.className = 'header-hub-btn-label';
         labelEl.textContent = String(label);
@@ -297,6 +331,9 @@ export function createGlobeControlButton({
         // (regardless of which component loads first) and keep Exit last.
         if (resolvedParentId === 'headerHubRight') {
             _sortHeaderHubRight(parent);
+        }
+        if (resolvedParentId === 'headerHub') {
+            _sortHeaderHubLeft(parent);
         }
 
         updateStatus(`✓ ${title} button added`, 'success');

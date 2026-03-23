@@ -106,8 +106,15 @@ export function setupPaletteToggle() {
         if (img) {
             img.src = iconPath;
             img.alt = 'Color Palette';
+            // Ensure it matches header button icon styling
+            img.className = img.className || 'header-hub-icon';
         } else {
-            iconSpan.innerHTML = `<img src="${iconPath}" alt="Color Palette" style="width: 100%; height: 100%; object-fit: contain;">`;
+            iconSpan.innerHTML = '';
+            img = document.createElement('img');
+            img.src = iconPath;
+            img.alt = 'Color Palette';
+            img.className = 'header-hub-icon';
+            iconSpan.appendChild(img);
         }
     }
     

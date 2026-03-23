@@ -189,25 +189,130 @@ export class ToggleManager {
 
         const mapIcon = document.getElementById('mapViewToggleIcon');
         const sceneModel = this.sceneModel;
+        const rotateBtn = document.getElementById('autoRotateToggle');
+        const rotateBar = document.getElementById('headerRotateSubBar');
+
+        const getBodyScale = () => {
+            try {
+                const t = window.getComputedStyle(document.body).transform;
+                if (!t || t === 'none') return 1;
+                const m = t.match(/^matrix\(([^)]+)\)$/);
+                if (!m) return 1;
+                const parts = m[1].split(',').map(s => parseFloat(s.trim()));
+                const a = parts[0];
+                return (Number.isFinite(a) && a > 0) ? a : 1;
+            } catch (_) {
+                return 1;
+            }
+        };
+
+        const positionRotateBarUnderToggle = () => {
+            if (!rotateBar) return;
+            try {
+                const gap = 0;
+                // Desktop uses `body { transform: scale(...) }`. Align fixed elements by
+                // converting viewport rect coordinates into the body's unscaled space.
+                const scale = getBodyScale();
+                const rect = toggleBtn.getBoundingClientRect();
+
+                const margin = 8;
+                const vw = Math.max(1, (window.innerWidth || 1) / scale);
+
+                // Match the Map/Globe button box so the diagonals feel continuous.
+                const width = rect.width / scale;
+                // Tuck slightly under the header edge to avoid any visible gap line.
+                const top = ((rect.bottom + gap) / scale) - 1;
+
+                // Anchor under the Map/Globe button, but keep fully on-screen.
+                let left = rect.left / scale;
+                if (left + width > vw - margin) left = Math.max(margin, vw - margin - width);
+                if (left < margin) left = margin;
+
+                rotateBar.style.left = `${left}px`;
+                rotateBar.style.top = `${top}px`;
+                rotateBar.style.width = `${width}px`;
+                rotateBar.style.right = 'auto';
+                rotateBar.style.bottom = 'auto';
+            } catch (_) {
+                // no-op
+            }
+        };
+
+        const startRotateBarFollow = () => {
+            if (!rotateBar) return;
+            try {
+                if (rotateBar._followRafId) cancelAnimationFrame(rotateBar._followRafId);
+            } catch (_) {}
+            const follow = () => {
+                if (!document.body.classList.contains('rotate-subbar-open')) return;
+                positionRotateBarUnderToggle();
+                rotateBar._followRafId = requestAnimationFrame(follow);
+            };
+            rotateBar._followRafId = requestAnimationFrame(follow);
+        };
+
+        const stopRotateBarFollow = () => {
+            if (!rotateBar) return;
+            try {
+                if (rotateBar._followRafId) cancelAnimationFrame(rotateBar._followRafId);
+                rotateBar._followRafId = null;
+            } catch (_) {}
+        };
 
         // Set initial state
         if (sceneModel.getMapViewEnabled && sceneModel.getMapViewEnabled()) {
             toggleBtn.classList.add('active');
         }
 
+        // We want the button to reflect the CURRENT mode (not the target),
+        // so the label/icon match what you're currently viewing.
         const getIconPath = (enabled) => enabled
-            ? 'assets/images/icons/Switch to Globe Icon.png'
-            : 'assets/images/icons/Switch to Flat Icon.png';
-        const renderIcon = () => {
+            ? 'assets/images/icons/Switch to Flat Icon.png'   // Map view enabled
+            : 'assets/images/icons/Switch to Globe Icon.png'; // Globe view enabled
+
+        const renderState = () => {
             if (!mapIcon) return;
             const enabled = (sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView);
             const src = getIconPath(enabled);
-            const alt = enabled ? 'Switch to Globe' : 'Switch to Flat Map';
+            const alt = enabled ? 'Map' : 'Globe';
             mapIcon.innerHTML = `<img src="${src}" alt="${alt}" style="width: 100%; height: 100%; object-fit: contain;">`;
+
+            // Update label text (Map vs Globe)
+            const labelEl = toggleBtn.querySelector('.header-hub-btn-label');
+            if (labelEl) {
+                labelEl.textContent = enabled ? 'Map' : 'Globe';
+            }
+
+            // Title can clarify that it's a toggle.
+            toggleBtn.title = enabled ? 'Currently: Map (click to switch to Globe)' : 'Currently: Globe (click to switch to Map)';
+
+            // Rotate is only relevant on globe mode.
+            // Don't toggle `display` here; we want the subbar to animate smoothly
+            // (slide behind the header) when switching Map/Globe.
+
+            // Slide the rotation subbar in/out (desktop).
+            document.body.classList.toggle('rotate-subbar-open', !enabled);
+
+            // Position subbar directly under the Map/Globe button (and keep following it).
+            positionRotateBarUnderToggle();
+            if (!enabled) {
+                startRotateBarFollow();
+            } else {
+                stopRotateBarFollow();
+            }
         };
 
         // Ensure icon uses local file (stateful)
-        renderIcon();
+        renderState();
+
+        // Keep the rotate subbar aligned on resize.
+        if (!toggleBtn.dataset.rotateSubbarResizeSetup) {
+            toggleBtn.dataset.rotateSubbarResizeSetup = 'true';
+            window.addEventListener('resize', () => {
+                renderState();
+                positionRotateBarUnderToggle();
+            });
+        }
 
         const handleToggle = (event) => {
             if (event) {
@@ -239,7 +344,7 @@ export class ToggleManager {
             }
 
             // Keep icon as image (stateful)
-            renderIcon();
+            renderState();
         };
 
         // Prevent button from interfering with globe controls (mouse)

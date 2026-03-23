@@ -16,6 +16,7 @@ function getHeroDisplayName(heroName) {
 export class EventContentManager {
     constructor(sceneModel) {
         this.sceneModel = sceneModel;
+        this._factionLookupCache = null; // { byFilename: Map<string,string>, byDisplayName: Map<string,string>, byBareName: Map<string,string> }
     }
     
     /**
@@ -68,6 +69,90 @@ export class EventContentManager {
         const eventFiltersList = document.getElementById('eventFiltersList');
         const activeFilters = this.sceneModel.activeFilters || new Set();
         
+        const normalizeKey = (s) => String(s || '')
+            .trim()
+            .replace(/\s+/g, ' ')
+            .toLowerCase();
+
+        const getFactionLookup = () => {
+            if (this._factionLookupCache) return this._factionLookupCache;
+            const factions =
+                (window.eventManager && Array.isArray(window.eventManager.factions) && window.eventManager.factions.length > 0)
+                    ? window.eventManager.factions
+                    : (window.globeController?.dataModel?.factions || []);
+
+            const byFilename = new Map();
+            const byDisplayName = new Map();
+            const byBareName = new Map();
+
+            (Array.isArray(factions) ? factions : []).forEach((f) => {
+                const filename = (f && f.filename) ? String(f.filename).trim() : '';
+                const displayName = (f && f.displayName) ? String(f.displayName).trim() : '';
+                if (!filename) return;
+                byFilename.set(normalizeKey(filename), filename);
+                if (displayName) byDisplayName.set(normalizeKey(displayName), filename);
+                // bare name: strip leading digits from filename
+                const bare = filename.replace(/^\d+/, '').trim();
+                if (bare) byBareName.set(normalizeKey(bare), filename);
+            });
+
+            this._factionLookupCache = { byFilename, byDisplayName, byBareName };
+            return this._factionLookupCache;
+        };
+
+        const resolveFactionFilename = (rawFaction) => {
+            const raw = String(rawFaction || '').trim();
+            if (!raw) return null;
+
+            // Normalize common forms: allow passing full path or ".png".
+            let key = raw;
+            key = key.replace(/^assets\/images\/factions\//i, '');
+            key = key.replace(/\.png$/i, '');
+
+            const lookups = getFactionLookup();
+            const nk = normalizeKey(key);
+
+            // 1) exact filename match
+            if (lookups.byFilename.has(nk)) return lookups.byFilename.get(nk);
+            // 2) display name match (e.g. "Talon Empire" -> "04Talon Empire")
+            if (lookups.byDisplayName.has(nk)) return lookups.byDisplayName.get(nk);
+            // 3) bare name match (strip digits). Also handle cases where the event stored an
+            // old/incorrect numeric prefix (e.g. "04Talon Empire") by stripping digits first.
+            if (lookups.byBareName.has(nk)) return lookups.byBareName.get(nk);
+            const bare = key.replace(/^\d+/, '').trim();
+            const nb = normalizeKey(bare);
+            if (bare && lookups.byBareName.has(nb)) return lookups.byBareName.get(nb);
+
+            // Fallback: use provided key as filename.
+            return key;
+        };
+        
+        const createIconTag = ({ filterKey, displayName, type }) => {
+            const tag = document.createElement('span');
+            tag.className = 'event-filter-tag event-filter-tag--icon';
+            tag.title = displayName;
+            tag.setAttribute('aria-label', displayName);
+            if (activeFilters.has(filterKey)) {
+                tag.classList.add('selected');
+            }
+
+            const box = document.createElement('span');
+            box.className = 'event-filter-image-container';
+
+            const img = document.createElement('img');
+            img.className = 'event-filter-icon';
+            img.alt = displayName;
+            img.loading = 'lazy';
+
+            img.src = (type === 'factions')
+                ? `assets/images/factions/${encodeURIComponent(filterKey)}.png`
+                : `assets/images/heroes/${encodeURIComponent(filterKey)}.png`;
+
+            box.appendChild(img);
+            tag.appendChild(box);
+            return tag;
+        };
+        
         if (event && eventFiltersSection && eventFiltersList) {
             eventFiltersList.innerHTML = '';
             
@@ -82,14 +167,12 @@ export class EventContentManager {
                 eventFiltersList.appendChild(heroesHeader);
                 
                 heroFilters.forEach(filter => {
-                    const filterTag = document.createElement('span');
-                    filterTag.className = 'event-filter-tag';
-                    if (activeFilters.has(filter)) {
-                        filterTag.classList.add('selected');
-                    }
                     const displayName = getHeroDisplayName(filter);
-                    filterTag.textContent = displayName;
-                    eventFiltersList.appendChild(filterTag);
+                    eventFiltersList.appendChild(createIconTag({
+                        filterKey: filter,
+                        displayName,
+                        type: 'heroes'
+                    }));
                 });
             }
             
@@ -101,14 +184,32 @@ export class EventContentManager {
                 eventFiltersList.appendChild(factionsHeader);
                 
                 factionFilters.forEach(faction => {
-                    const filterTag = document.createElement('span');
-                    filterTag.className = 'event-filter-tag';
-                    if (activeFilters.has(faction)) {
-                        filterTag.classList.add('selected');
+                    const resolvedFilename = resolveFactionFilename(faction);
+                    if (!resolvedFilename) return;
+                    const lookup = getFactionLookup();
+                    const resolvedDisplayName =
+                        // Try to use canonical displayName if we have it
+                        (function () {
+                            const nk = normalizeKey(resolvedFilename);
+                            const factions =
+                                (window.eventManager && Array.isArray(window.eventManager.factions) && window.eventManager.factions.length > 0)
+                                    ? window.eventManager.factions
+                                    : (window.globeController?.dataModel?.factions || []);
+                            const f = (Array.isArray(factions) ? factions : []).find(x => normalizeKey(x?.filename || '') === nk);
+                            return (f?.displayName || '').trim();
+                        })();
+
+                    const displayName = resolvedDisplayName || String(faction || '').replace(/^\d+/, '').trim();
+                    const tag = createIconTag({
+                        filterKey: resolvedFilename,
+                        displayName,
+                        type: 'factions'
+                    });
+                    // Selected state should follow active filters even if the event stored a displayName.
+                    if (activeFilters.has(faction) || activeFilters.has(resolvedFilename)) {
+                        tag.classList.add('selected');
                     }
-                    const displayName = faction.replace(/^\d+/, '').trim();
-                    filterTag.textContent = displayName;
-                    eventFiltersList.appendChild(filterTag);
+                    eventFiltersList.appendChild(tag);
                 });
             }
             

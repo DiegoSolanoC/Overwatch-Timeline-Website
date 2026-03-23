@@ -34,6 +34,9 @@ if (isGitHubPages()) {
 
 // Auto-load Universal Features and Menu Components on landing pages
 window.addEventListener('DOMContentLoaded', function () {
+    // Simplified default UX: start directly in Global Timeline mode.
+    document.body.classList.add('app-timeline-default');
+
     const loadingOverlay = document.getElementById('loadingOverlay');
     const pageName = window.location.pathname.split('/').pop() || 'index.html';
     const logPrefix = `[${pageName}]`;
@@ -55,17 +58,19 @@ window.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Wait a bit for test-loader.js to initialize
+    // Wait a bit for component-loader to initialize and publish globals.
     setTimeout(async function () {
-        console.log(`${logPrefix} Auto-loading Universal Features and Menu Components...`);
+        console.log(`${logPrefix} Auto-loading Universal Features and Global Timeline...`);
         updateLoadingStatus('Loading Universal Features...');
 
         // Auto-load Universal Features (Palette + Music)
         if (typeof window.runUniversalFeatures === 'function') {
             try {
-                await window.runUniversalFeatures();
+                // Keep the overlay visible across the full boot chain so we don't
+                // flash a "header + universal buttons only" state between loads.
+                await window.runUniversalFeatures({ keepOverlay: true });
                 console.log(`${logPrefix} ✓ Universal Features auto-loaded`);
-                updateLoadingStatus('Loading Menu Components...');
+                updateLoadingStatus('Loading Global Timeline...');
             } catch (error) {
                 console.error(`${logPrefix} Error auto-loading Universal Features:`, error);
                 updateLoadingStatus('Error loading Universal Features');
@@ -75,18 +80,19 @@ window.addEventListener('DOMContentLoaded', function () {
             setTimeout(async function () {
                 if (typeof window.runUniversalFeatures === 'function') {
                     updateLoadingStatus('Loading Universal Features...');
-                    await window.runUniversalFeatures();
-                    updateLoadingStatus('Loading Menu Components...');
+                    await window.runUniversalFeatures({ keepOverlay: true });
+                    updateLoadingStatus('Loading Global Timeline...');
                 }
             }, 1000);
         }
 
-        // Auto-load Menu Components (after a short delay to ensure Universal Features are loaded)
+        // Auto-load Global Timeline Components immediately after Universal Features.
+        // Overlay stays visible throughout due to keepOverlay above.
         setTimeout(async function () {
-            if (typeof window.runMenuComponents === 'function') {
+            if (typeof window.runGlobeComponents === 'function') {
                 try {
-                    await window.runMenuComponents();
-                    console.log(`${logPrefix} ✓ Menu Components auto-loaded`);
+                    await window.runGlobeComponents(true);
+                    console.log(`${logPrefix} ✓ Global Timeline auto-loaded`);
                     updateLoadingStatus('Complete!');
 
                     // Fade out loading overlay after a brief delay
@@ -96,8 +102,8 @@ window.addEventListener('DOMContentLoaded', function () {
                         }
                     }, 300);
                 } catch (error) {
-                    console.error(`${logPrefix} Error auto-loading Menu Components:`, error);
-                    updateLoadingStatus('Error loading Menu Components');
+                    console.error(`${logPrefix} Error auto-loading Global Timeline:`, error);
+                    updateLoadingStatus('Error loading Global Timeline');
                     // Still fade out after error
                     setTimeout(function () {
                         if (loadingOverlay) {
@@ -106,10 +112,11 @@ window.addEventListener('DOMContentLoaded', function () {
                     }, 1000);
                 }
             } else {
-                console.warn(`${logPrefix} runMenuComponents not available yet, retrying...`);
+                console.warn(`${logPrefix} runGlobeComponents not available yet, retrying...`);
                 setTimeout(async function () {
-                    if (typeof window.runMenuComponents === 'function') {
-                        await window.runMenuComponents();
+                    if (typeof window.runGlobeComponents === 'function') {
+                        updateLoadingStatus('Loading Global Timeline...');
+                        await window.runGlobeComponents(true);
                         updateLoadingStatus('Complete!');
                         setTimeout(function () {
                             if (loadingOverlay) {
@@ -119,7 +126,7 @@ window.addEventListener('DOMContentLoaded', function () {
                     }
                 }, 1000);
             }
-        }, 500); // Small delay after Universal Features start
+        }, 0);
     }, 500); // Small delay to ensure test-loader.js is loaded
 
     // Cleanup on page unload to prevent memory leaks and freezing
@@ -173,8 +180,13 @@ function setupHeaderHub() {
             ? (rightHub.querySelector('.header-hub-btn--exit') || rightHub.querySelector('.header-hub-btn[data-action="menu"]'))
             : null;
         if (exitBtn) {
-            const show = (effective === 'globe') && isTimelineActuallyLoaded();
-            exitBtn.style.display = show ? '' : 'none';
+            const simplified = document.body.classList.contains('app-timeline-default');
+            if (simplified) {
+                exitBtn.style.display = 'none';
+            } else {
+                const show = (effective === 'globe') && isTimelineActuallyLoaded();
+                exitBtn.style.display = show ? '' : 'none';
+            }
         }
 
         // Keep storage sane: if we aren't actually in globe (assets not loaded), store "menu".
@@ -186,11 +198,14 @@ function setupHeaderHub() {
     const onHubClick = (e) => {
         const btn = e.target && e.target.closest ? e.target.closest('.header-hub-btn') : null;
         if (!btn) return;
+        // Only intercept clicks for the actual mode buttons (Timeline/Glossary/Bios) or Exit.
+        // Other header-hub buttons (Filters/Events/Map/etc.) must keep their own handlers.
+        const mode = btn.dataset ? btn.dataset.mode : null;
+        const action = btn.dataset ? btn.dataset.action : null;
+        if (!mode && !action) return;
         e.preventDefault();
         e.stopPropagation();
 
-        const mode = btn.dataset ? btn.dataset.mode : null;
-        const action = btn.dataset ? btn.dataset.action : null;
         const target = mode || (action === 'menu' ? 'menu' : null);
 
         if (typeof window.appModeSwitch === 'function') {

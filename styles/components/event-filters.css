@@ -55,6 +55,67 @@ body.color-palette-gray .event-filter-header {
     transition: all var(--panel-transition);
 }
 
+/* Icon-only chips for event slide: show hero/faction images instead of text */
+.event-filter-tag.event-filter-tag--icon {
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0; /* sharp edges */
+}
+
+.event-filter-tag.event-filter-tag--icon .event-filter-image-container {
+    width: 64px;
+    height: 64px;
+    background: #122E49; /* match Filters panel */
+    border-radius: 0; /* sharp edges */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    transition: all var(--panel-transition);
+    overflow: hidden;
+}
+
+body.color-palette-gray .event-filter-tag.event-filter-tag--icon .event-filter-image-container {
+    background: #383838; /* match Filters panel gray palette */
+}
+
+.event-filter-tag.event-filter-tag--icon.selected .event-filter-image-container {
+    background: rgba(27, 94, 32, 0.9); /* match Filters panel selected */
+    position: relative;
+}
+
+/* Selected indicator line (matches header active underline vibe) */
+.event-filter-tag.event-filter-tag--icon.selected .event-filter-image-container::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 10px;
+    background: rgba(76, 175, 80, 0.95);
+}
+
+.event-filter-tag.event-filter-tag--icon:hover .event-filter-image-container {
+    transform: translateY(-2px) scale(1.06);
+    box-shadow:
+        inset 0 0 22px 4px rgba(255, 255, 255, 0.45),
+        0 0 18px 3px rgba(255, 255, 255, 0.55),
+        0 0 38px 6px rgba(255, 255, 255, 0.22);
+}
+
+.event-filter-tag.event-filter-tag--icon .event-filter-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 0;
+    display: block;
+}
+
 body.color-palette-gray .event-filter-tag {
     background: rgba(255, 102, 0, 0.2); /* Orange for gray palette */
     color: #ff6600;

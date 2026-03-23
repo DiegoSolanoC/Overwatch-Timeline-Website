@@ -21,6 +21,14 @@ export class GlobeView {
         this.eventMarkerManager = new EventMarkerManager(sceneModel, dataModel);
 
         this._rimGlowSprite = null;
+
+        // Shooting stars (lightweight pooled streaks)
+        this._shootingStars = {
+            group: null,
+            pool: [],
+            nextSpawnSec: 0,
+            maxActive: 6
+        };
     }
 
     /**
@@ -263,6 +271,188 @@ export class GlobeView {
         const stars = new THREE.Points(starGeometry, starMaterial);
         this.sceneModel.setStars(stars);
         scene.add(stars);
+    }
+
+    /**
+     * Add a small pool of "shooting star" streaks.
+     * These are separate from the static starfield for performance and simplicity.
+     */
+    addShootingStars() {
+        const scene = this.sceneModel.getScene();
+        if (!scene) return;
+        if (this._shootingStars.group) return;
+
+        const group = new THREE.Group();
+        group.name = 'shooting-stars';
+        group.renderOrder = -10;
+
+        const isMobile = window.innerWidth <= 768;
+        const poolSize = isMobile ? 4 : 6;
+        this._shootingStars.maxActive = poolSize;
+
+        const makeStar = () => {
+            const geom = new THREE.BufferGeometry();
+            const arr = new Float32Array(6); // 2 points * 3
+            geom.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+            const mat = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                depthTest: true
+            });
+            const line = new THREE.Line(geom, mat);
+            line.visible = false;
+            line.frustumCulled = true;
+            group.add(line);
+            return {
+                line,
+                geom,
+                mat,
+                active: false,
+                age: 0,
+                duration: 1,
+                speed: 20,
+                length: 6,
+                head: new THREE.Vector3(),
+                dir: new THREE.Vector3()
+            };
+        };
+
+        for (let i = 0; i < poolSize; i++) {
+            this._shootingStars.pool.push(makeStar());
+        }
+
+        // First spawn after a short random delay
+        this._shootingStars.nextSpawnSec = isMobile
+            ? (8 + Math.random() * 8)
+            : (3 + Math.random() * 4);
+
+        this._shootingStars.group = group;
+        scene.add(group);
+    }
+
+    _spawnShootingStar() {
+        const camera = this.sceneModel.getCamera();
+        if (!camera) return;
+        if (!this._shootingStars.group || this._shootingStars.pool.length === 0) return;
+
+        // Find an inactive slot
+        const star = this._shootingStars.pool.find(s => !s.active);
+        if (!star) return;
+
+        const camDir = new THREE.Vector3();
+        camera.getWorldDirection(camDir);
+        camDir.normalize();
+
+        // Build a screen-plane basis (right/up vectors).
+        const worldUp = new THREE.Vector3(0, 1, 0);
+        let right = new THREE.Vector3().crossVectors(camDir, worldUp);
+        if (right.lengthSq() < 1e-6) {
+            right = new THREE.Vector3(1, 0, 0);
+        } else {
+            right.normalize();
+        }
+        const up = new THREE.Vector3().crossVectors(right, camDir).normalize();
+
+        // Spawn direction: near the center of view (behind the globe), with small spread.
+        const spread = 0.35;
+        const spawnDir = camDir.clone()
+            .addScaledVector(right, (Math.random() * 2 - 1) * spread)
+            .addScaledVector(up, (Math.random() * 2 - 1) * spread)
+            .normalize();
+
+        const radius = 70 + Math.random() * 25;
+        star.head.copy(spawnDir).multiplyScalar(radius);
+
+        // Movement direction: across the screen plane.
+        const ang = Math.random() * Math.PI * 2;
+        star.dir.copy(right).multiplyScalar(Math.cos(ang)).addScaledVector(up, Math.sin(ang)).normalize();
+
+        // Parameters
+        star.active = true;
+        star.age = 0;
+        star.duration = 0.7 + Math.random() * 0.7;
+        star.speed = 18 + Math.random() * 18;
+        star.length = 5 + Math.random() * 8;
+
+        // Slightly tint some streaks cooler for variety
+        const tint = 0.92 + Math.random() * 0.08;
+        star.mat.color.setRGB(1.0 * tint, 1.0 * tint, (0.96 + Math.random() * 0.04));
+
+        star.line.visible = true;
+        star.mat.opacity = 0.001;
+        this._updateShootingStarGeometry(star, 0.001);
+    }
+
+    _updateShootingStarGeometry(star, alpha) {
+        const tail = new THREE.Vector3().copy(star.head).addScaledVector(star.dir, -star.length);
+        const pos = star.geom.attributes.position.array;
+        // tail -> head
+        pos[0] = tail.x; pos[1] = tail.y; pos[2] = tail.z;
+        pos[3] = star.head.x; pos[4] = star.head.y; pos[5] = star.head.z;
+        star.geom.attributes.position.needsUpdate = true;
+        star.mat.opacity = alpha;
+    }
+
+    updateShootingStars(deltaSec) {
+        // Respect page visibility (prevents "catch-up" spawns)
+        if (this.sceneModel && this.sceneModel.isPageVisible === false) return;
+
+        if (!this._shootingStars.group) return;
+        const dt = Number.isFinite(deltaSec) ? Math.max(0, deltaSec) : 0;
+        if (dt <= 0) return;
+
+        // Update active streaks
+        for (const s of this._shootingStars.pool) {
+            if (!s.active) continue;
+            s.age += dt;
+            const t = s.age / s.duration;
+            if (t >= 1) {
+                s.active = false;
+                s.line.visible = false;
+                s.mat.opacity = 0;
+                continue;
+            }
+
+            // Move
+            s.head.addScaledVector(s.dir, s.speed * dt);
+
+            // Fade: quick ramp-in then fade out
+            let a = 1;
+            if (t < 0.12) {
+                a = t / 0.12;
+            } else {
+                a = Math.pow(1 - t, 1.15);
+            }
+            const alpha = 0.85 * a;
+
+            // If it drifted too far, kill it early
+            if (s.head.length() > 140) {
+                s.active = false;
+                s.line.visible = false;
+                s.mat.opacity = 0;
+                continue;
+            }
+
+            this._updateShootingStarGeometry(s, alpha);
+        }
+
+        // Spawn timer
+        this._shootingStars.nextSpawnSec -= dt;
+        if (this._shootingStars.nextSpawnSec <= 0) {
+            // Keep at most N active
+            const activeCount = this._shootingStars.pool.reduce((n, s) => n + (s.active ? 1 : 0), 0);
+            if (activeCount < this._shootingStars.maxActive) {
+                this._spawnShootingStar();
+            }
+
+            const isMobile = window.innerWidth <= 768;
+            this._shootingStars.nextSpawnSec = isMobile
+                ? (8 + Math.random() * 10)
+                : (3 + Math.random() * 7);
+        }
     }
 
     /**

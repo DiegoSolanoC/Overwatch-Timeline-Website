@@ -76,15 +76,21 @@
         var shuffle = manager.shuffleService;
 
         return function playNextSong() {
-            var nextSong = playback.getNextSong(
-                shuffle.isShuffling,
-                shuffle.shuffleQueue,
-                shuffle.currentSongIndex
-            );
-            if (nextSong) {
-                if (shuffle.isShuffling) {
-                    shuffle.currentSongIndex = (shuffle.currentSongIndex + 1) % shuffle.shuffleQueue.length;
+            var nextSong = null;
+
+            if (shuffle.isShuffling) {
+                // If shuffle was enabled before the manifest finished loading, the queue can be empty.
+                // Ensure it's built from the latest musicFiles/currentSong.
+                if (!shuffle.shuffleQueue || shuffle.shuffleQueue.length === 0) {
+                    shuffle.enableShuffle(manager.musicFiles || [], manager.currentSong);
                 }
+                // Use the shuffle service as the source of truth for advancing the queue.
+                nextSong = shuffle.getNextSong();
+            } else {
+                nextSong = playback.getNextSong(false, null, 0);
+            }
+
+            if (nextSong && nextSong.filename) {
                 playMusic('assets/audio/music/' + nextSong.filename);
             }
         };

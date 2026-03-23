@@ -389,6 +389,7 @@ export class PlaneManager {
         console.log(`📊 Total airports: ${airports.length}`);
         
         const minDistance = 0.4;
+        const DEPARTURE_COOLDOWN_MS = 8000;
         
         this.planeSpawnInterval = setInterval(() => {
             const isPageVisible = this.sceneModel.getPageVisible();
@@ -407,13 +408,27 @@ export class PlaneManager {
             
             if (airports.length < 2) return;
             
-            const from = airports[Math.floor(Math.random() * airports.length)];
-            let to = airports[Math.floor(Math.random() * airports.length)];
+            // Try a few picks to respect departure cooldown on the origin.
+            let from = null;
+            let to = null;
+            for (let attempt = 0; attempt < 10; attempt++) {
+                const candidateFrom = airports[Math.floor(Math.random() * airports.length)];
+                if (!candidateFrom) continue;
+                if (!this.transportModel.canDepart('plane', candidateFrom.name, DEPARTURE_COOLDOWN_MS)) continue;
+                from = candidateFrom;
+                break;
+            }
+            if (!from) return;
+
+            to = airports[Math.floor(Math.random() * airports.length)];
             
             while (to === from) {
                 to = airports[Math.floor(Math.random() * airports.length)];
             }
             
+            // Cross-vehicle: if any vehicle departed from->to recently, block this takeoff.
+            if (!this.transportModel.canDepartRoutePair(from.name, to.name, DEPARTURE_COOLDOWN_MS)) return;
+
             // Use globe distance metric for spawn filtering (good enough for map view too)
             const fromPos = latLonToVector3(from.lat, from.lon, 1.0);
             const toPos = latLonToVector3(to.lat, to.lon, 1.0);
@@ -428,6 +443,11 @@ export class PlaneManager {
                 
                 // Pick random starting airport
                 let current = airports[Math.floor(Math.random() * airports.length)];
+                // Ensure the first departure respects cooldown
+                if (!this.transportModel.canDepart('plane', current.name, DEPARTURE_COOLDOWN_MS)) {
+                    // fall back to the `from` we already validated
+                    current = from;
+                }
                 selectedAirports.push(current);
                 
                 // Pick subsequent airports
@@ -443,9 +463,13 @@ export class PlaneManager {
                 }
                 
                 if (selectedAirports.length >= 2) {
+                    this.transportModel.markDeparted('plane', selectedAirports[0].name);
+                    this.transportModel.markDepartedRoutePair(selectedAirports[0].name, selectedAirports[1].name);
                     this.createMultiStopPlane(selectedAirports);
                 }
             } else if (distance >= minDistance) {
+                this.transportModel.markDeparted('plane', from.name);
+                this.transportModel.markDepartedRoutePair(from.name, to.name);
                 this.createPlane(from, to);
             }
         }, 3000);

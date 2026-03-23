@@ -21,6 +21,19 @@ export class TransportModel {
         this.boatRouteGraph = {}; // Graph of port connections for multi-stop routes
         this.boatRouteReservations = {}; // Track which routes are currently in use
 
+        // Departure cooldowns (avoid multiple vehicles departing same origin too quickly)
+        // Keyed by origin name -> last departure timestamp (ms).
+        this.departureCooldowns = {
+            train: new Map(),
+            plane: new Map(),
+            boat: new Map()
+        };
+
+        // Cross-vehicle cooldown for matching (A,B) pairs:
+        // If any vehicle departs from A -> B, no other vehicle (any type) may depart A -> B
+        // within the cooldown window. Directional by design (A->B differs from B->A).
+        this.routePairDepartureCooldowns = new Map(); // key -> last departure timestamp (ms)
+
         // Satellite system
         this.satellites = [];
         this.satelliteOrbitLines = []; // Purple orbit lines
@@ -33,6 +46,74 @@ export class TransportModel {
         this.trainMiddleModelCache = null;
         this.satelliteModelCache = null;
         this.stationModelCache = null; // Separate cache for Station model (ISS)
+    }
+
+    _normalizeLocationKey(name) {
+        return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    _getRoutePairKey(from, to) {
+        const a = this._normalizeLocationKey(from);
+        const b = this._normalizeLocationKey(to);
+        return `${a}→${b}`;
+    }
+
+    /**
+     * Can a vehicle type depart from a given origin?
+     * @param {'train'|'plane'|'boat'} type
+     * @param {string} origin
+     * @param {number} cooldownMs
+     * @param {number} nowMs
+     * @returns {boolean}
+     */
+    canDepart(type, origin, cooldownMs = 8000, nowMs = Date.now()) {
+        if (!origin) return true;
+        const m = this.departureCooldowns?.[type];
+        if (!m || typeof m.get !== 'function') return true;
+        const last = m.get(origin);
+        if (!Number.isFinite(last)) return true;
+        return (nowMs - last) >= cooldownMs;
+    }
+
+    /**
+     * Mark a departure for cooldown tracking.
+     * @param {'train'|'plane'|'boat'} type
+     * @param {string} origin
+     * @param {number} nowMs
+     */
+    markDeparted(type, origin, nowMs = Date.now()) {
+        if (!origin) return;
+        const m = this.departureCooldowns?.[type];
+        if (!m || typeof m.set !== 'function') return;
+        m.set(origin, nowMs);
+    }
+
+    /**
+     * Cross-vehicle cooldown for exact route pairs (A -> B).
+     * @param {string} from
+     * @param {string} to
+     * @param {number} cooldownMs
+     * @param {number} nowMs
+     * @returns {boolean}
+     */
+    canDepartRoutePair(from, to, cooldownMs = 8000, nowMs = Date.now()) {
+        if (!from || !to) return true;
+        const key = this._getRoutePairKey(from, to);
+        const last = this.routePairDepartureCooldowns.get(key);
+        if (!Number.isFinite(last)) return true;
+        return (nowMs - last) >= cooldownMs;
+    }
+
+    /**
+     * Mark a route-pair departure for cross-vehicle cooldown.
+     * @param {string} from
+     * @param {string} to
+     * @param {number} nowMs
+     */
+    markDepartedRoutePair(from, to, nowMs = Date.now()) {
+        if (!from || !to) return;
+        const key = this._getRoutePairKey(from, to);
+        this.routePairDepartureCooldowns.set(key, nowMs);
     }
 
     /**

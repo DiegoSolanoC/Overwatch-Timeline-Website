@@ -11,7 +11,7 @@
 export function createOrchestratorDelegations(o) {
     return {
         runMenuComponents: () => o.runMenuComponents(),
-        runUniversalFeatures: () => o.runUniversalFeatures(),
+        runUniversalFeatures: (options = {}) => o.runUniversalFeatures(options),
         runGlobeComponents: (isAutoLoad = false) => o.runGlobeComponents(isAutoLoad),
         killMenuComponents: () => o.killMenuComponents(),
         killUniversalFeatures: () => o.killUniversalFeatures(),

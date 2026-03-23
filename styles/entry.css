@@ -80,10 +80,11 @@ main#content {
 }
 
 .loading-gif {
-    max-width: 200px;
-    max-height: 200px;
-    width: auto;
+    /* Larger, responsive loading graphic */
+    width: clamp(260px, 40vw, 460px);
     height: auto;
+    max-width: 460px;
+    max-height: 460px;
     margin-bottom: 20px;
 }
 

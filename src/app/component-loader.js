@@ -75,7 +75,7 @@ async function loadPalette() {
             id: 'colorPaletteToggle',
             className: '',
             title: 'Toggle Color Palette',
-            label: 'Pallette',
+            label: 'Palette',
             iconPath: 'assets/images/icons/Palette Icon.png',
             iconAlt: 'Color Palette',
             parentId: 'headerHubRight',
@@ -280,16 +280,6 @@ async function loadControls() {
     
     await withLoadWrapper(async () => {
         const controller = window.globeController;
-        
-        // Add rotation toggle (if not already present)
-        createGlobeControlButton({
-            id: 'autoRotateToggle',
-            className: '',
-            title: 'Toggle Auto-Rotation',
-            iconPath: 'assets/images/icons/Rotation Icon.png',
-            iconAlt: 'Rotate',
-            iconSpanId: 'rotateIcon'
-        });
 
         // Add map view toggle (globe <-> flat map)
         createGlobeControlButton({
@@ -297,12 +287,30 @@ async function loadControls() {
             className: '',
             title: 'Toggle Map View',
             label: 'Map',
-            iconPath: 'assets/images/icons/Location Icon.png',
-            iconAlt: 'Map',
-            parentId: 'headerHubRight',
+            iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+            iconAlt: 'Globe',
+            parentId: 'headerHubMapStack',
             baseClass: 'header-hub-btn header-hub-btn--icon',
             iconSpanId: 'mapViewToggleIcon',
             headerOrder: 30,
+            mobileParentId: 'content',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: ''
+        });
+
+        // Add rotation toggle as a small secondary button under Map/Globe (desktop header).
+        // On mobile, it mounts as the existing globe-control button.
+        createGlobeControlButton({
+            id: 'autoRotateToggle',
+            className: 'header-subbar-btn',
+            title: 'Toggle Auto-Rotation',
+            label: 'Rotation',
+            iconPath: 'assets/images/icons/Rotation Icon.png',
+            iconAlt: 'Rotate',
+            parentId: 'headerRotateSubBarInner',
+            baseClass: 'header-hub-btn header-hub-btn--icon',
+            iconSpanId: 'rotateIcon',
+            headerOrder: 40,
             mobileParentId: 'content',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: ''
@@ -374,7 +382,11 @@ async function loadMusic() {
             iconAlt: 'Music',
             parentId: 'headerHubRight',
             baseClass: 'header-hub-btn header-hub-btn--icon',
-            headerOrder: 60
+            headerOrder: 60,
+            // Mobile: move Music to the left side (so universal buttons split across hubs)
+            mobileParentId: 'headerHub',
+            mobileBaseClass: 'header-hub-btn header-hub-btn--icon',
+            mobileClassName: ''
         });
         
         // Add music panel HTML (if not already present)

@@ -544,9 +544,20 @@ export class TrainManager {
         console.log(`📊 Total routes: ${routeCurves.length}`);
         console.log(`📊 Cities in graph: ${Object.keys(routeGraph).length}`);
         
+        const DEPARTURE_COOLDOWN_MS = 8000;
         if (routeCurves.length > 0) {
-            const randomRoute = routeCurves[Math.floor(Math.random() * routeCurves.length)];
-            this.createTrain(randomRoute);
+            // Initial spawn: respect reservations + departure cooldown
+            for (let attempt = 0; attempt < 12; attempt++) {
+                const randomRoute = routeCurves[Math.floor(Math.random() * routeCurves.length)];
+                if (!randomRoute?.from || !randomRoute?.to) continue;
+                if (!this.routeController.isRouteAvailable(randomRoute.from, randomRoute.to)) continue;
+                if (!this.transportModel.canDepart('train', randomRoute.from, DEPARTURE_COOLDOWN_MS)) continue;
+                if (!this.transportModel.canDepartRoutePair(randomRoute.from, randomRoute.to, DEPARTURE_COOLDOWN_MS)) continue;
+                this.transportModel.markDeparted('train', randomRoute.from);
+                this.transportModel.markDepartedRoutePair(randomRoute.from, randomRoute.to);
+                this.createTrain(randomRoute);
+                break;
+            }
         }
         
         this.trainSpawnInterval = setInterval(() => {
@@ -572,10 +583,29 @@ export class TrainManager {
                     const multiRoute = this.routeController.findMultiStopRoute(numStops);
                     
                     if (multiRoute && multiRoute.routes.length >= 2) {
+                        const from0 = multiRoute.routes[0]?.from;
+                        const to0 = multiRoute.routes[0]?.to;
+                        if (!from0 || !to0) return;
+                        // Prevent spam departures from same city and avoid duplicating the same starting segment.
+                        if (!this.transportModel.canDepart('train', from0, DEPARTURE_COOLDOWN_MS)) return;
+                        if (!this.transportModel.canDepartRoutePair(from0, to0, DEPARTURE_COOLDOWN_MS)) return;
+                        if (!this.routeController.isRouteAvailable(from0, to0)) return;
+                        this.transportModel.markDeparted('train', from0);
+                        this.transportModel.markDepartedRoutePair(from0, to0);
                         this.createMultiStopTrain(multiRoute.routes);
                     } else {
-                        const randomRoute = routeCurves[Math.floor(Math.random() * routeCurves.length)];
-                        this.createTrain(randomRoute);
+                        // Fallback to single route with constraints
+                        for (let attempt = 0; attempt < 12; attempt++) {
+                            const randomRoute = routeCurves[Math.floor(Math.random() * routeCurves.length)];
+                            if (!randomRoute?.from || !randomRoute?.to) continue;
+                            if (!this.routeController.isRouteAvailable(randomRoute.from, randomRoute.to)) continue;
+                            if (!this.transportModel.canDepart('train', randomRoute.from, DEPARTURE_COOLDOWN_MS)) continue;
+                            if (!this.transportModel.canDepartRoutePair(randomRoute.from, randomRoute.to, DEPARTURE_COOLDOWN_MS)) continue;
+                            this.transportModel.markDeparted('train', randomRoute.from);
+                            this.transportModel.markDepartedRoutePair(randomRoute.from, randomRoute.to);
+                            this.createTrain(randomRoute);
+                            break;
+                        }
                     }
                 } else {
                     let selectedRoute;
@@ -596,7 +626,14 @@ export class TrainManager {
                     if (!selectedRoute) {
                         selectedRoute = routeCurves[Math.floor(Math.random() * routeCurves.length)];
                     }
-                    
+
+                    // Enforce: no two trains depart the same origin within 8s, and no duplicate segment.
+                    if (!selectedRoute?.from || !selectedRoute?.to) return;
+                    if (!this.routeController.isRouteAvailable(selectedRoute.from, selectedRoute.to)) return;
+                    if (!this.transportModel.canDepart('train', selectedRoute.from, DEPARTURE_COOLDOWN_MS)) return;
+                    if (!this.transportModel.canDepartRoutePair(selectedRoute.from, selectedRoute.to, DEPARTURE_COOLDOWN_MS)) return;
+                    this.transportModel.markDeparted('train', selectedRoute.from);
+                    this.transportModel.markDepartedRoutePair(selectedRoute.from, selectedRoute.to);
                     this.createTrain(selectedRoute);
                 }
             }

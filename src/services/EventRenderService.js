@@ -12,6 +12,110 @@ class EventRenderService {
         this._eventManagerImgObserver = null;
     }
 
+    _normalizeLocationNameForOverlap(name) {
+        if (!name || typeof name !== 'string') return null;
+        const normalized = name.replace(/\s+/g, ' ').trim().toLowerCase();
+        return normalized.length ? normalized : null;
+    }
+
+    _getPrimaryLocationForOverlap(event) {
+        // Overlap detection should be based on the event's primary location (main marker),
+        // not on whichever variant is currently being previewed on the card.
+        const isMultiEvent = !!(event && event.variants && event.variants.length > 0);
+        const base = isMultiEvent ? event.variants[0] : event;
+        const locationType = (base.locationType || event.locationType || 'earth');
+
+        const lat = (locationType === 'earth')
+            ? (base.lat !== undefined ? base.lat : event.lat)
+            : undefined;
+        const lon = (locationType === 'earth')
+            ? (base.lon !== undefined ? base.lon : event.lon)
+            : undefined;
+        const x = (locationType !== 'earth' && locationType !== 'station')
+            ? (base.x !== undefined ? base.x : event.x)
+            : undefined;
+        const y = (locationType !== 'earth' && locationType !== 'station')
+            ? (base.y !== undefined ? base.y : event.y)
+            : undefined;
+
+        // Prefer explicit display names stored on the event/variant.
+        let locationName = base.cityDisplayName || event.cityDisplayName || null;
+
+        // Earth: if there's no explicit name, fall back to the location cache lookup.
+        if (!locationName && locationType === 'earth' && lat !== undefined && lon !== undefined) {
+            if (this.eventManager && typeof this.eventManager.getLocationName === 'function') {
+                locationName = this.eventManager.getLocationName(lat, lon);
+            }
+        }
+
+        // Station: avoid flagging all station events as overlapping due to default label.
+        // Only use a name key if the event explicitly provides one.
+        if (locationType === 'station' && !base.cityDisplayName && !event.cityDisplayName) {
+            locationName = null;
+        }
+
+        return { locationType, lat, lon, x, y, locationName };
+    }
+
+    _getOverlapKeysForEvent(event) {
+        const { locationType, lat, lon, x, y, locationName } = this._getPrimaryLocationForOverlap(event);
+        const nameKey = this._normalizeLocationNameForOverlap(locationName);
+
+        let coordKey = null;
+        if (locationType === 'earth' && Number.isFinite(lat) && Number.isFinite(lon)) {
+            coordKey = `earth:${lat.toFixed(4)},${lon.toFixed(4)}`;
+        } else if ((locationType === 'moon' || locationType === 'mars') && Number.isFinite(x) && Number.isFinite(y)) {
+            coordKey = `${locationType}:${x.toFixed(1)},${y.toFixed(1)}`;
+        }
+        // Station has no stable coordinates → no coordKey.
+
+        return { nameKey, coordKey };
+    }
+
+    _computeOverlapIndexSet(eventsToRender, fullList) {
+        // Overlap is defined within groups of 10 by chronological index:
+        // events #1-10, #11-20, etc.
+        const groups = new Map(); // groupId -> { nameMap: Map<string, number[]>, coordMap: Map<string, number[]> }
+
+        const add = (map, key, idx) => {
+            if (!key) return;
+            const arr = map.get(key);
+            if (arr) arr.push(idx);
+            else map.set(key, [idx]);
+        };
+
+        eventsToRender.forEach((event) => {
+            const actualIndex = fullList.indexOf(event);
+            if (actualIndex === -1) return;
+
+            const groupId = Math.floor(actualIndex / 10);
+            if (!groups.has(groupId)) {
+                groups.set(groupId, { nameMap: new Map(), coordMap: new Map() });
+            }
+
+            const { nameKey, coordKey } = this._getOverlapKeysForEvent(event);
+            const group = groups.get(groupId);
+            add(group.nameMap, nameKey, actualIndex);
+            add(group.coordMap, coordKey, actualIndex);
+        });
+
+        const overlaps = new Set();
+        const markDuplicates = (m) => {
+            for (const arr of m.values()) {
+                if (arr.length > 1) {
+                    arr.forEach((idx) => overlaps.add(idx));
+                }
+            }
+        };
+
+        for (const group of groups.values()) {
+            markDuplicates(group.nameMap);
+            markDuplicates(group.coordMap);
+        }
+
+        return overlaps;
+    }
+
     /**
      * Set the EventManager instance (dependency injection)
      */
@@ -139,6 +243,10 @@ class EventRenderService {
             return;
         }
 
+        // Only scroll to top on explicit page navigation (prev/next/page input),
+        // which already calls requestPageEntranceAnimation().
+        const shouldScrollToTop = this._animateNextPageRender === true;
+
         // Calculate pagination
         const totalEvents = events.length;
         const totalPages = Math.max(1, Math.ceil(totalEvents / eventsPerPage));
@@ -171,6 +279,18 @@ class EventRenderService {
 
         eventsList.innerHTML = '';
 
+        // Return the Events Manage sidebar list to the top when switching pages.
+        // The scrollable container is the events grid itself (`.events-list`).
+        if (shouldScrollToTop) {
+            try {
+                eventsList.scrollTop = 0;
+                const panel = document.getElementById('eventsManagePanel') || document.querySelector('.events-manage-panel');
+                if (panel) panel.scrollTop = 0;
+            } catch (e) {
+                // no-op
+            }
+        }
+
         if (events.length === 0) {
             const hasSearch = this.eventManager && (
                 (this.eventManager.searchQuery && this.eventManager.searchQuery.trim()) ||
@@ -188,12 +308,13 @@ class EventRenderService {
 
         // Create event items for current page; use index in full list for edit/delete/open (events may be filtered)
         const fullList = this.eventManager && this.eventManager.events ? this.eventManager.events : events;
+        const overlapIndexSet = this._computeOverlapIndexSet(eventsToRender, fullList);
         const renderStartTime = performance.now();
         const fragment = document.createDocumentFragment();
         eventsToRender.forEach((event, pageIndex) => {
             const actualIndex = fullList.indexOf(event);
             if (actualIndex === -1) return;
-            const eventItem = this.createEventItem(event, actualIndex, fullList);
+            const eventItem = this.createEventItem(event, actualIndex, fullList, { hasOverlap: overlapIndexSet.has(actualIndex) });
             fragment.appendChild(eventItem);
         });
         eventsList.appendChild(fragment);
@@ -417,7 +538,7 @@ class EventRenderService {
      * @param {Array} allEvents - All events (for context)
      * @returns {HTMLElement} Event item element
      */
-    createEventItem(event, index, allEvents) {
+    createEventItem(event, index, allEvents, options = {}) {
         if (!this.eventManager) {
             console.error('EventRenderService: EventManager not set!');
             return document.createElement('div');
@@ -566,7 +687,11 @@ class EventRenderService {
             : '';
 
         // Event number badge - show event number in chronological order (bottom-right)
-        const eventNumberBadge = `<div class="event-number-badge" title="Event #${index + 1}">${index + 1}</div>`;
+        const overlapClass = options.hasOverlap ? ' event-number-badge--overlap' : '';
+        const overlapTitle = options.hasOverlap
+            ? `Overlap detected on globe page ${Math.floor(index / 10) + 1}`
+            : `Event #${index + 1}`;
+        const eventNumberBadge = `<div class="event-number-badge${overlapClass}" title="${overlapTitle}">${index + 1}</div>`;
 
         // On GitHub Pages, hide edit/delete buttons, but show View button
         const actionButtons = isGitHubPages ? `

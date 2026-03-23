@@ -347,7 +347,11 @@ body.color-palette-gray .event-number-btn.locked {
     filter: brightness(0.5) !important; /* Darken the button */
 }
 
-#rotateIcon {
+/* NOTE: `#rotateIcon` is used in both the floating globe-control button (mobile/legacy)
+   and the header hub button (desktop). The floating control needs a full-size icon,
+   but the header hub needs the icon wrapper to size to content so the label can sit
+   right next to it. Scope these rules to the floating control button only. */
+.globe-control-btn #rotateIcon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -357,7 +361,7 @@ body.color-palette-gray .event-number-btn.locked {
     transform: none !important;
 }
 
-#rotateIcon img {
+.globe-control-btn #rotateIcon img {
     width: 100%;
     height: 100%;
     object-fit: contain;

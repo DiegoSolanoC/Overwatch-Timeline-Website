@@ -133,6 +133,8 @@ export class GlobeController {
 
         // Add starfield
         this.globeView.addStarfield();
+        // Add occasional shooting stars (background streaks)
+        this.globeView.addShootingStars();
 
         // Add markers
         this.globeView.addCityMarkers();
@@ -365,6 +367,11 @@ export class GlobeController {
             this.interactionController.updatePulseRings();
             this.interactionController.updateMarkerPulse();
             this.interactionController.updateStationPinLines();
+        }
+
+        // Background shooting stars
+        if (this.globeView && typeof this.globeView.updateShootingStars === 'function') {
+            this.globeView.updateShootingStars(deltaTime / 1000);
         }
         
         // Check and auto-show image if conditions are met

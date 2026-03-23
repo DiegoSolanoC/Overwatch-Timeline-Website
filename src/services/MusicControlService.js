@@ -135,22 +135,47 @@ class MusicControlService {
      */
     setupShuffleButton(musicFiles, currentSong) {
         if (!this.shuffleBtn) return;
-        
-        this.shuffleBtn.addEventListener('click', () => {
+
+        // Support passing dynamic providers (functions) so we always use the latest
+        // musicFiles/currentSong even though they are loaded asynchronously.
+        const resolve = (v) => (typeof v === 'function') ? v() : v;
+
+        // Avoid duplicate listeners across re-inits.
+        const old = this.shuffleBtn._shuffleHandler;
+        if (old) {
+            try { this.shuffleBtn.removeEventListener('click', old); } catch (_) {}
+        }
+
+        const handler = () => {
+            const files = resolve(musicFiles) || [];
+            const song = resolve(currentSong) || null;
+
             if (this.shuffleService.isShuffling) {
                 this.shuffleService.disableShuffle();
                 this.shuffleBtn.classList.remove('active');
                 this.iconService.updateShuffleIcon(false);
             } else {
-                this.shuffleService.enableShuffle(musicFiles, currentSong);
+                if (!files || files.length === 0) {
+                    return; // nothing to shuffle yet
+                }
+                this.shuffleService.enableShuffle(files, song);
                 this.shuffleBtn.classList.add('active');
                 this.iconService.updateShuffleIcon(true);
+            }
+
+            // Critical: ensure looping matches shuffle state.
+            // If loop stays true when enabling shuffle, "ended" never fires and shuffle feels broken.
+            if (this.backgroundMusic) {
+                this.backgroundMusic.loop = !this.shuffleService.isShuffling;
             }
             
             if (this.onStateChange) {
                 this.onStateChange();
             }
-        });
+        };
+
+        this.shuffleBtn._shuffleHandler = handler;
+        this.shuffleBtn.addEventListener('click', handler);
     }
 
     /**

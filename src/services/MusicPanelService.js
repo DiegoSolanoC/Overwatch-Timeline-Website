@@ -7,6 +7,7 @@ class MusicPanelService {
         this.musicButton = musicButton;
         this.musicPanel = musicPanel;
         this.musicPanelClose = musicPanelClose;
+        this._onToggle = null;
     }
 
     /**
@@ -18,6 +19,7 @@ class MusicPanelService {
             return;
         }
         console.log('MusicPanelService: Setting up toggle button for:', this.musicButton);
+        this._onToggle = (typeof onToggle === 'function') ? onToggle : null;
         
         // Handle button click/touch - unified handler
         const handleMusicToggle = (event) => {
@@ -109,6 +111,9 @@ class MusicPanelService {
             if (this.musicButton) {
                 this.musicButton.classList.remove('active');
             }
+            if (this._onToggle) {
+                this._onToggle(false);
+            }
         });
     }
 
@@ -124,6 +129,9 @@ class MusicPanelService {
                     this.musicPanel.classList.remove('open');
                     if (this.musicButton) {
                         this.musicButton.classList.remove('active');
+                    }
+                    if (this._onToggle) {
+                        this._onToggle(false);
                     }
                 }
             }

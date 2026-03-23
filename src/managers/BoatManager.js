@@ -319,6 +319,7 @@ export class BoatManager {
         console.log(`📊 Total boat routes: ${boatRouteCurves.length}`);
         console.log(`📊 Ports in graph: ${Object.keys(boatRouteGraph).length}`);
         
+        const DEPARTURE_COOLDOWN_MS = 8000;
         this.boatSpawnInterval = setInterval(() => {
             const isPageVisible = this.sceneModel.getPageVisible();
             const hyperloopVisible = this.sceneModel.getHyperloopVisible();
@@ -344,11 +345,32 @@ export class BoatManager {
                 const multiRoute = this.routeController.findMultiStopBoatRoute(numStops);
                 
                 if (multiRoute && multiRoute.routes.length >= 2) {
+                    const from0 = multiRoute.routes[0]?.from;
+                    const to0 = multiRoute.routes[0]?.to;
+                    if (!from0 || !to0) return;
+                    if (!this.transportModel.canDepart('boat', from0, DEPARTURE_COOLDOWN_MS)) return;
+                    if (!this.transportModel.canDepartRoutePair(from0, to0, DEPARTURE_COOLDOWN_MS)) return;
+                    if (!this.routeController.isBoatRouteAvailable(from0, to0)) return;
+                    this.transportModel.markDeparted('boat', from0);
+                    this.transportModel.markDepartedRoutePair(from0, to0);
                     this.createMultiStopBoat(multiRoute.routes);
                 } else {
+                    // Fallback: single route with constraints
+                    if (!randomRoute?.from || !randomRoute?.to) return;
+                    if (!this.transportModel.canDepart('boat', randomRoute.from, DEPARTURE_COOLDOWN_MS)) return;
+                    if (!this.transportModel.canDepartRoutePair(randomRoute.from, randomRoute.to, DEPARTURE_COOLDOWN_MS)) return;
+                    if (!this.routeController.isBoatRouteAvailable(randomRoute.from, randomRoute.to)) return;
+                    this.transportModel.markDeparted('boat', randomRoute.from);
+                    this.transportModel.markDepartedRoutePair(randomRoute.from, randomRoute.to);
                     this.createBoat(randomRoute);
                 }
             } else {
+                if (!randomRoute?.from || !randomRoute?.to) return;
+                if (!this.transportModel.canDepart('boat', randomRoute.from, DEPARTURE_COOLDOWN_MS)) return;
+                if (!this.transportModel.canDepartRoutePair(randomRoute.from, randomRoute.to, DEPARTURE_COOLDOWN_MS)) return;
+                if (!this.routeController.isBoatRouteAvailable(randomRoute.from, randomRoute.to)) return;
+                this.transportModel.markDeparted('boat', randomRoute.from);
+                this.transportModel.markDepartedRoutePair(randomRoute.from, randomRoute.to);
                 this.createBoat(randomRoute);
             }
         }, 800);
