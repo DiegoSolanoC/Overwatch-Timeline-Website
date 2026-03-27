@@ -3,6 +3,7 @@
  */
 
 import { vector3ToLatLon, latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+import { getTransportVehicleColors, getMarsShipEmissiveHex } from '../utils/TransportPaletteColors.js';
 
 export class SatelliteManager {
     constructor(sceneModel, transportModel, transportView) {
@@ -159,7 +160,8 @@ export class SatelliteManager {
             if (current.length >= 2) segments2d.push(current);
 
             // Render lines
-            const color = data.type === 'MarsShip' ? 0xff0000 : (data.type === 'ISS' ? 0x0088cc : 0x9b59b6);
+            const vc = getTransportVehicleColors();
+            const color = (data.type === 'MarsShip' || data.type === 'ISS') ? vc.color : 0x9b59b6;
             const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.6 });
 
             const mapLines = [];
@@ -189,27 +191,28 @@ export class SatelliteManager {
         // Create satellite model using GLTF
         const satelliteGroup = new THREE.Group();
         const gltfLoader = this.sceneModel.getGLTFLoader();
+
+        // SpaceShip.glb is oriented "backwards" relative to our path-facing basis.
+        // Apply a one-time 180° Y rotation to the model root.
+        const applyMarsShipFacingFix = (obj) => {
+            if (!obj) return;
+            if (!obj.userData) obj.userData = {};
+            if (obj.userData._marsShipFacingFixed) return;
+            obj.rotation.y += Math.PI;
+            obj.userData._marsShipFacingFixed = true;
+        };
         
-        let color;
-        let shouldAlignWithPath = false; // Only ISS and Mars Ship align with path
-        
-        if (type === 'ISS') {
-            color = 0x0088cc; // Blue for ISS (same as other satellites)
-            shouldAlignWithPath = true;
-        } else if (type === 'MarsShip') {
-            color = 0xff0000; // Red for Mars Ship
-            shouldAlignWithPath = true;
-        } else {
-            color = 0x0088cc; // Blue for normal satellites (same as trains)
-            shouldAlignWithPath = false; // Random rotation for small satellites
-        }
+        const vehicleColors = getTransportVehicleColors();
+        const color = vehicleColors.color;
+        const satEmissive = type === 'MarsShip' ? getMarsShipEmissiveHex() : vehicleColors.emissive;
+        const shouldAlignWithPath = type === 'ISS' || type === 'MarsShip';
         
         const applySatelliteMaterial = (model) => {
             model.traverse((child) => {
                 if (child.isMesh) {
                     child.material = new THREE.MeshPhongMaterial({
                         color: color,
-                        emissive: type === 'ISS' ? 0x004488 : type === 'MarsShip' ? 0x440000 : 0x004488,
+                        emissive: satEmissive,
                         emissiveIntensity: 0.3,
                         transparent: true,
                         opacity: 0.9,
@@ -224,7 +227,7 @@ export class SatelliteManager {
             });
         };
         
-        // For ISS, use Station.glb; for others, use Satellite.glb
+        // For ISS, use Station.glb; for MarsShip use SpaceShip.glb; for others, use Satellite.glb
         if (type === 'ISS') {
             // Use Station model for ISS
             const stationModelCache = this.transportModel.getStationModelCache();
@@ -254,7 +257,7 @@ export class SatelliteManager {
                     const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
                     const material = new THREE.MeshPhongMaterial({
                         color: color,
-                        emissive: 0x004488,
+                        emissive: satEmissive,
                         emissiveIntensity: 0.3,
                         transparent: true,
                         opacity: 0.9
@@ -268,7 +271,7 @@ export class SatelliteManager {
                 const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
                 const material = new THREE.MeshPhongMaterial({
                     color: color,
-                    emissive: 0x004488,
+                    emissive: satEmissive,
                     emissiveIntensity: 0.3,
                     transparent: true,
                     opacity: 0.9
@@ -277,71 +280,83 @@ export class SatelliteManager {
                 satelliteGroup.add(satelliteMesh);
             }
         } else {
-            // Use Satellite model for non-ISS satellites
-            const satelliteModelCache = this.transportModel.getSatelliteModelCache();
-        
-        if (satelliteModelCache && gltfLoader) {
-            // Use cached model
-            const satelliteModel = satelliteModelCache.clone();
-            satelliteModel.scale.set(0.02, 0.02, 0.02);
-            satelliteModel.visible = true;
-            applySatelliteMaterial(satelliteModel);
-            
-            // Random rotation for small satellites (not ISS or Mars Ship)
-            if (!shouldAlignWithPath) {
-                satelliteModel.rotation.x = Math.random() * Math.PI * 2;
-                satelliteModel.rotation.y = Math.random() * Math.PI * 2;
-                satelliteModel.rotation.z = Math.random() * Math.PI * 2;
-            }
-            
-            satelliteGroup.add(satelliteModel);
-        } else if (gltfLoader) {
-            // Load model for first time
-            gltfLoader.load('assets/models/Satellite.glb', (gltf) => {
-                const model = gltf.scene;
-                const cached = model.clone();
-                this.transportModel.setSatelliteModelCache(cached);
-                
-                model.scale.set(0.02, 0.02, 0.02);
-                model.visible = true;
-                applySatelliteMaterial(model);
-                
+            const isMarsShip = type === 'MarsShip';
+            const cache = isMarsShip
+                ? (this.transportModel.getSpaceShipModelCache ? this.transportModel.getSpaceShipModelCache() : null)
+                : (this.transportModel.getSatelliteModelCache ? this.transportModel.getSatelliteModelCache() : null);
+            const baseScale = 0.02;
+            const modelScale = isMarsShip ? (baseScale * 0.8) : baseScale;
+
+            if (cache && gltfLoader) {
+                // Use cached model
+                const m = cache.clone();
+                m.scale.set(modelScale, modelScale, modelScale);
+                m.visible = true;
+                if (isMarsShip) applyMarsShipFacingFix(m);
+                applySatelliteMaterial(m);
+
                 // Random rotation for small satellites (not ISS or Mars Ship)
                 if (!shouldAlignWithPath) {
-                    model.rotation.x = Math.random() * Math.PI * 2;
-                    model.rotation.y = Math.random() * Math.PI * 2;
-                    model.rotation.z = Math.random() * Math.PI * 2;
+                    m.rotation.x = Math.random() * Math.PI * 2;
+                    m.rotation.y = Math.random() * Math.PI * 2;
+                    m.rotation.z = Math.random() * Math.PI * 2;
                 }
-                
-                satelliteGroup.add(model);
-            }, undefined, (error) => {
-                console.error('Error loading Satellite.glb:', error);
-                // Fallback to simple box
-                    const size = type === 'MarsShip' ? 0.010 : 0.006;
+
+                satelliteGroup.add(m);
+            } else if (gltfLoader) {
+                // Load model for first time
+                const path = isMarsShip ? 'assets/models/SpaceShip.glb' : 'assets/models/Satellite.glb';
+                gltfLoader.load(path, (gltf) => {
+                    const model = gltf.scene;
+                    if (isMarsShip) applyMarsShipFacingFix(model);
+                    const cached = model.clone();
+                    if (isMarsShip) applyMarsShipFacingFix(cached);
+                    if (isMarsShip) {
+                        if (this.transportModel.setSpaceShipModelCache) this.transportModel.setSpaceShipModelCache(cached);
+                    } else {
+                        if (this.transportModel.setSatelliteModelCache) this.transportModel.setSatelliteModelCache(cached);
+                    }
+
+                    model.scale.set(modelScale, modelScale, modelScale);
+                    model.visible = true;
+                    applySatelliteMaterial(model);
+
+                    // Random rotation for small satellites (not ISS or Mars Ship)
+                    if (!shouldAlignWithPath) {
+                        model.rotation.x = Math.random() * Math.PI * 2;
+                        model.rotation.y = Math.random() * Math.PI * 2;
+                        model.rotation.z = Math.random() * Math.PI * 2;
+                    }
+
+                    satelliteGroup.add(model);
+                }, undefined, (error) => {
+                    console.error(`Error loading ${isMarsShip ? 'SpaceShip.glb' : 'Satellite.glb'}:`, error);
+                    // Fallback to simple box
+                    const size = type === 'MarsShip' ? (0.010 * 0.8) : 0.006;
+                    const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
+                    const material = new THREE.MeshPhongMaterial({
+                        color: color,
+                        emissive: satEmissive,
+                        emissiveIntensity: 0.3,
+                        transparent: true,
+                        opacity: 0.9
+                    });
+                    const satelliteMesh = new THREE.Mesh(geometry, material);
+                    satelliteGroup.add(satelliteMesh);
+                });
+            } else {
+                // Fallback to simple box if no loader
+                const size = type === 'MarsShip' ? (0.010 * 0.8) : 0.006;
                 const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
                 const material = new THREE.MeshPhongMaterial({
                     color: color,
-                        emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
+                    emissive: satEmissive,
                     emissiveIntensity: 0.3,
                     transparent: true,
                     opacity: 0.9
                 });
                 const satelliteMesh = new THREE.Mesh(geometry, material);
                 satelliteGroup.add(satelliteMesh);
-            });
-        } else {
-            // Fallback to simple box if no loader
-                const size = type === 'MarsShip' ? 0.010 : 0.006;
-            const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
-            const material = new THREE.MeshPhongMaterial({
-                color: color,
-                    emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
-                emissiveIntensity: 0.3,
-                transparent: true,
-                opacity: 0.9
-            });
-            const satelliteMesh = new THREE.Mesh(geometry, material);
-            satelliteGroup.add(satelliteMesh);
             }
         }
         
@@ -383,7 +398,8 @@ export class SatelliteManager {
         
         const orbitCurve = new THREE.CatmullRomCurve3(orbitPoints);
         const orbitGeometry = new THREE.TubeGeometry(orbitCurve, segments, 0.001, 8, false);
-        const orbitColor = type === 'ISS' ? 0x0088cc : 0x9b59b6; // Blue for ISS, purple for others
+        const usesPaletteOrbit = type === 'ISS' || type === 'MarsShip';
+        const orbitColor = usesPaletteOrbit ? vehicleColors.color : 0x9b59b6;
         const orbitMaterial = new THREE.MeshBasicMaterial({
             color: orbitColor,
             transparent: true,
@@ -391,6 +407,7 @@ export class SatelliteManager {
         });
         const orbitLine = new THREE.Mesh(orbitGeometry, orbitMaterial);
         orbitLine.userData.isSatelliteOrbit = true;
+        orbitLine.userData.orbitUsesTransportPalette = usesPaletteOrbit;
         orbitLine.userData.orbitColor = orbitColor; // Track current color
         orbitLine.userData.satelliteName = name; // Store satellite name for filtering
         // Hide orbit line (was visible for alignment, now hidden)
@@ -448,21 +465,32 @@ export class SatelliteManager {
             });
         }
         
-        // Check if any station markers are on the current page
+        // Check if any station / marsShip markers are on the current page
         let hasStationMarkerOnPage = false;
         let isHoveringStationMarker = false;
+        let hasMarsShipMarkerOnPage = false;
+        let isHoveringMarsShipMarker = false;
         
         if (window.globeController && window.globeController.dataModel) {
             const dataModel = window.globeController.dataModel;
             const currentPageEvents = dataModel.getEventsForCurrentPage();
             
-            // Check if any current page events are station type
+            // Check if any current page events are station/marsShip type
             hasStationMarkerOnPage = currentPageEvents.some(event => {
                 const eventLocationType = event.locationType || 'earth';
                 if (eventLocationType === 'station') return true;
                 // Also check variants
                 if (event.variants) {
                     return event.variants.some(variant => (variant.locationType || eventLocationType) === 'station');
+                }
+                return false;
+            });
+
+            hasMarsShipMarkerOnPage = currentPageEvents.some(event => {
+                const eventLocationType = event.locationType || 'earth';
+                if (eventLocationType === 'marsShip') return true;
+                if (event.variants) {
+                    return event.variants.some(variant => (variant.locationType || eventLocationType) === 'marsShip');
                 }
                 return false;
             });
@@ -474,15 +502,26 @@ export class SatelliteManager {
             if (hoveredMarker && hoveredMarker.userData && hoveredMarker.userData.locationType === 'station') {
                 isHoveringStationMarker = true;
             }
+            if (hoveredMarker && hoveredMarker.userData && hoveredMarker.userData.locationType === 'marsShip') {
+                isHoveringMarsShipMarker = true;
+            }
         }
         
-        // Calculate speed multiplier: halve if on page, halve again if hovering (total 1/4)
-        let speedMultiplier = 1.0;
+        // Calculate speed multipliers: halve if on page, halve again if hovering (total 1/4)
+        let stationSpeedMultiplier = 1.0;
         if (hasStationMarkerOnPage) {
-            speedMultiplier = 0.5; // Halve when station marker is on current page
+            stationSpeedMultiplier = 0.5; // Halve when station marker is on current page
         }
         if (isHoveringStationMarker) {
-            speedMultiplier *= 0.5; // Halve again when hovering (total 1/4)
+            stationSpeedMultiplier *= 0.5; // Halve again when hovering (total 1/4)
+        }
+
+        let marsShipSpeedMultiplier = 1.0;
+        if (hasMarsShipMarkerOnPage) {
+            marsShipSpeedMultiplier = 0.5;
+        }
+        if (isHoveringMarsShipMarker) {
+            marsShipSpeedMultiplier *= 0.5;
         }
         
         satellites.forEach(satellite => {
@@ -492,8 +531,11 @@ export class SatelliteManager {
                 return;
             }
             
-            // Apply speed multiplier (only to ISS for station events)
-            const effectiveSpeed = data.type === 'ISS' ? data.orbitSpeed * speedMultiplier : data.orbitSpeed;
+            // Apply speed multiplier (ISS for station events, MarsShip for marsShip events)
+            const effectiveSpeed =
+                data.type === 'ISS' ? data.orbitSpeed * stationSpeedMultiplier
+                : data.type === 'MarsShip' ? data.orbitSpeed * marsShipSpeedMultiplier
+                : data.orbitSpeed;
             
             // Update orbital angle (constant speed per satellite instance)
             data.angle += effectiveSpeed;
@@ -627,7 +669,7 @@ export class SatelliteManager {
             name: 'ISS'
         });
         
-        // Mars Ship (medium) - red color, furthest out
+        // Mars Ship (medium) - uses SpaceShip.glb (blue)
         // Orbit configured to pass over Veracruz and Gibraltar
         const marsShipOrbitRadius = 1.28; // Mars Ship furthest out
         
@@ -669,6 +711,20 @@ export class SatelliteManager {
         const satellites = this.transportModel.getSatellites();
         for (let satellite of satellites) {
             if (satellite.userData && satellite.userData.type === 'ISS') {
+                return satellite;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find the Mars Ship satellite
+     * @returns {Object|null} Mars Ship satellite object or null
+     */
+    findMarsShip() {
+        const satellites = this.transportModel.getSatellites();
+        for (let satellite of satellites) {
+            if (satellite?.userData?.type === 'MarsShip') {
                 return satellite;
             }
         }

@@ -164,8 +164,8 @@ export function handleNumberButtonMouseLeave(marker, sceneModel, uiView) {
     const interactionController = window.globeController?.interactionController;
     const locationType = marker && marker.userData ? marker.userData.locationType : 'earth';
     
-    // Stop following station if it was a station marker
-    if (interactionController && locationType === 'station') {
+    // Stop following moving object if it was a station/marsShip marker
+    if (interactionController && (locationType === 'station' || locationType === 'marsShip')) {
         interactionController.stopFollowingStation();
         // Restore plane visibility when leaving station marker (same as Earth events)
         interactionController.restorePlanesVisibility();
@@ -206,13 +206,13 @@ export function handleNumberButtonMouseEnter(marker, sceneModel, interactionCont
         sceneModel.autoRotateTimeout = null;
     }
     
-    // Center the marker (zoom to it) or reset to default view for Moon/Mars/Station
+    // Center the marker (zoom to it) or reset to default view for Moon/Mars/Station/Ship
     const locationType = marker.userData ? marker.userData.locationType : 'earth';
     if (locationType === 'moon' || locationType === 'mars') {
         // Reset camera to default view for Moon/Mars events
         interactionController.resetCameraToDefault();
-    } else if (locationType === 'station') {
-        // For station events, hide Moon/Mars panels (like Earth events)
+    } else if (locationType === 'station' || locationType === 'marsShip') {
+        // For station/marsShip events, hide Moon/Mars panels (like Earth events)
         interactionController.setPlanesVisibility(false);
         // Continuously follow the moving satellite
         interactionController.startFollowingStation(marker);

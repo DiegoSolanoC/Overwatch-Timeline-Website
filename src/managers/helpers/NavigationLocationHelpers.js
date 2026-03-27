@@ -13,8 +13,8 @@ export function handleLocationTypeCamera(interactionController, marker, location
     if (locationType === 'moon' || locationType === 'mars') {
         // Reset camera to default view for Moon/Mars events
         interactionController.resetCameraToDefault();
-    } else if (locationType === 'station') {
-        // For station events, hide Moon/Mars panels and follow the station
+    } else if (locationType === 'station' || locationType === 'marsShip') {
+        // For station / Mars Ship events, hide Moon/Mars panels and follow the moving object
         interactionController.setPlanesVisibility(false);
         interactionController.startFollowingStation(marker);
     } else {

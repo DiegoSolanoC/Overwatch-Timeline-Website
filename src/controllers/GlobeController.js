@@ -12,6 +12,8 @@ import { TransportController } from './TransportController.js';
 import { InteractionController } from './InteractionController.js';
 import { AutoRotateController } from './AutoRotateController.js';
 import { PlaneManager } from './PlaneManager.js';
+import { applyCurrentPaletteToTransportVehicles } from '../utils/TransportPaletteColors.js';
+import { applyPaletteToExistingEventMarkers } from '../managers/helpers/MarkerCreationHelpers.js';
 
 export class GlobeController {
     constructor() {
@@ -41,6 +43,11 @@ export class GlobeController {
         // Specialized controllers
         this.autoRotateController = new AutoRotateController(this.sceneModel);
         this.planeManager = new PlaneManager(this.sceneModel, this.dataModel);
+
+        if (typeof window !== 'undefined') {
+            window.applyCurrentPaletteToTransportVehicles = applyCurrentPaletteToTransportVehicles;
+            window.applyPaletteToExistingEventMarkers = applyPaletteToExistingEventMarkers;
+        }
         
         // Animation state
         this.animationId = null;

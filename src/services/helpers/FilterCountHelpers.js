@@ -23,7 +23,8 @@ export function updateCountDisplay(element, count) {
     
     if (count > 0) {
         element.textContent = count;
-        element.style.display = 'inline';
+        const inFilterTab = element.closest && element.closest('.filter-tab');
+        element.style.display = inFilterTab ? 'block' : 'inline';
     } else {
         element.style.display = 'none';
     }

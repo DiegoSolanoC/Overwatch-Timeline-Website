@@ -3,6 +3,7 @@
  */
 
 import { latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+import { getTransportVehicleColors } from '../utils/TransportPaletteColors.js';
 
 export class BoatManager {
     constructor(sceneModel, transportModel, routeController, transportView) {
@@ -57,6 +58,7 @@ export class BoatManager {
         const fallbackScale = isMapView ? (1 / 2) : 1;
         
         const boatGroup = new THREE.Group();
+        const { color: boatColor, emissive: boatEmissive } = getTransportVehicleColors();
         
         if (gltfLoader) {
             gltfLoader.load('assets/models/Boat.glb', 
@@ -65,8 +67,6 @@ export class BoatManager {
                     model.scale.set(modelScale, modelScale, modelScale);
                     model.visible = true;
                     
-                    const boatColor = 0x0088cc; // Blue for boats (same as trains)
-                    const boatEmissive = 0x004488;
                     model.traverse((child) => {
                         if (child.isMesh) {
                             child.material = new THREE.MeshPhongMaterial({
@@ -92,8 +92,8 @@ export class BoatManager {
                     console.warn('⚠️ Boat model not found, using fallback geometry');
                     const boatGeometry = new THREE.BoxGeometry(0.03 * fallbackScale, 0.01 * fallbackScale, 0.08 * fallbackScale);
                     const boatMaterial = new THREE.MeshPhongMaterial({
-                        color: 0x0088cc, // Blue for boats (same as trains)
-                        emissive: 0x440000,
+                        color: boatColor,
+                        emissive: boatEmissive,
                         emissiveIntensity: 0.3,
                         transparent: true,
                         opacity: 0.85
@@ -106,8 +106,8 @@ export class BoatManager {
         } else {
             const boatGeometry = new THREE.BoxGeometry(0.03 * fallbackScale, 0.01 * fallbackScale, 0.08 * fallbackScale);
             const boatMaterial = new THREE.MeshPhongMaterial({
-                color: 0xff0000, // Red for boats
-                emissive: 0x440000,
+                color: boatColor,
+                emissive: boatEmissive,
                 emissiveIntensity: 0.3,
                 transparent: true,
                 opacity: 0.85

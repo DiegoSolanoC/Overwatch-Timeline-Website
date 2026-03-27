@@ -61,7 +61,7 @@ class ModalSaveService {
         if (locationType === 'earth') {
             lat = parseFloat(document.getElementById('eventEditLat')?.value);
             lon = parseFloat(document.getElementById('eventEditLon')?.value);
-        } else if (locationType === 'station') {
+        } else if (locationType === 'station' || locationType === 'marsShip') {
             lat = undefined;
             lon = undefined;
             x = undefined;

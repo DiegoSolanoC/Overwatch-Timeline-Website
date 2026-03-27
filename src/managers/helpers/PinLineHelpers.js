@@ -18,7 +18,7 @@ import { latLonToVector3 } from '../../utils/GeometryUtils.js';
  * @param {Object} params.issSatellite - ISS satellite object
  * @returns {{linePoints: THREE.Vector3[], lineParent: THREE.Object3D}|null} - Line points and parent, or null
  */
-export function createPinLinePoints({ locationType, markerPosition, lat, lon, globe, moonPlane, marsPlane, issSatellite }) {
+export function createPinLinePoints({ locationType, markerPosition, lat, lon, globe, moonPlane, marsPlane, issSatellite, marsShipSatellite }) {
     const THREE = window.THREE;
     
     if (locationType === 'earth') {
@@ -67,6 +67,13 @@ export function createPinLinePoints({ locationType, markerPosition, lat, lon, gl
         return {
             linePoints: [lineStart, lineEnd],
             lineParent: issSatellite
+        };
+    } else if (locationType === 'marsShip' && marsShipSatellite) {
+        const lineStart = new THREE.Vector3(0, 0, 0);
+        const lineEnd = markerPosition.clone();
+        return {
+            linePoints: [lineStart, lineEnd],
+            lineParent: marsShipSatellite
         };
     }
     

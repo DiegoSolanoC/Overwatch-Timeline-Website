@@ -219,17 +219,34 @@ export class ImageOverlayManager {
         const zoomInBtn = document.getElementById('zoomInBtn');
         const zoomResetBtn = document.getElementById('zoomResetBtn');
         const zoomOutBtn = document.getElementById('zoomOutBtn');
-        
-        setButtonState(musicToggle, disable);
-        setButtonState(colorPaletteToggle, disable);
-        setButtonState(exitButton, disable);
-        setButtonState(eventsManageToggle, disable);
-        setButtonState(filtersToggle, disable);
-        setButtonState(hyperloopToggle, disable);
-        setButtonState(autoRotateToggle, disable);
-        setButtonState(zoomInBtn, disable);
-        setButtonState(zoomResetBtn, disable);
-        setButtonState(zoomOutBtn, disable);
+
+        // Desktop: header controls stay usable while an event image is shown (legacy overlay lock).
+        // Mobile: only palette + music stay on the header — keep those enabled; lock the rest.
+        const isMobileViewport =
+            typeof window !== 'undefined' &&
+            window.matchMedia &&
+            window.matchMedia('(max-width: 768px)').matches;
+        const disableGlobeChrome =
+            disable && isMobileViewport;
+
+        const setGlobeButtonState = (button) => {
+            if (!button) return;
+            if (disableGlobeChrome && (button === musicToggle || button === colorPaletteToggle)) {
+                return;
+            }
+            setButtonState(button, disableGlobeChrome);
+        };
+
+        setGlobeButtonState(musicToggle);
+        setGlobeButtonState(colorPaletteToggle);
+        setGlobeButtonState(exitButton);
+        setGlobeButtonState(eventsManageToggle);
+        setGlobeButtonState(filtersToggle);
+        setGlobeButtonState(hyperloopToggle);
+        setGlobeButtonState(autoRotateToggle);
+        setGlobeButtonState(zoomInBtn);
+        setGlobeButtonState(zoomResetBtn);
+        setGlobeButtonState(zoomOutBtn);
     }
     
     /**

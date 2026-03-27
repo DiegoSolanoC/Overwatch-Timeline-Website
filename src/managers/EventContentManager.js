@@ -2,6 +2,8 @@
  * EventContentManager - Manages event sources and filters display
  */
 
+import { openExternalUrlAfterConfirm } from '../utils/ExternalLinkConfirm.js';
+
 /**
  * Helper function to get hero display name (maps filename to display name)
  * e.g., "Soldier 76" -> "Soldier: 76"
@@ -37,11 +39,18 @@ export class EventContentManager {
                     
                     if (source.url) {
                         const link = document.createElement('a');
-                        link.href = source.url;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        link.textContent = source.text;
+                        link.href = '#';
                         link.className = 'event-source-link';
+                        link.textContent = source.text;
+                        link.setAttribute('role', 'button');
+                        const url = source.url;
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            openExternalUrlAfterConfirm(url, {
+                                title: 'Open source link?',
+                                body: 'You are about to open this source in a new tab.'
+                            });
+                        });
                         sourceItem.appendChild(link);
                     } else {
                         sourceItem.textContent = source.text;
@@ -127,6 +136,27 @@ export class EventContentManager {
             return key;
         };
         
+        const CATEGORY_ICON_HEROES = 'assets/images/icons/Heroes Icon.png';
+        const CATEGORY_ICON_FACTIONS = 'assets/images/icons/Factions Icon.png';
+
+        const createCategoryFilterHeader = (labelText, iconSrc) => {
+            const h = document.createElement('h4');
+            h.className = 'event-filter-header event-filter-header--category';
+            const img = document.createElement('img');
+            img.className = 'event-filter-header-icon';
+            img.src = iconSrc;
+            img.alt = '';
+            img.decoding = 'async';
+            img.width = 20;
+            img.height = 20;
+            const label = document.createElement('span');
+            label.className = 'event-filter-header-label';
+            label.textContent = labelText;
+            h.appendChild(img);
+            h.appendChild(label);
+            return h;
+        };
+
         const createIconTag = ({ filterKey, displayName, type }) => {
             const tag = document.createElement('span');
             tag.className = 'event-filter-tag event-filter-tag--icon';
@@ -161,10 +191,9 @@ export class EventContentManager {
             
             // Display heroes section
             if (heroFilters.length > 0) {
-                const heroesHeader = document.createElement('h4');
-                heroesHeader.textContent = 'Relevant Heroes:';
-                heroesHeader.className = 'event-filter-header';
-                eventFiltersList.appendChild(heroesHeader);
+                eventFiltersList.appendChild(
+                    createCategoryFilterHeader('Relevant Heroes:', CATEGORY_ICON_HEROES)
+                );
                 
                 heroFilters.forEach(filter => {
                     const displayName = getHeroDisplayName(filter);
@@ -178,10 +207,9 @@ export class EventContentManager {
             
             // Display factions section
             if (factionFilters.length > 0) {
-                const factionsHeader = document.createElement('h4');
-                factionsHeader.textContent = 'Relevant Factions:';
-                factionsHeader.className = 'event-filter-header';
-                eventFiltersList.appendChild(factionsHeader);
+                eventFiltersList.appendChild(
+                    createCategoryFilterHeader('Relevant Factions:', CATEGORY_ICON_FACTIONS)
+                );
                 
                 factionFilters.forEach(faction => {
                     const resolvedFilename = resolveFactionFilename(faction);

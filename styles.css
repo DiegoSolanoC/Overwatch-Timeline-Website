@@ -17,6 +17,9 @@
 /* Gray Palette Theme Overrides */
 @import url('styles/themes/gray-palette.css?v=8');
 
+/* Crimson Palette Theme Overrides */
+@import url('styles/themes/crimson-palette.css?v=8');
+
 /* Animations */
 @import url('styles/animations.css?v=8');
 
@@ -28,6 +31,7 @@
 
 /* Modals & Forms */
 @import url('styles/components/modals.css?v=8');
+@import url('styles/components/external-link-confirm.css?v=8');
 
 /* Hero Section */
 @import url('styles/components/hero.css?v=8');

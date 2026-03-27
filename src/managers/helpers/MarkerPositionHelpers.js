@@ -8,7 +8,7 @@ import { latLonToVector3, latLonToMapPlanePosition, xyToPlanePosition } from '..
 /**
  * Calculates position and target parent for a marker based on location type
  */
-export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, moonPlane, marsPlane, issSatellite }) {
+export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, moonPlane, marsPlane, issSatellite, marsShipSatellite }) {
     const THREE = window.THREE;
     const isMapView = window.globeController?.sceneModel?.getMapViewEnabled
         ? window.globeController.sceneModel.getMapViewEnabled()
@@ -27,6 +27,15 @@ export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, m
             // Keep station marker close to the model (avoid huge "stick" in map view)
             position: new THREE.Vector3(0, 0, 0.03),
             targetParent: issSatellite
+        };
+    } else if (locationType === 'marsShip') {
+        if (!marsShipSatellite) {
+            console.warn('Mars Ship satellite not found, skipping marsShip marker');
+            return null;
+        }
+        return {
+            position: new THREE.Vector3(0, 0, 0.03),
+            targetParent: marsShipSatellite
         };
     } else if (locationType === 'moon') {
         if (!moonPlane) {

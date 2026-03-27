@@ -168,15 +168,30 @@ body.color-palette-gray .music-actions {
     box-sizing: border-box;
 }
 
+.music-current-song-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    width: 100%;
+    min-width: 0;
+}
+
 .music-current-song {
     color: #2196F3;
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 1px;
     line-height: 1.2;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 body.color-palette-gray .music-current-song {

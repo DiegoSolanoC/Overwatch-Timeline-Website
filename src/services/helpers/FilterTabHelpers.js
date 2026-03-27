@@ -10,8 +10,10 @@ export function setupTabs(heroesTab, factionsTab, heroes, factions, createFilter
     if (heroesTab) {
         heroesTab.addEventListener('click', () => {
             heroesTab.classList.add('active');
+            heroesTab.setAttribute('aria-selected', 'true');
             if (factionsTab) {
                 factionsTab.classList.remove('active');
+                factionsTab.setAttribute('aria-selected', 'false');
             }
             createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
             updateFilterCounts();
@@ -21,8 +23,10 @@ export function setupTabs(heroesTab, factionsTab, heroes, factions, createFilter
     if (factionsTab) {
         factionsTab.addEventListener('click', () => {
             factionsTab.classList.add('active');
+            factionsTab.setAttribute('aria-selected', 'true');
             if (heroesTab) {
                 heroesTab.classList.remove('active');
+                heroesTab.setAttribute('aria-selected', 'false');
             }
             createFilterButtons(factions, 'factions', 'assets/images/factions');
             updateFilterCounts();

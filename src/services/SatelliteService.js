@@ -242,6 +242,8 @@ class SatelliteService {
         
         let hasStationMarkerOnPage = false;
         let isHoveringStationMarker = false;
+        let hasMarsShipMarkerOnPage = false;
+        let isHoveringMarsShipMarker = false;
         
         if (window.globeController && window.globeController.dataModel) {
             const dataModel = window.globeController.dataModel;
@@ -255,6 +257,15 @@ class SatelliteService {
                 }
                 return false;
             });
+
+            hasMarsShipMarkerOnPage = currentPageEvents.some(event => {
+                const eventLocationType = event.locationType || 'earth';
+                if (eventLocationType === 'marsShip') return true;
+                if (event.variants) {
+                    return event.variants.some(variant => (variant.locationType || eventLocationType) === 'marsShip');
+                }
+                return false;
+            });
         }
         
         if (window.globeController && window.globeController.interactionController) {
@@ -262,20 +273,34 @@ class SatelliteService {
             if (hoveredMarker && hoveredMarker.userData && hoveredMarker.userData.locationType === 'station') {
                 isHoveringStationMarker = true;
             }
+            if (hoveredMarker && hoveredMarker.userData && hoveredMarker.userData.locationType === 'marsShip') {
+                isHoveringMarsShipMarker = true;
+            }
         }
         
-        let speedMultiplier = 1.0;
+        let stationSpeedMultiplier = 1.0;
         if (hasStationMarkerOnPage) {
-            speedMultiplier = 0.5;
+            stationSpeedMultiplier = 0.5;
         }
         if (isHoveringStationMarker) {
-            speedMultiplier *= 0.5;
+            stationSpeedMultiplier *= 0.5;
+        }
+
+        let marsShipSpeedMultiplier = 1.0;
+        if (hasMarsShipMarkerOnPage) {
+            marsShipSpeedMultiplier = 0.5;
+        }
+        if (isHoveringMarsShipMarker) {
+            marsShipSpeedMultiplier *= 0.5;
         }
         
         satellites.forEach(satellite => {
             const data = satellite.userData;
             
-            const effectiveSpeed = data.type === 'ISS' ? data.orbitSpeed * speedMultiplier : data.orbitSpeed;
+            const effectiveSpeed =
+                data.type === 'ISS' ? data.orbitSpeed * stationSpeedMultiplier
+                : data.type === 'MarsShip' ? data.orbitSpeed * marsShipSpeedMultiplier
+                : data.orbitSpeed;
             
             data.angle += effectiveSpeed;
             

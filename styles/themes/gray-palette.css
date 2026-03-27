@@ -11,8 +11,15 @@ body.color-palette-gray footer {
     background: var(--primary-gray) !important;
 }
 
+/* Headlines strip: gray field + white type (inverted from default white/black) */
 body.color-palette-gray footer.timeline-loaded {
-    background: linear-gradient(to bottom, white 0%, white 75%, var(--primary-gray) 75%, var(--primary-gray) 100%) !important;
+    background: linear-gradient(
+        to bottom,
+        var(--secondary-gray) 0%,
+        var(--secondary-gray) 75%,
+        var(--primary-gray) 75%,
+        var(--primary-gray) 100%
+    ) !important;
 }
 
 body.color-palette-gray footer.timeline-loaded p {
@@ -159,17 +166,9 @@ body.color-palette-gray .filters-panel-close:hover {
     color: var(--accent-primary);
 }
 
-body.color-palette-gray .filters-tabs {
-    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
-}
-
 body.color-palette-gray .filter-tab .filter-count,
 body.color-palette-gray .filter-tab.active .filter-count {
     color: #4caf50 !important; /* Always green on both palettes */
-}
-
-body.color-palette-gray .filter-btn .filter-image-container {
-    background: #383838; /* Dark gray background */
 }
 
 body.color-palette-gray .filter-btn.selected .filter-image-container {

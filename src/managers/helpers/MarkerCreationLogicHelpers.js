@@ -19,12 +19,12 @@ import { createPinLinePoints, createPinLine } from './PinLineHelpers.js';
  * @param {boolean} params.animate - Whether to animate
  * @returns {Object|null} - Object with marker and pinLine, or null if creation failed
  */
-export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, marsPlane, issSatellite, animate }) {
+export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, marsPlane, issSatellite, marsShipSatellite, animate }) {
     const eventLocationType = event.locationType || 'earth';
     const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
     const earthMapPlane = sceneModel.getEarthMapPlane ? sceneModel.getEarthMapPlane() : sceneModel.earthMapPlane;
     const mapScaleFactor = (isMapView && earthMapPlane && earthMapPlane.scale) ? (earthMapPlane.scale.x || 1) : 1;
-    const wantsMapScaleBoost = isMapView && (eventLocationType === 'moon' || eventLocationType === 'mars' || eventLocationType === 'station');
+    const wantsMapScaleBoost = isMapView && (eventLocationType === 'moon' || eventLocationType === 'mars' || eventLocationType === 'station' || eventLocationType === 'marsShip');
     
     // Calculate position using helper
     const positionData = calculateMarkerPosition({
@@ -33,7 +33,7 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         lon: event.lon,
         x: event.x,
         y: event.y,
-        globe, moonPlane, marsPlane, issSatellite
+        globe, moonPlane, marsPlane, issSatellite, marsShipSatellite
     });
     
     if (!positionData) {
@@ -80,7 +80,7 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         pulseRings: [], // Store pulse rings for this marker
         isLocked: shouldBeLocked, // Set initial locked state based on filters
         originalScale: wantsMapScaleBoost ? mapScaleFactor : 1.0, // Store original scale for unlocking
-        originalColor: 0xff6600 // Store original color (orange) for restoration
+        originalColor: markerColor
     };
 
     // If not animating and not locked, apply the intended base scale now.
@@ -99,12 +99,12 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         markerPosition: position,
         lat: eventLocationType === 'earth' ? event.lat : undefined,
         lon: eventLocationType === 'earth' ? event.lon : undefined,
-        globe, moonPlane, marsPlane, issSatellite
+        globe, moonPlane, marsPlane, issSatellite, marsShipSatellite
     });
     
     let pinLine = null;
     if (pinLineData) {
-        const lineColor = shouldBeLocked ? 0x331100 : 0xff6600;
+        const lineColor = shouldBeLocked ? 0x331100 : markerColor;
         pinLine = createPinLine({
             linePoints: pinLineData.linePoints,
             color: lineColor,
@@ -130,7 +130,7 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
  * @param {boolean} params.animate - Whether to animate
  * @returns {Array} - Array of objects with marker and pinLine (only main variants have pinLines)
  */
-export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, marsPlane, issSatellite, animate }) {
+export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, marsPlane, issSatellite, marsShipSatellite, animate }) {
     const results = [];
     const eventLocationType = event.locationType || 'earth';
     const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
@@ -152,7 +152,7 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
         const positionData = calculateMarkerPosition({
             locationType: variantLocationType,
             lat, lon, x, y,
-            globe, moonPlane, marsPlane, issSatellite
+            globe, moonPlane, marsPlane, issSatellite, marsShipSatellite
         });
         
         if (!positionData) {
@@ -178,7 +178,7 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
             marker.scale.set(0, 0, 0);
         } else if (shouldBeLocked) {
             // If locked and not animating, start at locked scale
-            const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station');
+            const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station' || variantLocationType === 'marsShip');
             const s = (wantsMapScaleBoost ? mapScaleFactor : 1.0) * 0.75;
             marker.scale.set(s, s, s);
             // Set locked color immediately
@@ -203,7 +203,7 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
         });
 
         // Map view: make Moon/Mars/Station markers match Earth map marker sizing
-        const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station');
+        const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station' || variantLocationType === 'marsShip');
         if (wantsMapScaleBoost) {
             marker.userData.originalScale = mapScaleFactor;
             if (!animate && !shouldBeLocked) {
@@ -228,7 +228,7 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
                 markerPosition: position,
                 lat: variantLocationType === 'earth' ? lat : undefined,
                 lon: variantLocationType === 'earth' ? lon : undefined,
-                globe, moonPlane, marsPlane, issSatellite
+                globe, moonPlane, marsPlane, issSatellite, marsShipSatellite
             });
             
             if (pinLineData) {

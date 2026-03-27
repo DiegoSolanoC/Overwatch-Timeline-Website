@@ -14,7 +14,8 @@ class MarkerPulseService {
         const mat = marker.material;
         const baseColorHex = Number.isFinite(marker.userData.originalColor)
             ? marker.userData.originalColor
-            : (mat?.color?.getHex ? mat.color.getHex() : 0xff6600);
+            : (mat?.color?.getHex ? mat.color.getHex()
+                : (localStorage.getItem('colorPalette') === 'crimson' ? 0xffffff : 0xff6600));
         marker.userData._hoverGlowBase = {
             colorHex: baseColorHex,
             opacity: (mat && typeof mat.opacity === 'number') ? mat.opacity : 1
@@ -122,6 +123,26 @@ class MarkerPulseService {
     }
 
     /**
+     * Hover wave tint: follow marker.originalColor when set, else crimson → white, else warm orange.
+     * @param {*} marker
+     * @returns {number} hex
+     */
+    _getPulseWaveColorHex(marker) {
+        const ud = marker && marker.userData;
+        if (ud && Number.isFinite(ud.originalColor)) {
+            return ud.originalColor;
+        }
+        try {
+            if (localStorage.getItem('colorPalette') === 'crimson') {
+                return 0xffffff;
+            }
+        } catch (e) {
+            /* ignore */
+        }
+        return 0xffaa00;
+    }
+
+    /**
      * Start pulse effect on event marker
      */
     startEventMarkerPulse(marker) {
@@ -210,6 +231,7 @@ class MarkerPulseService {
     createPulseRing(marker) {
         const globe = this.sceneModel.getGlobe();
         if (!globe) return;
+        const waveColorHex = this._getPulseWaveColorHex(marker);
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         
         // Determine parent (globe, moonPlane, or marsPlane)
@@ -223,6 +245,9 @@ class MarkerPulseService {
         const issSatellite = window.globeController && window.globeController.transportController 
             ? window.globeController.transportController.findISS() 
             : null;
+        const marsShipSatellite = window.globeController && window.globeController.transportController
+            ? window.globeController.transportController.findMarsShip?.()
+            : null;
         
         let ringParent = globe; // Default to globe
         if (locationType === 'earth' && earthMapPlane && marker.parent === earthMapPlane) {
@@ -233,11 +258,13 @@ class MarkerPulseService {
             ringParent = marsPlane;
         } else if (locationType === 'station' && issSatellite && marker.parent === issSatellite) {
             ringParent = issSatellite;
+        } else if (locationType === 'marsShip' && marsShipSatellite && marker.parent === marsShipSatellite) {
+            ringParent = marsShipSatellite;
         }
 
         // Unwrapped map mode: for Moon/Mars/Station, render rings in world space (scene) to avoid inheriting
         // parent rotation or squash/stretch scaling that causes the 1-frame "snap" after page flips.
-        if (isMapView && (locationType === 'moon' || locationType === 'mars' || locationType === 'station') && scene) {
+        if (isMapView && (locationType === 'moon' || locationType === 'mars' || locationType === 'station' || locationType === 'marsShip') && scene) {
             ringParent = scene;
         }
         
@@ -262,7 +289,7 @@ class MarkerPulseService {
                     // just enough smoothing to avoid aliasing on the sphere.
                     uFeather: { value: 0.008 }, // radians
                     uOpacity: { value: 0.9 },
-                    uColor: { value: new THREE.Color(0xffaa00) }
+                    uColor: { value: new THREE.Color(waveColorHex) }
                 },
                 transparent: true,
                 depthTest: true,
@@ -320,7 +347,7 @@ class MarkerPulseService {
         const circleSegments = (isAwakening && isMapView) ? 192 : 32;
         const circleGeometry = new THREE.CircleGeometry(baseRadius, circleSegments);
         const ringMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffaa00, // More yellowish orange for wave
+            color: waveColorHex,
             transparent: true,
             opacity: 0.9, // Start more opaque in center
             side: THREE.DoubleSide,
@@ -425,10 +452,13 @@ class MarkerPulseService {
         const issSatellite = window.globeController && window.globeController.transportController 
             ? window.globeController.transportController.findISS() 
             : null;
+        const marsShipSatellite = window.globeController && window.globeController.transportController
+            ? window.globeController.transportController.findMarsShip?.()
+            : null;
 
         // Unwrapped map mode:
         // - For Moon/Mars/Station we parent rings to the scene, so keep them flat (+Z) and place by world position.
-        if (isMapView && (locationType === 'moon' || locationType === 'mars' || locationType === 'station')) {
+        if (isMapView && (locationType === 'moon' || locationType === 'mars' || locationType === 'station' || locationType === 'marsShip')) {
             const markerWorldPos = new THREE.Vector3();
             marker.getWorldPosition(markerWorldPos);
             ring.position.copy(markerWorldPos);
@@ -496,6 +526,36 @@ class MarkerPulseService {
             } else {
                 // Fallback: use satellite orientation
                 ring.quaternion.copy(issSatellite.quaternion);
+                ring.rotateZ(Math.PI / 2);
+            }
+        } else if (locationType === 'marsShip' && marsShipSatellite && marker.parent === marsShipSatellite) {
+            // Mars Ship: ring should match Earth's curvature (like earth events)
+            const globe = this.sceneModel.getGlobe();
+            if (globe) {
+                const markerWorldPos = new THREE.Vector3();
+                marker.getWorldPosition(markerWorldPos);
+                const normal = markerWorldPos.clone().normalize();
+
+                const localNormal = normal.clone();
+                const satInv = marsShipSatellite.quaternion.clone().invert();
+                localNormal.applyQuaternion(satInv);
+                localNormal.normalize();
+
+                const up = new THREE.Vector3(0, 1, 0);
+                let tangent = new THREE.Vector3();
+                if (Math.abs(localNormal.dot(up)) > 0.9) {
+                    const right = new THREE.Vector3(1, 0, 0);
+                    tangent.crossVectors(localNormal, right).normalize();
+                } else {
+                    tangent.crossVectors(localNormal, up).normalize();
+                }
+                const bitangent = new THREE.Vector3().crossVectors(localNormal, tangent).normalize();
+                const rotationMatrix = new THREE.Matrix4();
+                rotationMatrix.makeBasis(tangent, bitangent, localNormal);
+                ring.quaternion.setFromRotationMatrix(rotationMatrix);
+                ring.rotateZ(Math.PI / 2);
+            } else {
+                ring.quaternion.copy(marsShipSatellite.quaternion);
                 ring.rotateZ(Math.PI / 2);
             }
         } else {
@@ -592,7 +652,7 @@ class MarkerPulseService {
                         // Animate ring - for Moon/Mars/Station, scale only in X and Y (flat), keep Z at 1
                         const locationType = marker.userData ? marker.userData.locationType : 'earth';
                         const scale = ring.userData.startScale + (ring.userData.maxScale - ring.userData.startScale) * progress;
-                        if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
+                        if (locationType === 'moon' || locationType === 'mars' || locationType === 'station' || locationType === 'marsShip') {
                             // Map view: ensure these rings are in world space so they never inherit
                             // ISS model rotation or Moon/Mars panel squash/stretch transforms.
                             if (isMapView && scene && ring.parent !== scene) {
@@ -644,7 +704,7 @@ class MarkerPulseService {
         const setScaleWithMapViewPanelCompensation = (marker, desiredScale) => {
             const locationType = marker?.userData?.locationType || 'earth';
             if (!isMapView) {
-                if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
+                if (locationType === 'moon' || locationType === 'mars' || locationType === 'station' || locationType === 'marsShip') {
                     marker.scale.set(desiredScale, desiredScale, 1);
                 } else {
                     marker.scale.set(desiredScale, desiredScale, desiredScale);

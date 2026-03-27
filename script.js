@@ -183,23 +183,53 @@ document.addEventListener('DOMContentLoaded', function() {
         blackBtn.dataset.palette = 'gray';
         blackBtn.title = 'Gray Palette';
         paletteMenu.appendChild(blackBtn);
+
+        const crimsonBtn = document.createElement('button');
+        crimsonBtn.className = 'palette-option-btn crimson';
+        crimsonBtn.dataset.palette = 'crimson';
+        crimsonBtn.title = 'Crimson Palette';
+        paletteMenu.appendChild(crimsonBtn);
         
         document.body.appendChild(paletteMenu);
+    } else {
+        const pm = document.getElementById('paletteMenu');
+        if (pm && !pm.querySelector('[data-palette="crimson"]')) {
+            const crimsonBtn = document.createElement('button');
+            crimsonBtn.className = 'palette-option-btn crimson';
+            crimsonBtn.dataset.palette = 'crimson';
+            crimsonBtn.title = 'Crimson Palette';
+            pm.appendChild(crimsonBtn);
+        }
     }
     
+    function normalizeSavedPalette(saved) {
+        if (saved === 'gray') return 'gray';
+        if (saved === 'crimson') return 'crimson';
+        return 'blue';
+    }
+
+    function applyPaletteBodyClasses(palette) {
+        document.body.classList.remove('color-palette-gray', 'color-palette-crimson');
+        if (palette === 'gray') document.body.classList.add('color-palette-gray');
+        else if (palette === 'crimson') document.body.classList.add('color-palette-crimson');
+    }
+
+    function updateHeaderWebsiteLogo(palette) {
+        const img = document.querySelector('.header-title-badge-logo');
+        if (!img) return;
+        const p = normalizeSavedPalette(palette);
+        img.src = p === 'crimson' ? 'assets/images/misc/Website Crimson.png' : 'assets/images/misc/Website.png';
+    }
+
     // Load saved color palette preference (default to blue if not set)
     const savedPalette = localStorage.getItem('colorPalette');
-    if (savedPalette === 'gray') {
-        document.body.classList.add('color-palette-gray');
-        updatePaletteMenuActiveState('gray');
-    } else {
-        // Default to blue palette
-        document.body.classList.remove('color-palette-gray');
-        updatePaletteMenuActiveState('blue');
-    }
+    const activePalette = normalizeSavedPalette(savedPalette);
+    applyPaletteBodyClasses(activePalette);
+    updateHeaderWebsiteLogo(activePalette);
+    updatePaletteMenuActiveState(activePalette);
     
     // Update icon on initial load
-    updatePaletteButtonIcon(savedPalette === 'gray' ? 'gray' : 'blue');
+    updatePaletteButtonIcon(activePalette);
     
     // Function to update palette button icon based on active palette
     function updatePaletteButtonIcon(palette) {
@@ -209,7 +239,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
         if (!iconSpan) return;
         
-        const iconPath = palette === 'gray' ? 'assets/images/icons/Dark Palette Icon.png' : 'assets/images/icons/Blue Palette Icon.png';
+        let iconPath = 'assets/images/icons/Blue Palette Icon.png';
+        if (palette === 'gray') iconPath = 'assets/images/icons/Dark Palette Icon.png';
+        else if (palette === 'crimson') iconPath = 'assets/images/icons/Red Palette Icon.png';
         
         // Check if img already exists, update src; otherwise create new img
         let img = iconSpan.querySelector('img');
@@ -241,35 +273,42 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to change palette
     function changePalette(palette) {
-        const isGray = palette === 'gray';
+        const normalized = normalizeSavedPalette(palette);
+        applyPaletteBodyClasses(normalized);
+        updateHeaderWebsiteLogo(normalized);
         
-        if (isGray) {
-            document.body.classList.add('color-palette-gray');
-        } else {
-            document.body.classList.remove('color-palette-gray');
-        }
+        updatePaletteMenuActiveState(normalized);
         
-        updatePaletteMenuActiveState(palette);
+        localStorage.setItem('colorPalette', normalized);
         
-        // Save preference
-        localStorage.setItem('colorPalette', palette);
+        const isGray = normalized === 'gray';
+        const isCrimson = normalized === 'crimson';
         
-        // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
+            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : 'assets/images/maps/MAP.png');
             window.globeController.globeView.changeGlobeTexture(texturePath);
             
-            // Change Moon and Mars textures
             const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
             const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
+
+            if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
+                window.globeController.globeView.updateRimGlowPalette(normalized);
+            }
         }
         
-        // Change scene background color (starfield background) (only on pages with globe)
         if (window.globeController && window.globeController.sceneModel) {
-            const bgColor = isGray ? 0x0f0f0f : 0x050d18; // Darker gray/blue than panels for contrast
+            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : 0x050d18);
             window.globeController.sceneModel.setBackgroundColor(bgColor);
+        }
+
+        if (typeof window.applyCurrentPaletteToTransportVehicles === 'function' && window.globeController?.transportModel) {
+            window.applyCurrentPaletteToTransportVehicles(window.globeController.transportModel);
+        }
+
+        if (typeof window.applyPaletteToExistingEventMarkers === 'function' && window.globeController?.sceneModel) {
+            window.applyPaletteToExistingEventMarkers(window.globeController.sceneModel);
         }
         
         // Play sound effect if available

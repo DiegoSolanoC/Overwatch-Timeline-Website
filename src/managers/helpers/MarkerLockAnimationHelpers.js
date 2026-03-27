@@ -3,6 +3,8 @@
  * Extracted from EventMarkerManager to reduce duplication
  */
 
+import { getDefaultMarkerOriginalHex } from './MarkerCreationHelpers.js';
+
 /**
  * Animates a marker locking (scale down, color to dark)
  * @param {THREE.Mesh} marker - Marker to lock
@@ -19,7 +21,7 @@ export function animateMarkerLock(marker) {
     
     // Store original color if not already stored
     if (!marker.userData.originalColor) {
-        marker.userData.originalColor = marker.userData.isInteractive === false ? 0xff69b4 : 0xff6600;
+        marker.userData.originalColor = getDefaultMarkerOriginalHex(marker.userData);
     }
     
     // Get current values
@@ -28,6 +30,12 @@ export function animateMarkerLock(marker) {
     const startColor = new THREE.Color();
     if (marker.material) {
         startColor.copy(marker.material.color);
+    }
+    const pinLineStartColor = new THREE.Color();
+    if (marker.userData.pinLine && marker.userData.pinLine.material) {
+        pinLineStartColor.copy(marker.userData.pinLine.material.color);
+    } else {
+        pinLineStartColor.copy(startColor);
     }
     const targetColor = new THREE.Color(0x331100); // Dark orange/near black
     
@@ -62,8 +70,8 @@ export function animateMarkerLock(marker) {
         // Interpolate pin line color
         if (marker.userData.pinLine && marker.userData.pinLine.material) {
             marker.userData.pinLine.material.color.lerpColors(
-                new THREE.Color(0xff6600), 
-                targetColor, 
+                pinLineStartColor,
+                targetColor,
                 easeProgress
             );
         }
@@ -102,8 +110,8 @@ export function animateMarkerUnlock(marker) {
     if (marker.material) {
         startColor.copy(marker.material.color);
     }
-    const restoreColor = marker.userData.originalColor || 
-                         (marker.userData.isInteractive === false ? 0xff69b4 : 0xff6600);
+    const restoreColor = marker.userData.originalColor ||
+                         getDefaultMarkerOriginalHex(marker.userData);
     const targetColor = new THREE.Color(restoreColor);
     
     // Mark as animating to prevent pulse interference
@@ -138,7 +146,7 @@ export function animateMarkerUnlock(marker) {
         if (marker.userData.pinLine && marker.userData.pinLine.material) {
             marker.userData.pinLine.material.color.lerpColors(
                 startColor,
-                new THREE.Color(0xff6600), // Orange for pin lines
+                targetColor,
                 easeProgress
             );
         }
@@ -152,7 +160,7 @@ export function animateMarkerUnlock(marker) {
                 marker.material.color.copy(targetColor);
             }
             if (marker.userData.pinLine && marker.userData.pinLine.material) {
-                marker.userData.pinLine.material.color.setHex(0xff6600); // Orange
+                marker.userData.pinLine.material.color.setHex(restoreColor);
             }
             marker.userData.isAnimating = false;
         }

@@ -84,6 +84,16 @@ class MarkerInteractionService {
                     }
                 });
             }
+
+            // Also check Mars Ship for marsShip markers
+            const marsShipSatellite = window.globeController.transportController.findMarsShip?.();
+            if (marsShipSatellite) {
+                marsShipSatellite.traverse((child) => {
+                    if (child.userData && child.userData.isEventMarker) {
+                        eventMarkers.push(child);
+                    }
+                });
+            }
         }
         
         if (eventMarkers.length === 0) return;
@@ -316,6 +326,18 @@ class MarkerInteractionService {
                     }
                 });
             }
+
+            // Also check Mars Ship for marsShip markers
+            const marsShipSatellite = window.globeController.transportController.findMarsShip?.();
+            if (marsShipSatellite) {
+                marsShipSatellite.traverse((child) => {
+                    if (child.userData && child.userData.isEventMarker) {
+                        if (!clickableObjects.includes(child)) {
+                            clickableObjects.push(child);
+                        }
+                    }
+                });
+            }
         }
         
         console.log('[onMarkerClick] Total clickable objects (EVENT MARKERS ONLY):', clickableObjects.length);
@@ -384,12 +406,21 @@ class MarkerInteractionService {
                     return;
                 }
                 
-                // Check if this is a Moon/Mars/Station marker - use default camera view instead of zooming
+                // Check if this is a Moon/Mars/Station/Ship marker - adjust camera behavior
                 const locationType = clickedMarker.userData ? clickedMarker.userData.locationType : 'earth';
-                if (locationType === 'moon' || locationType === 'mars' || locationType === 'station') {
-                    // Reset camera to default view for Moon/Mars/Station events
+                if (locationType === 'moon' || locationType === 'mars') {
+                    // Reset camera to default view for Moon/Mars events
                     if (onResetCamera) {
                         onResetCamera();
+                    }
+                } else if (locationType === 'station' || locationType === 'marsShip') {
+                    // Follow the moving object (ISS / Mars Ship)
+                    try {
+                        window.globeController?.interactionController?.setPlanesVisibility?.(false);
+                        window.globeController?.interactionController?.startFollowingStation?.(clickedMarker);
+                    } catch (_) {
+                        // fallback to reset if follow isn't available
+                        if (onResetCamera) onResetCamera();
                     }
                 } else {
                     // Zoom in and center on the marker (Earth events)

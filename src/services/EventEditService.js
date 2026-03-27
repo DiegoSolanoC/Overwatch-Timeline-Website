@@ -112,7 +112,7 @@ class EventEditService {
             if (lat === undefined || lon === undefined || isNaN(lat) || isNaN(lon)) {
                 return { error: 'Please fill in Latitude and Longitude' };
             }
-        } else if (locationType !== 'station') {
+        } else if (locationType !== 'station' && locationType !== 'marsShip') {
             // Moon or Mars - require X and Y coordinates
             if (x === undefined || y === undefined || isNaN(x) || isNaN(y)) {
                 return { error: 'Please fill in X and Y coordinates (0-100)' };
@@ -187,8 +187,8 @@ class EventEditService {
                     if (variant.lon !== undefined) {
                         variantObj.lon = variant.lon;
                     }
-                } else if (variant.locationType === 'station') {
-                    // Station events don't need coordinates
+                } else if (variant.locationType === 'station' || variant.locationType === 'marsShip') {
+                    // Station / Mars Ship events don't need coordinates
                 } else {
                     if (variant.x !== undefined) {
                         variantObj.x = variant.x;
@@ -222,7 +222,7 @@ class EventEditService {
             if (firstVariantLocationType === 'earth') {
                 event.lat = firstVariant && firstVariant.lat !== undefined ? firstVariant.lat : lat;
                 event.lon = firstVariant && firstVariant.lon !== undefined ? firstVariant.lon : lon;
-            } else if (firstVariantLocationType !== 'station') {
+            } else if (firstVariantLocationType !== 'station' && firstVariantLocationType !== 'marsShip') {
                 event.x = firstVariant && firstVariant.x !== undefined ? firstVariant.x : x;
                 event.y = firstVariant && firstVariant.y !== undefined ? firstVariant.y : y;
             }
@@ -243,7 +243,7 @@ class EventEditService {
             if (locationType === 'earth') {
                 event.lat = lat;
                 event.lon = lon;
-            } else if (locationType !== 'station') {
+            } else if (locationType !== 'station' && locationType !== 'marsShip') {
                 event.x = x;
                 event.y = y;
             }

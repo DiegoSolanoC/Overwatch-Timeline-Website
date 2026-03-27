@@ -320,7 +320,11 @@ class FilterService {
                 this.heroesTab.addEventListener('click', () => {
                     this.currentFilterType = 'heroes';
                     this.heroesTab.classList.add('active');
-                    if (this.factionsTab) this.factionsTab.classList.remove('active');
+                    this.heroesTab.setAttribute('aria-selected', 'true');
+                    if (this.factionsTab) {
+                        this.factionsTab.classList.remove('active');
+                        this.factionsTab.setAttribute('aria-selected', 'false');
+                    }
                     this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
                     this.updateFilterCounts();
                 });
@@ -329,7 +333,11 @@ class FilterService {
                 this.factionsTab.addEventListener('click', () => {
                     this.currentFilterType = 'factions';
                     this.factionsTab.classList.add('active');
-                    if (this.heroesTab) this.heroesTab.classList.remove('active');
+                    this.factionsTab.setAttribute('aria-selected', 'true');
+                    if (this.heroesTab) {
+                        this.heroesTab.classList.remove('active');
+                        this.heroesTab.setAttribute('aria-selected', 'false');
+                    }
                     this.createFilterButtons(this.factions, 'factions', 'assets/images/factions');
                     this.updateFilterCounts();
                 });

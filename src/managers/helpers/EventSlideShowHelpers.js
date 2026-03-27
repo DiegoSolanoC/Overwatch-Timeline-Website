@@ -4,6 +4,53 @@
  */
 
 /**
+ * 1-based index of an event in the global timeline list (for title prefix).
+ * @param {Object|null} eventData - Root event object (or variant object for fallback match)
+ * @param {Object|null} dataModel
+ * @returns {number|null}
+ */
+/** Resolve timeline arrays (injected dataModel may be stale vs window sync). */
+function getCandidateEventLists(dataModel) {
+    const lists = [];
+    const push = (arr) => {
+        if (Array.isArray(arr) && arr.length > 0) lists.push(arr);
+    };
+    if (dataModel) {
+        push(typeof dataModel.getAllEvents === 'function' ? dataModel.getAllEvents() : dataModel.events);
+    }
+    try {
+        push(window.globeController?.dataModel?.getAllEvents?.());
+        push(window.globeController?.dataModel?.events);
+        push(window.eventManager?.events);
+    } catch (_) {}
+    return lists;
+}
+
+export function getGlobalEventNumber1Based(eventData, dataModel) {
+    if (!eventData) return null;
+    const lists = getCandidateEventLists(dataModel);
+    for (const list of lists) {
+        let idx = list.indexOf(eventData);
+        if (idx >= 0) return idx + 1;
+        for (let i = 0; i < list.length; i++) {
+            const variants = list[i]?.variants;
+            if (Array.isArray(variants) && variants.includes(eventData)) return i + 1;
+        }
+    }
+    return null;
+}
+
+/**
+ * Prefix display title with global event number (HTML-safe wrapper around glitch/HTML name).
+ */
+export function formatEventSlideTitleHtml(displayNameHtml, eventData, dataModel) {
+    if (!displayNameHtml) return displayNameHtml;
+    const n = getGlobalEventNumber1Based(eventData, dataModel);
+    if (n == null) return displayNameHtml;
+    return `<span class="event-slide-title-number">${n}.</span> ${displayNameHtml}`;
+}
+
+/**
  * Initialize event slide state and auto-rotate
  */
 export function initializeEventSlideState(eventSlideManager, marker, eventData, initialVariantIndex, uiView) {
@@ -51,9 +98,11 @@ export function updateEventSlideContent(eventSlideManager, eventName, descriptio
     const getDisplayText = window.EventSlideContentHelpers?.getDisplayText || 
         ((text) => window.GlitchTextService?.getDisplayText(text) || text);
     
-    // Update title
+    // Update title (global event # before name)
     if (eventSlideTitle) {
-        eventSlideManager.updateContentWithFade(eventSlideTitle, getDisplayEventName(eventName), isAlreadyOpen);
+        const nameHtml = getDisplayEventName(eventName);
+        const titleHtml = formatEventSlideTitleHtml(nameHtml, eventData, eventSlideManager.dataModel);
+        eventSlideManager.updateContentWithFade(eventSlideTitle, titleHtml, isAlreadyOpen);
     }
     
     // Update location
@@ -105,4 +154,6 @@ if (typeof window !== 'undefined') {
     window.EventSlideShowHelpers.updateEventSlideContent = updateEventSlideContent;
     window.EventSlideShowHelpers.handleVariantMarkers = handleVariantMarkers;
     window.EventSlideShowHelpers.updateEventSourcesAndFilters = updateEventSourcesAndFilters;
+    window.EventSlideShowHelpers.getGlobalEventNumber1Based = getGlobalEventNumber1Based;
+    window.EventSlideShowHelpers.formatEventSlideTitleHtml = formatEventSlideTitleHtml;
 }

@@ -2,13 +2,13 @@
    NEWS TICKER
    ======================================== */
 
-/* News ticker container - positioned in white section of footer */
+/* News ticker container - top band of footer (headline strip) */
 .news-ticker-container {
     position: absolute;
     top: 0;
     left: 140px; /* Start after Atlas News logo (120px width + 20px margin) */
     right: 0;
-    height: 75%; /* Match white section height */
+    height: 75%; /* Match headline strip height */
     overflow: hidden;
     display: none; /* Hidden by default, shown when timeline is loaded */
     z-index: 5; /* Below Atlas News logo (z-index: 10) */
@@ -29,7 +29,7 @@ footer.timeline-loaded .news-ticker-container {
     height: 100%;
     padding: 0 20px;
     margin: 0; /* Remove any default margins */
-    color: #333; /* Dark text on white background */
+    color: rgba(255, 255, 255, 0.95); /* White on dark blue headline strip (default palette) */
     font-size: 18px; /* Increased from 14px */
     font-weight: 700; /* Bolder - increased from 500 */
     line-height: 0.85; /* Further reduced to decrease vertical spacing */
@@ -67,14 +67,27 @@ footer.timeline-loaded .news-ticker-container {
 .news-ticker-separator {
     display: inline-block;
     margin: 0 15px; /* Space between headlines */
-    color: #666;
+    color: rgba(255, 255, 255, 0.45);
     font-weight: 700; /* Match boldness of headlines */
     letter-spacing: 0.15em; /* Match letter spacing */
 }
 
-/* Gray palette: adjust text color if needed */
+/* Gray palette: white text on gray headline strip */
 body.color-palette-gray .news-ticker-content {
-    color: #333; /* Keep dark text on white background */
+    color: rgba(255, 255, 255, 0.95);
+}
+
+body.color-palette-gray .news-ticker-separator {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* Crimson palette: white text on dark crimson headline strip */
+body.color-palette-crimson .news-ticker-content {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+body.color-palette-crimson .news-ticker-separator {
+    color: rgba(255, 255, 255, 0.4);
 }
 
 /* Mobile responsive */

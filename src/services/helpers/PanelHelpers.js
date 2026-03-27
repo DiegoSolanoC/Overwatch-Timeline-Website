@@ -28,7 +28,10 @@ export function createMusicPanel(statusService) {
                 <div class="music-actions-buttons"></div>
             </div>
             <div class="music-now-playing" id="musicNowPlaying">
-                <div class="music-current-song" id="musicCurrentSong">Loading...</div>
+                <div class="music-current-song-row">
+                    <img class="music-playing-disc" src="assets/images/icons/Playing Icon.png" alt="" width="32" height="32" decoding="async" />
+                    <div class="music-current-song" id="musicCurrentSong">Loading...</div>
+                </div>
                 <div class="music-progress-container">
                     <input type="range" id="musicProgressBar" class="music-progress-bar" min="0" max="100" value="0">
                     <div class="music-time-display">
@@ -94,20 +97,32 @@ export function createFiltersPanel(statusService) {
         <div class="filters-panel-content">
             <div class="filters-actions">
                 <h2 class="filters-title">Filters</h2>
-                <div class="filters-actions-buttons">
-                    <button id="clearFiltersBtn" class="filters-action-btn">Clear</button>
-                    <button id="confirmFiltersBtn" class="filters-action-btn filters-confirm-btn">Confirm</button>
+                <div class="filters-toolbar">
+                    <div class="filters-tabs" role="tablist">
+                        <button type="button" id="heroesTab" class="filter-tab active" role="tab" aria-selected="true">
+                            <span class="filter-tab-graphic">
+                                <img class="filter-tab-icon" src="assets/images/icons/Heroes Icon.png" alt="" width="40" height="40" decoding="async" />
+                            </span>
+                            <span class="filter-tab-footer">
+                                <span class="filter-tab-label">Heroes</span>
+                                <span class="filter-count" id="heroesCount">0</span>
+                            </span>
+                        </button>
+                        <button type="button" id="factionsTab" class="filter-tab" role="tab" aria-selected="false">
+                            <span class="filter-tab-graphic">
+                                <img class="filter-tab-icon" src="assets/images/icons/Factions Icon.png" alt="" width="40" height="40" decoding="async" />
+                            </span>
+                            <span class="filter-tab-footer">
+                                <span class="filter-tab-label">Factions</span>
+                                <span class="filter-count" id="factionsCount">0</span>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="filters-actions-buttons">
+                        <button type="button" id="clearFiltersBtn" class="filters-action-btn">Clear</button>
+                        <button type="button" id="confirmFiltersBtn" class="filters-action-btn filters-confirm-btn">Confirm</button>
+                    </div>
                 </div>
-            </div>
-            <div class="filters-tabs">
-                <button id="heroesTab" class="filter-tab active">
-                    Heroes
-                    <span class="filter-count" id="heroesCount">0</span>
-                </button>
-                <button id="factionsTab" class="filter-tab">
-                    Factions
-                    <span class="filter-count" id="factionsCount">0</span>
-                </button>
             </div>
             <div class="filters-grid" id="filtersGrid"></div>
         </div>

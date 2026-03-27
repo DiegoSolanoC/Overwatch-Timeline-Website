@@ -285,6 +285,15 @@ body.color-palette-gray .music-mute-btn:hover {
     justify-content: center;
 }
 
+.music-now-playing-badge-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 100%;
+    min-width: 0;
+}
+
 .music-now-playing-badge--visible {
     opacity: 1;
 }
@@ -304,6 +313,11 @@ body.color-palette-gray .music-mute-btn:hover {
     margin-bottom: 2px;
     text-transform: uppercase;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.music-now-playing-badge-title-row .music-now-playing-song {
+    flex: 1;
+    min-width: 0;
 }
 
 .music-now-playing-song {
@@ -326,14 +340,26 @@ body.color-palette-gray .music-mute-btn:hover {
 
 .music-now-playing-song--swap-out {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateX(-12px);
     filter: blur(2px);
 }
 
+/* Enter from the right (matches JS 220ms clear timeout) */
 .music-now-playing-song--swap-in {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
+    animation: music-now-playing-song-swap-in 220ms ease forwards;
+}
+
+@keyframes music-now-playing-song-swap-in {
+    from {
+        opacity: 0;
+        transform: translateX(14px);
+        filter: blur(2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+        filter: blur(0);
+    }
 }
 
 /* Custom scrollbar styling for music grid */
@@ -489,15 +515,59 @@ body.color-palette-gray .music-actions {
     box-sizing: border-box; /* Ensure padding is included in size */
 }
 
+.music-current-song-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    min-width: 0;
+}
+
+.music-playing-disc {
+    display: block;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+    transform-origin: 50% 50%;
+    pointer-events: none;
+    user-select: none;
+}
+
+.music-playing-disc--badge {
+    width: 28px;
+    height: 28px;
+}
+
+.music-playing-disc--spinning {
+    animation: music-playing-disc-spin 2.4s linear infinite;
+}
+
+@keyframes music-playing-disc-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .music-current-song {
     color: var(--accent-primary); /* Light blue for default blue palette */
     font-size: 16px; /* Explicit size for scaling */
     font-weight: 600;
-    margin-bottom: 10px; /* Explicit margin for scaling */
+    margin-bottom: 0;
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 1px;
     line-height: 1.2; /* Explicit line-height for scaling */
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 body.color-palette-gray .music-current-song {

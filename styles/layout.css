@@ -410,6 +410,25 @@ body.app-timeline-default #headerHubRight .header-hub-btn[data-action="menu"] {
     color: rgba(255, 255, 255, 1);
 }
 
+/* Vehicles header control: crimson tint only (gray matches default header) */
+body.color-palette-crimson #hyperloopToggle.header-hub-btn {
+    background: rgba(211, 47, 47, 0.18);
+}
+
+body.color-palette-crimson #hyperloopToggle.header-hub-btn:hover {
+    background: rgba(211, 47, 47, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(239, 83, 80, 0.5);
+}
+
+body.color-palette-crimson #hyperloopToggle.header-hub-btn:active {
+    background: rgba(211, 47, 47, 0.38);
+}
+
+body.color-palette-crimson #hyperloopToggle.header-hub-btn.active,
+body.color-palette-crimson #hyperloopToggle.header-hub-btn.header-hub-btn--active {
+    background: transparent;
+}
+
 @media (max-width: 768px) {
     header {
         --header-title-size: 18px;
@@ -610,16 +629,28 @@ footer p {
     line-height: 1.2;
 }
 
-/* Footer when global timeline is loaded - split design: 75% white (top), 25% blue/gray (bottom) */
+/* Footer when timeline loaded: dark blue headline strip (75%) + primary blue bottom bar */
 footer.timeline-loaded {
-    background: linear-gradient(to bottom, white 0%, white 75%, var(--bg-primary) 75%, var(--bg-primary) 100%);
+    background: linear-gradient(
+        to bottom,
+        var(--bg-secondary) 0%,
+        var(--bg-secondary) 75%,
+        var(--bg-primary) 75%,
+        var(--bg-primary) 100%
+    );
     position: relative;
     z-index: 250; /* Above sliding panels (z-index: 200), below modals (z-index: 1000) */
 }
 
-/* Gray palette: bottom 25% should match the gray background */
+/* Gray palette: headline strip + bottom bar (theme file may override with !important) */
 body.color-palette-gray footer.timeline-loaded {
-    background: linear-gradient(to bottom, white 0%, white 75%, var(--bg-gray-primary) 75%, var(--bg-gray-primary) 100%);
+    background: linear-gradient(
+        to bottom,
+        var(--secondary-gray) 0%,
+        var(--secondary-gray) 75%,
+        var(--primary-gray) 75%,
+        var(--primary-gray) 100%
+    );
 }
 
 footer.timeline-loaded p {

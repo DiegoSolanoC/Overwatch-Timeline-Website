@@ -74,12 +74,26 @@ class MusicManager {
             badge.setAttribute('aria-hidden', 'true');
             badge.innerHTML = `
                 <div class="music-now-playing-label">Now playing:</div>
-                <div class="music-now-playing-song"></div>
+                <div class="music-now-playing-badge-title-row">
+                    <img class="music-playing-disc music-playing-disc--badge" src="assets/images/icons/Playing Icon.png" alt="" width="28" height="28" decoding="async" />
+                    <div class="music-now-playing-song"></div>
+                </div>
             `;
             document.body.appendChild(badge);
         }
         this.nowPlayingBadge = badge;
         this.nowPlayingBadgeText = badge.querySelector('.music-now-playing-song');
+    }
+
+    /** Spin disc icons only while audio is actively playing (not paused / no track). */
+    _updatePlayingDiscSpinning() {
+        if (!this.backgroundMusic) return;
+        const playing = !!(this.currentSong && !this.backgroundMusic.paused);
+        try {
+            document.querySelectorAll('.music-playing-disc').forEach((img) => {
+                img.classList.toggle('music-playing-disc--spinning', playing);
+            });
+        } catch (_) {}
     }
 
     _positionNowPlayingBadge() {
@@ -317,12 +331,17 @@ class MusicManager {
                 self.pauseBtn.classList.remove('active');
                 self.iconService.updatePauseIcon(false);
             }
+            self._updatePlayingDiscSpinning();
         });
         this.backgroundMusic.addEventListener('pause', function () {
             if (self.pauseBtn) {
                 self.pauseBtn.classList.add('active');
                 self.iconService.updatePauseIcon(true);
             }
+            self._updatePlayingDiscSpinning();
+        });
+        this.backgroundMusic.addEventListener('ended', function () {
+            self._updatePlayingDiscSpinning();
         });
 
         var getCurrentSongName = function () {
@@ -346,6 +365,7 @@ class MusicManager {
             if (shouldShow) {
                 self._transitionNowPlayingBadgeText(name);
             }
+            self._updatePlayingDiscSpinning();
         };
         this.updateProgressBar = function () { self.progressService.updateProgressBar(); };
         this.formatTime = function (sec) { return self.progressService.formatTime(sec); };
@@ -426,7 +446,8 @@ class MusicManager {
         this.panelService.setupClickOutsideHandler();
         
         this.controlService.initializeButtonStates();
-        
+        this._updatePlayingDiscSpinning();
+
         if (H.loadMusicFiles) {
             H.loadMusicFiles(this, playMusic);
         }

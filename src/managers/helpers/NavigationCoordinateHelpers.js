@@ -11,8 +11,8 @@
  * @returns {boolean} - True if coordinates match
  */
 export function matchEventCoordinates(currentEventData, targetEvent, locationType) {
-    if (locationType === 'station') {
-        // Station: match by name only (station events don't have fixed coordinates)
+    if (locationType === 'station' || locationType === 'marsShip') {
+        // Station / Mars Ship: match by name only (no fixed coordinates)
         return true;
     }
     
@@ -53,8 +53,8 @@ export function getEventCoordinates(eventData, locationType) {
             x: eventData.x !== undefined ? eventData.x : (eventData.variants?.[0]?.x !== undefined ? eventData.variants[0].x : undefined),
             y: eventData.y !== undefined ? eventData.y : (eventData.variants?.[0]?.y !== undefined ? eventData.variants[0].y : undefined)
         };
-    } else if (locationType === 'station') {
-        return {}; // Station events don't have coordinates
+    } else if (locationType === 'station' || locationType === 'marsShip') {
+        return {}; // Station/marsShip events don't have coordinates
     } else {
         return {
             lat: eventData.lat !== undefined ? eventData.lat : (eventData.variants?.[0]?.lat !== undefined ? eventData.variants[0].lat : undefined),

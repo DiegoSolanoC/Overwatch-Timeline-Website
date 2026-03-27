@@ -186,4 +186,12 @@ export class TransportController {
     findISS() {
         return this.satelliteManager.findISS();
     }
+
+    /**
+     * Find the Mars Ship satellite group
+     * @returns {Object|null}
+     */
+    findMarsShip() {
+        return this.satelliteManager.findMarsShip();
+    }
 }

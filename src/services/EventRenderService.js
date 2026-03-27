@@ -31,10 +31,10 @@ class EventRenderService {
         const lon = (locationType === 'earth')
             ? (base.lon !== undefined ? base.lon : event.lon)
             : undefined;
-        const x = (locationType !== 'earth' && locationType !== 'station')
+        const x = (locationType !== 'earth' && locationType !== 'station' && locationType !== 'marsShip')
             ? (base.x !== undefined ? base.x : event.x)
             : undefined;
-        const y = (locationType !== 'earth' && locationType !== 'station')
+        const y = (locationType !== 'earth' && locationType !== 'station' && locationType !== 'marsShip')
             ? (base.y !== undefined ? base.y : event.y)
             : undefined;
 
@@ -48,9 +48,9 @@ class EventRenderService {
             }
         }
 
-        // Station: avoid flagging all station events as overlapping due to default label.
+        // Station/MarsShip: avoid flagging all such events as overlapping due to default label.
         // Only use a name key if the event explicitly provides one.
-        if (locationType === 'station' && !base.cityDisplayName && !event.cityDisplayName) {
+        if ((locationType === 'station' || locationType === 'marsShip') && !base.cityDisplayName && !event.cityDisplayName) {
             locationName = null;
         }
 
@@ -589,14 +589,15 @@ class EventRenderService {
                 if (firstVariant.lon !== undefined) {
                     locationLon = firstVariant.lon;
                 }
-            } else {
-                // Moon or Mars
+            } else if (variantLocationType === 'moon' || variantLocationType === 'mars') {
                 if (firstVariant.x !== undefined) {
                     locationX = firstVariant.x;
                 }
                 if (firstVariant.y !== undefined) {
                     locationY = firstVariant.y;
                 }
+            } else {
+                // station/marsShip: no coordinates
             }
         } else {
             locationName = event.cityDisplayName || null;
@@ -613,6 +614,8 @@ class EventRenderService {
         if (!locationName && locationType !== 'earth') {
             if (locationType === 'station') {
                 locationName = 'Space Station (ISS)';
+            } else if (locationType === 'marsShip') {
+                locationName = 'Red Promice Escape Ship';
             } else if (locationX !== undefined && locationY !== undefined) {
                 locationName = `${locationType === 'moon' ? 'Moon' : 'Mars'}: (${locationX.toFixed(1)}, ${locationY.toFixed(1)})`;
             } else {
@@ -654,11 +657,15 @@ class EventRenderService {
                     locationName = this.eventManager.getLocationName(locationLat, locationLon);
                 }
             }
-            // For Moon/Mars events, display coordinates if no custom name
+            // For Moon/Mars/Station/MarsShip events, display coordinates/label if no custom name
             if (!locationName && currentVariantLocationType !== 'earth') {
                 const variantX = currentVariant.x !== undefined ? currentVariant.x : (event.x !== undefined ? event.x : undefined);
                 const variantY = currentVariant.y !== undefined ? currentVariant.y : (event.y !== undefined ? event.y : undefined);
-                if (variantX !== undefined && variantY !== undefined) {
+                if (currentVariantLocationType === 'station') {
+                    locationName = 'Space Station (ISS)';
+                } else if (currentVariantLocationType === 'marsShip') {
+                    locationName = 'Red Promice Escape Ship';
+                } else if (variantX !== undefined && variantY !== undefined) {
                     locationName = `${currentVariantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variantX.toFixed(1)}, ${variantY.toFixed(1)})`;
                 } else {
                     locationName = currentVariantLocationType === 'moon' ? 'Moon' : 'Mars';

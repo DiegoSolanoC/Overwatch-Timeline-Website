@@ -46,6 +46,7 @@ export class TransportModel {
         this.trainMiddleModelCache = null;
         this.satelliteModelCache = null;
         this.stationModelCache = null; // Separate cache for Station model (ISS)
+        this.spaceShipModelCache = null; // Separate cache for Mars Ship (SpaceShip.glb)
     }
 
     _normalizeLocationKey(name) {
@@ -409,6 +410,22 @@ export class TransportModel {
      */
     getStationModelCache() {
         return this.stationModelCache;
+    }
+
+    /**
+     * Set spaceship model cache (Mars Ship)
+     * @param {Object} model - Cached spaceship model
+     */
+    setSpaceShipModelCache(model) {
+        this.spaceShipModelCache = model;
+    }
+
+    /**
+     * Get spaceship model cache (Mars Ship)
+     * @returns {Object|null}
+     */
+    getSpaceShipModelCache() {
+        return this.spaceShipModelCache;
     }
 
     /**

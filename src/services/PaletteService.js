@@ -1,6 +1,33 @@
 /**
  * PaletteService - Handles palette loading, unloading, and toggle functionality
  */
+
+const MAP_TEXTURE_BLUE = 'assets/images/maps/MAP.png';
+const MAP_TEXTURE_GRAY = 'assets/images/maps/MAP Black.png';
+const MAP_TEXTURE_CRIMSON = 'assets/images/maps/MAP Crimson.png';
+
+function normalizeSavedPalette(saved) {
+    if (saved === 'gray') return 'gray';
+    if (saved === 'crimson') return 'crimson';
+    return 'blue';
+}
+
+function applyPaletteBodyClasses(palette) {
+    document.body.classList.remove('color-palette-gray', 'color-palette-crimson');
+    if (palette === 'gray') document.body.classList.add('color-palette-gray');
+    else if (palette === 'crimson') document.body.classList.add('color-palette-crimson');
+}
+
+const WEBSITE_LOGO_DEFAULT = 'assets/images/misc/Website.png';
+const WEBSITE_LOGO_CRIMSON = 'assets/images/misc/Website Crimson.png';
+
+function updateHeaderWebsiteLogo(palette) {
+    const img = document.querySelector('.header-title-badge-logo');
+    if (!img) return;
+    const p = normalizeSavedPalette(palette);
+    img.src = p === 'crimson' ? WEBSITE_LOGO_CRIMSON : WEBSITE_LOGO_DEFAULT;
+}
+
 class PaletteService {
     constructor() {
         this.paletteToggleSetup = false;
@@ -12,12 +39,9 @@ class PaletteService {
         
         const wasAlreadySetup = this.paletteToggleSetup && colorPaletteToggle.dataset.setup === 'true';
         const savedPalette = localStorage.getItem('colorPalette');
-        
-        if (savedPalette === 'gray') {
-            document.body.classList.add('color-palette-gray');
-        } else {
-            document.body.classList.remove('color-palette-gray');
-        }
+        const activePalette = normalizeSavedPalette(savedPalette);
+        applyPaletteBodyClasses(activePalette);
+        updateHeaderWebsiteLogo(activePalette);
         
         if (wasAlreadySetup) {
             const paletteMenu = document.getElementById('paletteMenu');
@@ -30,8 +54,9 @@ class PaletteService {
                     }
                 });
                 if (!needsReattach && colorPaletteToggle._paletteButtonHandler) {
+                    updateHeaderWebsiteLogo(activePalette);
                     if (window.updatePaletteMenuActiveState) {
-                        window.updatePaletteMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
+                        window.updatePaletteMenuActiveState(activePalette);
                     }
                     return;
                 }
@@ -62,12 +87,28 @@ class PaletteService {
             blackBtn.setAttribute('aria-label', 'Gray Palette');
             blackBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
             paletteMenu.appendChild(blackBtn);
+
+            const crimsonBtn = document.createElement('button');
+            crimsonBtn.className = 'palette-option-btn crimson';
+            crimsonBtn.dataset.palette = 'crimson';
+            crimsonBtn.title = 'Crimson Palette';
+            crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
+            crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+            paletteMenu.appendChild(crimsonBtn);
             
             document.body.appendChild(paletteMenu);
+        } else if (!paletteMenu.querySelector('[data-palette="crimson"]')) {
+            const crimsonBtn = document.createElement('button');
+            crimsonBtn.className = 'palette-option-btn crimson';
+            crimsonBtn.dataset.palette = 'crimson';
+            crimsonBtn.title = 'Crimson Palette';
+            crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
+            crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+            paletteMenu.appendChild(crimsonBtn);
         }
         
-        this.updateMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
-        this.updateButtonIcon(savedPalette === 'gray' ? 'gray' : 'blue');
+        this.updateMenuActiveState(activePalette);
+        this.updateButtonIcon(activePalette);
         
         const handlePaletteButtonClick = (e) => {
             e.preventDefault();
@@ -94,14 +135,14 @@ class PaletteService {
             }
         };
         
-        const handlePaletteOptionClick = function(e) {
+        const handlePaletteOptionClick = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const palette = this.dataset.palette;
+            const palette = e.currentTarget?.dataset?.palette;
             if (palette) {
                 this.changePalette(palette);
             }
-        }.bind(this);
+        };
         
         const oldHandler = colorPaletteToggle._paletteButtonHandler;
         if (oldHandler) {
@@ -146,7 +187,12 @@ class PaletteService {
         const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
         if (!iconSpan) return;
         
-        const iconPath = palette === 'gray' ? 'assets/images/icons/Dark Palette Icon.png' : 'assets/images/icons/Blue Palette Icon.png';
+        let iconPath = 'assets/images/icons/Blue Palette Icon.png';
+        if (palette === 'gray') {
+            iconPath = 'assets/images/icons/Dark Palette Icon.png';
+        } else if (palette === 'crimson') {
+            iconPath = 'assets/images/icons/Red Palette Icon.png';
+        }
         let img = iconSpan.querySelector('img');
         if (img) {
             img.src = iconPath;
@@ -172,19 +218,18 @@ class PaletteService {
     }
 
     changePalette(palette) {
-        const isGray = palette === 'gray';
+        const normalized = normalizeSavedPalette(palette);
+        applyPaletteBodyClasses(normalized);
+        updateHeaderWebsiteLogo(normalized);
         
-        if (isGray) {
-            document.body.classList.add('color-palette-gray');
-        } else {
-            document.body.classList.remove('color-palette-gray');
-        }
+        this.updateMenuActiveState(normalized);
+        localStorage.setItem('colorPalette', normalized);
         
-        this.updateMenuActiveState(palette);
-        localStorage.setItem('colorPalette', palette);
+        const isGray = normalized === 'gray';
+        const isCrimson = normalized === 'crimson';
         
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
+            const texturePath = isGray ? MAP_TEXTURE_GRAY : (isCrimson ? MAP_TEXTURE_CRIMSON : MAP_TEXTURE_BLUE);
             window.globeController.globeView.changeGlobeTexture(texturePath);
             
             const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
@@ -192,15 +237,22 @@ class PaletteService {
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
 
-            // Update rim glow to match palette (blue → light blue, gray → white)
             if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
-                window.globeController.globeView.updateRimGlowPalette(palette);
+                window.globeController.globeView.updateRimGlowPalette(normalized);
             }
         }
         
         if (window.globeController && window.globeController.sceneModel) {
-            const bgColor = isGray ? 0x0f0f0f : 0x050d18;
+            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : 0x050d18);
             window.globeController.sceneModel.setBackgroundColor(bgColor);
+        }
+
+        if (typeof window.applyCurrentPaletteToTransportVehicles === 'function' && window.globeController?.transportModel) {
+            window.applyCurrentPaletteToTransportVehicles(window.globeController.transportModel);
+        }
+
+        if (typeof window.applyPaletteToExistingEventMarkers === 'function' && window.globeController?.sceneModel) {
+            window.applyPaletteToExistingEventMarkers(window.globeController.sceneModel);
         }
         
         if (window.SoundEffectsManager) {

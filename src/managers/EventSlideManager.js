@@ -3,8 +3,9 @@
  * Extracted from UIView to reduce complexity and improve maintainability
  */
 
+import { formatEventSlideTitleHtml } from './helpers/EventSlideShowHelpers.js';
 import { setupMobileEventSlide, cleanupMobileEventSlide, getDefaultZoom } from './helpers/MobileEventSlideHelpers.js';
-import { setupEarthLocation, setupMoonMarsLocation, setupStationLocation, hideLocationWithFade, setupLocationClickHandler } from './helpers/LocationDisplayHelpers.js';
+import { setupEarthLocation, setupMoonMarsLocation, setupStationLocation, setupMarsShipLocation, hideLocationWithFade, setupLocationClickHandler } from './helpers/LocationDisplayHelpers.js';
 import { loadEventImage, setupImageFadeIn } from './helpers/ImageLoadingHelpers.js';
 import { findVariantMarker, zoomToVariantLocation, createTempMarkerForCoords } from './helpers/VariantHelpers.js';
 
@@ -389,7 +390,10 @@ export class EventSlideManager {
             ? (t) => window.GlitchTextService.getDisplayEventName(t)
             : (t) => t;
 
-        this.updateContentWithFade(eventSlideTitle, getDisplayEventName(nameToShow), true);
+        const parentEvent = this.uiView?.currentEventData || this.currentEventData;
+        const nameHtml = getDisplayEventName(nameToShow);
+        const titleHtml = formatEventSlideTitleHtml(nameHtml, parentEvent, this.dataModel);
+        this.updateContentWithFade(eventSlideTitle, titleHtml, true);
         this.updateContentWithFade(eventSlideText, getDisplayText(textToShow), true);
 
         // Restore rendered paragraph visibility
@@ -527,6 +531,8 @@ export class EventSlideManager {
             setupMoonMarsLocation(eventSlideLocation, locationType, x, y, locationName, marker, isAlreadyOpen);
         } else if (locationType === 'station') {
             setupStationLocation(eventSlideLocation, locationName, marker, isAlreadyOpen);
+        } else if (locationType === 'marsShip') {
+            setupMarsShipLocation(eventSlideLocation, locationName, marker, isAlreadyOpen);
         } else {
             // No location data for other types
             hideLocationWithFade(eventSlideLocation, isAlreadyOpen);
@@ -637,7 +643,9 @@ export class EventSlideManager {
                 const getDisplayText = window.GlitchTextService
                     ? (text) => window.GlitchTextService.getDisplayText(text)
                     : (text) => text;
-                this.updateContentWithFade(eventSlideTitle, getDisplayEventName(eventName), isAlreadyOpen);
+                const nameHtmlFb = getDisplayEventName(eventName);
+                const titleHtmlFb = formatEventSlideTitleHtml(nameHtmlFb, eventData, this.dataModel);
+                this.updateContentWithFade(eventSlideTitle, titleHtmlFb, isAlreadyOpen);
                 const eventSlideLocation = document.getElementById('eventSlideLocation');
                 if (eventSlideLocation && eventData) {
                     this.setupLocationDisplay(eventSlideLocation, eventData, marker, isMultiEvent, initialVariantIndex, isAlreadyOpen);
@@ -957,6 +965,8 @@ export class EventSlideManager {
                     setupMoonMarsLocation(eventSlideLocation, variantLocationType, variantX, variantY, locationName, variantMarker || this.currentEventMarker, false);
                 } else if (variantLocationType === 'station') {
                     setupStationLocation(eventSlideLocation, locationName, variantMarker || this.currentEventMarker, false);
+                } else if (variantLocationType === 'marsShip') {
+                    setupMarsShipLocation(eventSlideLocation, locationName, variantMarker || this.currentEventMarker, false);
                 } else {
                     hideLocationWithFade(eventSlideLocation, false);
                 }
@@ -987,7 +997,11 @@ export class EventSlideManager {
             const getDisplayText = window.GlitchTextService
                 ? (text) => window.GlitchTextService.getDisplayText(text)
                 : (text) => text;
-            if (eventSlideTitle) eventSlideTitle.innerHTML = getDisplayEventName(variant.name) || `Variant ${variantIndex + 1}`;
+            if (eventSlideTitle) {
+                const variantHtml = getDisplayEventName(variant.name) || `Variant ${variantIndex + 1}`;
+                const parentEvent = this.currentEventData;
+                eventSlideTitle.innerHTML = formatEventSlideTitleHtml(variantHtml, parentEvent, this.dataModel);
+            }
             if (eventSlideText) eventSlideText.innerHTML = getDisplayText(variant.description || 'No description');
             
             const eventImage = document.getElementById('eventImage');

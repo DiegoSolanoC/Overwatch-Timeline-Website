@@ -333,13 +333,13 @@ body.color-palette-gray .main-menu-label-container {
     transform: none;
 }
 
-/* Gray palette: gray zoom buttons */
-body.color-palette-gray .zoom-btn {
-    background: rgba(74, 74, 74, 0.9) !important;
+/* Crimson palette: red zoom */
+body.color-palette-crimson .zoom-btn {
+    background: rgba(183, 28, 28, 0.9) !important;
 }
 
-body.color-palette-gray .zoom-btn:hover:not(:disabled) {
-    background: rgba(74, 74, 74, 1) !important;
+body.color-palette-crimson .zoom-btn:hover:not(:disabled) {
+    background: rgba(211, 47, 47, 1) !important;
 }
 
 .zoom-in-btn {

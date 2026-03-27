@@ -78,20 +78,27 @@ body.color-palette-gray .filters-panel-close:hover {
 
 .filters-title {
     color: var(--accent-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Toolbar: category tiles + Clear/Confirm in one row under the title */
+.filters-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
 }
 
 .filters-tabs {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light)); /* Light blue for default blue palette */
-    padding-bottom: 10px;
-    position: relative;
-}
-
-/* Gray palette: orange border */
-body.color-palette-gray .filters-tabs {
-    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .filter-count,
@@ -100,38 +107,91 @@ body.color-palette-gray .filters-tabs {
 body.color-palette-gray .filter-tab .filter-count,
 body.color-palette-gray .filter-tab.active .filter-count {
     color: #4caf50 !important; /* Always green on both palettes */
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
-    margin-left: 8px;
-    line-height: 1;
+    margin: 0;
+    line-height: 1.2;
+    flex-shrink: 0;
+    letter-spacing: 0.4px;
 }
 
+/* Category tabs: same chrome as Clear/Confirm, scaled to similar footprint (icon + stacked label) */
 .filter-tab {
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
+    border-radius: 8px;
     color: white;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 10px 14px 10px;
     cursor: pointer;
     transition: all var(--panel-transition);
-    flex: 1;
-    text-align: center;
-    line-height: 1.2;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 120px;
+    max-width: 120px;
+    flex: 0 0 auto;
+    text-align: center;
+    font-family: inherit;
+}
+
+.filter-tab-graphic {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    line-height: 0;
+}
+
+.filter-tab-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+    pointer-events: none;
+    user-select: none;
+    display: block;
+}
+
+.filter-tab-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px;
+    width: 100%;
+}
+
+.filter-tab-label {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0.85px;
+    text-transform: uppercase;
+    color: #fff;
 }
 
 .filter-tab:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.filter-tab:active {
+    transform: translateY(0);
 }
 
 .filter-tab.active {
-    background: rgba(var(--accent-primary-rgb), var(--opacity-light));
+    background: rgba(var(--accent-primary-rgb), 0.35);
     border-color: var(--accent-primary);
-    color: var(--accent-primary);
-    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(var(--accent-primary-rgb), 0.25);
+}
+
+.filter-tab.active .filter-tab-label {
+    color: #fff;
 }
 
 .filters-grid {
@@ -139,7 +199,7 @@ body.color-palette-gray .filter-tab.active .filter-count {
     grid-template-columns: repeat(5, 1fr);
     gap: 10px; /* Reduced spacing between buttons */
     margin-bottom: 15px;
-    margin-top: 15px;
+    margin-top: 8px;
     flex: 1;
     overflow-y: auto;
     padding-right: 8px;
@@ -177,7 +237,8 @@ body.color-palette-gray .filter-tab.active .filter-count {
 }
 
 .filter-btn {
-    background: transparent;
+    /* Same base as icon tile so scaled/hovered layout never shows a dark hairline */
+    background: var(--event-filter-icon-bg);
     border: none;
     border-radius: 0;
     padding: 0;
@@ -191,14 +252,17 @@ body.color-palette-gray .filter-tab.active .filter-count {
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    will-change: transform, box-shadow;
+    isolation: isolate;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .filter-btn:hover {
-    transform: translateY(-2px) scale(1.06);
-    /* White glow like main menu hover */
+    /* translateZ reduces subpixel seams when scaling with box-shadow */
+    transform: translateY(-2px) scale(1.06) translateZ(0);
+    /* Inset biased downward — uniform inset + scale often draws a dark 1px band at the top */
     box-shadow:
-        inset 0 0 22px 4px rgba(255, 255, 255, 0.45),
+        inset 0 5px 22px 3px rgba(255, 255, 255, 0.4),
         0 0 18px 3px rgba(255, 255, 255, 0.55),
         0 0 38px 6px rgba(255, 255, 255, 0.22);
 }
@@ -206,7 +270,7 @@ body.color-palette-gray .filter-tab.active .filter-count {
 .filter-btn .filter-image-container {
     width: 100%;
     aspect-ratio: 1;
-    background: #122E49; /* Dark blue for default blue palette */
+    background: var(--event-filter-icon-bg);
     border-radius: 0; /* Sharp edges */
     display: flex;
     align-items: center;
@@ -215,11 +279,7 @@ body.color-palette-gray .filter-tab.active .filter-count {
     box-sizing: border-box;
     transition: all var(--panel-transition);
     overflow: hidden; /* Ensure image doesn't overflow */
-}
-
-/* Gray palette: dark gray background for filter image container */
-body.color-palette-gray .filter-btn .filter-image-container {
-    background: #383838; /* Dark gray background */
+    flex-shrink: 0;
 }
 
 .filter-btn.selected .filter-image-container {
@@ -241,7 +301,10 @@ body.color-palette-gray .filter-btn .filter-image-container {
     font-size: 14px; /* Larger font for better visibility */
     font-weight: 600; /* Bolder font */
     padding: 8px 4px;
-    margin-top: 0; /* No spacing between label and button */
+    /* Overlap icon tile by 1px to hide scale/transform hairline between regions */
+    margin-top: -1px;
+    position: relative;
+    z-index: 1;
     border-radius: 0; /* Sharp edges */
     text-align: center;
     transition: all var(--panel-transition);
@@ -267,9 +330,10 @@ body.color-palette-gray .filter-btn.selected .filter-label {
 
 .filters-actions {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 15px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
     padding: 12px 70px 12px 15px; /* Add right padding to avoid X button overlap */
     border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
     background: rgba(0, 0, 0, 0.2);
@@ -283,7 +347,11 @@ body.color-palette-gray .filters-actions {
 
 .filters-actions-buttons {
     display: flex;
+    flex-wrap: wrap;
     gap: 15px;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 1 auto;
 }
 
 .filters-action-btn {

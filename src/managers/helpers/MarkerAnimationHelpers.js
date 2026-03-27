@@ -3,6 +3,16 @@
  * Extracted from EventMarkerManager to reduce duplication
  */
 
+import { getDefaultMarkerOriginalHex } from './MarkerCreationHelpers.js';
+
+function markerAccentHex(marker) {
+    const ud = marker.userData;
+    if (ud && Number.isFinite(ud.originalColor)) {
+        return ud.originalColor;
+    }
+    return getDefaultMarkerOriginalHex(ud);
+}
+
 /**
  * Animates markers growing from 0 to target scale
  * @param {Array} markers - Array of markers to animate
@@ -56,7 +66,7 @@ export function animateMarkersGrow(markers, pinLines) {
                 if (marker.material && marker.userData) {
                     if (marker.userData.isLocked) {
                         // Locked: animate to dark color
-                        const startColor = new THREE.Color(0xff6600); // Orange
+                        const startColor = new THREE.Color(markerAccentHex(marker));
                         const targetColor = new THREE.Color(0x331100); // Dark
                         marker.material.color.lerpColors(startColor, targetColor, easeProgress);
                         marker.material.needsUpdate = true;
@@ -67,7 +77,7 @@ export function animateMarkersGrow(markers, pinLines) {
                         }
                     } else {
                         // Unlocked: flash yellow during animation
-                        const baseColor = new THREE.Color(0xff6600); // Orange
+                        const baseColor = new THREE.Color(markerAccentHex(marker));
                         const flashColor = new THREE.Color(0xffff00); // Yellow
                         marker.material.color.lerpColors(baseColor, flashColor, glowProgress);
                         marker.material.needsUpdate = true;
@@ -98,8 +108,7 @@ export function animateMarkersGrow(markers, pinLines) {
                             // Locked: dark color
                             marker.material.color.setHex(0x331100);
                         } else {
-                            // Unlocked: back to orange
-                            marker.material.color.setHex(0xff6600);
+                            marker.material.color.setHex(markerAccentHex(marker));
                         }
                         marker.material.needsUpdate = true;
                     }
@@ -110,13 +119,16 @@ export function animateMarkersGrow(markers, pinLines) {
                     }
                 });
                 
-                // Set pin line colors for locked markers
                 pinLines.forEach(line => {
                     if (line.material) {
                         line.material.opacity = 1;
-                        // If linked marker is locked, set line to dark color
-                        if (line.userData && line.userData.marker && line.userData.marker.userData && line.userData.marker.userData.isLocked) {
-                            line.material.color.setHex(0x331100);
+                        const m = line.userData && line.userData.marker;
+                        if (m && m.userData) {
+                            if (m.userData.isLocked) {
+                                line.material.color.setHex(0x331100);
+                            } else {
+                                line.material.color.setHex(markerAccentHex(m));
+                            }
                         }
                     }
                 });

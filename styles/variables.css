@@ -52,6 +52,21 @@
     /* Button Colors - Gray Theme */
     --btn-gray-bg: rgba(74, 74, 74, 0.9);
     --btn-gray-bg-hover: rgba(74, 74, 74, 1);
+
+    /* Color Palette - Crimson Theme */
+    --primary-crimson: #5c1018;
+    --secondary-crimson: #8b1c24;
+    --accent-crimson-primary: #ef5350;
+    --accent-crimson-primary-rgb: 239, 83, 80;
+    --accent-crimson-primary-hover: #ff867c;
+    --accent-crimson-primary-active: rgba(239, 83, 80, 0.4);
+    --accent-crimson-primary-active-hover: rgba(239, 83, 80, 0.6);
+    --bg-crimson-primary: #140608;
+    --bg-crimson-quaternary: rgba(139, 28, 36, 0.35);
+    --btn-crimson-bg: rgba(92, 16, 24, 0.92);
+    --btn-crimson-bg-hover: rgba(120, 22, 32, 1);
+    --scrollbar-thumb-crimson: rgba(239, 83, 80, 0.65);
+    --scrollbar-thumb-crimson-hover: rgba(239, 83, 80, 0.85);
     
     /* Layout Constants */
     --desktop-scale: 0.67;
@@ -81,6 +96,9 @@
     --border-radius-small: 6px;
     --shadow-default: 0 4px 12px rgba(0, 0, 0, 0.3);
     --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.4);
+
+    /* Event info panel: hero/faction image chip background (match Filters panel) */
+    --event-filter-icon-bg: #122E49;
 }
 
 /* Gray Color Palette Override */
@@ -106,4 +124,31 @@ body.color-palette-gray {
     /* Override button colors */
     --btn-primary-bg: var(--btn-gray-bg);
     --btn-primary-bg-hover: var(--btn-gray-bg-hover);
+
+    --event-filter-icon-bg: #383838;
+}
+
+/* Crimson Color Palette Override */
+body.color-palette-crimson {
+    --primary-color: var(--primary-crimson);
+    --secondary-color: var(--secondary-crimson);
+
+    --accent-primary: var(--accent-crimson-primary);
+    --accent-primary-rgb: var(--accent-crimson-primary-rgb);
+    --accent-primary-hover: var(--accent-crimson-primary-hover);
+    --accent-primary-active: var(--accent-crimson-primary-active);
+    --accent-primary-active-hover: var(--accent-crimson-primary-active-hover);
+
+    --bg-secondary: var(--bg-crimson-primary);
+    --bg-main: var(--bg-crimson-primary);
+    /* Match header/footer; default --bg-primary is blue and can show as a hairline above the footer */
+    --bg-primary: var(--primary-crimson);
+
+    --scrollbar-thumb: var(--scrollbar-thumb-crimson);
+    --scrollbar-thumb-hover: var(--scrollbar-thumb-crimson-hover);
+
+    --btn-primary-bg: var(--btn-crimson-bg);
+    --btn-primary-bg-hover: var(--btn-crimson-bg-hover);
+
+    --event-filter-icon-bg: #3d1a1f;
 }

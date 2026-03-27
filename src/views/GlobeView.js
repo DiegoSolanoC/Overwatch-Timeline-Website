@@ -42,7 +42,10 @@ export class GlobeView {
         // Check saved palette preference to load correct texture
         const savedPalette = localStorage.getItem('colorPalette');
         const isGray = savedPalette === 'gray';
-        const initialTexturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
+        const isCrimson = savedPalette === 'crimson';
+        const initialTexturePath = isGray
+            ? 'assets/images/maps/MAP Black.png'
+            : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : 'assets/images/maps/MAP.png');
         console.log('Initializing globe with palette:', savedPalette || 'blue (default)', 'Texture:', initialTexturePath);
         
         const textureLoader = new THREE.TextureLoader();
@@ -86,8 +89,8 @@ export class GlobeView {
         this.sceneModel.setGlobe(globe);
         scene.add(globe);
 
-        // Rim glow color depends on palette: blue → light blue, gray → white.
-        const rimColor = isGray ? 0xffffff : 0x6fd3ff;
+        // Rim glow color depends on palette: blue → light blue, gray → white, crimson → warm red.
+        const rimColor = isGray ? 0xffffff : (isCrimson ? 0xff8a80 : 0x6fd3ff);
         const rimGlow = createGlobeRimGlowSprite({
             color: rimColor,
             scale: 2.15,
@@ -124,11 +127,18 @@ export class GlobeView {
         // Add a background "sun" element (sprite + warm light).
         addSunBackground({ scene });
         
-        // Preload the other texture to avoid delay when switching palettes
-        const otherTexturePath = isGray ? 'assets/images/maps/MAP.png' : 'assets/images/maps/MAP Black.png';
-        loadTexture(textureLoader, otherTexturePath, renderer, (texture) => {
-            this.textureCache.set(otherTexturePath, texture);
-            console.log('Preloaded and cached alternate texture:', otherTexturePath);
+        // Preload other Earth map textures for quick palette switching
+        const allMapTextures = [
+            'assets/images/maps/MAP.png',
+            'assets/images/maps/MAP Black.png',
+            'assets/images/maps/MAP Crimson.png'
+        ];
+        allMapTextures.forEach((path) => {
+            if (path === initialTexturePath || this.textureCache.has(path)) return;
+            loadTexture(textureLoader, path, renderer, (texture) => {
+                this.textureCache.set(path, texture);
+                console.log('Preloaded and cached alternate texture:', path);
+            });
         });
         
         // Create Moon and Mars planes
@@ -143,11 +153,11 @@ export class GlobeView {
 
     /**
      * Update rim glow color when palette changes.
-     * @param {string} palette - 'blue' | 'gray'
+     * @param {string} palette - 'blue' | 'gray' | 'crimson'
      */
     updateRimGlowPalette(palette) {
-        const isGray = String(palette).toLowerCase() === 'gray';
-        const color = isGray ? 0xffffff : 0x6fd3ff;
+        const p = String(palette).toLowerCase();
+        const color = p === 'gray' ? 0xffffff : (p === 'crimson' ? 0xff8a80 : 0x6fd3ff);
         const s = this._rimGlowSprite;
         if (s && s.material && s.material.color) {
             s.material.color.setHex(color);

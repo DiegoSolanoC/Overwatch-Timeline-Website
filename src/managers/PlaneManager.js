@@ -3,6 +3,7 @@
  */
 
 import { latLonToVector3, createArcBetweenPoints, latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+import { getTransportVehicleColors } from '../utils/TransportPaletteColors.js';
 
 export class PlaneManager {
     constructor(sceneModel, transportModel, transportView, dataModel) {
@@ -90,6 +91,7 @@ export class PlaneManager {
         const speed = distance > 1.5 ? 0.0015 : 0.0020;
         
         const planeGroup = new THREE.Group();
+        const { color: planeColor, emissive: planeEmissive } = getTransportVehicleColors();
         
         if (planeModelCache) {
             const planeModel = planeModelCache.clone(); // Clone model (materials are cloned automatically)
@@ -99,8 +101,8 @@ export class PlaneManager {
             planeModel.traverse((child) => {
                 if (child.isMesh) {
                     child.material = new THREE.MeshPhongMaterial({
-                        color: 0x0088cc, // Blue for planes (same as trains)
-                        emissive: 0x004488,
+                        color: planeColor,
+                        emissive: planeEmissive,
                         emissiveIntensity: 0.3,
                         transparent: true,
                         opacity: 0.85,
@@ -123,8 +125,8 @@ export class PlaneManager {
                 model.traverse((child) => {
                     if (child.isMesh) {
                         child.material = new THREE.MeshPhongMaterial({
-                            color: 0x0088cc, // Blue for planes (same as trains)
-                            emissive: 0x004400,
+                            color: planeColor,
+                            emissive: planeEmissive,
                             emissiveIntensity: 0.3,
                             transparent: true,
                             opacity: 0.85,

@@ -49,11 +49,15 @@ The application is configured to work on GitHub Pages. Follow these steps to dep
 
 ### 1. Enable GitHub Pages
 
-1. Go to your repository on GitHub
-2. Click **Settings** → **Pages**
-3. Under **Source**, select:
-   - **Branch**: `main` (or `master`)
-   - **Folder**: `/ (root)`
+**Option A — GitHub Actions (recommended)**  
+1. Go to **Settings** → **Pages** → **Build and deployment** → **Source**: **GitHub Actions**.  
+2. Push to `main` / `master`; the workflow `.github/workflows/deploy.yml` runs `node generate-manifest.js` and publishes the repo root.  
+3. First run: approve the **github-pages** environment if GitHub prompts you.
+
+**Option B — Deploy from a branch**  
+1. Go to **Settings** → **Pages**  
+2. Under **Source**, select **Branch** → `main` (or `master`) → **/ (root)**  
+3. Before pushing, run **`npm run build:pages`** (or `node generate-manifest.js`) so `manifest.json` matches your `assets/` folders.  
 4. Click **Save**
 
 ### 2. Verify Files

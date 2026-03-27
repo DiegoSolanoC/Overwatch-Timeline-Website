@@ -329,3 +329,28 @@ const checkGlobeAndSetupZoom = setInterval(() => {
 // Clear interval after 10 seconds to avoid infinite checking
 setTimeout(() => clearInterval(checkGlobeAndSetupZoom), 10000);
 
+/** Center header badge → official site: confirm then open (same Confirm styling as filters). */
+function setupOfficialSiteLinkConfirm() {
+    const badge = document.getElementById('headerTitleBadge');
+    if (!badge || badge.dataset.externalConfirmBound === '1') return;
+    const href = badge.getAttribute('href');
+    if (!href || href === '#') return;
+    badge.dataset.externalConfirmBound = '1';
+    import('../utils/ExternalLinkConfirm.js')
+        .then(({ openExternalUrlAfterConfirm }) => {
+            badge.addEventListener('click', (e) => {
+                e.preventDefault();
+                openExternalUrlAfterConfirm(href, {
+                    title: 'Open official website?',
+                    body: 'You will leave this timeline and open the official Overwatch website in a new tab.'
+                });
+            });
+        })
+        .catch((err) => console.warn('External link confirm not available:', err));
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupOfficialSiteLinkConfirm);
+} else {
+    setupOfficialSiteLinkConfirm();
+}

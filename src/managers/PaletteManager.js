@@ -3,8 +3,36 @@
  * Extracted from component-loader.js to improve maintainability
  */
 
+import { applyCurrentPaletteToTransportVehicles } from '../utils/TransportPaletteColors.js';
+import { applyPaletteToExistingEventMarkers } from './helpers/MarkerCreationHelpers.js';
+
 // Track if palette toggle is already set up to prevent duplicate listeners
 let paletteToggleSetup = false;
+
+const MAP_TEXTURE_BLUE = 'assets/images/maps/MAP.png';
+const MAP_TEXTURE_GRAY = 'assets/images/maps/MAP Black.png';
+const MAP_TEXTURE_CRIMSON = 'assets/images/maps/MAP Crimson.png';
+const WEBSITE_LOGO_DEFAULT = 'assets/images/misc/Website.png';
+const WEBSITE_LOGO_CRIMSON = 'assets/images/misc/Website Crimson.png';
+
+function normalizeSavedPalette(saved) {
+    if (saved === 'gray') return 'gray';
+    if (saved === 'crimson') return 'crimson';
+    return 'blue';
+}
+
+function applyPaletteBodyClasses(palette) {
+    document.body.classList.remove('color-palette-gray', 'color-palette-crimson');
+    if (palette === 'gray') document.body.classList.add('color-palette-gray');
+    else if (palette === 'crimson') document.body.classList.add('color-palette-crimson');
+}
+
+function updateHeaderWebsiteLogo(palette) {
+    const img = document.querySelector('.header-title-badge-logo');
+    if (!img) return;
+    const p = normalizeSavedPalette(palette);
+    img.src = p === 'crimson' ? WEBSITE_LOGO_CRIMSON : WEBSITE_LOGO_DEFAULT;
+}
 
 /**
  * Setup palette toggle functionality
@@ -19,11 +47,9 @@ export function setupPaletteToggle() {
     
     // Always apply saved state
     const savedPalette = localStorage.getItem('colorPalette');
-    if (savedPalette === 'gray') {
-        document.body.classList.add('color-palette-gray');
-    } else {
-        document.body.classList.remove('color-palette-gray');
-    }
+    const activePalette = normalizeSavedPalette(savedPalette);
+    applyPaletteBodyClasses(activePalette);
+    updateHeaderWebsiteLogo(activePalette);
     
     // If already set up, verify listeners are still attached, then return
     if (wasAlreadySetup) {
@@ -39,10 +65,11 @@ export function setupPaletteToggle() {
                 }
             });
             // If listeners are missing, continue with setup to reattach them
-            if (!needsReattach && colorPaletteToggle._paletteButtonHandler) {
+                if (!needsReattach && colorPaletteToggle._paletteButtonHandler) {
+                updateHeaderWebsiteLogo(activePalette);
                 // Update active state
                 if (window.updatePaletteMenuActiveState) {
-                    window.updatePaletteMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
+                    window.updatePaletteMenuActiveState(activePalette);
                 }
                 return;
             }
@@ -82,14 +109,30 @@ export function setupPaletteToggle() {
         blackBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
         paletteMenu.appendChild(blackBtn);
         console.log('[Palette] Created black button:', blackBtn);
+
+        const crimsonBtn = document.createElement('button');
+        crimsonBtn.className = 'palette-option-btn crimson';
+        crimsonBtn.dataset.palette = 'crimson';
+        crimsonBtn.title = 'Crimson Palette';
+        crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
+        crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+        paletteMenu.appendChild(crimsonBtn);
         
         document.body.appendChild(paletteMenu);
         console.log('[Palette] Menu appended to body, total children:', paletteMenu.children.length);
+    } else if (!paletteMenu.querySelector('[data-palette="crimson"]')) {
+        const crimsonBtn = document.createElement('button');
+        crimsonBtn.className = 'palette-option-btn crimson';
+        crimsonBtn.dataset.palette = 'crimson';
+        crimsonBtn.title = 'Crimson Palette';
+        crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
+        crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+        paletteMenu.appendChild(crimsonBtn);
     }
     
     // Update menu active state and icon (savedPalette was already retrieved and applied above)
-    updatePaletteMenuActiveState(savedPalette === 'gray' ? 'gray' : 'blue');
-    updatePaletteButtonIcon(savedPalette === 'gray' ? 'gray' : 'blue');
+    updatePaletteMenuActiveState(activePalette);
+    updatePaletteButtonIcon(activePalette);
     
     // Function to update palette button icon based on active palette
     function updatePaletteButtonIcon(palette) {
@@ -99,7 +142,12 @@ export function setupPaletteToggle() {
         const iconSpan = colorPaletteToggle.querySelector('#colorPaletteIcon');
         if (!iconSpan) return;
         
-        const iconPath = palette === 'gray' ? 'assets/images/icons/Dark Palette Icon.png' : 'assets/images/icons/Blue Palette Icon.png';
+        let iconPath = 'assets/images/icons/Blue Palette Icon.png';
+        if (palette === 'gray') {
+            iconPath = 'assets/images/icons/Dark Palette Icon.png';
+        } else if (palette === 'crimson') {
+            iconPath = 'assets/images/icons/Red Palette Icon.png';
+        }
         
         // Check if img already exists, update src; otherwise create new img
         let img = iconSpan.querySelector('img');
@@ -138,42 +186,49 @@ export function setupPaletteToggle() {
     
     // Function to change palette
     function changePalette(palette) {
-        const isGray = palette === 'gray';
+        const normalized = normalizeSavedPalette(palette);
+        applyPaletteBodyClasses(normalized);
+        updateHeaderWebsiteLogo(normalized);
         
-        if (isGray) {
-            document.body.classList.add('color-palette-gray');
-        } else {
-            document.body.classList.remove('color-palette-gray');
-        }
-        
-        updatePaletteMenuActiveState(palette);
+        updatePaletteMenuActiveState(normalized);
         
         // Save preference
-        localStorage.setItem('colorPalette', palette);
+        localStorage.setItem('colorPalette', normalized);
         
-        console.log('Palette changed to:', palette);
+        console.log('Palette changed to:', normalized);
+        
+        const isGray = normalized === 'gray';
+        const isCrimson = normalized === 'crimson';
         
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : 'assets/images/maps/MAP.png';
+            const texturePath = isGray ? MAP_TEXTURE_GRAY : (isCrimson ? MAP_TEXTURE_CRIMSON : MAP_TEXTURE_BLUE);
             window.globeController.globeView.changeGlobeTexture(texturePath);
             
-            // Change Moon and Mars textures
+            // Change Moon and Mars textures (crimson uses same as blue)
             const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
             const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
 
-            // Update rim glow to match palette (blue → light blue, gray → white)
+            // Update rim glow to match palette (blue → light blue, gray → white, crimson → warm red)
             if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
-                window.globeController.globeView.updateRimGlowPalette(palette);
+                window.globeController.globeView.updateRimGlowPalette(normalized);
             }
         }
         
         // Change scene background color (starfield background) (only on pages with globe)
         if (window.globeController && window.globeController.sceneModel) {
-            const bgColor = isGray ? 0x0f0f0f : 0x050d18; // Darker gray/blue than panels for contrast
+            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : 0x050d18);
             window.globeController.sceneModel.setBackgroundColor(bgColor);
+        }
+
+        if (window.globeController?.transportModel) {
+            applyCurrentPaletteToTransportVehicles(window.globeController.transportModel);
+        }
+
+        if (window.globeController?.sceneModel) {
+            applyPaletteToExistingEventMarkers(window.globeController.sceneModel);
         }
         
         // Play sound effect if available
@@ -284,7 +339,7 @@ export function setupPaletteToggle() {
                 const btnW = firstBtn ? parseFloat(window.getComputedStyle(firstBtn).width) : 45;
                 const btnH = firstBtn ? parseFloat(window.getComputedStyle(firstBtn).height) : 45;
                 const menuGap = parseFloat(window.getComputedStyle(menu).gap) || 10;
-                const menuWidth = (btnW * 2) + menuGap;
+                const menuWidth = (btnW * 3) + (menuGap * 2);
                 const menuHeight = btnH;
                 const halfW = menuWidth / 2;
                 const margin = 8;

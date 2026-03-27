@@ -6,6 +6,7 @@
  */
 
 import { EventSlideManager } from '../managers/EventSlideManager.js';
+import { formatEventSlideTitleHtml } from '../managers/helpers/EventSlideShowHelpers.js';
 import { EventNavigationManager } from '../managers/EventNavigationManager.js';
 import { ImageOverlayManager } from '../managers/ImageOverlayManager.js';
 import { HackedOverlayManager } from '../managers/HackedOverlayManager.js';
@@ -124,6 +125,25 @@ export class UIView {
     }
 
     /**
+     * Re-apply "N." prefix after GlitchTextService rewrites the title innerHTML.
+     */
+    refreshEventSlideTitleNumberPrefix() {
+        const eventSlideTitle = document.getElementById('eventSlideTitle');
+        if (!eventSlideTitle || !this.currentEventData) return;
+        const isMultiEvent = this.currentEventData.variants && this.currentEventData.variants.length > 0;
+        const currentEvent = isMultiEvent
+            ? this.currentEventData.variants[this.currentVariantIndex]
+            : this.currentEventData;
+        const name = currentEvent?.name;
+        if (!name) return;
+        const nameHtml = window.GlitchTextService
+            ? window.GlitchTextService.getDisplayEventName(name)
+            : name;
+        const dm = this.dataModel || window.globeController?.dataModel;
+        eventSlideTitle.innerHTML = formatEventSlideTitleHtml(nameHtml, this.currentEventData, dm);
+    }
+
+    /**
      * Toggle glitch effect for Olivia Colomar text
      */
     toggleGlitchEffect() {
@@ -157,6 +177,7 @@ export class UIView {
             textText: textText,
             toggleButton: glitchToggleBtn,
             onToggle: (enabled, wasEnabled) => {
+                this.refreshEventSlideTitleNumberPrefix();
                 // Show hacked image overlay if enabled
                 if (enabled) {
                     setTimeout(() => {

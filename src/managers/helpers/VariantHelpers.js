@@ -85,7 +85,7 @@ export function zoomToVariantLocation(variantMarker, locationType, lat = null, l
     if (variantMarker) {
         if (locationType === 'moon' || locationType === 'mars') {
             controller.resetCameraToDefault();
-        } else if (locationType === 'station') {
+        } else if (locationType === 'station' || locationType === 'marsShip') {
             controller.setPlanesVisibility(false);
             controller.startFollowingStation(variantMarker);
         } else {

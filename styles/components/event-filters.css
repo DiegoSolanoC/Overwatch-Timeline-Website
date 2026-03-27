@@ -18,24 +18,37 @@
     font-weight: 600;
 }
 
-body.color-palette-gray .event-filters-section h3 {
-    color: #ff6600; /* Orange for gray palette */
-}
-
 .event-filter-header {
-    color: #2196F3; /* Light blue for default blue palette */
+    color: var(--accent-primary);
     font-size: 0.9rem;
     margin: 10px 0 8px 0;
     font-weight: 600;
     width: 100%;
 }
 
-body.color-palette-gray .event-filter-header {
-    color: #ff6600; /* Orange for gray palette */
-}
-
 .event-filter-header:first-child {
     margin-top: 0;
+}
+
+.event-filter-header--category {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.event-filter-header-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.event-filter-header-label {
+    flex: 1;
+    min-width: 0;
 }
 
 .event-filters-list {
@@ -45,13 +58,13 @@ body.color-palette-gray .event-filter-header {
 }
 
 .event-filter-tag {
-    background: rgba(33, 150, 243, 0.2); /* Light blue for default blue palette */
-    color: #2196F3;
+    background: rgba(var(--accent-primary-rgb), 0.2);
+    color: var(--accent-primary);
     padding: 6px 12px;
     border-radius: 4px;
     font-size: 0.85rem;
     font-weight: 500;
-    border: 1px solid rgba(33, 150, 243, 0.3);
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.3);
     transition: all var(--panel-transition);
 }
 
@@ -69,7 +82,7 @@ body.color-palette-gray .event-filter-header {
 .event-filter-tag.event-filter-tag--icon .event-filter-image-container {
     width: 64px;
     height: 64px;
-    background: #122E49; /* match Filters panel */
+    background: var(--event-filter-icon-bg);
     border-radius: 0; /* sharp edges */
     display: flex;
     align-items: center;
@@ -78,10 +91,6 @@ body.color-palette-gray .event-filter-header {
     box-sizing: border-box;
     transition: all var(--panel-transition);
     overflow: hidden;
-}
-
-body.color-palette-gray .event-filter-tag.event-filter-tag--icon .event-filter-image-container {
-    background: #383838; /* match Filters panel gray palette */
 }
 
 .event-filter-tag.event-filter-tag--icon.selected .event-filter-image-container {
@@ -114,12 +123,6 @@ body.color-palette-gray .event-filter-tag.event-filter-tag--icon .event-filter-i
     object-fit: contain;
     border-radius: 0;
     display: block;
-}
-
-body.color-palette-gray .event-filter-tag {
-    background: rgba(255, 102, 0, 0.2); /* Orange for gray palette */
-    color: #ff6600;
-    border: 1px solid rgba(255, 102, 0, 0.3);
 }
 
 .event-filter-tag.selected {

@@ -27,8 +27,8 @@ const CoordinateMatcher = {
     matchCoordinates(marker, event, locationType) {
         if (locationType === 'moon' || locationType === 'mars') {
             return this.matchXYCoordinates(marker, event);
-        } else if (locationType === 'station') {
-            // Station: match by event reference (already checked) or name
+        } else if (locationType === 'station' || locationType === 'marsShip') {
+            // Station/MarsShip: match by event reference (already checked) or name
             return true;
         } else {
             return this.matchLatLonCoordinates(marker, event);

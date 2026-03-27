@@ -136,16 +136,24 @@ class StationFollowService {
         const issSatellite = window.globeController && window.globeController.transportController 
             ? window.globeController.transportController.findISS() 
             : null;
+        const marsShipSatellite = window.globeController && window.globeController.transportController
+            ? window.globeController.transportController.findMarsShip?.()
+            : null;
         
-        if (!issSatellite) return;
+        if (!issSatellite && !marsShipSatellite) return;
         
         markers.forEach(marker => {
             if (marker && marker.userData && marker.userData.isEventMarker) {
                 const locationType = marker.userData.locationType;
-                if (locationType === 'station' && marker.parent === issSatellite) {
+                const host =
+                    (locationType === 'station' && issSatellite && marker.parent === issSatellite) ? issSatellite :
+                    (locationType === 'marsShip' && marsShipSatellite && marker.parent === marsShipSatellite) ? marsShipSatellite :
+                    null;
+
+                if (host) {
                     // Get satellite's world position (where the pin line starts)
                     const satelliteWorldPos = new THREE.Vector3();
-                    issSatellite.getWorldPosition(satelliteWorldPos);
+                    host.getWorldPosition(satelliteWorldPos);
                     
                     // In globe view: extend marker outward from Earth center.
                     // In map view: extend marker upward (+Z) from satellite.
@@ -155,7 +163,7 @@ class StationFollowService {
                     } else {
                         const normal = satelliteWorldPos.clone().normalize();
                         localNormal = normal.clone();
-                        const satelliteQuaternionInverse = issSatellite.quaternion.clone().invert();
+                        const satelliteQuaternionInverse = host.quaternion.clone().invert();
                         localNormal.applyQuaternion(satelliteQuaternionInverse);
                         localNormal.normalize();
                     }

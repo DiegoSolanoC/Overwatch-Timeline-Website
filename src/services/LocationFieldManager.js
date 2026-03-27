@@ -102,8 +102,8 @@ class LocationFieldManager {
             if (lonInput) lonInput.required = true;
             if (xInput) xInput.required = false;
             if (yInput) yInput.required = false;
-        } else if (locationType === 'station') {
-            // Station: hide coordinate fields (no coordinates needed - placed on ISS automatically)
+        } else if (locationType === 'station' || locationType === 'marsShip') {
+            // Station / Mars Ship: hide coordinate fields (no coordinates needed - placed on moving object)
             if (latLonFields) latLonFields.style.display = 'none';
             if (lonFields) lonFields.style.display = 'none';
             if (xyFields) xyFields.style.display = 'none';
@@ -123,7 +123,9 @@ class LocationFieldManager {
             
             // Set default city display name if field is empty
             if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
-                cityDisplayNameInput.value = 'Interstellar Journey Space Station';
+                cityDisplayNameInput.value = (locationType === 'marsShip')
+                    ? 'Red Promice Escape Ship'
+                    : 'Interstellar Journey Space Station';
             }
         } else {
             // Moon or Mars

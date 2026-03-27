@@ -5,7 +5,7 @@
 
 import { latLonToVector3, xyToPlanePosition } from '../utils/GeometryUtils.js';
 import { calculateMarkerPosition } from './helpers/MarkerPositionHelpers.js';
-import { createMarkerMesh, createMarkerUserData, shouldEventBeLocked, getMarkerRadius, getMarkerColor } from './helpers/MarkerCreationHelpers.js';
+import { createMarkerMesh, createMarkerUserData, shouldEventBeLocked, getMarkerRadius, getDefaultMarkerOriginalHex } from './helpers/MarkerCreationHelpers.js';
 import { createPinLinePoints, createPinLine } from './helpers/PinLineHelpers.js';
 import { traverseEventMarkers, collectEventMarkers, collectEventMarkerPins } from './helpers/MarkerTraversalHelpers.js';
 import { animateMarkersGrow, animateMarkersShrink } from './helpers/MarkerAnimationHelpers.js';
@@ -41,6 +41,11 @@ export class EventMarkerManager {
         const issSatellite = window.globeController && window.globeController.transportController 
             ? window.globeController.transportController.findISS() 
             : null;
+
+        // Get Mars Ship for marsShip events
+        const marsShipSatellite = window.globeController && window.globeController.transportController
+            ? window.globeController.transportController.findMarsShip?.()
+            : null;
         
         events.forEach(event => {
             const isMultiEvent = event.variants && event.variants.length > 0;
@@ -54,6 +59,7 @@ export class EventMarkerManager {
                     moonPlane,
                     marsPlane,
                     issSatellite,
+                    marsShipSatellite,
                     animate
                 });
                 
@@ -75,6 +81,7 @@ export class EventMarkerManager {
                     moonPlane,
                     marsPlane,
                     issSatellite,
+                    marsShipSatellite,
                     animate
                 });
                 
@@ -312,7 +319,7 @@ export class EventMarkerManager {
             marker.userData.originalScale = marker.scale.x;
         }
         if (!marker.userData.originalColor) {
-            marker.userData.originalColor = marker.userData.isInteractive === false ? 0xff69b4 : 0xff6600;
+            marker.userData.originalColor = getDefaultMarkerOriginalHex(marker.userData);
         }
         
         animateMarkerLock(marker);

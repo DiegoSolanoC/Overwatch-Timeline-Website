@@ -3,6 +3,7 @@
  */
 
 import { latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+import { getTransportVehicleColors } from '../utils/TransportPaletteColors.js';
 
 export class TrainManager {
     constructor(sceneModel, transportModel, routeController) {
@@ -83,9 +84,7 @@ export class TrainManager {
         const modelScale = isMapView ? (0.02 / 2) : 0.02;
         const fallbackScale = isMapView ? (1 / 2) : 1;
         
-        // Train material (same as planes and boats)
-        const trainColor = 0x0088cc;
-        const trainEmissive = 0x004488;
+        const { color: trainColor, emissive: trainEmissive } = getTransportVehicleColors();
         
         const applyTrainMaterial = (model) => {
             model.traverse((child) => {

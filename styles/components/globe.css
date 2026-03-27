@@ -18,6 +18,10 @@ body.color-palette-gray main {
     background: #1a1a1a;
 }
 
+body.color-palette-crimson main {
+    background: var(--bg-main);
+}
+
 /* Globe Container */
 #globe-container {
     width: 100%;
@@ -347,6 +351,27 @@ body.color-palette-gray .event-number-btn.locked {
     filter: brightness(0.5) !important; /* Darken the button */
 }
 
+/* Crimson palette: red-toned number buttons */
+body.color-palette-crimson .event-number-btn {
+    background: rgba(85, 30, 38, 0.9) !important;
+}
+
+body.color-palette-crimson .event-number-btn:hover:not(:disabled),
+body.color-palette-crimson .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+    background: rgba(85, 30, 38, 1) !important;
+    border-color: rgba(255, 138, 128, 0.95) !important;
+    box-shadow: 0 0 0 2px rgba(255, 138, 128, 0.35), 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.color-palette-crimson .globe-control-btn:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.color-palette-crimson .event-number-btn:disabled,
+body.color-palette-crimson .event-number-btn.locked {
+    filter: brightness(0.5) !important;
+}
+
 /* NOTE: `#rotateIcon` is used in both the floating globe-control button (mobile/legacy)
    and the header hub button (desktop). The floating control needs a full-size icon,
    but the header hub needs the icon wrapper to size to content so the label can sit
@@ -507,9 +532,23 @@ body.map-view-enabled .globe-control-btn#autoRotateToggle {
     background: linear-gradient(135deg, #2a2a2a 0%, #525252 100%);
 }
 
+/* Crimson / red palette option button */
+.palette-option-btn.crimson {
+    background: linear-gradient(135deg, #7f1018 0%, #c62828 100%);
+}
+
+.palette-option-btn.crimson:hover {
+    background: linear-gradient(135deg, #9a1520 0%, #e53935 100%);
+}
+
 /* Active state is always green regardless of palette */
 body.color-palette-gray .palette-option-btn.active {
     border-color: #4CAF50; /* Green highlight for active palette (always green) */
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+}
+
+body.color-palette-crimson .palette-option-btn.active {
+    border-color: #4CAF50;
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
 }
 

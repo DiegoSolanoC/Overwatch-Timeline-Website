@@ -1,0 +1,72 @@
+/* External link confirmation (reuses filters panel button classes) */
+
+.external-link-confirm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.external-link-confirm-overlay.is-open {
+    display: flex;
+}
+
+.external-link-confirm-dialog {
+    background: var(--bg-secondary);
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    border-radius: 8px;
+    padding: 20px 22px;
+    max-width: 440px;
+    width: 100%;
+    color: #fff;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+}
+
+.external-link-confirm-title {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    line-height: 1.25;
+}
+
+.external-link-confirm-body {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.external-link-confirm-url-wrap {
+    margin-bottom: 18px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    max-height: 120px;
+    overflow: auto;
+}
+
+.external-link-confirm-url {
+    font-size: 13px;
+    word-break: break-all;
+    color: rgba(255, 255, 255, 0.95);
+    font-family: ui-monospace, monospace;
+}
+
+.external-link-confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.external-link-confirm-actions .filters-action-btn {
+    min-width: 110px;
+}

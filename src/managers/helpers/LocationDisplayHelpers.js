@@ -77,7 +77,7 @@ export function setupLocationClickHandler(element, marker, locationType) {
         
         if (locationType === 'moon' || locationType === 'mars') {
             window.globeController.interactionController.resetCameraToDefault();
-        } else if (locationType === 'station') {
+        } else if (locationType === 'station' || locationType === 'marsShip') {
             window.globeController.interactionController.setPlanesVisibility(false);
             window.globeController.interactionController.startFollowingStation(marker);
         } else {
@@ -133,6 +133,15 @@ export function getMoonMarsLocationName(locationType, x, y, locationName = null)
  */
 export function getStationLocationName(locationName = null) {
     return locationName || 'Space Station (ISS)';
+}
+
+/**
+ * Gets location name for Mars Ship location type
+ * @param {string} locationName - Existing location name (optional)
+ * @returns {string}
+ */
+export function getMarsShipLocationName(locationName = null) {
+    return locationName || 'Red Promice Escape Ship';
 }
 
 /**
@@ -222,6 +231,24 @@ export function setupStationLocation(element, locationName, marker, isAlreadyOpe
         const content = createLocationContent(name);
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, 'station');
+        return true;
+    } else {
+        hideLocationWithFade(element, isAlreadyOpen);
+        return false;
+    }
+}
+
+/**
+ * Sets up location display for Mars Ship type
+ */
+export function setupMarsShipLocation(element, locationName, marker, isAlreadyOpen) {
+    if (!element) return false;
+
+    const name = getMarsShipLocationName(locationName);
+    if (name) {
+        const content = createLocationContent(name);
+        setLocationContentWithFade(element, content, isAlreadyOpen);
+        setupLocationClickHandler(element, marker, 'marsShip');
         return true;
     } else {
         hideLocationWithFade(element, isAlreadyOpen);
