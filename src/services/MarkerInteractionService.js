@@ -10,6 +10,36 @@ class MarkerInteractionService {
     }
 
     /**
+     * Under Events header: show # / title for hovered globe marker (non-module callers use window.EventsHoverPreviewBadge).
+     * @param {THREE.Object3D|null} marker
+     */
+    _syncEventsHoverPreviewFromMarker(marker) {
+        const badge = typeof window !== 'undefined' ? window.EventsHoverPreviewBadge : null;
+        if (!badge || typeof badge.hide !== 'function') return;
+        if (!marker || !marker.userData || marker.userData.isLocked || marker.userData.isInteractive === false) {
+            badge.hide();
+            return;
+        }
+        const eventObj = marker.userData.event;
+        if (!eventObj) {
+            badge.hide();
+            return;
+        }
+        const dataModel = window.globeController && window.globeController.dataModel;
+        const n =
+            window.EventSlideShowHelpers && typeof window.EventSlideShowHelpers.getGlobalEventNumber1Based === 'function'
+                ? window.EventSlideShowHelpers.getGlobalEventNumber1Based(eventObj, dataModel)
+                : null;
+        const lines =
+            typeof badge.getHoverPreviewLines === 'function'
+                ? badge.getHoverPreviewLines(eventObj)
+                : { primary: String(eventObj.name || '').replace(/<[^>]+>/g, ''), otherVariants: [] };
+        if (typeof badge.show === 'function') {
+            badge.show(n, lines.primary, lines.otherVariants);
+        }
+    }
+
+    /**
      * Check if mouse is hovering over an event marker and create pulse effect
      */
     checkEventMarkerHover(event) {
@@ -126,6 +156,7 @@ class MarkerInteractionService {
                     this.pulseService.stopEventMarkerPulse(currentHovered);
                     this.pulseService.setHoveredMarker(null);
                     this.highlightNumberButtonForMarker(null);
+                    this._syncEventsHoverPreviewFromMarker(null);
                 }
                 return;
             }
@@ -138,6 +169,7 @@ class MarkerInteractionService {
                     this.pulseService.stopEventMarkerPulse(currentHovered);
                     this.pulseService.setHoveredMarker(null);
                     this.highlightNumberButtonForMarker(null);
+                    this._syncEventsHoverPreviewFromMarker(null);
                 }
                 return;
             }
@@ -161,6 +193,7 @@ class MarkerInteractionService {
                 this.pulseService.setHoveredMarker(hoveredMarker);
                 this.highlightNumberButtonForMarker(hoveredMarker);
             }
+            this._syncEventsHoverPreviewFromMarker(hoveredMarker);
         } else {
             // Not hovering any event marker - resume auto-rotate if enabled
             const currentHovered = this.pulseService.getHoveredMarker();
@@ -168,6 +201,7 @@ class MarkerInteractionService {
                 this.pulseService.stopEventMarkerPulse(currentHovered);
                 this.pulseService.setHoveredMarker(null);
                 this.highlightNumberButtonForMarker(null);
+                this._syncEventsHoverPreviewFromMarker(null);
                 
                 // Resume auto-rotate after a shorter delay
                 if (this.sceneModel.getAutoRotateEnabled() && !this.sceneModel.eventMarker) {

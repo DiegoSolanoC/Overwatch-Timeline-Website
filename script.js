@@ -189,6 +189,12 @@ document.addEventListener('DOMContentLoaded', function() {
         crimsonBtn.dataset.palette = 'crimson';
         crimsonBtn.title = 'Crimson Palette';
         paletteMenu.appendChild(crimsonBtn);
+
+        const nulledBtn = document.createElement('button');
+        nulledBtn.className = 'palette-option-btn nulled';
+        nulledBtn.dataset.palette = 'nulled';
+        nulledBtn.title = 'Nulled Palette';
+        paletteMenu.appendChild(nulledBtn);
         
         document.body.appendChild(paletteMenu);
     } else {
@@ -200,25 +206,36 @@ document.addEventListener('DOMContentLoaded', function() {
             crimsonBtn.title = 'Crimson Palette';
             pm.appendChild(crimsonBtn);
         }
+        if (pm && !pm.querySelector('[data-palette="nulled"]')) {
+            const nulledBtn = document.createElement('button');
+            nulledBtn.className = 'palette-option-btn nulled';
+            nulledBtn.dataset.palette = 'nulled';
+            nulledBtn.title = 'Nulled Palette';
+            pm.appendChild(nulledBtn);
+        }
     }
     
     function normalizeSavedPalette(saved) {
         if (saved === 'gray') return 'gray';
         if (saved === 'crimson') return 'crimson';
+        if (saved === 'nulled') return 'nulled';
         return 'blue';
     }
 
     function applyPaletteBodyClasses(palette) {
-        document.body.classList.remove('color-palette-gray', 'color-palette-crimson');
+        document.body.classList.remove('color-palette-gray', 'color-palette-crimson', 'color-palette-nulled');
         if (palette === 'gray') document.body.classList.add('color-palette-gray');
         else if (palette === 'crimson') document.body.classList.add('color-palette-crimson');
+        else if (palette === 'nulled') document.body.classList.add('color-palette-nulled');
     }
 
     function updateHeaderWebsiteLogo(palette) {
         const img = document.querySelector('.header-title-badge-logo');
         if (!img) return;
         const p = normalizeSavedPalette(palette);
-        img.src = p === 'crimson' ? 'assets/images/misc/Website Crimson.png' : 'assets/images/misc/Website.png';
+        if (p === 'crimson') img.src = 'assets/images/misc/Website Crimson.png';
+        else if (p === 'nulled') img.src = 'assets/images/misc/Website Nulled.png';
+        else img.src = 'assets/images/misc/Website.png';
     }
 
     // Load saved color palette preference (default to blue if not set)
@@ -242,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let iconPath = 'assets/images/icons/Blue Palette Icon.png';
         if (palette === 'gray') iconPath = 'assets/images/icons/Dark Palette Icon.png';
         else if (palette === 'crimson') iconPath = 'assets/images/icons/Red Palette Icon.png';
+        else if (palette === 'nulled') iconPath = 'assets/images/icons/Purple Palette Icon.png';
         
         // Check if img already exists, update src; otherwise create new img
         let img = iconSpan.querySelector('img');
@@ -283,13 +301,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const isGray = normalized === 'gray';
         const isCrimson = normalized === 'crimson';
+        const isNulled = normalized === 'nulled';
         
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? 'assets/images/maps/MAP Black.png' : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : 'assets/images/maps/MAP.png');
+            const texturePath = isGray
+                ? 'assets/images/maps/MAP Black.png'
+                : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : (isNulled ? 'assets/images/maps/MAP Nulled.png' : 'assets/images/maps/MAP.png'));
             window.globeController.globeView.changeGlobeTexture(texturePath);
             
-            const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
-            const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
+            const moonTexturePath = isGray
+                ? 'assets/images/misc/Moon_Dark.png'
+                : (isCrimson ? 'assets/images/misc/Moon_Crimson.png' : (isNulled ? 'assets/images/misc/Moon_Nulled.png' : 'assets/images/misc/Moon.png'));
+            const marsTexturePath = isGray
+                ? 'assets/images/misc/Mars_Dark.png'
+                : (isCrimson ? 'assets/images/misc/Mars_Crimson.png' : (isNulled ? 'assets/images/misc/Mars_Nulled.png' : 'assets/images/misc/Mars.png'));
             window.globeController.globeView.changeMoonTexture(moonTexturePath);
             window.globeController.globeView.changeMarsTexture(marsTexturePath);
 
@@ -299,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (window.globeController && window.globeController.sceneModel) {
-            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : 0x050d18);
+            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : (isNulled ? 0x100818 : 0x050d18));
             window.globeController.sceneModel.setBackgroundColor(bgColor);
         }
 

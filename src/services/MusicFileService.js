@@ -111,8 +111,15 @@ class MusicFileService {
         if (!musicGrid) return;
         
         musicGrid.innerHTML = '';
+
+        const H = (typeof window !== 'undefined' && window.MusicPaletteDefaultHelpers)
+            ? window.MusicPaletteDefaultHelpers
+            : null;
+        const ordered = (H && this.musicFiles.length > 0)
+            ? H.orderMusicFilesWithDefaultFirst(this.musicFiles, H.getActiveMusicPaletteKey())
+            : this.musicFiles;
         
-        this.musicFiles.forEach(song => {
+        ordered.forEach(song => {
             const musicBtn = document.createElement('div');
             musicBtn.className = 'music-grid-btn';
             // Store original path (will be encoded when used)

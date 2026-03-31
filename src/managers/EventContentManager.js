@@ -2,8 +2,6 @@
  * EventContentManager - Manages event sources and filters display
  */
 
-import { openExternalUrlAfterConfirm } from '../utils/ExternalLinkConfirm.js';
-
 /**
  * Helper function to get hero display name (maps filename to display name)
  * e.g., "Soldier 76" -> "Soldier: 76"
@@ -39,17 +37,16 @@ export class EventContentManager {
                     
                     if (source.url) {
                         const link = document.createElement('a');
-                        link.href = '#';
+                        link.href = source.url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
                         link.className = 'event-source-link';
                         link.textContent = source.text;
-                        link.setAttribute('role', 'button');
-                        const url = source.url;
-                        link.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            openExternalUrlAfterConfirm(url, {
-                                title: 'Open source link?',
-                                body: 'You are about to open this source in a new tab.'
-                            });
+                        link.addEventListener('click', () => {
+                            const sfx = window.SoundEffectsManager;
+                            if (sfx && typeof sfx.play === 'function') {
+                                sfx.play('filterConfirm');
+                            }
                         });
                         sourceItem.appendChild(link);
                     } else {

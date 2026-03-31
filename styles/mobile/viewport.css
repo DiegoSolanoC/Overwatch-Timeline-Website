@@ -220,6 +220,23 @@
         opacity: 1 !important;
     }
 
+    /* Full Text Display: sheet fills header→footer like filters/music; covers globe + image strip */
+    .event-slide.open.event-slide--mobile-full-text {
+        top: 60px !important;
+        bottom: var(--footer-height) !important;
+        transform: translateY(0) !important;
+        z-index: 210 !important;
+    }
+
+    .event-slide.open.event-slide--mobile-full-text ~ .event-image-overlay {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
     .event-slide-close {
         right: 10px !important;
         left: auto !important;

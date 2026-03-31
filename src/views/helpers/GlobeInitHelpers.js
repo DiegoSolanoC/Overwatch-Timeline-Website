@@ -225,12 +225,17 @@ export function createEarthMapPlane(textureLoader, renderer, texturePath, onText
  * @param {THREE.Scene} params.scene - Scene to add planes to
  * @param {THREE.TextureLoader} params.textureLoader - Texture loader instance
  * @param {THREE.WebGLRenderer} params.renderer - Renderer instance
- * @param {boolean} params.isGray - Whether gray palette is active
+ * @param {'blue'|'gray'|'crimson'|'nulled'} [params.palette] - Active color palette
+ * @param {boolean} [params.isGray] - Legacy: if true and palette omitted, use gray
  * @param {Object} params.sceneModel - SceneModel instance
  * @returns {Object} - Object with moonPlane and marsPlane
  */
-export function setupCelestialPlanes({ scene, textureLoader, renderer, isGray, sceneModel }) {
-    const moonTexturePath = getMoonTexturePath(isGray);
+export function setupCelestialPlanes({ scene, textureLoader, renderer, palette, isGray, sceneModel }) {
+    const paletteKey =
+        palette != null && String(palette).length
+            ? String(palette).toLowerCase()
+            : (isGray ? 'gray' : 'blue');
+    const moonTexturePath = getMoonTexturePath(paletteKey);
     const moonPlane = createCelestialPlane({
         texturePath: moonTexturePath,
         textureLoader,
@@ -248,7 +253,7 @@ export function setupCelestialPlanes({ scene, textureLoader, renderer, isGray, s
     scene.add(moonPlane);
     console.log('Moon plane created at:', moonPlane.position, 'rotation:', moonPlane.quaternion);
 
-    const marsTexturePath = getMarsTexturePath(isGray);
+    const marsTexturePath = getMarsTexturePath(paletteKey);
     const marsPlane = createCelestialPlane({
         texturePath: marsTexturePath,
         textureLoader,

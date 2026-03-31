@@ -506,6 +506,7 @@
                 </div>
                 <div class="event-slide-bottom" id="eventSlideBottom">
                     <div class="event-control-buttons">
+                        <button type="button" id="eventFullTextToggle" class="event-full-text-toggle-btn" aria-pressed="false">Full Text Display</button>
                         <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
                         <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
                     </div>
@@ -720,6 +721,7 @@
     <script src="src/services/MusicShuffleService.js"></script>
     <script src="src/services/MusicVolumeService.js"></script>
     <script src="src/services/MusicProgressService.js"></script>
+    <script src="src/services/helpers/MusicPaletteDefaultHelpers.js"></script>
     <script src="src/services/MusicPlaybackService.js"></script>
     <script src="src/services/MusicFileService.js"></script>
     <script src="src/services/MusicPanelService.js"></script>
@@ -738,6 +740,8 @@
     <script type="module" src="src/services/helpers/FilterCountHelpers.js"></script>
     <script src="src/services/FilterService.js"></script>
     <script src="src/services/SidebarService.js"></script>
+    <script src="src/services/AppKeyboardShortcutsService.js"></script>
+    <script src="src/services/PanelResizeService.js"></script>
     
     <!-- Load main script for sidebar and other UI -->
     <script src="script.js"></script>

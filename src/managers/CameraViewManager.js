@@ -6,6 +6,14 @@ export class CameraViewManager {
     constructor(sceneModel, uiView) {
         this.sceneModel = sceneModel;
         this.uiView = uiView; // Reference to UIView for accessing originalCameraPosition and originalGlobeRotation
+        this._cameraEaseRafId = null;
+    }
+
+    _cancelCameraEaseAnimation() {
+        if (this._cameraEaseRafId != null) {
+            cancelAnimationFrame(this._cameraEaseRafId);
+            this._cameraEaseRafId = null;
+        }
     }
     
     /**
@@ -19,6 +27,8 @@ export class CameraViewManager {
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
 
         if (!camera || !globe) return;
+
+        this._cancelCameraEaseAnimation();
 
         const getMapFitZ = () => {
             // Fit whole map in viewport (prevents revealing space)
@@ -67,6 +77,8 @@ export class CameraViewManager {
             this.animateCameraToPosition(camera, defaultPosition, globe);
             return;
         }
+
+        const self = this;
         
         // Animate camera back to original position
         const startPosition = camera.position.clone();
@@ -116,11 +128,12 @@ export class CameraViewManager {
             }
             
             if (progress < 1) {
-                requestAnimationFrame(animate);
+                self._cameraEaseRafId = requestAnimationFrame(animate);
             } else {
+                self._cameraEaseRafId = null;
                 // Clear stored original state
-                this.uiView.originalCameraPosition = null;
-                this.uiView.originalGlobeRotation = null;
+                self.uiView.originalCameraPosition = null;
+                self.uiView.originalGlobeRotation = null;
                 
                 // Restore plane visibility when zooming out from event
                 if (window.globeController && window.globeController.interactionController) {
@@ -129,7 +142,7 @@ export class CameraViewManager {
             }
         };
         
-        animate();
+        this._cameraEaseRafId = requestAnimationFrame(animate);
     }
     
     /**
@@ -142,6 +155,8 @@ export class CameraViewManager {
         const renderer = this.sceneModel.getRenderer ? this.sceneModel.getRenderer() : null;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         if (!camera || !globe) return;
+
+        this._cancelCameraEaseAnimation();
 
         this.uiView.originalCameraPosition = null;
         this.uiView.originalGlobeRotation = null;
@@ -169,6 +184,7 @@ export class CameraViewManager {
         const startRotation = { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z };
         const duration = 1000;
         const startTime = Date.now();
+        const self = this;
 
         const animate = () => {
             const elapsed = Date.now() - startTime;
@@ -191,20 +207,23 @@ export class CameraViewManager {
             }
 
             if (progress < 1) {
-                requestAnimationFrame(animate);
+                self._cameraEaseRafId = requestAnimationFrame(animate);
             } else {
+                self._cameraEaseRafId = null;
                 if (window.globeController && window.globeController.interactionController) {
                     window.globeController.interactionController.restorePlanesVisibility();
                 }
             }
         };
-        animate();
+        this._cameraEaseRafId = requestAnimationFrame(animate);
     }
 
     /**
      * Animate camera to a specific position
      */
     animateCameraToPosition(camera, targetPosition, globe) {
+        this._cancelCameraEaseAnimation();
+
         const startPosition = camera.position.clone();
         const duration = 1000;
         const startTime = Date.now();
@@ -231,6 +250,7 @@ export class CameraViewManager {
             };
         };
         
+        const self = this;
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
@@ -248,11 +268,13 @@ export class CameraViewManager {
             }
             
             if (progress < 1) {
-                requestAnimationFrame(animate);
+                self._cameraEaseRafId = requestAnimationFrame(animate);
+            } else {
+                self._cameraEaseRafId = null;
             }
         };
         
-        animate();
+        this._cameraEaseRafId = requestAnimationFrame(animate);
     }
 
     /**

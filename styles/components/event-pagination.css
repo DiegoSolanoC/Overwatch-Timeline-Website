@@ -5,7 +5,8 @@
 /* Events List */
 .events-list {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr)); /* Ensure equal column widths */
+    /* Wider event manager panel gains more cards per row instead of ultra-wide cards */
+    grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
     gap: 10px;
     margin-bottom: 15px;
     margin-top: 15px;

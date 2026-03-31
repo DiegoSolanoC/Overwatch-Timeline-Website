@@ -14,8 +14,7 @@ class MarkerPulseService {
         const mat = marker.material;
         const baseColorHex = Number.isFinite(marker.userData.originalColor)
             ? marker.userData.originalColor
-            : (mat?.color?.getHex ? mat.color.getHex()
-                : (localStorage.getItem('colorPalette') === 'crimson' ? 0xffffff : 0xff6600));
+            : (mat?.color?.getHex ? mat.color.getHex() : 0xff6600);
         marker.userData._hoverGlowBase = {
             colorHex: baseColorHex,
             opacity: (mat && typeof mat.opacity === 'number') ? mat.opacity : 1
@@ -123,7 +122,7 @@ class MarkerPulseService {
     }
 
     /**
-     * Hover wave tint: follow marker.originalColor when set, else crimson → white, else warm orange.
+     * Hover wave tint: follow marker.originalColor when set, else warm orange.
      * @param {*} marker
      * @returns {number} hex
      */
@@ -131,13 +130,6 @@ class MarkerPulseService {
         const ud = marker && marker.userData;
         if (ud && Number.isFinite(ud.originalColor)) {
             return ud.originalColor;
-        }
-        try {
-            if (localStorage.getItem('colorPalette') === 'crimson') {
-                return 0xffffff;
-            }
-        } catch (e) {
-            /* ignore */
         }
         return 0xffaa00;
     }

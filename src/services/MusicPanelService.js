@@ -48,6 +48,9 @@ class MusicPanelService {
             const eventsManageToggle = document.getElementById('eventsManageToggle');
             if (eventsManagePanel && eventsManagePanel.classList.contains('open')) {
                 eventsManagePanel.classList.remove('open');
+                try {
+                    window.EventsHoverPreviewBadge?.hide();
+                } catch (_) {}
                 if (eventsManageToggle) {
                     eventsManageToggle.classList.remove('active');
                 }

@@ -1,13 +1,13 @@
-/* Event Management Panel */
+/* Event Management Panel (kept in sync with panels/events-manage.css; not imported by styles.css) */
 .events-manage-panel {
     position: fixed;
-    right: -900px;
-    top: 60px;
+    right: calc(-1 * var(--panel-events-manage-width));
+    top: var(--header-height);
     bottom: var(--footer-height);
-    width: 900px;
+    width: var(--panel-events-manage-width);
     background: #0a1929; /* Dark blue for default blue palette */
     box-shadow: none !important;
-    transition: right 0.3s ease;
+    transition: right var(--panel-transition);
     z-index: 200;
     overflow-y: auto;
     color: white;
@@ -18,9 +18,9 @@
 }
 
 /* Mobile: Override desktop right position to ensure smooth transition */
-@media (max-width: 768px) {
+@media (max-width: var(--breakpoint-mobile)) {
     .events-manage-panel {
-        right: -100% !important; /* Start at -100% on mobile, not -900px */
+        right: -100% !important;
     }
 }
 

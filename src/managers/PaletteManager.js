@@ -12,26 +12,56 @@ let paletteToggleSetup = false;
 const MAP_TEXTURE_BLUE = 'assets/images/maps/MAP.png';
 const MAP_TEXTURE_GRAY = 'assets/images/maps/MAP Black.png';
 const MAP_TEXTURE_CRIMSON = 'assets/images/maps/MAP Crimson.png';
+const MAP_TEXTURE_NULLED = 'assets/images/maps/MAP Nulled.png';
+
+const MOON_TEXTURE_GRAY = 'assets/images/misc/Moon_Dark.png';
+const MOON_TEXTURE_CRIMSON = 'assets/images/misc/Moon_Crimson.png';
+const MOON_TEXTURE_NULLED = 'assets/images/misc/Moon_Nulled.png';
+const MOON_TEXTURE_BLUE = 'assets/images/misc/Moon.png';
+
+const MARS_TEXTURE_GRAY = 'assets/images/misc/Mars_Dark.png';
+const MARS_TEXTURE_CRIMSON = 'assets/images/misc/Mars_Crimson.png';
+const MARS_TEXTURE_NULLED = 'assets/images/misc/Mars_Nulled.png';
+const MARS_TEXTURE_BLUE = 'assets/images/misc/Mars.png';
+
 const WEBSITE_LOGO_DEFAULT = 'assets/images/misc/Website.png';
 const WEBSITE_LOGO_CRIMSON = 'assets/images/misc/Website Crimson.png';
+const WEBSITE_LOGO_NULLED = 'assets/images/misc/Website Nulled.png';
 
 function normalizeSavedPalette(saved) {
     if (saved === 'gray') return 'gray';
     if (saved === 'crimson') return 'crimson';
+    if (saved === 'nulled') return 'nulled';
     return 'blue';
 }
 
 function applyPaletteBodyClasses(palette) {
-    document.body.classList.remove('color-palette-gray', 'color-palette-crimson');
+    document.body.classList.remove('color-palette-gray', 'color-palette-crimson', 'color-palette-nulled');
     if (palette === 'gray') document.body.classList.add('color-palette-gray');
     else if (palette === 'crimson') document.body.classList.add('color-palette-crimson');
+    else if (palette === 'nulled') document.body.classList.add('color-palette-nulled');
 }
 
 function updateHeaderWebsiteLogo(palette) {
     const img = document.querySelector('.header-title-badge-logo');
     if (!img) return;
     const p = normalizeSavedPalette(palette);
-    img.src = p === 'crimson' ? WEBSITE_LOGO_CRIMSON : WEBSITE_LOGO_DEFAULT;
+    if (p === 'crimson') img.src = WEBSITE_LOGO_CRIMSON;
+    else if (p === 'nulled') img.src = WEBSITE_LOGO_NULLED;
+    else img.src = WEBSITE_LOGO_DEFAULT;
+}
+
+function texturePathForPalette(mapKind, normalized) {
+    if (normalized === 'gray') {
+        return mapKind === 'map' ? MAP_TEXTURE_GRAY : (mapKind === 'moon' ? MOON_TEXTURE_GRAY : MARS_TEXTURE_GRAY);
+    }
+    if (normalized === 'crimson') {
+        return mapKind === 'map' ? MAP_TEXTURE_CRIMSON : (mapKind === 'moon' ? MOON_TEXTURE_CRIMSON : MARS_TEXTURE_CRIMSON);
+    }
+    if (normalized === 'nulled') {
+        return mapKind === 'map' ? MAP_TEXTURE_NULLED : (mapKind === 'moon' ? MOON_TEXTURE_NULLED : MARS_TEXTURE_NULLED);
+    }
+    return mapKind === 'map' ? MAP_TEXTURE_BLUE : (mapKind === 'moon' ? MOON_TEXTURE_BLUE : MARS_TEXTURE_BLUE);
 }
 
 /**
@@ -117,17 +147,36 @@ export function setupPaletteToggle() {
         crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
         crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
         paletteMenu.appendChild(crimsonBtn);
+
+        const nulledBtn = document.createElement('button');
+        nulledBtn.className = 'palette-option-btn nulled';
+        nulledBtn.dataset.palette = 'nulled';
+        nulledBtn.title = 'Nulled Palette';
+        nulledBtn.setAttribute('aria-label', 'Nulled Palette');
+        nulledBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+        paletteMenu.appendChild(nulledBtn);
         
         document.body.appendChild(paletteMenu);
         console.log('[Palette] Menu appended to body, total children:', paletteMenu.children.length);
-    } else if (!paletteMenu.querySelector('[data-palette="crimson"]')) {
-        const crimsonBtn = document.createElement('button');
-        crimsonBtn.className = 'palette-option-btn crimson';
-        crimsonBtn.dataset.palette = 'crimson';
-        crimsonBtn.title = 'Crimson Palette';
-        crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
-        crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
-        paletteMenu.appendChild(crimsonBtn);
+    } else {
+        if (!paletteMenu.querySelector('[data-palette="crimson"]')) {
+            const crimsonBtn = document.createElement('button');
+            crimsonBtn.className = 'palette-option-btn crimson';
+            crimsonBtn.dataset.palette = 'crimson';
+            crimsonBtn.title = 'Crimson Palette';
+            crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
+            crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+            paletteMenu.appendChild(crimsonBtn);
+        }
+        if (!paletteMenu.querySelector('[data-palette="nulled"]')) {
+            const nulledBtn = document.createElement('button');
+            nulledBtn.className = 'palette-option-btn nulled';
+            nulledBtn.dataset.palette = 'nulled';
+            nulledBtn.title = 'Nulled Palette';
+            nulledBtn.setAttribute('aria-label', 'Nulled Palette');
+            nulledBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+            paletteMenu.appendChild(nulledBtn);
+        }
     }
     
     // Update menu active state and icon (savedPalette was already retrieved and applied above)
@@ -147,6 +196,8 @@ export function setupPaletteToggle() {
             iconPath = 'assets/images/icons/Dark Palette Icon.png';
         } else if (palette === 'crimson') {
             iconPath = 'assets/images/icons/Red Palette Icon.png';
+        } else if (palette === 'nulled') {
+            iconPath = 'assets/images/icons/Purple Palette Icon.png';
         }
         
         // Check if img already exists, update src; otherwise create new img
@@ -187,6 +238,7 @@ export function setupPaletteToggle() {
     // Function to change palette
     function changePalette(palette) {
         const normalized = normalizeSavedPalette(palette);
+        const previousPalette = normalizeSavedPalette(localStorage.getItem('colorPalette'));
         applyPaletteBodyClasses(normalized);
         updateHeaderWebsiteLogo(normalized);
         
@@ -199,19 +251,15 @@ export function setupPaletteToggle() {
         
         const isGray = normalized === 'gray';
         const isCrimson = normalized === 'crimson';
+        const isNulled = normalized === 'nulled';
         
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? MAP_TEXTURE_GRAY : (isCrimson ? MAP_TEXTURE_CRIMSON : MAP_TEXTURE_BLUE);
-            window.globeController.globeView.changeGlobeTexture(texturePath);
-            
-            // Change Moon and Mars textures (crimson uses same as blue)
-            const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
-            const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
-            window.globeController.globeView.changeMoonTexture(moonTexturePath);
-            window.globeController.globeView.changeMarsTexture(marsTexturePath);
+            window.globeController.globeView.changeGlobeTexture(texturePathForPalette('map', normalized));
+            window.globeController.globeView.changeMoonTexture(texturePathForPalette('moon', normalized));
+            window.globeController.globeView.changeMarsTexture(texturePathForPalette('mars', normalized));
 
-            // Update rim glow to match palette (blue → light blue, gray → white, crimson → warm red)
+            // Update rim glow to match palette (blue → light blue, gray → white, crimson → warm red, nulled → soft violet)
             if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
                 window.globeController.globeView.updateRimGlowPalette(normalized);
             }
@@ -219,7 +267,7 @@ export function setupPaletteToggle() {
         
         // Change scene background color (starfield background) (only on pages with globe)
         if (window.globeController && window.globeController.sceneModel) {
-            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : 0x050d18);
+            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : (isNulled ? 0x100818 : 0x050d18));
             window.globeController.sceneModel.setBackgroundColor(bgColor);
         }
 
@@ -244,6 +292,10 @@ export function setupPaletteToggle() {
             }
         }
         
+        if (window.MusicPaletteDefaultHelpers && window.MusicPaletteDefaultHelpers.notifyMusicDefaultPaletteChange) {
+            window.MusicPaletteDefaultHelpers.notifyMusicDefaultPaletteChange(previousPalette, normalized);
+        }
+
         // Close menu after selection
         closePaletteMenu();
     }
@@ -335,11 +387,13 @@ export function setupPaletteToggle() {
                 const vw = Math.max(1, (window.innerWidth || 1) / scale);
                 const vh = Math.max(1, (window.innerHeight || 1) / scale);
 
+                const optionBtns = menu.querySelectorAll('.palette-option-btn');
+                const btnN = optionBtns.length || 4;
                 const firstBtn = menu.querySelector('.palette-option-btn');
                 const btnW = firstBtn ? parseFloat(window.getComputedStyle(firstBtn).width) : 45;
                 const btnH = firstBtn ? parseFloat(window.getComputedStyle(firstBtn).height) : 45;
                 const menuGap = parseFloat(window.getComputedStyle(menu).gap) || 10;
-                const menuWidth = (btnW * 3) + (menuGap * 2);
+                const menuWidth = (btnW * btnN) + (menuGap * Math.max(0, btnN - 1));
                 const menuHeight = btnH;
                 const halfW = menuWidth / 2;
                 const margin = 8;
@@ -375,16 +429,42 @@ export function setupPaletteToggle() {
             menu.style.gap = '';
             menu.style.alignItems = '';
 
-            // Keep it perfectly aligned even if the header shifts or the right hub scrolls.
+            // Reposition on layout-affecting events only. A perpetual rAF here stacked with
+            // the globe render loop and caused main-thread stalls on some machines.
             try {
-                if (menu._paletteFollowRafId) cancelAnimationFrame(menu._paletteFollowRafId);
+                if (menu._paletteRepositionCleanup) menu._paletteRepositionCleanup();
             } catch (_) {}
-            const follow = () => {
-                if (!menu.classList.contains('open')) return;
-                positionMenuUnderToggle();
-                menu._paletteFollowRafId = requestAnimationFrame(follow);
+
+            let menuReposRaf = null;
+            const scheduleMenuReposition = () => {
+                if (menuReposRaf != null) return;
+                menuReposRaf = requestAnimationFrame(() => {
+                    menuReposRaf = null;
+                    if (!menu.classList.contains('open')) return;
+                    positionMenuUnderToggle();
+                });
             };
-            menu._paletteFollowRafId = requestAnimationFrame(follow);
+
+            const onWinScroll = () => scheduleMenuReposition();
+            const onWinResize = () => scheduleMenuReposition();
+            window.addEventListener('scroll', onWinScroll, true);
+            window.addEventListener('resize', onWinResize);
+
+            const headerHub = toggle ? toggle.closest('.header-hub') : null;
+            if (headerHub) headerHub.addEventListener('scroll', onWinScroll);
+
+            scheduleMenuReposition();
+
+            menu._paletteRepositionCleanup = () => {
+                window.removeEventListener('scroll', onWinScroll, true);
+                window.removeEventListener('resize', onWinResize);
+                if (headerHub) headerHub.removeEventListener('scroll', onWinScroll);
+                if (menuReposRaf != null) {
+                    cancelAnimationFrame(menuReposRaf);
+                    menuReposRaf = null;
+                }
+                menu._paletteRepositionCleanup = null;
+            };
 
             console.log('[Palette] Added "open" class to menu, classes:', menu.className);
             console.log('[Palette] Menu computed styles:', {
@@ -416,8 +496,7 @@ export function setupPaletteToggle() {
         if (menu) {
             menu.classList.remove('open');
             try {
-                if (menu._paletteFollowRafId) cancelAnimationFrame(menu._paletteFollowRafId);
-                menu._paletteFollowRafId = null;
+                if (menu._paletteRepositionCleanup) menu._paletteRepositionCleanup();
             } catch (_) {}
             // Reset inline styles
             menu.style.opacity = '';

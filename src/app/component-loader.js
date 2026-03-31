@@ -460,12 +460,12 @@ async function loadEvents() {
     await withLoadWrapper(async () => {
                         // Initialize EventManager
         window.eventManager = await initializeEventManager();
-        
-        // Sync events with globe and add markers (first sync)
-        syncEventsWithGlobe(window.globeController, window.eventManager);
-        
-        // Setup all event UI components using helper
+
+        // Pagination + header controls must exist before UIView binds number buttons / hover preview.
         setupEventUIComponents({ updateStatus });
+
+        // Sync events with globe and add markers (pagination DOM is present for this sync)
+        syncEventsWithGlobe(window.globeController, window.eventManager);
         
         // Load all event-related sound effects using helper
         loadEventSoundEffects();

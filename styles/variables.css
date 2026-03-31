@@ -67,6 +67,21 @@
     --btn-crimson-bg-hover: rgba(120, 22, 32, 1);
     --scrollbar-thumb-crimson: rgba(239, 83, 80, 0.65);
     --scrollbar-thumb-crimson-hover: rgba(239, 83, 80, 0.85);
+
+    /* Color Palette - Nulled (purple) Theme */
+    --primary-nulled: #3d2468;
+    --secondary-nulled: #5e3d8a;
+    --accent-nulled-primary: #b388ff;
+    --accent-nulled-primary-rgb: 179, 136, 255;
+    --accent-nulled-primary-hover: #d4bfff;
+    --accent-nulled-primary-active: rgba(179, 136, 255, 0.4);
+    --accent-nulled-primary-active-hover: rgba(179, 136, 255, 0.6);
+    --bg-nulled-primary: #0f081a;
+    --bg-nulled-quaternary: rgba(94, 61, 138, 0.35);
+    --btn-nulled-bg: rgba(104, 58, 168, 0.92);
+    --btn-nulled-bg-hover: rgba(124, 74, 196, 1);
+    --scrollbar-thumb-nulled: rgba(179, 136, 255, 0.65);
+    --scrollbar-thumb-nulled-hover: rgba(179, 136, 255, 0.85);
     
     /* Layout Constants */
     --desktop-scale: 0.67;
@@ -151,4 +166,28 @@ body.color-palette-crimson {
     --btn-primary-bg-hover: var(--btn-crimson-bg-hover);
 
     --event-filter-icon-bg: #3d1a1f;
+}
+
+/* Nulled (purple) Color Palette Override */
+body.color-palette-nulled {
+    --primary-color: var(--primary-nulled);
+    --secondary-color: var(--secondary-nulled);
+
+    --accent-primary: var(--accent-nulled-primary);
+    --accent-primary-rgb: var(--accent-nulled-primary-rgb);
+    --accent-primary-hover: var(--accent-nulled-primary-hover);
+    --accent-primary-active: var(--accent-nulled-primary-active);
+    --accent-primary-active-hover: var(--accent-nulled-primary-active-hover);
+
+    --bg-secondary: var(--bg-nulled-primary);
+    --bg-main: var(--bg-nulled-primary);
+    --bg-primary: var(--primary-nulled);
+
+    --scrollbar-thumb: var(--scrollbar-thumb-nulled);
+    --scrollbar-thumb-hover: var(--scrollbar-thumb-nulled-hover);
+
+    --btn-primary-bg: var(--btn-nulled-bg);
+    --btn-primary-bg-hover: var(--btn-nulled-bg-hover);
+
+    --event-filter-icon-bg: #2a1f3d;
 }

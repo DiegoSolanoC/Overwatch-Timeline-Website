@@ -4,16 +4,16 @@
  * event-pagination.css also define overlapping rules; load order applies.
  */
 
-/* Event Management Panel */
+/* Event Management Panel (desktop sizing; mobile overrides below) */
 .events-manage-panel {
     position: fixed;
-    right: -900px;
-    top: 60px;
+    right: calc(-1 * var(--user-panel-events-manage-width, var(--panel-events-manage-width)));
+    top: var(--header-height);
     bottom: var(--footer-height);
-    width: 900px;
+    width: var(--user-panel-events-manage-width, var(--panel-events-manage-width));
     background: #0a1929;
     box-shadow: none !important;
-    transition: right 0.3s ease;
+    transition: right var(--panel-transition);
     z-index: 200;
     overflow-y: auto;
     color: white;
@@ -23,7 +23,7 @@
     box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
+@media (max-width: var(--breakpoint-mobile)) {
     .events-manage-panel {
         right: -100% !important;
     }
@@ -154,7 +154,7 @@ body.color-palette-gray .events-manage-title {
 
 .events-list {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
     gap: 10px;
     margin-bottom: 15px;
     margin-top: 15px;

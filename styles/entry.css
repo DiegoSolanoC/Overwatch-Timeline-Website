@@ -342,6 +342,14 @@ body.color-palette-crimson .zoom-btn:hover:not(:disabled) {
     background: rgba(211, 47, 47, 1) !important;
 }
 
+body.color-palette-nulled .zoom-btn {
+    background: rgba(81, 45, 168, 0.92) !important;
+}
+
+body.color-palette-nulled .zoom-btn:hover:not(:disabled) {
+    background: rgba(103, 58, 183, 1) !important;
+}
+
 .zoom-in-btn {
     order: 1; /* + button on top */
 }

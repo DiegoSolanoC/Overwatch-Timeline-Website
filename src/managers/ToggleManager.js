@@ -238,25 +238,57 @@ export class ToggleManager {
             }
         };
 
-        const startRotateBarFollow = () => {
-            if (!rotateBar) return;
-            try {
-                if (rotateBar._followRafId) cancelAnimationFrame(rotateBar._followRafId);
-            } catch (_) {}
-            const follow = () => {
-                if (!document.body.classList.contains('rotate-subbar-open')) return;
+        /** First layout pass often runs before icon/fonts settle — re-measure over a few frames. */
+        const bumpRotateBarLayout = () => {
+            positionRotateBarUnderToggle();
+            requestAnimationFrame(() => {
                 positionRotateBarUnderToggle();
-                rotateBar._followRafId = requestAnimationFrame(follow);
-            };
-            rotateBar._followRafId = requestAnimationFrame(follow);
+                requestAnimationFrame(positionRotateBarUnderToggle);
+            });
         };
 
         const stopRotateBarFollow = () => {
             if (!rotateBar) return;
             try {
-                if (rotateBar._followRafId) cancelAnimationFrame(rotateBar._followRafId);
-                rotateBar._followRafId = null;
+                if (rotateBar._followCleanup) {
+                    rotateBar._followCleanup();
+                    rotateBar._followCleanup = null;
+                }
             } catch (_) {}
+        };
+
+        const startRotateBarFollow = () => {
+            if (!rotateBar) return;
+            stopRotateBarFollow();
+            bumpRotateBarLayout();
+
+            let pendingRaf = null;
+            const schedule = () => {
+                if (pendingRaf != null) return;
+                pendingRaf = requestAnimationFrame(() => {
+                    pendingRaf = null;
+                    if (!document.body.classList.contains('rotate-subbar-open')) return;
+                    positionRotateBarUnderToggle();
+                });
+            };
+
+            const onScroll = () => schedule();
+            const onResize = () => schedule();
+            window.addEventListener('scroll', onScroll, true);
+            window.addEventListener('resize', onResize);
+
+            const headerHub = toggleBtn.closest('.header-hub');
+            if (headerHub) headerHub.addEventListener('scroll', onScroll);
+
+            rotateBar._followCleanup = () => {
+                window.removeEventListener('scroll', onScroll, true);
+                window.removeEventListener('resize', onResize);
+                if (headerHub) headerHub.removeEventListener('scroll', onScroll);
+                if (pendingRaf != null) {
+                    cancelAnimationFrame(pendingRaf);
+                    pendingRaf = null;
+                }
+            };
         };
 
         // Set initial state
@@ -277,6 +309,19 @@ export class ToggleManager {
             const alt = enabled ? 'Map' : 'Globe';
             mapIcon.innerHTML = `<img src="${src}" alt="${alt}" style="width: 100%; height: 100%; object-fit: contain;">`;
 
+            const img = mapIcon.querySelector('img');
+            if (img) {
+                const onImgReady = () => {
+                    if (!document.body.classList.contains('rotate-subbar-open')) return;
+                    bumpRotateBarLayout();
+                };
+                if (img.complete) {
+                    requestAnimationFrame(onImgReady);
+                } else {
+                    img.addEventListener('load', onImgReady, { once: true });
+                }
+            }
+
             // Update label text (Map vs Globe)
             const labelEl = toggleBtn.querySelector('.header-hub-btn-label');
             if (labelEl) {
@@ -294,7 +339,7 @@ export class ToggleManager {
             document.body.classList.toggle('rotate-subbar-open', !enabled);
 
             // Position subbar directly under the Map/Globe button (and keep following it).
-            positionRotateBarUnderToggle();
+            bumpRotateBarLayout();
             if (!enabled) {
                 startRotateBarFollow();
             } else {
@@ -305,12 +350,40 @@ export class ToggleManager {
         // Ensure icon uses local file (stateful)
         renderState();
 
+        try {
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(() => {
+                    if (document.body.classList.contains('rotate-subbar-open')) {
+                        bumpRotateBarLayout();
+                    }
+                }).catch(() => {});
+            }
+        } catch (_) {}
+
+        if (typeof ResizeObserver !== 'undefined' && !toggleBtn.dataset.rotateBarResizeObserver) {
+            toggleBtn.dataset.rotateBarResizeObserver = '1';
+            const ro = new ResizeObserver(() => {
+                if (document.body.classList.contains('rotate-subbar-open')) {
+                    positionRotateBarUnderToggle();
+                }
+            });
+            ro.observe(toggleBtn);
+        }
+
+        if (!toggleBtn.dataset.rotateSubbarWindowLoad) {
+            toggleBtn.dataset.rotateSubbarWindowLoad = '1';
+            window.addEventListener('load', () => {
+                if (document.body.classList.contains('rotate-subbar-open')) {
+                    bumpRotateBarLayout();
+                }
+            });
+        }
+
         // Keep the rotate subbar aligned on resize.
         if (!toggleBtn.dataset.rotateSubbarResizeSetup) {
             toggleBtn.dataset.rotateSubbarResizeSetup = 'true';
             window.addEventListener('resize', () => {
                 renderState();
-                positionRotateBarUnderToggle();
             });
         }
 

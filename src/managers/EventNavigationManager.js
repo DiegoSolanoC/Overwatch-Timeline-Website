@@ -12,6 +12,12 @@ import { handleNumberButtonMouseEnter, handleNumberButtonMouseLeave } from './he
 import { handleNumberButtonClick } from './helpers/NavigationEventHelpers.js';
 import { resetButtonStyles, isEventMarkerLocked } from './helpers/NavigationButtonStateHelpers.js';
 import { handlePrevPageClick, handleNextPageClick, handlePageInputChange, updatePaginationButtonStates } from './helpers/NavigationPaginationHelpers.js';
+import { getGlobalEventNumber1Based } from './helpers/EventSlideShowHelpers.js';
+import {
+    showEventsHoverPreview,
+    hideEventsHoverPreview,
+    getHoverPreviewLines
+} from '../utils/EventsHoverPreviewBadge.js';
 
 /**
  * Coordinate matching utilities
@@ -533,6 +539,7 @@ export class EventNavigationManager {
 
         // Store update function for external calls (wrapped version that also updates number buttons)
         this.uiView.updatePaginationUI = wrappedUpdatePaginationUI;
+        this.uiView._paginationOnPageChange = onPageChange;
     }
 
     /**
@@ -616,18 +623,26 @@ export class EventNavigationManager {
                 return null;
             };
 
-            // Hover behavior: stop auto rotation, center marker, trigger pulse
-            newBtn.addEventListener('mouseenter', (e) => {
-                // Don't trigger hover behavior if button is disabled (locked event)
+            const onNumberBtnHoverStart = () => {
                 if (newBtn.disabled) return;
 
-                const marker = getMarkerForPosition();
-                if (!marker) return;
+                const currentPageEvents = this.dataModel.getEventsForCurrentPage();
+                const eventIndex = position - 1;
+                const targetEvent =
+                    eventIndex < currentPageEvents.length ? currentPageEvents[eventIndex] : null;
 
-                // Don't trigger hover behavior if marker is locked
+                const marker = getMarkerForPosition();
+                const lockedOnMap = marker && marker.userData && marker.userData.isLocked;
+
+                if (targetEvent && !lockedOnMap) {
+                    const n = getGlobalEventNumber1Based(targetEvent, this.dataModel);
+                    const { primary, otherVariants } = getHoverPreviewLines(targetEvent);
+                    showEventsHoverPreview(n, primary, otherVariants);
+                }
+
+                if (!marker) return;
                 if (marker.userData && marker.userData.isLocked) return;
 
-                // Use helper for hover behavior
                 if (window.globeController && window.globeController.sceneModel && window.globeController.interactionController) {
                     // For hover previews (especially Moon/Mars which call resetCameraToDefault),
                     // capture the current camera state so mouseleave restores to the true prior view
@@ -646,10 +661,15 @@ export class EventNavigationManager {
                         window.globeController.interactionController
                     );
                 }
-            });
+            };
+
+            newBtn.addEventListener('mouseenter', onNumberBtnHoverStart);
+            newBtn.addEventListener('pointerenter', onNumberBtnHoverStart);
 
             // Mouse leave: stop pulse, restore camera, resume auto rotation if enabled
-            newBtn.addEventListener('mouseleave', (e) => {
+            const onNumberBtnHoverEnd = () => {
+                hideEventsHoverPreview();
+
                 const marker = getMarkerForPosition();
                 
                 // Use helper for mouse leave behavior
@@ -660,7 +680,10 @@ export class EventNavigationManager {
                         this.uiView
                     );
                 }
-            });
+            };
+
+            newBtn.addEventListener('mouseleave', onNumberBtnHoverEnd);
+            newBtn.addEventListener('pointerleave', onNumberBtnHoverEnd);
 
             newBtn.addEventListener('click', (e) => {
                 e.preventDefault();

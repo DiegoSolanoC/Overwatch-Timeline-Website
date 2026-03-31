@@ -108,6 +108,9 @@ class EventListenerService {
                 console.log('EventListenerService: Panel is now open:', isNowOpen);
                 
                 if (isNowOpen) {
+                    try {
+                        window.EventsHoverPreviewBadge?.hide();
+                    } catch (_) {}
                     newToggleBtn.classList.add('active');
                     if (this.eventManager.renderEvents) {
                         this.eventManager.renderService?.requestPageEntranceAnimation?.();
@@ -141,6 +144,9 @@ class EventListenerService {
                 }
                 
                 panel.classList.remove('open');
+                try {
+                    window.EventsHoverPreviewBadge?.hide();
+                } catch (_) {}
                 const toggleBtn = document.getElementById('eventsManageToggle');
                 if (toggleBtn) {
                     toggleBtn.classList.remove('active');
@@ -175,6 +181,9 @@ class EventListenerService {
                     }
                     
                     panel.classList.remove('open');
+                    try {
+                        window.EventsHoverPreviewBadge?.hide();
+                    } catch (_) {}
                     if (toggleBtn) {
                         toggleBtn.classList.remove('active');
                     }

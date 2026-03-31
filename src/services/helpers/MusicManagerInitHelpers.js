@@ -246,7 +246,14 @@
 
             var restored = manager.restoreMusicState();
             if (!restored && !manager.currentSong && manager.musicFiles.length > 0) {
-                playMusic('assets/audio/music/' + manager.musicFiles[0].filename);
+                var MH = window.MusicPaletteDefaultHelpers;
+                var initialEntry = MH
+                    ? MH.findDefaultMusicForPalette(manager.musicFiles, MH.getActiveMusicPaletteKey())
+                    : manager.musicFiles[0];
+                var initialPath = MH && initialEntry
+                    ? MH.musicPathForEntry(initialEntry)
+                    : ('assets/audio/music/' + manager.musicFiles[0].filename);
+                playMusic(initialPath);
                 manager.updateNowPlaying();
             } else if (restored) {
                 logAssetLoad('MUSIC_PRIORITY', 'Music state restored successfully');

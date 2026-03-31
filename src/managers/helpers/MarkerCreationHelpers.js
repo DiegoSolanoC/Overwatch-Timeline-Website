@@ -119,25 +119,11 @@ export function getMarkerRadius(isMainVariant) {
 }
 
 /**
- * Saved UI palette key (mirrors body classes / localStorage).
- * @returns {'blue'|'gray'|'crimson'}
- */
-function markerPaletteKey() {
-    const p = localStorage.getItem('colorPalette');
-    if (p === 'crimson') return 'crimson';
-    if (p === 'gray') return 'gray';
-    return 'blue';
-}
-
-/**
- * Gets marker color based on variant type
+ * Gets marker color based on variant type (same on all UI palettes)
  * @param {boolean} isMainVariant - Whether this is the main variant
  * @returns {number} - Color hex value
  */
 export function getMarkerColor(isMainVariant) {
-    if (markerPaletteKey() === 'crimson') {
-        return isMainVariant ? 0xffffff : 0xffb3c6;
-    }
     return isMainVariant ? 0xff6600 : 0xff69b4;
 }
 

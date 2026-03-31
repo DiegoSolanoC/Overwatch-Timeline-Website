@@ -371,7 +371,7 @@ export class GlobeController {
         
         // Update pulse rings for event markers
         if (this.interactionController) {
-            this.interactionController.updatePulseRings();
+            // updateMarkerPulse() ends by calling updatePulseRings(); avoid doing rings twice per frame.
             this.interactionController.updateMarkerPulse();
             this.interactionController.updateStationPinLines();
         }

@@ -63,15 +63,8 @@ function getMusicFiles(folderPath) {
                 name: file.replace(/\.(mp3|wav|ogg)$/i, '')
             }));
         
-        // Sort with "Winston's Desk" first (or any file containing "Winston" or "Desk")
-        const sorted = musicFiles.sort((a, b) => {
-            const aIsDefault = a.name.toLowerCase().includes('winston') || a.name.toLowerCase().includes('desk');
-            const bIsDefault = b.name.toLowerCase().includes('winston') || b.name.toLowerCase().includes('desk');
-            
-            if (aIsDefault && !bIsDefault) return -1;
-            if (!aIsDefault && bIsDefault) return 1;
-            return a.name.localeCompare(b.name);
-        });
+        // Alphabetical; default track per palette is resolved at runtime (MusicPaletteDefaultHelpers).
+        const sorted = musicFiles.sort((a, b) => a.name.localeCompare(b.name));
         
         return sorted;
     } catch (error) {

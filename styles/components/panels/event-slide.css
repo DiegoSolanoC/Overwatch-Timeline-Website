@@ -5,10 +5,10 @@
 /* Event Slide Panel (left side) */
 .event-slide {
     position: fixed;
-    left: calc(-1 * var(--panel-event-width));
+    left: calc(-1 * var(--user-panel-event-width, var(--panel-event-width)));
     top: var(--header-height);
     bottom: var(--footer-height);
-    width: var(--panel-event-width);
+    width: var(--user-panel-event-width, var(--panel-event-width));
     background: var(--bg-secondary); /* Dark blue for default blue palette */
     box-shadow: none; /* Remove shadow to prevent overlap */
     transition: left var(--panel-transition);

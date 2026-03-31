@@ -4,7 +4,13 @@
  */
 
 import { formatEventSlideTitleHtml } from './helpers/EventSlideShowHelpers.js';
-import { setupMobileEventSlide, cleanupMobileEventSlide, getDefaultZoom } from './helpers/MobileEventSlideHelpers.js';
+import {
+    setupMobileEventSlide,
+    cleanupMobileEventSlide,
+    getDefaultZoom,
+    setupMobileFullTextToggleButton,
+    resetMobileFullTextUi
+} from './helpers/MobileEventSlideHelpers.js';
 import { setupEarthLocation, setupMoonMarsLocation, setupStationLocation, setupMarsShipLocation, hideLocationWithFade, setupLocationClickHandler } from './helpers/LocationDisplayHelpers.js';
 import { loadEventImage, setupImageFadeIn } from './helpers/ImageLoadingHelpers.js';
 import { findVariantMarker, zoomToVariantLocation, createTempMarkerForCoords } from './helpers/VariantHelpers.js';
@@ -17,7 +23,9 @@ export const MobileHelpers = {
     isMobilePortrait: () => window.innerWidth <= 768 && window.innerHeight > window.innerWidth,
     getDefaultZoom,
     setupMobileEventSlide,
-    cleanupMobileEventSlide
+    cleanupMobileEventSlide,
+    setupMobileFullTextToggleButton,
+    resetMobileFullTextUi
 };
 
 export class EventSlideManager {
@@ -692,6 +700,7 @@ export class EventSlideManager {
             eventSlide.classList.add('open');
             if (eventImageOverlay) eventImageOverlay.classList.add('slide-open');
             MobileHelpers.setupMobileEventSlide();
+            MobileHelpers.setupMobileFullTextToggleButton();
 
             // Update sources and filters using helper
             const updateEventSourcesAndFilters = window.EventSlideShowHelpers?.updateEventSourcesAndFilters;

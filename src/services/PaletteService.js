@@ -5,27 +5,56 @@
 const MAP_TEXTURE_BLUE = 'assets/images/maps/MAP.png';
 const MAP_TEXTURE_GRAY = 'assets/images/maps/MAP Black.png';
 const MAP_TEXTURE_CRIMSON = 'assets/images/maps/MAP Crimson.png';
+const MAP_TEXTURE_NULLED = 'assets/images/maps/MAP Nulled.png';
+
+const MOON_TEXTURE_GRAY = 'assets/images/misc/Moon_Dark.png';
+const MOON_TEXTURE_CRIMSON = 'assets/images/misc/Moon_Crimson.png';
+const MOON_TEXTURE_NULLED = 'assets/images/misc/Moon_Nulled.png';
+const MOON_TEXTURE_BLUE = 'assets/images/misc/Moon.png';
+
+const MARS_TEXTURE_GRAY = 'assets/images/misc/Mars_Dark.png';
+const MARS_TEXTURE_CRIMSON = 'assets/images/misc/Mars_Crimson.png';
+const MARS_TEXTURE_NULLED = 'assets/images/misc/Mars_Nulled.png';
+const MARS_TEXTURE_BLUE = 'assets/images/misc/Mars.png';
 
 function normalizeSavedPalette(saved) {
     if (saved === 'gray') return 'gray';
     if (saved === 'crimson') return 'crimson';
+    if (saved === 'nulled') return 'nulled';
     return 'blue';
 }
 
 function applyPaletteBodyClasses(palette) {
-    document.body.classList.remove('color-palette-gray', 'color-palette-crimson');
+    document.body.classList.remove('color-palette-gray', 'color-palette-crimson', 'color-palette-nulled');
     if (palette === 'gray') document.body.classList.add('color-palette-gray');
     else if (palette === 'crimson') document.body.classList.add('color-palette-crimson');
+    else if (palette === 'nulled') document.body.classList.add('color-palette-nulled');
 }
 
 const WEBSITE_LOGO_DEFAULT = 'assets/images/misc/Website.png';
 const WEBSITE_LOGO_CRIMSON = 'assets/images/misc/Website Crimson.png';
+const WEBSITE_LOGO_NULLED = 'assets/images/misc/Website Nulled.png';
 
 function updateHeaderWebsiteLogo(palette) {
     const img = document.querySelector('.header-title-badge-logo');
     if (!img) return;
     const p = normalizeSavedPalette(palette);
-    img.src = p === 'crimson' ? WEBSITE_LOGO_CRIMSON : WEBSITE_LOGO_DEFAULT;
+    if (p === 'crimson') img.src = WEBSITE_LOGO_CRIMSON;
+    else if (p === 'nulled') img.src = WEBSITE_LOGO_NULLED;
+    else img.src = WEBSITE_LOGO_DEFAULT;
+}
+
+function texturePathForPalette(mapKind, normalized) {
+    if (normalized === 'gray') {
+        return mapKind === 'map' ? MAP_TEXTURE_GRAY : (mapKind === 'moon' ? MOON_TEXTURE_GRAY : MARS_TEXTURE_GRAY);
+    }
+    if (normalized === 'crimson') {
+        return mapKind === 'map' ? MAP_TEXTURE_CRIMSON : (mapKind === 'moon' ? MOON_TEXTURE_CRIMSON : MARS_TEXTURE_CRIMSON);
+    }
+    if (normalized === 'nulled') {
+        return mapKind === 'map' ? MAP_TEXTURE_NULLED : (mapKind === 'moon' ? MOON_TEXTURE_NULLED : MARS_TEXTURE_NULLED);
+    }
+    return mapKind === 'map' ? MAP_TEXTURE_BLUE : (mapKind === 'moon' ? MOON_TEXTURE_BLUE : MARS_TEXTURE_BLUE);
 }
 
 class PaletteService {
@@ -95,16 +124,35 @@ class PaletteService {
             crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
             crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
             paletteMenu.appendChild(crimsonBtn);
+
+            const nulledBtn = document.createElement('button');
+            nulledBtn.className = 'palette-option-btn nulled';
+            nulledBtn.dataset.palette = 'nulled';
+            nulledBtn.title = 'Nulled Palette';
+            nulledBtn.setAttribute('aria-label', 'Nulled Palette');
+            nulledBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+            paletteMenu.appendChild(nulledBtn);
             
             document.body.appendChild(paletteMenu);
-        } else if (!paletteMenu.querySelector('[data-palette="crimson"]')) {
-            const crimsonBtn = document.createElement('button');
-            crimsonBtn.className = 'palette-option-btn crimson';
-            crimsonBtn.dataset.palette = 'crimson';
-            crimsonBtn.title = 'Crimson Palette';
-            crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
-            crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
-            paletteMenu.appendChild(crimsonBtn);
+        } else {
+            if (!paletteMenu.querySelector('[data-palette="crimson"]')) {
+                const crimsonBtn = document.createElement('button');
+                crimsonBtn.className = 'palette-option-btn crimson';
+                crimsonBtn.dataset.palette = 'crimson';
+                crimsonBtn.title = 'Crimson Palette';
+                crimsonBtn.setAttribute('aria-label', 'Crimson Palette');
+                crimsonBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+                paletteMenu.appendChild(crimsonBtn);
+            }
+            if (!paletteMenu.querySelector('[data-palette="nulled"]')) {
+                const nulledBtn = document.createElement('button');
+                nulledBtn.className = 'palette-option-btn nulled';
+                nulledBtn.dataset.palette = 'nulled';
+                nulledBtn.title = 'Nulled Palette';
+                nulledBtn.setAttribute('aria-label', 'Nulled Palette');
+                nulledBtn.innerHTML = '<span style="display: block; width: 100%; height: 100%; border-radius: 50%;"></span>';
+                paletteMenu.appendChild(nulledBtn);
+            }
         }
         
         this.updateMenuActiveState(activePalette);
@@ -192,6 +240,8 @@ class PaletteService {
             iconPath = 'assets/images/icons/Dark Palette Icon.png';
         } else if (palette === 'crimson') {
             iconPath = 'assets/images/icons/Red Palette Icon.png';
+        } else if (palette === 'nulled') {
+            iconPath = 'assets/images/icons/Purple Palette Icon.png';
         }
         let img = iconSpan.querySelector('img');
         if (img) {
@@ -219,6 +269,7 @@ class PaletteService {
 
     changePalette(palette) {
         const normalized = normalizeSavedPalette(palette);
+        const previousPalette = normalizeSavedPalette(localStorage.getItem('colorPalette'));
         applyPaletteBodyClasses(normalized);
         updateHeaderWebsiteLogo(normalized);
         
@@ -227,15 +278,12 @@ class PaletteService {
         
         const isGray = normalized === 'gray';
         const isCrimson = normalized === 'crimson';
+        const isNulled = normalized === 'nulled';
         
         if (window.globeController && window.globeController.globeView) {
-            const texturePath = isGray ? MAP_TEXTURE_GRAY : (isCrimson ? MAP_TEXTURE_CRIMSON : MAP_TEXTURE_BLUE);
-            window.globeController.globeView.changeGlobeTexture(texturePath);
-            
-            const moonTexturePath = isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
-            const marsTexturePath = isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
-            window.globeController.globeView.changeMoonTexture(moonTexturePath);
-            window.globeController.globeView.changeMarsTexture(marsTexturePath);
+            window.globeController.globeView.changeGlobeTexture(texturePathForPalette('map', normalized));
+            window.globeController.globeView.changeMoonTexture(texturePathForPalette('moon', normalized));
+            window.globeController.globeView.changeMarsTexture(texturePathForPalette('mars', normalized));
 
             if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
                 window.globeController.globeView.updateRimGlowPalette(normalized);
@@ -243,7 +291,7 @@ class PaletteService {
         }
         
         if (window.globeController && window.globeController.sceneModel) {
-            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : 0x050d18);
+            const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : (isNulled ? 0x100818 : 0x050d18));
             window.globeController.sceneModel.setBackgroundColor(bgColor);
         }
 
@@ -264,6 +312,10 @@ class PaletteService {
                     window.SoundEffectsManager.play('colorChange');
                 }, 100);
             }
+        }
+
+        if (window.MusicPaletteDefaultHelpers && window.MusicPaletteDefaultHelpers.notifyMusicDefaultPaletteChange) {
+            window.MusicPaletteDefaultHelpers.notifyMusicDefaultPaletteChange(previousPalette, normalized);
         }
         
         this.closeMenu();

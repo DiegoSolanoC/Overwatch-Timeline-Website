@@ -10,6 +10,9 @@ export const MOBILE_BREAKPOINT = 768;
 export const MOBILE_PORTRAIT_ZOOM = 5.5;
 export const DEFAULT_ZOOM = 3.5;
 
+const FULL_TEXT_LABEL_OFF = 'Full Text Display';
+const FULL_TEXT_LABEL_ON = 'Split View';
+
 /**
  * Check if device is mobile
  * @returns {boolean}
@@ -32,6 +35,57 @@ export function isMobilePortrait() {
  */
 export function getDefaultZoom() {
     return isMobilePortrait() ? MOBILE_PORTRAIT_ZOOM : DEFAULT_ZOOM;
+}
+
+/**
+ * Reset mobile full-text sheet mode (class + toggle label).
+ */
+export function resetMobileFullTextUi() {
+    const slide = document.getElementById('eventSlide');
+    const btn = document.getElementById('eventFullTextToggle');
+    if (slide) {
+        slide.classList.remove('event-slide--mobile-full-text');
+    }
+    if (btn) {
+        btn.setAttribute('aria-pressed', 'false');
+        btn.textContent = FULL_TEXT_LABEL_OFF;
+    }
+}
+
+function ensureMobileFullTextViewportListener() {
+    if (typeof window === 'undefined' || window.__mobileFullTextViewportBound) {
+        return;
+    }
+    window.__mobileFullTextViewportBound = true;
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > MOBILE_BREAKPOINT) {
+            resetMobileFullTextUi();
+        }
+    });
+}
+
+/**
+ * One-time click + viewport wiring for "Full Text Display" (mobile-only UI).
+ */
+export function setupMobileFullTextToggleButton() {
+    const btn = document.getElementById('eventFullTextToggle');
+    const slide = document.getElementById('eventSlide');
+    if (!btn || !slide) {
+        return;
+    }
+    if (btn.dataset.fullTextToggleBound !== 'true') {
+        btn.dataset.fullTextToggleBound = 'true';
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!isMobile()) {
+                return;
+            }
+            const on = slide.classList.toggle('event-slide--mobile-full-text');
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            btn.textContent = on ? FULL_TEXT_LABEL_ON : FULL_TEXT_LABEL_OFF;
+        });
+    }
+    ensureMobileFullTextViewportListener();
 }
 
 /**
@@ -89,6 +143,8 @@ export function setupMobileEventSlide() {
  * Cleanup mobile-specific DOM manipulations when closing event slide
  */
 export function cleanupMobileEventSlide() {
+    resetMobileFullTextUi();
+
     if (!isMobile()) return;
 
     const scrollableArea = document.getElementById('eventSlideScrollable');

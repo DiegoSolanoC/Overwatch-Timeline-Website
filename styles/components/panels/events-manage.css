@@ -2,16 +2,16 @@
    EVENTS MANAGE PANEL
    ======================================== */
 
-/* Event Management Panel */
+/* Event Management Panel (width + off-screen offset from variables — same pattern as filters panel) */
 .events-manage-panel {
     position: fixed;
-    right: -900px;
-    top: 60px;
+    right: calc(-1 * var(--user-panel-events-manage-width, var(--panel-events-manage-width)));
+    top: var(--header-height);
     bottom: var(--footer-height);
-    width: 900px;
+    width: var(--user-panel-events-manage-width, var(--panel-events-manage-width));
     background: #0a1929; /* Dark blue for default blue palette */
     box-shadow: none !important;
-    transition: right 0.3s ease;
+    transition: right var(--panel-transition);
     z-index: 200;
     overflow-y: auto;
     color: white;
@@ -22,9 +22,9 @@
 }
 
 /* Mobile: Override desktop right position to ensure smooth transition */
-@media (max-width: 768px) {
+@media (max-width: var(--breakpoint-mobile)) {
     .events-manage-panel {
-        right: -100% !important; /* Start at -100% on mobile, not -900px */
+        right: -100% !important; /* Full-width slide; off-screen = -100% */
     }
 }
 
@@ -195,13 +195,14 @@ body.color-palette-gray .events-manage-title {
     max-width: none;
 }
 
-/* Use full width on row 2; push Clear to the far right. */
-/* Use full width on row 2; distribute 4 controls evenly. */
+/* Row 2: keep controls compact; extra width goes to row 1 search fields, not stretched widgets */
 .events-manage-search-row--secondary {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-items: center;
+    gap: 10px 20px;
+    width: 100%;
+    justify-content: flex-start;
 }
 
 .events-per-page-group {
@@ -214,12 +215,6 @@ body.color-palette-gray .events-manage-title {
 @media (max-width: 768px) {
     .events-manage-search-row--primary {
         flex-wrap: wrap;
-    }
-    .events-manage-search-row--secondary {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        justify-items: unset;
     }
 }
 .events-search-label {

@@ -46,21 +46,29 @@ export function createCelestialPlane({ texturePath, textureLoader, renderer, siz
 }
 
 /**
- * Gets texture path for Moon based on color palette
- * @param {boolean} isGray - Whether gray palette is active
+ * Gets texture path for Moon based on color palette key
+ * @param {'blue'|'gray'|'crimson'|'nulled'} palette - Active palette
  * @returns {string} - Texture path
  */
-export function getMoonTexturePath(isGray) {
-    return isGray ? 'assets/images/misc/Moon_Dark.png' : 'assets/images/misc/Moon.png';
+export function getMoonTexturePath(palette = 'blue') {
+    const p = String(palette).toLowerCase();
+    if (p === 'gray') return 'assets/images/misc/Moon_Dark.png';
+    if (p === 'crimson') return 'assets/images/misc/Moon_Crimson.png';
+    if (p === 'nulled') return 'assets/images/misc/Moon_Nulled.png';
+    return 'assets/images/misc/Moon.png';
 }
 
 /**
- * Gets texture path for Mars based on color palette
- * @param {boolean} isGray - Whether gray palette is active
+ * Gets texture path for Mars based on color palette key
+ * @param {'blue'|'gray'|'crimson'|'nulled'} palette - Active palette
  * @returns {string} - Texture path
  */
-export function getMarsTexturePath(isGray) {
-    return isGray ? 'assets/images/misc/Mars_Dark.png' : 'assets/images/misc/Mars.png';
+export function getMarsTexturePath(palette = 'blue') {
+    const p = String(palette).toLowerCase();
+    if (p === 'gray') return 'assets/images/misc/Mars_Dark.png';
+    if (p === 'crimson') return 'assets/images/misc/Mars_Crimson.png';
+    if (p === 'nulled') return 'assets/images/misc/Mars_Nulled.png';
+    return 'assets/images/misc/Mars.png';
 }
 
 // Make available globally for script tag loading

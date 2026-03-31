@@ -1,5 +1,6 @@
 {
   "heroes": [
+    "51",
     "Ana",
     "Anran",
     "Ashe",
@@ -225,10 +226,6 @@
   ],
   "music": [
     {
-      "filename": "Winston's Desk.mp3",
-      "name": "Winston's Desk"
-    },
-    {
       "filename": "A New Era.mp3",
       "name": "A New Era"
     },
@@ -237,8 +234,52 @@
       "name": "Answering the Call"
     },
     {
+      "filename": "Ayutthaya.mp3",
+      "name": "Ayutthaya"
+    },
+    {
+      "filename": "Blizzard World.mp3",
+      "name": "Blizzard World"
+    },
+    {
+      "filename": "Busan.mp3",
+      "name": "Busan"
+    },
+    {
+      "filename": "Château Guillard.mp3",
+      "name": "Château Guillard"
+    },
+    {
       "filename": "Colosseo.mp3",
       "name": "Colosseo"
+    },
+    {
+      "filename": "Dorado.mp3",
+      "name": "Dorado"
+    },
+    {
+      "filename": "Eichenwalde.mp3",
+      "name": "Eichenwalde"
+    },
+    {
+      "filename": "Hanamura.mp3",
+      "name": "Hanamura"
+    },
+    {
+      "filename": "Havana.mp3",
+      "name": "Havana"
+    },
+    {
+      "filename": "Hollywood.mp3",
+      "name": "Hollywood"
+    },
+    {
+      "filename": "Horizon Lunar Colony.mp3",
+      "name": "Horizon Lunar Colony"
+    },
+    {
+      "filename": "Ilios.mp3",
+      "name": "Ilios"
     },
     {
       "filename": "Illari's Theme.mp3",
@@ -249,8 +290,16 @@
       "name": "Juno's Theme"
     },
     {
+      "filename": "King’s Row.mp3",
+      "name": "King’s Row"
+    },
+    {
       "filename": "Lifeweaver's Theme.mp3",
       "name": "Lifeweaver's Theme"
+    },
+    {
+      "filename": "Lijiang Tower.mp3",
+      "name": "Lijiang Tower"
     },
     {
       "filename": "Loverwatch.mp3",
@@ -269,16 +318,64 @@
       "name": "Midtown"
     },
     {
+      "filename": "Nepal.mp3",
+      "name": "Nepal"
+    },
+    {
+      "filename": "Null Sector.mp3",
+      "name": "Null Sector"
+    },
+    {
+      "filename": "Numbani.mp3",
+      "name": "Numbani"
+    },
+    {
+      "filename": "Oasis.mp3",
+      "name": "Oasis"
+    },
+    {
       "filename": "Paraiso.mp3",
       "name": "Paraiso"
+    },
+    {
+      "filename": "Paris.mp3",
+      "name": "Paris"
+    },
+    {
+      "filename": "Rialto.mp3",
+      "name": "Rialto"
+    },
+    {
+      "filename": "Route 66.mp3",
+      "name": "Route 66"
     },
     {
       "filename": "Suravasa Market.mp3",
       "name": "Suravasa Market"
     },
     {
+      "filename": "Temple of Anubis.mp3",
+      "name": "Temple of Anubis"
+    },
+    {
       "filename": "The Wastelander.mp3",
       "name": "The Wastelander"
+    },
+    {
+      "filename": "The Wolf's Talon.mp3",
+      "name": "The Wolf's Talon"
+    },
+    {
+      "filename": "Volskaya Industries.mp3",
+      "name": "Volskaya Industries"
+    },
+    {
+      "filename": "Watchpoint Gibraltar.mp3",
+      "name": "Watchpoint Gibraltar"
+    },
+    {
+      "filename": "Winston's Desk.mp3",
+      "name": "Winston's Desk"
     },
     {
       "filename": "Wrecking Ball's Theme.mp3",

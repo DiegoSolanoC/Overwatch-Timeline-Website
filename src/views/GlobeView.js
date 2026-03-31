@@ -29,6 +29,10 @@ export class GlobeView {
             nextSpawnSec: 0,
             maxActive: 6
         };
+        // Reused in updateShootingStars (avoid per-frame Vector3 allocations)
+        this._ssCamDir = new THREE.Vector3();
+        this._ssCurveAxis = new THREE.Vector3();
+        this._ssWorldUp = new THREE.Vector3(0, 1, 0);
     }
 
     /**
@@ -43,9 +47,11 @@ export class GlobeView {
         const savedPalette = localStorage.getItem('colorPalette');
         const isGray = savedPalette === 'gray';
         const isCrimson = savedPalette === 'crimson';
+        const isNulled = savedPalette === 'nulled';
+        const paletteKey = isGray ? 'gray' : (isCrimson ? 'crimson' : (isNulled ? 'nulled' : 'blue'));
         const initialTexturePath = isGray
             ? 'assets/images/maps/MAP Black.png'
-            : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : 'assets/images/maps/MAP.png');
+            : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : (isNulled ? 'assets/images/maps/MAP Nulled.png' : 'assets/images/maps/MAP.png'));
         console.log('Initializing globe with palette:', savedPalette || 'blue (default)', 'Texture:', initialTexturePath);
         
         const textureLoader = new THREE.TextureLoader();
@@ -89,8 +95,8 @@ export class GlobeView {
         this.sceneModel.setGlobe(globe);
         scene.add(globe);
 
-        // Rim glow color depends on palette: blue → light blue, gray → white, crimson → warm red.
-        const rimColor = isGray ? 0xffffff : (isCrimson ? 0xff8a80 : 0x6fd3ff);
+        // Rim glow: blue → light blue, gray → white, crimson → warm red, nulled → soft violet.
+        const rimColor = isGray ? 0xffffff : (isCrimson ? 0xff8a80 : (isNulled ? 0xd1b3ff : 0x6fd3ff));
         const rimGlow = createGlobeRimGlowSprite({
             color: rimColor,
             scale: 2.15,
@@ -131,7 +137,8 @@ export class GlobeView {
         const allMapTextures = [
             'assets/images/maps/MAP.png',
             'assets/images/maps/MAP Black.png',
-            'assets/images/maps/MAP Crimson.png'
+            'assets/images/maps/MAP Crimson.png',
+            'assets/images/maps/MAP Nulled.png'
         ];
         allMapTextures.forEach((path) => {
             if (path === initialTexturePath || this.textureCache.has(path)) return;
@@ -146,18 +153,18 @@ export class GlobeView {
             scene,
             textureLoader,
             renderer,
-            isGray,
+            palette: paletteKey,
             sceneModel: this.sceneModel
         });
     }
 
     /**
      * Update rim glow color when palette changes.
-     * @param {string} palette - 'blue' | 'gray' | 'crimson'
+     * @param {string} palette - 'blue' | 'gray' | 'crimson' | 'nulled'
      */
     updateRimGlowPalette(palette) {
         const p = String(palette).toLowerCase();
-        const color = p === 'gray' ? 0xffffff : (p === 'crimson' ? 0xff8a80 : 0x6fd3ff);
+        const color = p === 'gray' ? 0xffffff : (p === 'crimson' ? 0xff8a80 : (p === 'nulled' ? 0xd1b3ff : 0x6fd3ff));
         const s = this._rimGlowSprite;
         if (s && s.material && s.material.color) {
             s.material.color.setHex(color);
@@ -299,10 +306,11 @@ export class GlobeView {
         const isMobile = window.innerWidth <= 768;
         const poolSize = isMobile ? 4 : 6;
         this._shootingStars.maxActive = poolSize;
+        const trailPointCount = isMobile ? 14 : 22;
 
         const makeStar = () => {
             const geom = new THREE.BufferGeometry();
-            const arr = new Float32Array(6); // 2 points * 3
+            const arr = new Float32Array(trailPointCount * 3);
             geom.setAttribute('position', new THREE.BufferAttribute(arr, 3));
             const mat = new THREE.LineBasicMaterial({
                 color: 0xffffff,
@@ -314,19 +322,28 @@ export class GlobeView {
             });
             const line = new THREE.Line(geom, mat);
             line.visible = false;
-            line.frustumCulled = true;
+            line.frustumCulled = false;
             group.add(line);
+            const trailPts = [];
+            for (let i = 0; i < trailPointCount; i++) {
+                trailPts.push(new THREE.Vector3());
+            }
             return {
                 line,
                 geom,
                 mat,
+                trailPointCount,
+                trailPts,
                 active: false,
                 age: 0,
                 duration: 1,
                 speed: 20,
-                length: 6,
                 head: new THREE.Vector3(),
-                dir: new THREE.Vector3()
+                dir: new THREE.Vector3(),
+                /** Radians per second; bend axis is built from dir × view each frame */
+                curvatureRadPerSec: 0,
+                /** Slow change of curvature so arcs are not perfectly circular */
+                curvatureDriftRadPerSec2: 0
             };
         };
 
@@ -356,7 +373,21 @@ export class GlobeView {
         camera.getWorldDirection(camDir);
         camDir.normalize();
 
-        // Build a screen-plane basis (right/up vectors).
+        const mapView = this.sceneModel.getMapViewEnabled
+            ? this.sceneModel.getMapViewEnabled()
+            : !!this.sceneModel.isMapView;
+
+        // Globe: sky cap = from camera toward world origin (matches starfield shell). Map: use view axis (lookAt is not toward origin).
+        let spawnBase;
+        if (mapView) {
+            spawnBase = camDir.clone();
+        } else {
+            spawnBase = camera.position.clone();
+            if (spawnBase.lengthSq() < 1e-8) return;
+            spawnBase.normalize().negate();
+        }
+
+        // Build a screen-plane basis (right/up) from view direction for streak motion and spread.
         const worldUp = new THREE.Vector3(0, 1, 0);
         let right = new THREE.Vector3().crossVectors(camDir, worldUp);
         if (right.lengthSq() < 1e-6) {
@@ -366,9 +397,9 @@ export class GlobeView {
         }
         const up = new THREE.Vector3().crossVectors(right, camDir).normalize();
 
-        // Spawn direction: near the center of view (behind the globe), with small spread.
+        // Spawn on the shell facing the camera (behind the globe), with small angular spread.
         const spread = 0.35;
-        const spawnDir = camDir.clone()
+        const spawnDir = spawnBase.clone()
             .addScaledVector(right, (Math.random() * 2 - 1) * spread)
             .addScaledVector(up, (Math.random() * 2 - 1) * spread)
             .normalize();
@@ -385,7 +416,15 @@ export class GlobeView {
         star.age = 0;
         star.duration = 0.7 + Math.random() * 0.7;
         star.speed = 18 + Math.random() * 18;
-        star.length = 5 + Math.random() * 8;
+
+        for (let i = 0; i < star.trailPointCount; i++) {
+            star.trailPts[i].copy(star.head);
+        }
+
+        // Randomized in-plane bend (sign + strength); drift stops identical arcs
+        const curveMag = 0.35 + Math.random() * 1.85;
+        star.curvatureRadPerSec = (Math.random() < 0.5 ? -1 : 1) * curveMag;
+        star.curvatureDriftRadPerSec2 = (Math.random() * 2 - 1) * 0.9;
 
         // Slightly tint some streaks cooler for variety
         const tint = 0.92 + Math.random() * 0.08;
@@ -397,11 +436,14 @@ export class GlobeView {
     }
 
     _updateShootingStarGeometry(star, alpha) {
-        const tail = new THREE.Vector3().copy(star.head).addScaledVector(star.dir, -star.length);
         const pos = star.geom.attributes.position.array;
-        // tail -> head
-        pos[0] = tail.x; pos[1] = tail.y; pos[2] = tail.z;
-        pos[3] = star.head.x; pos[4] = star.head.y; pos[5] = star.head.z;
+        const n = star.trailPointCount;
+        for (let i = 0; i < n; i++) {
+            const p = star.trailPts[i];
+            pos[i * 3] = p.x;
+            pos[i * 3 + 1] = p.y;
+            pos[i * 3 + 2] = p.z;
+        }
         star.geom.attributes.position.needsUpdate = true;
         star.mat.opacity = alpha;
     }
@@ -413,6 +455,11 @@ export class GlobeView {
         if (!this._shootingStars.group) return;
         const dt = Number.isFinite(deltaSec) ? Math.max(0, deltaSec) : 0;
         if (dt <= 0) return;
+
+        const camera = this.sceneModel.getCamera();
+        const camDir = this._ssCamDir;
+        const curveAxis = this._ssCurveAxis;
+        const worldUp = this._ssWorldUp;
 
         // Update active streaks
         for (const s of this._shootingStars.pool) {
@@ -426,8 +473,45 @@ export class GlobeView {
                 continue;
             }
 
-            // Move
+            // Bend path: rotate velocity in the plane perpendicular to (dir × view)
+            if (camera) {
+                camera.getWorldDirection(camDir);
+                curveAxis.crossVectors(s.dir, camDir);
+                if (curveAxis.lengthSq() < 1e-10) {
+                    curveAxis.crossVectors(s.dir, worldUp);
+                }
+                curveAxis.normalize();
+
+                s.curvatureRadPerSec += s.curvatureDriftRadPerSec2 * dt;
+                s.curvatureRadPerSec = Math.max(-2.8, Math.min(2.8, s.curvatureRadPerSec));
+
+                const bend = s.curvatureRadPerSec * dt;
+                const c = Math.cos(bend);
+                const sn = Math.sin(bend);
+                const vx = s.dir.x;
+                const vy = s.dir.y;
+                const vz = s.dir.z;
+                const kx = curveAxis.x;
+                const ky = curveAxis.y;
+                const kz = curveAxis.z;
+                const cx = ky * vz - kz * vy;
+                const cy = kz * vx - kx * vz;
+                const cz = kx * vy - ky * vx;
+                s.dir.x = vx * c + cx * sn;
+                s.dir.y = vy * c + cy * sn;
+                s.dir.z = vz * c + cz * sn;
+                s.dir.normalize();
+            }
+
             s.head.addScaledVector(s.dir, s.speed * dt);
+
+            // Polyline trail: shift samples so the smear follows the curved path (tail → head).
+            const pts = s.trailPts;
+            const n = s.trailPointCount;
+            for (let i = 0; i < n - 1; i++) {
+                pts[i].copy(pts[i + 1]);
+            }
+            pts[n - 1].copy(s.head);
 
             // Fade: quick ramp-in then fade out
             let a = 1;
@@ -472,10 +556,12 @@ export class GlobeView {
         const scene = this.sceneModel.getScene();
         const renderer = this.sceneModel.getRenderer();
         const textureLoader = new THREE.TextureLoader();
-        
+        const saved = localStorage.getItem('colorPalette');
+        const paletteKey = saved === 'gray' ? 'gray' : (saved === 'crimson' ? 'crimson' : (saved === 'nulled' ? 'nulled' : 'blue'));
+
         // Create Moon plane
         const moonPlane = createCelestialPlane({
-            texturePath: 'assets/images/misc/Moon.png',
+            texturePath: getMoonTexturePath(paletteKey),
             textureLoader,
             renderer,
             size: 1.5,
@@ -487,7 +573,7 @@ export class GlobeView {
         
         // Create Mars plane
         const marsPlane = createCelestialPlane({
-            texturePath: 'assets/images/misc/Mars.png',
+            texturePath: getMarsTexturePath(paletteKey),
             textureLoader,
             renderer,
             size: 1.5,

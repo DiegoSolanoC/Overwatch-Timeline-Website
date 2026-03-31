@@ -4,6 +4,50 @@
 // - Manages loading overlay lifecycle
 // - Sets up zoom controls visibility and click behavior
 
+const WELCOME_SFX_URL = 'assets/audio/sfx/Welcome.mp3';
+/** ms after overlay is shown — lets the screen settle before the greeting. */
+const WELCOME_SFX_DELAY_MS = 650;
+/** Quieter than typical UI SFX; scales with Sound Effects volume slider. */
+const WELCOME_SFX_VOLUME_SCALE = 0.38;
+const WELCOME_SFX_VOLUME_CAP = 0.28;
+
+/** One-shot greeting during the loading overlay; runs before universal features / globe load. */
+function playWelcomeLoadingSoundOnce() {
+    if (typeof window !== 'undefined' && window.__welcomeLoadingSfxScheduled) {
+        return;
+    }
+    if (typeof window !== 'undefined') {
+        window.__welcomeLoadingSfxScheduled = true;
+    }
+    window.setTimeout(function () {
+        try {
+            const audio = new Audio(WELCOME_SFX_URL);
+            audio.preload = 'auto';
+            const sfx = typeof window !== 'undefined' ? window.SoundEffectsManager : null;
+            const base = sfx && typeof sfx.volume === 'number' && !isNaN(sfx.volume) ? sfx.volume : 0.55;
+            const vol = Math.max(0.05, Math.min(WELCOME_SFX_VOLUME_CAP, base * WELCOME_SFX_VOLUME_SCALE));
+            audio.volume = vol;
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(function () {
+                    /* Autoplay policy — optional one retry after user gesture */
+                    const retry = function () {
+                        document.removeEventListener('click', retry, true);
+                        document.removeEventListener('keydown', retry, true);
+                        document.removeEventListener('touchstart', retry, true);
+                        audio.play().catch(function () {});
+                    };
+                    document.addEventListener('click', retry, { capture: true, once: true });
+                    document.addEventListener('keydown', retry, { capture: true, once: true });
+                    document.addEventListener('touchstart', retry, { capture: true, once: true });
+                });
+            }
+        } catch (_) {
+            /* ignore */
+        }
+    }, WELCOME_SFX_DELAY_MS);
+}
+
 // Detect if we're running on GitHub Pages (or similar static hosting)
 function isGitHubPages() {
     const hostname = window.location.hostname;
@@ -45,6 +89,9 @@ window.addEventListener('DOMContentLoaded', function () {
     if (loadingOverlay) {
         loadingOverlay.classList.add('active');
     }
+
+    // Greeting — first feedback that the session is booting (before heavy loads / music).
+    playWelcomeLoadingSoundOnce();
 
     // Update loading status using overlayStatusContent
     function updateLoadingStatus(message) {
@@ -234,13 +281,39 @@ if (document.readyState === 'loading') {
 }
 
 // Zoom controls setup (shared between main/index pages)
+// Guard: this function may run twice (DOMContentLoaded + delayed globe-ready poll).
+// Without a guard, click handlers, MutationObservers, and intervals stack forever.
+let zoomControlsLifecycleInitialized = false;
+
 function setupZoomControls() {
     const zoomInBtn = document.getElementById('zoomInBtn');
     const zoomResetBtn = document.getElementById('zoomResetBtn');
     const zoomOutBtn = document.getElementById('zoomOutBtn');
     const zoomControls = document.getElementById('zoomControls');
 
-    if (zoomInBtn && zoomOutBtn) {
+    function updateZoomControlsVisibility() {
+        if (!zoomControls) return;
+
+        const globeContainer = document.getElementById('globe-container');
+        const testContainer = document.querySelector('.test-container');
+
+        const globeLoaded = globeContainer && globeContainer.classList.contains('loaded');
+        const menuVisible = testContainer &&
+            testContainer.style.display !== 'none' &&
+            testContainer.style.opacity !== '0' &&
+            window.getComputedStyle(testContainer).display !== 'none' &&
+            parseFloat(window.getComputedStyle(testContainer).opacity) > 0;
+
+        if (globeLoaded && !menuVisible) {
+            zoomControls.classList.add('visible');
+        } else {
+            zoomControls.classList.remove('visible');
+        }
+    }
+
+    if (zoomInBtn && zoomOutBtn && !zoomControlsLifecycleInitialized) {
+        zoomControlsLifecycleInitialized = true;
+
         zoomInBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -269,46 +342,21 @@ function setupZoomControls() {
                 window.globeController.interactionController.zoomOut();
             }
         });
-    }
-
-    // Function to update zoom controls visibility
-    function updateZoomControlsVisibility() {
-        if (!zoomControls) return;
 
         const globeContainer = document.getElementById('globe-container');
         const testContainer = document.querySelector('.test-container');
-
-        // Show zoom controls only when globe is loaded and menu is hidden
-        const globeLoaded = globeContainer && globeContainer.classList.contains('loaded');
-        const menuVisible = testContainer &&
-            testContainer.style.display !== 'none' &&
-            testContainer.style.opacity !== '0' &&
-            window.getComputedStyle(testContainer).display !== 'none' &&
-            parseFloat(window.getComputedStyle(testContainer).opacity) > 0;
-
-        if (globeLoaded && !menuVisible) {
-            zoomControls.classList.add('visible');
-        } else {
-            zoomControls.classList.remove('visible');
+        const observer = new MutationObserver(updateZoomControlsVisibility);
+        if (globeContainer) {
+            observer.observe(globeContainer, { attributes: true, attributeFilter: ['class', 'style'] });
         }
+        if (testContainer) {
+            observer.observe(testContainer, { attributes: true, attributeFilter: ['style'] });
+        }
+
+        setInterval(updateZoomControlsVisibility, 500);
     }
 
-    // Update visibility initially and on changes
     updateZoomControlsVisibility();
-
-    // Watch for changes to globe container and test container
-    const globeContainer = document.getElementById('globe-container');
-    const testContainer = document.querySelector('.test-container');
-    const observer = new MutationObserver(updateZoomControlsVisibility);
-    if (globeContainer) {
-        observer.observe(globeContainer, { attributes: true, attributeFilter: ['class', 'style'] });
-    }
-    if (testContainer) {
-        observer.observe(testContainer, { attributes: true, attributeFilter: ['style'] });
-    }
-
-    // Also check periodically (fallback)
-    setInterval(updateZoomControlsVisibility, 500);
 }
 
 // Initialize zoom controls when DOM is ready
@@ -329,28 +377,23 @@ const checkGlobeAndSetupZoom = setInterval(() => {
 // Clear interval after 10 seconds to avoid infinite checking
 setTimeout(() => clearInterval(checkGlobeAndSetupZoom), 10000);
 
-/** Center header badge → official site: confirm then open (same Confirm styling as filters). */
-function setupOfficialSiteLinkConfirm() {
+/** Center header badge → official site: same SFX as filters Confirm, then normal link (new tab). */
+function setupOfficialSiteLinkSound() {
     const badge = document.getElementById('headerTitleBadge');
-    if (!badge || badge.dataset.externalConfirmBound === '1') return;
+    if (!badge || badge.dataset.officialSiteSoundBound === '1') return;
     const href = badge.getAttribute('href');
     if (!href || href === '#') return;
-    badge.dataset.externalConfirmBound = '1';
-    import('../utils/ExternalLinkConfirm.js')
-        .then(({ openExternalUrlAfterConfirm }) => {
-            badge.addEventListener('click', (e) => {
-                e.preventDefault();
-                openExternalUrlAfterConfirm(href, {
-                    title: 'Open official website?',
-                    body: 'You will leave this timeline and open the official Overwatch website in a new tab.'
-                });
-            });
-        })
-        .catch((err) => console.warn('External link confirm not available:', err));
+    badge.dataset.officialSiteSoundBound = '1';
+    badge.addEventListener('click', () => {
+        const sfx = window.SoundEffectsManager;
+        if (sfx && typeof sfx.play === 'function') {
+            sfx.play('filterConfirm');
+        }
+    });
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupOfficialSiteLinkConfirm);
+    document.addEventListener('DOMContentLoaded', setupOfficialSiteLinkSound);
 } else {
-    setupOfficialSiteLinkConfirm();
+    setupOfficialSiteLinkSound();
 }

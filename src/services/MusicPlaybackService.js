@@ -155,9 +155,15 @@ class MusicPlaybackService {
             const nextIndex = (currentSongIndex + 1) % shuffleQueue.length;
             return shuffleQueue[nextIndex];
         } else {
-            // If not shuffling, play default music (Winston's Desk)
             if (this.musicFiles.length === 0) return null;
-            const winstonsDesk = this.musicFiles.find(s => 
+            const H = (typeof window !== 'undefined' && window.MusicPaletteDefaultHelpers)
+                ? window.MusicPaletteDefaultHelpers
+                : null;
+            if (H) {
+                const pal = H.getActiveMusicPaletteKey();
+                return H.findDefaultMusicForPalette(this.musicFiles, pal);
+            }
+            const winstonsDesk = this.musicFiles.find(s =>
                 s.name.toLowerCase().includes('winston') || s.name.toLowerCase().includes('desk')
             );
             return winstonsDesk || this.musicFiles[0];

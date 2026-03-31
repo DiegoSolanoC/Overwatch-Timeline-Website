@@ -27,7 +27,11 @@ export class ImageOverlayManager {
         const imageToggleBtn = document.getElementById('eventImageToggle');
         
         if (!eventImageOverlay) return;
-        
+
+        if (window.SoundEffectsManager) {
+            window.SoundEffectsManager.play('switchMap');
+        }
+
         // Toggle the state
         this.imageToggleState = !this.imageToggleState;
         
@@ -134,6 +138,15 @@ export class ImageOverlayManager {
      * @param {boolean} disable - True to disable buttons, false to enable
      */
     disablePageNavigationButtons(disable) {
+        // Fade-in callbacks schedule disable(true) on timers. If the user closes the slide first,
+        // those callbacks must not re-lock pagination (slide is no longer "open").
+        if (disable) {
+            const slide = document.getElementById('eventSlide');
+            if (!slide || !slide.classList.contains('open')) {
+                return;
+            }
+        }
+
         // Helper function to disable/enable a button with visual feedback
         const setButtonState = (button, isDisabled) => {
             if (!button) return;

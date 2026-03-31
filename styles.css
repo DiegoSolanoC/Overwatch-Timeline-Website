@@ -20,6 +20,9 @@
 /* Crimson Palette Theme Overrides */
 @import url('styles/themes/crimson-palette.css?v=8');
 
+/* Nulled (purple) Palette Theme Overrides */
+@import url('styles/themes/nulled-palette.css?v=8');
+
 /* Animations */
 @import url('styles/animations.css?v=8');
 
@@ -52,3 +55,4 @@
 @import url('styles/components/panels/filters.css?v=8');
 @import url('styles/components/panels/music.css?v=8');
 @import url('styles/components/panels/events-manage.css?v=8');
+@import url('styles/components/panels/panel-resize.css?v=8');

@@ -53,7 +53,8 @@ export class SceneModel {
         const savedPalette = localStorage.getItem('colorPalette');
         const isGray = savedPalette === 'gray';
         const isCrimson = savedPalette === 'crimson';
-        const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : 0x050d18);
+        const isNulled = savedPalette === 'nulled';
+        const bgColor = isGray ? 0x0f0f0f : (isCrimson ? 0x14080c : (isNulled ? 0x100818 : 0x050d18));
         console.log('Initializing scene with palette:', savedPalette || 'blue (default)', 'Background color:', '0x' + bgColor.toString(16));
         this.scene.background = new THREE.Color(bgColor);
 

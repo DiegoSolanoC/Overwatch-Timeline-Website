@@ -24,6 +24,7 @@ class MusicManager {
         this._nowPlayingSwapTimeout = null;
         this._nowPlayingSwapTimeout2 = null;
         this._nowPlayingFollowRafId = null;
+        this._nowPlayingFollowCleanup = null;
         this.musicStateSaveTimeout = null;
         this.stateService = null;
         this.shuffleService = null;
@@ -123,17 +124,41 @@ class MusicManager {
 
     _startNowPlayingBadgeFollow() {
         this._stopNowPlayingBadgeFollow();
-        const tick = () => {
-            if (!this.nowPlayingBadge) return;
-            if (!this.nowPlayingBadge.classList.contains('music-now-playing-badge--visible')) return;
-            this._positionNowPlayingBadge();
-            this._nowPlayingFollowRafId = requestAnimationFrame(tick);
+        this._positionNowPlayingBadge();
+        let pending = null;
+        const schedule = () => {
+            if (pending != null) return;
+            pending = requestAnimationFrame(() => {
+                pending = null;
+                if (!this.nowPlayingBadge || !this.nowPlayingBadge.classList.contains('music-now-playing-badge--visible')) {
+                    return;
+                }
+                this._positionNowPlayingBadge();
+            });
         };
-        this._nowPlayingFollowRafId = requestAnimationFrame(tick);
+        const onScroll = () => schedule();
+        const onResize = () => schedule();
+        window.addEventListener('scroll', onScroll, true);
+        window.addEventListener('resize', onResize);
+        const hub = this.musicButton && this.musicButton.closest ? this.musicButton.closest('.header-hub') : null;
+        if (hub) hub.addEventListener('scroll', onScroll);
+        this._nowPlayingFollowCleanup = () => {
+            window.removeEventListener('scroll', onScroll, true);
+            window.removeEventListener('resize', onResize);
+            if (hub) hub.removeEventListener('scroll', onScroll);
+            if (pending != null) {
+                cancelAnimationFrame(pending);
+                pending = null;
+            }
+        };
     }
 
     _stopNowPlayingBadgeFollow() {
         try {
+            if (this._nowPlayingFollowCleanup) {
+                this._nowPlayingFollowCleanup();
+                this._nowPlayingFollowCleanup = null;
+            }
             if (this._nowPlayingFollowRafId) cancelAnimationFrame(this._nowPlayingFollowRafId);
         } catch (_) {}
         this._nowPlayingFollowRafId = null;
@@ -311,6 +336,7 @@ class MusicManager {
             console.warn('MusicManagerInitHelpers not loaded');
             return function () {};
         })();
+        this._playMusic = playMusic;
         var playNextSong = H.createPlayNextSong ? H.createPlayNextSong(this, playMusic) : function () {};
 
         if (H.setupFadeAndEndBehavior) {
@@ -450,6 +476,33 @@ class MusicManager {
 
         if (H.loadMusicFiles) {
             H.loadMusicFiles(this, playMusic);
+        }
+    }
+
+    /**
+     * If shuffle is off and the current track is the previous palette's default, switch to this palette's default.
+     */
+    onPaletteChanged(previousPalette, newPalette) {
+        const H = typeof window !== 'undefined' ? window.MusicPaletteDefaultHelpers : null;
+        if (!H || !this.initialized) return;
+        if (!this.musicFiles || this.musicFiles.length === 0) return;
+        const prev = H.normalizePaletteKey(previousPalette);
+        const next = H.normalizePaletteKey(newPalette);
+        if (prev === next) return;
+
+        if (!this.shuffleService || !this.shuffleService.isShuffling) {
+            if (H.currentPathIsPaletteDefault(this.currentSong, this.musicFiles, prev)) {
+                const nextEntry = H.findDefaultMusicForPalette(this.musicFiles, next);
+                if (nextEntry && this._playMusic && !H.pathMatchesMusicFile(this.currentSong, nextEntry)) {
+                    this._playMusic(H.musicPathForEntry(nextEntry));
+                    this.updateNowPlaying();
+                    this.saveMusicState();
+                }
+            }
+        }
+
+        if (typeof this.createMusicButtons === 'function') {
+            this.createMusicButtons();
         }
     }
 }

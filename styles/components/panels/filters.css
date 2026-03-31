@@ -5,10 +5,10 @@
 /* Filters Panel (right side) */
 .filters-panel {
     position: fixed;
-    right: calc(-1 * var(--panel-filters-width));
+    right: calc(-1 * var(--user-panel-filters-width, var(--panel-filters-width)));
     top: var(--header-height);
     bottom: var(--footer-height);
-    width: var(--panel-filters-width);
+    width: var(--user-panel-filters-width, var(--panel-filters-width));
     background: var(--bg-secondary); /* Dark blue for default blue palette */
     box-shadow: none !important; /* Remove shadow to prevent overlap */
     transition: right var(--panel-transition);
@@ -196,7 +196,8 @@ body.color-palette-gray .filter-tab.active .filter-count {
 
 .filters-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    /* Extra panel width adds columns (~5 at default width), not stretched tiles */
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px; /* Reduced spacing between buttons */
     margin-bottom: 15px;
     margin-top: 8px;
