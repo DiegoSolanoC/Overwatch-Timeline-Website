@@ -299,8 +299,8 @@ body.color-palette-gray .music-mute-btn:hover {
 }
 
 @media (max-width: 768px) {
-    /* Music badge only; event hover preview stays available on small screens */
-    .music-now-playing-badge:not(.events-hover-preview-badge) {
+    /* Passive under-button badges: music title + event hover (# / name) — hidden on small screens (same policy) */
+    .music-now-playing-badge {
         display: none !important;
     }
 }

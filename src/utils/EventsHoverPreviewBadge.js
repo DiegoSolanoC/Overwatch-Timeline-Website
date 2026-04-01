@@ -116,6 +116,11 @@ export function getHoverPreviewLines(eventObj) {
  */
 export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles) {
     try {
+        if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+            return;
+        }
+    } catch (_) {}
+    try {
         const panel = document.getElementById('eventsManagePanel');
         if (panel && panel.classList.contains('open')) return;
     } catch (_) {}

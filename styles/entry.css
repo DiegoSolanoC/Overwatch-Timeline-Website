@@ -301,7 +301,8 @@ body.color-palette-gray .main-menu-label-container {
     height: 50px;
     border-radius: 8px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    background: rgba(13, 71, 161, 0.9);
+    /* Uses palette tokens (blue default; gray / crimson / nulled from body.color-palette-*) */
+    background: var(--btn-primary-bg);
     color: white;
     font-size: 32px;
     font-weight: bold;
@@ -317,7 +318,7 @@ body.color-palette-gray .main-menu-label-container {
 }
 
 .zoom-btn:hover:not(:disabled) {
-    background: rgba(13, 71, 161, 1);
+    background: var(--btn-primary-bg-hover);
     border-color: rgba(255, 255, 255, 0.6);
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -331,23 +332,6 @@ body.color-palette-gray .main-menu-label-container {
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
-}
-
-/* Crimson palette: red zoom */
-body.color-palette-crimson .zoom-btn {
-    background: rgba(183, 28, 28, 0.9) !important;
-}
-
-body.color-palette-crimson .zoom-btn:hover:not(:disabled) {
-    background: rgba(211, 47, 47, 1) !important;
-}
-
-body.color-palette-nulled .zoom-btn {
-    background: rgba(81, 45, 168, 0.92) !important;
-}
-
-body.color-palette-nulled .zoom-btn:hover:not(:disabled) {
-    background: rgba(103, 58, 183, 1) !important;
 }
 
 .zoom-in-btn {
