@@ -3151,7 +3151,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "03Talon"
+        "18Max's Vault"
       ],
       "lat": 43.7402961,
       "lon": 7.426559,
@@ -3439,8 +3439,12 @@
       "cityDisplayName": "Horizon Lunar Colony",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Wrecking Ball"
+      ],
+      "factions": [
+        "07Lucheng"
+      ],
       "x": 60,
       "y": 70
     },
@@ -3450,10 +3454,18 @@
       "cityDisplayName": "Copenhagen, Denmark",
       "description": "",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Freja"
+      ],
       "factions": [],
       "lat": 55.6867243,
-      "lon": 12.5700724
+      "lon": 12.5700724,
+      "sources": [
+        {
+          "text": "Storm Chaser",
+          "url": "https://overwatch.blizzard.com/en-us/media/comic/freja-comic/"
+        }
+      ]
     },
     {
       "name": "Project Echo Goes Online",
@@ -3461,7 +3473,9 @@
       "cityDisplayName": "Oslo, Norway",
       "description": "",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Echo"
+      ],
       "factions": [],
       "lat": 59.9133301,
       "lon": 10.7389701
@@ -3472,10 +3486,20 @@
       "cityDisplayName": "London, United Kingdom",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Tracer"
+      ],
+      "factions": [
+        "00Overwatch"
+      ],
       "lat": 51.5074456,
-      "lon": -0.1277653
+      "lon": -0.1277653,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Taking the Throne",
@@ -3483,10 +3507,20 @@
       "cityDisplayName": "Junkertown, Australia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Junker Queen"
+      ],
+      "factions": [
+        "16Junkers"
+      ],
       "lat": -25,
-      "lon": 135
+      "lon": 135,
+      "sources": [
+        {
+          "text": "The Wastelander",
+          "url": "https://www.youtube.com/watch?v=8-nXN9ZMl8o&t=3s"
+        }
+      ]
     },
     {
       "name": "Biolight",
@@ -3494,8 +3528,12 @@
       "cityDisplayName": "Roshani, India",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Lifeweaver"
+      ],
+      "factions": [
+        "07Lucheng"
+      ],
       "lat": 23.2599,
       "lon": 77.4126
     },
@@ -3505,10 +3543,21 @@
       "cityDisplayName": "Venice, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Doomfist"
+      ],
+      "factions": [
+        "03Talon",
+        "18Numbani"
+      ],
       "lat": 45.4371908,
-      "lon": 12.3345898
+      "lon": 12.3345898,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.youtube.com/watch?v=8-nXN9ZMl8o&t=3s"
+        }
+      ]
     },
     {
       "name": "Pressure Makes a DIamond",
@@ -3516,8 +3565,12 @@
       "cityDisplayName": "London, England",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Domina"
+      ],
+      "factions": [
+        "05Vishkar"
+      ],
       "lat": 51.5074456,
       "lon": -0.1277653
     },
@@ -3528,19 +3581,36 @@
         {
           "name": "Shimada Takedown",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Genji",
+            "Reaper",
+            "Cassidy"
+          ],
+          "factions": [
+            "03Talon",
+            "21Shimada"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 35.6762,
           "lon": 139.6503,
-          "cityDisplayName": "Hanamura, Japan"
+          "cityDisplayName": "Hanamura, Japan",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ]
         },
         {
           "name": "Shrine Maiden",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Kiriko"
+          ],
+          "factions": [
+            "22Hashimoto"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 35.3606,
@@ -3557,10 +3627,21 @@
       "cityDisplayName": "Horizon Lunar Colony",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Winston",
+        "Wrecking Ball"
+      ],
+      "factions": [
+        "07Lucheng"
+      ],
       "x": 60,
-      "y": 70
+      "y": 70,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Uneasy Alliance",
@@ -3568,10 +3649,21 @@
       "cityDisplayName": "Monte-Carlo, Monaco",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Doomfist"
+      ],
+      "factions": [
+        "03Talon",
+        "18Max's Vault"
+      ],
       "lat": 43.7402961,
-      "lon": 7.426559
+      "lon": 7.426559,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Intrepit Adventurers",
@@ -3579,8 +3671,12 @@
       "cityDisplayName": "Nova Scotia, Canada",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Venture"
+      ],
+      "factions": [
+        "20Wayfinders"
+      ],
       "lat": 45.1960403,
       "lon": -63.1653789
     },
@@ -3590,10 +3686,21 @@
       "cityDisplayName": "Dublin, Ireland",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Moira",
+        "Reaper"
+      ],
+      "factions": [
+        "01Blackwatch"
+      ],
       "lat": 53.3493795,
-      "lon": -6.2605593
+      "lon": -6.2605593,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Cold Snap",
@@ -3601,10 +3708,20 @@
       "cityDisplayName": "Ecoopint Antartica",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mei"
+      ],
+      "factions": [
+        "02Ecopoints"
+      ],
       "lat": -67.107616,
-      "lon": -68099824
+      "lon": -68099824,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Chronal Dissociation",
@@ -3612,10 +3729,19 @@
       "cityDisplayName": "Watchpoint Gibraltar",
       "description": "",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Tracer",
+        "Winston"
+      ],
       "factions": [],
       "lat": 36.1285933,
-      "lon": -5.3474761
+      "lon": -5.3474761,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Champion",
@@ -3623,8 +3749,12 @@
       "cityDisplayName": "Junkertown, Australia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Wrecking Ball"
+      ],
+      "factions": [
+        "16Junkers"
+      ],
       "lat": -25,
       "lon": 135
     },
@@ -3634,10 +3764,23 @@
       "cityDisplayName": "Oslo, Norway",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Echo",
+        "Cassidy"
+      ],
+      "factions": [
+        "00Overwatch",
+        "01Blackwatch",
+        "03Talon"
+      ],
       "lat": 59.9133301,
-      "lon": 10.7389701
+      "lon": 10.7389701,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Retribution",
@@ -3645,10 +3788,22 @@
       "cityDisplayName": "Rome,, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reaper",
+        "Cassidy"
+      ],
+      "factions": [
+        "01Blackwatch",
+        "03Talon"
+      ],
       "lat": 41.8933203,
-      "lon": 12.4829321
+      "lon": 12.4829321,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "locationType": "earth",
@@ -3657,19 +3812,38 @@
         {
           "name": "The Venice Incident",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Reaper",
+            "Cassidy",
+            "Genji",
+            "Moira"
+          ],
+          "factions": [
+            "01Blackwatch",
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 45.4371908,
           "lon": 12.3345898,
-          "cityDisplayName": "Venice, Italy"
+          "cityDisplayName": "Venice, Italy",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ]
         },
         {
           "name": "Stolen Future",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Vendetta",
+            "Doomfist"
+          ],
+          "factions": [
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 41.8933203,
@@ -3686,8 +3860,12 @@
       "cityDisplayName": "Runasapi, Peru",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Illari"
+      ],
+      "factions": [
+        "06Inti Warriors"
+      ],
       "lat": -13.1631,
       "lon": -72.545
     },
@@ -3697,10 +3875,21 @@
       "cityDisplayName": "Oasis University, Iraq",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Moira"
+      ],
+      "factions": [
+        "25Oasis",
+        "03Talon"
+      ],
       "lat": 29.5918,
-      "lon": 52.5836
+      "lon": 52.5836,
+      "sources": [
+        {
+          "text": "Overwatch Declassifed",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Deep Sea Raiders",
@@ -3708,10 +3897,20 @@
       "cityDisplayName": "Coral Sea",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mauga"
+      ],
+      "factions": [
+        "29Deep Sea Raiders"
+      ],
       "lat": -20,
-      "lon": 155
+      "lon": 155,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Uprising",
@@ -3719,10 +3918,29 @@
       "cityDisplayName": "London, United Kingdom",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ramattra",
+        "Tracer",
+        "Mercy",
+        "Reinhardt",
+        "Torbjörn",
+        "Ana",
+        "Cassidy",
+        "Soldier 76",
+        "Reaper"
+      ],
+      "factions": [
+        "27Null Sector",
+        "00Overwatch"
+      ],
       "lat": 51.5074456,
-      "lon": -0.1277653
+      "lon": -0.1277653,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "La Lupa",
@@ -3730,19 +3948,63 @@
       "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "17Colloseo Gladiatori"
+      ],
       "lat": 41.8909421,
       "lon": 12.491903
     },
     {
-      "name": "Widowed",
       "locationType": "earth",
       "cityDisplayName": "Paris, France",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
+      "variants": [
+        {
+          "name": "Widowed",
+          "description": "",
+          "filters": [
+            "Widowmaker"
+          ],
+          "factions": [
+            "01Blackwatch",
+            "03Talon"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ],
+          "image": "",
+          "locationType": "earth",
+          "lat": 48.8588897,
+          "lon": 2.320041,
+          "cityDisplayName": "Paris, France"
+        },
+        {
+          "name": "Neural Reconditioning",
+          "description": "",
+          "filters": [
+            "Widowmaker"
+          ],
+          "factions": [
+            "03Talon"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Website: Widowmaker",
+              "url": "https://overwatch.blizzard.com/en-us/heroes/widowmaker/"
+            }
+          ],
+          "image": "",
+          "locationType": "earth",
+          "lat": 41.8933203,
+          "lon": 12.4829321,
+          "cityDisplayName": "Rome, Italy"
+        }
+      ],
       "lat": 48.8588897,
       "lon": 2.320041
     },
@@ -3752,10 +4014,24 @@
       "cityDisplayName": "Apia, Samoa",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Emre",
+        "Freja",
+        "Reaper",
+        "Sojourn"
+      ],
+      "factions": [
+        "29Deep Sea Raiders",
+        "00Overwatch"
+      ],
       "lat": -13.8345235,
-      "lon": -171.7630955
+      "lon": -171.7630955,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Forced Retirement",
@@ -3763,10 +4039,21 @@
       "cityDisplayName": "Asuncion, Paraguay",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reinhardt",
+        "Soldier 76"
+      ],
+      "factions": [
+        "00Overwatch"
+      ],
       "lat": -25.2800459,
-      "lon": -57.6343814
+      "lon": -57.6343814,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Resolve",
@@ -3774,8 +4061,12 @@
       "cityDisplayName": "Secret Omnium",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ramattra"
+      ],
+      "factions": [
+        "27Null Sector"
+      ],
       "lat": -75.1,
       "lon": 123.35
     },
@@ -3785,10 +4076,23 @@
       "cityDisplayName": "Warsaw, Poland",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ana",
+        "Soldier 76",
+        "Widowmaker"
+      ],
+      "factions": [
+        "00Overwatch",
+        "03Talon"
+      ],
       "lat": 52.2333742,
-      "lon": 21.0711489
+      "lon": 21.0711489,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Another Job, Another Battlefield",
@@ -3796,10 +4100,21 @@
       "cityDisplayName": "Port-de-Paix,, Haiti",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Baptiste"
+      ],
+      "factions": [
+        "15Caribbean Coalition",
+        "03Talon"
+      ],
       "lat": 20.0410035,
-      "lon": -72.785587
+      "lon": -72.785587,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Fun with Friends",
@@ -3807,8 +4122,14 @@
       "cityDisplayName": "Venice, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mauga",
+        "Doomfist"
+      ],
+      "factions": [
+        "29Deep Sea Raiders",
+        "03Talon"
+      ],
       "lat": 45.4371908,
       "lon": 12.3345898
     },
@@ -3818,8 +4139,12 @@
       "cityDisplayName": "Dorado, Mexico",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Sombra"
+      ],
+      "factions": [
+        "21Los Muertos"
+      ],
       "lat": 19.1738,
       "lon": -96.1342
     },
@@ -3830,9 +4155,17 @@
       "description": "",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "31MEKA"
+      ],
       "lat": 35.1799528,
-      "lon": 129.0752365
+      "lon": 129.0752365,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Fighting the System",
@@ -3841,7 +4174,9 @@
       "description": "",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "30Phreaks"
+      ],
       "lat": 48.8588897,
       "lon": 2.320041
     },
@@ -3866,8 +4201,14 @@
       "cityDisplayName": "Dorado, Mexico",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Sombra"
+      ],
+      "factions": [
+        "24Conspiracy",
+        "21Los Muertos",
+        "30Phreaks"
+      ],
       "lat": 19.1738,
       "lon": -96.1342
     },
@@ -3878,19 +4219,41 @@
         {
           "name": "Storm Rising",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Sojourn",
+            "Tracer",
+            "Winston",
+            "Genji",
+            "Mercy"
+          ],
+          "factions": [
+            "18Max's Vault",
+            "03Talon",
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 23.135305,
           "lon": -82.3589631,
-          "cityDisplayName": "Havana, Cuba"
+          "cityDisplayName": "Havana, Cuba",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ]
         },
         {
           "name": "Doomed to Fail",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Ramattra",
+            "Doomfist"
+          ],
+          "factions": [
+            "27Null Sector",
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 30.0443879,
@@ -3908,24 +4271,51 @@
         {
           "name": "Closed Fist",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Doomfist",
+            "Genji",
+            "Tracer",
+            "Winston"
+          ],
+          "factions": [
+            "00Overwatch",
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 1.357107,
           "lon": 103.8194992,
-          "cityDisplayName": "Singapore"
+          "cityDisplayName": "Singapore",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ]
         },
         {
           "name": "Open Talon",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Doomfist",
+            "Reaper",
+            "Soldier 76"
+          ],
+          "factions": [
+            "00Overwatch",
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 64.3984222,
           "lon": -17.3178863,
-          "cityDisplayName": "Watchpoint Grímsvötn, Iceland"
+          "cityDisplayName": "Watchpoint Grímsvötn, Iceland",
+          "sources": [
+            {
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+            }
+          ]
         }
       ],
       "lat": 1.357107,
@@ -3937,8 +4327,14 @@
       "cityDisplayName": "Glasgow, Scotland",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Hazard",
+        "Soldier 76"
+      ],
+      "factions": [
+        "00Overwatch",
+        "03Talon"
+      ],
       "lat": 55.861155,
       "lon": -4.2501687
     },
@@ -3948,8 +4344,12 @@
       "cityDisplayName": "Venice, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "03Talon"
+      ],
       "lat": 45.4371908,
       "lon": 12.3345898
     },
@@ -3959,10 +4359,23 @@
       "cityDisplayName": "Zurich, Switzerland",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Soldier 76",
+        "Reaper",
+        "Genji"
+      ],
+      "factions": [
+        "24Conspiracy",
+        "00Overwatch"
+      ],
       "lat": 47.3744489,
-      "lon": 8.5410422
+      "lon": 8.5410422,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Self Discovery",
@@ -3970,8 +4383,13 @@
       "cityDisplayName": "Shambali Monastery, Nepal",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Genji",
+        "Zenyatta"
+      ],
+      "factions": [
+        "26Shambali"
+      ],
       "lat": 28.3949,
       "lon": 84.124
     },
@@ -3981,8 +4399,20 @@
       "cityDisplayName": "Petra, Jordan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Sojourn"
+      ],
+      "factions": [
+        "00Overwatch",
+        "28Collective",
+        "32Helix Securities"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
       "lat": 30.3258363,
       "lon": 35.4745669
     },
@@ -3992,8 +4422,17 @@
       "cityDisplayName": "New Mexico, United States",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reaper",
+        "Sombra",
+        "Sigma",
+        "Widowmaker",
+        "Doomfist",
+        "Moira"
+      ],
+      "factions": [
+        "03Talon"
+      ],
       "lat": 35.6876096,
       "lon": -105.938456
     },
@@ -4003,8 +4442,12 @@
       "cityDisplayName": "Deadlock Gorge, United States",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ashe"
+      ],
+      "factions": [
+        "14Deadlock"
+      ],
       "lat": 40.0170005,
       "lon": -105.2664724
     },
@@ -4014,8 +4457,14 @@
       "cityDisplayName": "Junkertown, Australia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Roadhog",
+        "Junkrat",
+        "Junker Queen"
+      ],
+      "factions": [
+        "16Junkers"
+      ],
       "lat": -25,
       "lon": 135
     },
@@ -4025,8 +4474,13 @@
       "cityDisplayName": "Necropolis, Egypt",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ana"
+      ],
+      "factions": [
+        "03Talon",
+        "20Wayfinders"
+      ],
       "lat": 29,
       "lon": 31
     },
@@ -4036,8 +4490,12 @@
       "cityDisplayName": "Glasgow, Scotland",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Hazard"
+      ],
+      "factions": [
+        "30Phreaks"
+      ],
       "lat": 55.861155,
       "lon": -4.2501687
     },
@@ -4048,8 +4506,12 @@
         {
           "name": "A Better World",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Symmetra"
+          ],
+          "factions": [
+            "05Vishkar"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": -22.9110137,
@@ -4059,8 +4521,13 @@
         {
           "name": "Networking",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Domina"
+          ],
+          "factions": [
+            "03Talon",
+            "05Vishkar"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 51.5074456,
@@ -4077,8 +4544,12 @@
       "cityDisplayName": "Cairo, Egypt",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Pharah"
+      ],
+      "factions": [
+        "32Helix Securities"
+      ],
       "lat": 30.0443879,
       "lon": 31.2357257
     },
@@ -4088,8 +4559,13 @@
       "cityDisplayName": "Monte Cristi, Dominican Republic",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mauga",
+        "Baptiste"
+      ],
+      "factions": [
+        "03Talon"
+      ],
       "lat": 19.7177718,
       "lon": -71.4448113
     },
@@ -4099,8 +4575,12 @@
       "cityDisplayName": "Novoanskoye, Russia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Zarya"
+      ],
+      "factions": [
+        "11Volskaya"
+      ],
       "lat": 60,
       "lon": 100
     },
@@ -4110,10 +4590,20 @@
       "cityDisplayName": "Busan, South Korea",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "D.va"
+      ],
+      "factions": [
+        "31MEKA"
+      ],
       "lat": 35.1799528,
-      "lon": 129.0752365
+      "lon": 129.0752365,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Vanadium Strand",
@@ -4121,8 +4611,13 @@
       "cityDisplayName": "Petra, Jordan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Moira"
+      ],
+      "factions": [
+        "20Wayfinders",
+        "25Oasis"
+      ],
       "lat": 30.3258363,
       "lon": 35.4745669
     },
@@ -4132,7 +4627,9 @@
       "cityDisplayName": "Copenhagen, Denmark",
       "description": "",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Freja"
+      ],
       "factions": [],
       "lat": 55.6867243,
       "lon": 12.5700724
@@ -4143,8 +4640,12 @@
       "cityDisplayName": "Outback Wasteland, Australia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Junker Queen"
+      ],
+      "factions": [
+        "16Junkers"
+      ],
       "lat": -20.7274568,
       "lon": 139.49896
     },
@@ -4154,8 +4655,12 @@
       "cityDisplayName": "Chengdu, China",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Anran"
+      ],
+      "factions": [
+        "10Wuxing University"
+      ],
       "lat": 30.659867,
       "lon": 104.063315
     },
@@ -4165,8 +4670,12 @@
       "cityDisplayName": "City State of Numbani",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Orisa"
+      ],
+      "factions": [
+        "19Numbani"
+      ],
       "lat": 12.0022,
       "lon": 8.5919
     },
@@ -4176,8 +4685,12 @@
       "cityDisplayName": "Houston, United States",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Cassidy"
+      ],
+      "factions": [
+        "03Talon"
+      ],
       "lat": 29.7589382,
       "lon": -95.3676974
     },
@@ -4187,8 +4700,13 @@
       "cityDisplayName": "Sydney, Australia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Junkrat",
+        "Roadhog"
+      ],
+      "factions": [
+        "16Junkers"
+      ],
       "lat": -33.8698439,
       "lon": 151.2082848
     },
@@ -4198,10 +4716,20 @@
       "cityDisplayName": "Rio de Janeiro, Brazil",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Lúcio"
+      ],
+      "factions": [
+        "05Vishkar"
+      ],
       "lat": -22.9110137,
-      "lon": -43.2093727
+      "lon": -43.2093727,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Apagando las Luces",
@@ -4209,8 +4737,13 @@
       "cityDisplayName": "Dorado, Mexico",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Sombra"
+      ],
+      "factions": [
+        "13Lumerico",
+        "21Los Muertos"
+      ],
       "lat": 19.1738,
       "lon": -96.1342
     },
@@ -4220,43 +4753,15 @@
       "cityDisplayName": "Bucharest, Romania",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reinhardt",
+        "Brigitte"
+      ],
+      "factions": [
+        "09Crusaders"
+      ],
       "lat": 44.4361414,
       "lon": 26.102684
-    },
-    {
-      "name": "Help for the Needy",
-      "locationType": "earth",
-      "cityDisplayName": "Cairo, Egypt",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 30.0443879,
-      "lon": 31.2357257
-    },
-    {
-      "name": "Squire",
-      "locationType": "earth",
-      "cityDisplayName": "Gothenburg, Sweden",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 57.7072326,
-      "lon": 11.9670171
-    },
-    {
-      "name": "Destroyer",
-      "locationType": "earth",
-      "cityDisplayName": "Boklovo, Kurjikstan.",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [],
-      "lat": 48.503904,
-      "lon": 50.667571
     },
     {
       "locationType": "earth",
@@ -4265,8 +4770,12 @@
         {
           "name": "Vigilante",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Soldier 76"
+          ],
+          "factions": [
+            "32Helix Securities"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 39.1131257,
@@ -4276,8 +4785,12 @@
         {
           "name": "Hero",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Soldier 76"
+          ],
+          "factions": [
+            "21Los Muertos"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 19.1738,
@@ -4289,13 +4802,65 @@
       "lon": -108.0127646
     },
     {
+      "name": "Help for the Needy",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Mercy",
+        "Pharah",
+        "Baptiste"
+      ],
+      "factions": [
+        "03Talon"
+      ],
+      "lat": 30.0443879,
+      "lon": 31.2357257
+    },
+    {
+      "name": "Squire",
+      "locationType": "earth",
+      "cityDisplayName": "Gothenburg, Sweden",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Brigitte",
+        "Reinhardt"
+      ],
+      "factions": [
+        "08Ironclad"
+      ],
+      "lat": 57.7072326,
+      "lon": 11.9670171
+    },
+    {
+      "name": "Destroyer",
+      "locationType": "earth",
+      "cityDisplayName": "Boklovo, Kurjikstan.",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Torbjörn"
+      ],
+      "factions": [
+        "08Ironclad"
+      ],
+      "lat": 48.503904,
+      "lon": 50.667571
+    },
+    {
       "name": "Shooting Star",
       "locationType": "earth",
       "cityDisplayName": "Busan, South Korea",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "D.va"
+      ],
+      "factions": [
+        "32Helix Securities"
+      ],
       "lat": 35.1799528,
       "lon": 129.0752365
     },
@@ -4305,7 +4870,9 @@
       "cityDisplayName": "Black Forest, Germany",
       "description": "",
       "image": "",
-      "filters": [],
+      "filters": [
+        "Bastion"
+      ],
       "factions": [],
       "lat": 48.2634439,
       "lon": 8.1647488
@@ -4335,8 +4902,12 @@
       "cityDisplayName": "Rio de Janeiro, Brazil",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Lúcio"
+      ],
+      "factions": [
+        "05Vishkar"
+      ],
       "lat": -22.9110137,
       "lon": -43.2093727
     },
@@ -4347,9 +4918,17 @@
       "description": "",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "02Ecopoints"
+      ],
       "lat": 36.6537668,
-      "lon": -124
+      "lon": -124,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "Recall",
@@ -4357,8 +4936,14 @@
       "cityDisplayName": "Watchpoint Gibraltar",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reaper",
+        "Winston"
+      ],
+      "factions": [
+        "03Talon",
+        "00Overwatch"
+      ],
       "lat": 36.1285933,
       "lon": -5.3474761
     },
@@ -4369,8 +4954,14 @@
         {
           "name": "Assassination",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Widowmaker",
+            "Tracer"
+          ],
+          "factions": [
+            "03Talon",
+            "26Shambali"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 51.5074456,
@@ -4380,8 +4971,14 @@
         {
           "name": "London Calling",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Tracer",
+            "Winston"
+          ],
+          "factions": [
+            "26Shambali",
+            "05Vishkar"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 51.5074456,
@@ -4398,8 +4995,13 @@
       "cityDisplayName": "Ecoopint Antartica",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mei"
+      ],
+      "factions": [
+        "02Ecopoints",
+        "00Overwatch"
+      ],
       "lat": -67.107616,
       "lon": -68099824
     },
@@ -4409,8 +5011,14 @@
       "cityDisplayName": "Port-de-Paix, Haiti",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Baptiste",
+        "Mauga",
+        "Sombra"
+      ],
+      "factions": [
+        "03Talon"
+      ],
       "lat": 20.0410035,
       "lon": -72.785587
     },
@@ -4420,8 +5028,12 @@
       "cityDisplayName": "Kanezaka, Japan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Kiriko"
+      ],
+      "factions": [
+        "23Hashimoto"
+      ],
       "lat": 35.3606,
       "lon": 138.7274
     },
@@ -4431,8 +5043,13 @@
       "cityDisplayName": "Mount Logan, Canada",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mei"
+      ],
+      "factions": [
+        "00Overwatch",
+        "02Ecopoints"
+      ],
       "lat": 60.5678461,
       "lon": -140.4056911
     },
@@ -4442,8 +5059,16 @@
       "cityDisplayName": "Saint Petersburg, Russia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Sombra",
+        "Reaper",
+        "Widowmaker",
+        "Zarya"
+      ],
+      "factions": [
+        "03Talon",
+        "11Volskaya"
+      ],
       "lat": 59.938732,
       "lon": 30.316229
     },
@@ -4453,8 +5078,14 @@
       "cityDisplayName": "Hanamura, Japan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Hanzo",
+        "Genji"
+      ],
+      "factions": [
+        "22Shimada",
+        "23Hashimoto"
+      ],
       "lat": 35.6762,
       "lon": 139.6503
     },
@@ -4465,8 +5096,14 @@
         {
           "name": "Old Soldiers",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Soldier 76",
+            "Ana",
+            "Reaper"
+          ],
+          "factions": [
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 29,
@@ -4476,8 +5113,13 @@
         {
           "name": "Bastet",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Ana",
+            "Soldier 76"
+          ],
+          "factions": [
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 30.0443879,
@@ -4494,8 +5136,13 @@
       "cityDisplayName": "Eichenwalde Castle, Germany",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reinhardt",
+        "Brigitte"
+      ],
+      "factions": [
+        "09Crusaders"
+      ],
       "lat": 50,
       "lon": 8
     },
@@ -4505,8 +5152,12 @@
       "cityDisplayName": "City State of Numbani",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Orisa"
+      ],
+      "factions": [
+        "19Numbani"
+      ],
       "lat": 12.0022,
       "lon": 8.5919
     },
@@ -4516,8 +5167,13 @@
       "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "17Colloseo Gladiatori",
+        "03Talon"
+      ],
       "lat": 41.8909421,
       "lon": 12.491903
     },
@@ -4528,7 +5184,9 @@
       "description": "",
       "image": "",
       "filters": [],
-      "factions": [],
+      "factions": [
+        "07Lucheng"
+      ],
       "x": 60,
       "y": 70
     },
@@ -4538,8 +5196,13 @@
       "cityDisplayName": "Kanezaka, Japan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Kiriko"
+      ],
+      "factions": [
+        "23Hashimoto",
+        "33Yokai"
+      ],
       "lat": 35.3606,
       "lon": 138.7274
     },
@@ -4549,8 +5212,15 @@
       "cityDisplayName": "Cairo, Egypt",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mercy",
+        "Soldier 76",
+        "Ana"
+      ],
+      "factions": [
+        "32Helix Securities",
+        "03Talon"
+      ],
       "lat": 30.0443879,
       "lon": 31.2357257
     },
@@ -4560,8 +5230,16 @@
       "cityDisplayName": "New York, United States",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reaper",
+        "Widowmaker",
+        "Tracer",
+        "Winston"
+      ],
+      "factions": [
+        "00Overwatch",
+        "03Talon"
+      ],
       "lat": 40.7127281,
       "lon": -74.0060152
     },
@@ -4572,8 +5250,13 @@
         {
           "name": "Doomfist Escapes",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Doomfist",
+            "Reaper"
+          ],
+          "factions": [
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 64.3984222,
@@ -4583,8 +5266,14 @@
         {
           "name": "Stolen Gauntlet",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Doomfist",
+            "Orisa"
+          ],
+          "factions": [
+            "03Talon",
+            "19Numbani"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 12.0022,
@@ -4602,8 +5291,16 @@
         {
           "name": "Business Meeting",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Doomfist",
+            "Widowmaker",
+            "Sombra",
+            "Reaper"
+          ],
+          "factions": [
+            "18Max's Vault",
+            "03Talon"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 43.7402961,
@@ -4613,8 +5310,16 @@
         {
           "name": "Masquerade",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Doomfist",
+            "Reaper",
+            "Moira",
+            "Domina"
+          ],
+          "factions": [
+            "03Talon",
+            "18Max's Vault"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 45.4371908,
@@ -4631,8 +5336,12 @@
       "cityDisplayName": "City State of Numbani",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Orisa"
+      ],
+      "factions": [
+        "19Numbani"
+      ],
       "lat": 12.0022,
       "lon": 8.5919
     },
@@ -4643,8 +5352,13 @@
         {
           "name": "Binary",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Torbjörn",
+            "Bastion"
+          ],
+          "factions": [
+            "08Ironclad"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 59.3385984,
@@ -4654,8 +5368,13 @@
         {
           "name": "System Reboot",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Torbjörn",
+            "Bastion"
+          ],
+          "factions": [
+            "08Ironclad"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 57.7072326,
@@ -4672,8 +5391,14 @@
       "cityDisplayName": "Suravasa, India",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Symmetra",
+        "Zenyatta"
+      ],
+      "factions": [
+        "05Vishkar",
+        "26Shambali"
+      ],
       "lat": 23.2599,
       "lon": 77.4126
     },
@@ -4683,8 +5408,14 @@
       "cityDisplayName": "Shambali Monastery, Nepal",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Venture"
+      ],
+      "factions": [
+        "20Wayfinders",
+        "03Talon",
+        "26Shambali"
+      ],
       "lat": 28.3949,
       "lon": 84.124
     },
@@ -4694,8 +5425,13 @@
       "cityDisplayName": "Chengdu, China",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Wuyang",
+        "Anran"
+      ],
+      "factions": [
+        "10Wuxing University"
+      ],
       "lat": 30.659867,
       "lon": 104.063315
     },
@@ -4705,8 +5441,14 @@
       "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Vendetta",
+        "Doomfist"
+      ],
+      "factions": [
+        "03Talon",
+        "17Colloseo Gladiatori"
+      ],
       "lat": 41.8909421,
       "lon": 12.491903
     },
@@ -4716,8 +5458,15 @@
       "cityDisplayName": "Dorado, Mexico",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Zarya",
+        "Sombra"
+      ],
+      "factions": [
+        "21Los Muertos",
+        "11Volskaya",
+        "19Numbani"
+      ],
       "lat": 19.1738,
       "lon": -96.1342
     },
@@ -4727,8 +5476,12 @@
       "cityDisplayName": "Kanezaka, Japan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Kiriko"
+      ],
+      "factions": [
+        "33Yokai"
+      ],
       "lat": 35.3606,
       "lon": 138.7274
     },
@@ -4738,8 +5491,16 @@
       "cityDisplayName": "Illios, Greece",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Venture",
+        "Sombra",
+        "Mauga",
+        "Doomfist"
+      ],
+      "factions": [
+        "20Wayfinders",
+        "03Talon"
+      ],
       "lat": 36.1725297,
       "lon": 27.9194016
     },
@@ -4749,8 +5510,16 @@
       "cityDisplayName": "City State of Numbani",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Orisa",
+        "Doomfist",
+        "Lúcio",
+        "Sojourn"
+      ],
+      "factions": [
+        "19Numbani",
+        "03Talon"
+      ],
       "lat": 12.0022,
       "lon": 8.5919
     },
@@ -4760,8 +5529,13 @@
       "cityDisplayName": "Runasapi, Peru",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Illari"
+      ],
+      "factions": [
+        "06Inti Warriors",
+        "24Conspiracy"
+      ],
       "lat": -13.1631,
       "lon": -72.545
     },
@@ -4771,8 +5545,15 @@
       "cityDisplayName": "Roud 66, United States",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Cassidy",
+        "Ashe",
+        "Echo"
+      ],
+      "factions": [
+        "14Deadlock",
+        "00Overwatch"
+      ],
       "lat": 40.0170005,
       "lon": -105.2664724
     },
@@ -4782,8 +5563,12 @@
       "cityDisplayName": "Red Promise Colony",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Juno"
+      ],
+      "factions": [
+        "07Lucheng"
+      ],
       "x": 45,
       "y": 35
     },
@@ -4794,8 +5579,14 @@
         {
           "name": "New Blood",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Ana",
+            "Cassidy"
+          ],
+          "factions": [
+            "03Talon",
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 30.0443879,
@@ -4805,8 +5596,15 @@
         {
           "name": "Lost Family",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Cassidy",
+            "Ana",
+            "Pharah"
+          ],
+          "factions": [
+            "03Talon",
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 30.0443879,
@@ -4824,8 +5622,13 @@
         {
           "name": "The Plan",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Junkrat",
+            "Roadhog"
+          ],
+          "factions": [
+            "16Junkers"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": -25,
@@ -4835,8 +5638,15 @@
         {
           "name": "Friendly Rivalry",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Junkrat",
+            "Roadhog",
+            "Junker Queen",
+            "Wrecking Ball"
+          ],
+          "factions": [
+            "16Junkers"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": -25,
@@ -4853,8 +5663,14 @@
       "cityDisplayName": "Bucharest, Romania",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Cassidy",
+        "Baptiste"
+      ],
+      "factions": [
+        "00Overwatch",
+        "03Talon"
+      ],
       "lat": 44.4361414,
       "lon": 26.102684
     },
@@ -4864,8 +5680,13 @@
       "cityDisplayName": "Novoanskoye, Russia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Zarya",
+        "Cassidy"
+      ],
+      "factions": [
+        "00Overwatch"
+      ],
       "lat": 60,
       "lon": 100
     },
@@ -4876,8 +5697,12 @@
         {
           "name": "Suspicious activity",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Sojourn"
+          ],
+          "factions": [
+            "27Null Sector"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 43.6534817,
@@ -4887,8 +5712,12 @@
         {
           "name": "Shockwaves",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Sojourn"
+          ],
+          "factions": [
+            "27Null Sector"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 43.6534817,
@@ -4905,8 +5734,20 @@
       "cityDisplayName": "Paris, France",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Winston",
+        "Tracer",
+        "Mei",
+        "Reinhardt",
+        "Brigitte",
+        "Mercy",
+        "Genji",
+        "Echo"
+      ],
+      "factions": [
+        "00Overwatch",
+        "27Null Sector"
+      ],
       "lat": 48.8534951,
       "lon": 2.3483915
     },
@@ -4916,8 +5757,13 @@
       "cityDisplayName": "Las Vegas, United States",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ashe"
+      ],
+      "factions": [
+        "14Deadlock",
+        "27Null Sector"
+      ],
       "lat": 36.1674263,
       "lon": -115.1484131
     },
@@ -4927,8 +5773,18 @@
       "cityDisplayName": "Busan, South Korea",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Cassidy",
+        "Pharah",
+        "Baptiste",
+        "Zarya",
+        "D.va"
+      ],
+      "factions": [
+        "00Overwatch",
+        "31MEKA",
+        "27Null Sector"
+      ],
       "lat": 35.1799528,
       "lon": 129.0752365
     },
@@ -4938,8 +5794,13 @@
       "cityDisplayName": "Lijiang, China",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Wrecking Ball"
+      ],
+      "factions": [
+        "07Lucheng",
+        "27Null Sector"
+      ],
       "lat": 26.8595868,
       "lon": 100.2249797
     },
@@ -4949,8 +5810,14 @@
       "cityDisplayName": "Tokyo, Japan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Hanzo",
+        "Kiriko"
+      ],
+      "factions": [
+        "23Hashimoto",
+        "27Null Sector"
+      ],
       "lat": 35.6768601,
       "lon": 139.7638947
     },
@@ -4960,8 +5827,21 @@
       "cityDisplayName": "Rio de Janeiro, Brazil",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Winston",
+        "Tracer",
+        "Mei",
+        "Reinhardt",
+        "Brigitte",
+        "Mercy",
+        "Genji",
+        "Echo",
+        "Lúcio"
+      ],
+      "factions": [
+        "00Overwatch",
+        "27Null Sector"
+      ],
       "lat": -22.9110137,
       "lon": -43.2093727
     },
@@ -4971,8 +5851,13 @@
       "cityDisplayName": "City State of Numbani",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Orisa"
+      ],
+      "factions": [
+        "19Numbani",
+        "27Null Sector"
+      ],
       "lat": 12.0022,
       "lon": 8.5919
     },
@@ -4982,8 +5867,15 @@
       "cityDisplayName": "Atlantic Arcology",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Symmetra",
+        "Lifeweaver"
+      ],
+      "factions": [
+        "05Vishkar",
+        "28Collective",
+        "27Null Sector"
+      ],
       "lat": 37.7412,
       "lon": -25.6756
     },
@@ -4993,8 +5885,26 @@
       "cityDisplayName": "Toronto, Canada",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Winston",
+        "Tracer",
+        "Mei",
+        "Reinhardt",
+        "Brigitte",
+        "Mercy",
+        "Genji",
+        "Echo",
+        "Cassidy",
+        "Pharah",
+        "Baptiste",
+        "Zarya",
+        "D.va",
+        "Sojourn"
+      ],
+      "factions": [
+        "00Overwatch",
+        "27Null Sector"
+      ],
       "lat": 43.6534817,
       "lon": -79.3839347
     },
@@ -5005,8 +5915,14 @@
         {
           "name": "Lost Ghosts",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Ana",
+            "Soldier 76"
+          ],
+          "factions": [
+            "03Talon",
+            "27Null Sector"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 47.3744489,
@@ -5016,8 +5932,14 @@
         {
           "name": "Lucky Man",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Soldier 76",
+            "Sombra"
+          ],
+          "factions": [
+            "27Null Sector",
+            "24Conspiracy"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 47.3744489,
@@ -5034,8 +5956,17 @@
       "cityDisplayName": "Gothenburg, Sweden",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reinhardt",
+        "Brigitte",
+        "Torbjörn",
+        "Bastion"
+      ],
+      "factions": [
+        "08Ironclad",
+        "00Overwatch",
+        "27Null Sector"
+      ],
       "lat": 57.7072326,
       "lon": 11.9670171
     },
@@ -5045,8 +5976,16 @@
       "cityDisplayName": "Baltic Sea",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reaper",
+        "Sombra",
+        "Mauga",
+        "Doomfist"
+      ],
+      "factions": [
+        "03Talon",
+        "27Null Sector"
+      ],
       "lat": 56,
       "lon": 18
     },
@@ -5056,8 +5995,12 @@
       "cityDisplayName": "Chengdu, China",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Wuyang"
+      ],
+      "factions": [
+        "10Wuxing University"
+      ],
       "lat": 30.659867,
       "lon": 104.063315
     },
@@ -5068,8 +6011,13 @@
         {
           "name": "Visitor",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Juno"
+          ],
+          "factions": [
+            "07Lucheng",
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "marsShip",
           "cityDisplayName": "Dorado, Mexico"
@@ -5077,8 +6025,16 @@
         {
           "name": "Emergency Landing",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Juno",
+            "Winston",
+            "Tracer",
+            "Mei"
+          ],
+          "factions": [
+            "00Overwatch",
+            "07Lucheng"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 19.1738,
@@ -5093,8 +6049,14 @@
       "cityDisplayName": "Monte-Carlo, Monaco",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "03Talon",
+        "17Colloseo Gladiatori",
+        "18Max's Vault"
+      ],
       "lat": 43.7402961,
       "lon": 7.426559
     },
@@ -5104,8 +6066,28 @@
       "cityDisplayName": "Watchpoint Gibraltar",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Winston",
+        "Tracer",
+        "Mei",
+        "Reinhardt",
+        "Brigitte",
+        "Mercy",
+        "Genji",
+        "Echo",
+        "Cassidy",
+        "Pharah",
+        "Baptiste",
+        "Zarya",
+        "D.va",
+        "Sojourn",
+        "Bastion",
+        "Juno",
+        "Orisa"
+      ],
+      "factions": [
+        "00Overwatch"
+      ],
       "lat": 36.1285933,
       "lon": -5.3474761
     },
@@ -5115,8 +6097,13 @@
       "cityDisplayName": "Copenhagen,, Denmark",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Freja"
+      ],
+      "factions": [
+        "18Max's Vault",
+        "16Junkers"
+      ],
       "lat": 55.6867243,
       "lon": 12.5700724
     },
@@ -5126,8 +6113,13 @@
       "cityDisplayName": "Tokyo, Japan",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Mitzuki"
+      ],
+      "factions": [
+        "23Hashimoto",
+        "33Yokai"
+      ],
       "lat": 35.6768601,
       "lon": 139.7638947
     },
@@ -5138,8 +6130,16 @@
         {
           "name": "Partnership",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Symmetra",
+            "Lifeweaver",
+            "Zenyatta"
+          ],
+          "factions": [
+            "26Shambali",
+            "05Vishkar",
+            "28Collective"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 37.7412,
@@ -5149,8 +6149,13 @@
         {
           "name": "Picture of Sucesss",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Domina",
+            "Symmetra"
+          ],
+          "factions": [
+            "05Vishkar"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 51.5074456,
@@ -5167,8 +6172,13 @@
       "cityDisplayName": "Aatlis, Morocco",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Hazard"
+      ],
+      "factions": [
+        "30Phreaks",
+        "32Helix Securities"
+      ],
       "lat": 34.0209,
       "lon": -6.8416
     },
@@ -5178,8 +6188,14 @@
       "cityDisplayName": "Oasis University, Iraq",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Hazard"
+      ],
+      "factions": [
+        "30Phreaks",
+        "32Helix Securities",
+        "25Oasis"
+      ],
       "lat": 29.5918,
       "lon": 52.5836
     },
@@ -5189,8 +6205,15 @@
       "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Vendetta",
+        "Domina"
+      ],
+      "factions": [
+        "17Colloseo Gladiatori",
+        "03Talon",
+        "05Vishkar"
+      ],
       "lat": 41.8909421,
       "lon": 12.491903
     },
@@ -5200,8 +6223,16 @@
       "cityDisplayName": "Runasapi, Peru",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Soldier 76",
+        "Illari",
+        "Sombra"
+      ],
+      "factions": [
+        "06Inti Warriors",
+        "25Oasis",
+        "24Conspiracy"
+      ],
       "lat": -13.1631,
       "lon": -72.545
     },
@@ -5211,8 +6242,13 @@
       "cityDisplayName": "Monte-Carlo, Monaco",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Freja"
+      ],
+      "factions": [
+        "18Max's Vault",
+        "03Talon"
+      ],
       "lat": 43.7402961,
       "lon": 7.426559
     },
@@ -5222,8 +6258,14 @@
       "cityDisplayName": "Chengdu, China",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Wuyang",
+        "Anran"
+      ],
+      "factions": [
+        "10Wuxing University",
+        "27Null Sector"
+      ],
       "lat": 30.659867,
       "lon": 104.063315
     },
@@ -5233,8 +6275,16 @@
       "cityDisplayName": "Watchpoint Gibraltar",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Winston",
+        "Sojourn",
+        "Wuyang",
+        "Anran"
+      ],
+      "factions": [
+        "10Wuxing University",
+        "27Null Sector"
+      ],
       "lat": 36.1285933,
       "lon": -5.3474761
     },
@@ -5244,8 +6294,17 @@
       "cityDisplayName": "London, United Kingdom",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Ramattra",
+        "Zenyatta",
+        "Widowmaker",
+        "Sombra"
+      ],
+      "factions": [
+        "26Shambali",
+        "03Talon",
+        "27Null Sector"
+      ],
       "lat": 51.5074456,
       "lon": -0.1277653
     },
@@ -5255,8 +6314,16 @@
       "cityDisplayName": "Buenos Aires, Argentina",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Reinhardt",
+        "Brigitte",
+        "Genji",
+        "Sojourn"
+      ],
+      "factions": [
+        "00Overwatch",
+        "27Null Sector"
+      ],
       "lat": -34.8222,
       "lon": -58.5358
     },
@@ -5267,8 +6334,14 @@
         {
           "name": "Signs of Life",
           "description": "AER",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Juno",
+            "Mei"
+          ],
+          "factions": [
+            "07Lucheng",
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 26.8595868,
@@ -5278,8 +6351,13 @@
         {
           "name": "Jetpack Katt",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Jetpack Cat",
+            "Brigitte"
+          ],
+          "factions": [
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 36.1285933,
@@ -5296,8 +6374,14 @@
       "cityDisplayName": "Riyadh, Saudi Arabia",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Freja",
+        "Emre"
+      ],
+      "factions": [
+        "03Talon",
+        "24Conspiracy"
+      ],
       "lat": 23.333333,
       "lon": 45.333333
     },
@@ -5308,8 +6392,20 @@
         {
           "name": "Reign of Talon",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Vendetta",
+            "Doomfist",
+            "Reaper",
+            "Widowmaker",
+            "Sombra",
+            "Moira",
+            "Mauga"
+          ],
+          "factions": [
+            "03Talon",
+            "34Talon Empire",
+            "18Max's Vault"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 41.8933203,
@@ -5319,8 +6415,25 @@
         {
           "name": "Vengance Comes",
           "description": "",
-          "filters": [],
-          "factions": [],
+          "filters": [
+            "Vendetta",
+            "Doomfist",
+            "Moira",
+            "Mauga",
+            "Domina",
+            "Ashe",
+            "Emre",
+            "Freja"
+          ],
+          "factions": [
+            "34Talon Empire",
+            "14Deadlock",
+            "23Hashimoto",
+            "16Junkers",
+            "32Helix Securities",
+            "24Conspiracy",
+            "00Overwatch"
+          ],
           "image": "",
           "locationType": "earth",
           "lat": 45.4371908,
@@ -5337,8 +6450,32 @@
       "cityDisplayName": "Watchpoint Gibraltar",
       "description": "",
       "image": "",
-      "filters": [],
-      "factions": [],
+      "filters": [
+        "Winston",
+        "Tracer",
+        "Mei",
+        "Reinhardt",
+        "Brigitte",
+        "Mercy",
+        "Genji",
+        "Echo",
+        "Cassidy",
+        "Pharah",
+        "Baptiste",
+        "Zarya",
+        "D.va",
+        "Sojourn",
+        "Bastion",
+        "Juno",
+        "Orisa",
+        "Wuyang",
+        "Anran",
+        "Jetpack Cat"
+      ],
+      "factions": [
+        "00Overwatch",
+        "34Talon Empire"
+      ],
       "sources": [
         {
           "text": "From the Ashes",

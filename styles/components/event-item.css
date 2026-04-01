@@ -20,14 +20,20 @@
     box-sizing: border-box; /* Include padding in width/height */
 }
 
-/* GitHub Pages: view-only cards can be shorter (no Edit/Delete row) */
+/* GitHub Pages: view-only cards — no action row; whole card opens the event */
 .event-item.event-item--view-only {
-    height: 240px;
+    height: auto;
+    min-height: 200px;
+    cursor: pointer;
 }
 
-/* GitHub Pages: remove the big mid-card gap by not pinning actions to bottom */
-.event-item.event-item--view-only .event-item-actions {
-    margin-top: 10px; /* overrides margin-top:auto from base */
+.event-item.event-item--view-only:focus-visible {
+    outline: 2px solid rgba(33, 150, 243, 0.85);
+    outline-offset: 2px;
+}
+
+body.color-palette-gray .event-item.event-item--view-only:focus-visible {
+    outline-color: rgba(255, 102, 0, 0.9);
 }
 
 .event-item.unsaved {

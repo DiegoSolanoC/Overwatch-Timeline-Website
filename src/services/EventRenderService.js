@@ -700,14 +700,8 @@ class EventRenderService {
             : `Event #${index + 1}`;
         const eventNumberBadge = `<div class="event-number-badge${overlapClass}" title="${overlapTitle}">${index + 1}</div>`;
 
-        // On GitHub Pages, hide edit/delete buttons, but show View button
-        const actionButtons = isGitHubPages ? `
-            <div class="event-item-actions">
-                <div class="event-item-actions-row">
-                    <button class="event-item-btn view-btn" data-index="${index}">View</button>
-                </div>
-            </div>
-        ` : `
+        // On GitHub Pages, no action row — the whole card opens the event (read-only host).
+        const actionButtons = isGitHubPages ? '' : `
             <div class="event-item-actions">
                 <div class="event-item-actions-row">
                     <button class="event-item-btn view-btn" data-index="${index}">View</button>
@@ -733,7 +727,7 @@ class EventRenderService {
             ${actionButtons}
         `;
 
-        // Add event listeners for buttons (View works on both, Edit/Delete only on localhost)
+        // Add event listeners for buttons (View + Edit/Delete on local/dev; GitHub uses whole-card click)
         const viewBtn = item.querySelector('.view-btn');
         const editBtn = item.querySelector('.edit-btn');
         const deleteBtn = item.querySelector('.delete-btn');
@@ -777,6 +771,30 @@ class EventRenderService {
             // Prevent dragging when clicking on button
             deleteBtn.addEventListener('mousedown', (e) => {
                 e.stopPropagation();
+            });
+        }
+
+        if (isGitHubPages) {
+            const label = (displayEvent && displayEvent.name) ? String(displayEvent.name) : (`Event ${index + 1}`);
+            item.setAttribute('role', 'button');
+            item.setAttribute('tabindex', '0');
+            item.setAttribute('aria-label', `Open event: ${label}`);
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.multi-event-badge')) {
+                    return;
+                }
+                if (this.eventManager.openEventFromList) {
+                    this.eventManager.openEventFromList(event, index);
+                }
+            });
+            item.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') {
+                    return;
+                }
+                e.preventDefault();
+                if (this.eventManager.openEventFromList) {
+                    this.eventManager.openEventFromList(event, index);
+                }
             });
         }
 

@@ -144,83 +144,88 @@
       "displayName": "Colloseo Gladiatori"
     },
     {
-      "filename": "18Numbani",
+      "filename": "18Max's Vault",
       "number": 18,
+      "displayName": "Max's Vault"
+    },
+    {
+      "filename": "19Numbani",
+      "number": 19,
       "displayName": "Numbani"
     },
     {
-      "filename": "19Wayfinders",
-      "number": 19,
+      "filename": "20Wayfinders",
+      "number": 20,
       "displayName": "Wayfinders"
     },
     {
-      "filename": "20Los Muertos",
-      "number": 20,
+      "filename": "21Los Muertos",
+      "number": 21,
       "displayName": "Los Muertos"
     },
     {
-      "filename": "21Shimada",
-      "number": 21,
+      "filename": "22Shimada",
+      "number": 22,
       "displayName": "Shimada"
     },
     {
-      "filename": "22Hashimoto",
-      "number": 22,
+      "filename": "23Hashimoto",
+      "number": 23,
       "displayName": "Hashimoto"
     },
     {
-      "filename": "23Conspiracy",
-      "number": 23,
+      "filename": "24Conspiracy",
+      "number": 24,
       "displayName": "Conspiracy"
     },
     {
-      "filename": "24Oasis",
-      "number": 24,
+      "filename": "25Oasis",
+      "number": 25,
       "displayName": "Oasis"
     },
     {
-      "filename": "25Shambali",
-      "number": 25,
+      "filename": "26Shambali",
+      "number": 26,
       "displayName": "Shambali"
     },
     {
-      "filename": "26Null Sector",
-      "number": 26,
+      "filename": "27Null Sector",
+      "number": 27,
       "displayName": "Null Sector"
     },
     {
-      "filename": "27Collective",
-      "number": 27,
+      "filename": "28Collective",
+      "number": 28,
       "displayName": "Collective"
     },
     {
-      "filename": "28Deep Sea Raiders",
-      "number": 28,
+      "filename": "29Deep Sea Raiders",
+      "number": 29,
       "displayName": "Deep Sea Raiders"
     },
     {
-      "filename": "29Phreaks",
-      "number": 29,
+      "filename": "30Phreaks",
+      "number": 30,
       "displayName": "Phreaks"
     },
     {
-      "filename": "30MEKA",
-      "number": 30,
+      "filename": "31MEKA",
+      "number": 31,
       "displayName": "MEKA"
     },
     {
-      "filename": "31Helix",
-      "number": 31,
-      "displayName": "Helix"
+      "filename": "32Helix Securities",
+      "number": 32,
+      "displayName": "Helix Securities"
     },
     {
-      "filename": "32Yokai",
-      "number": 32,
+      "filename": "33Yokai",
+      "number": 33,
       "displayName": "Yokai"
     },
     {
-      "filename": "33Talon Empire",
-      "number": 33,
+      "filename": "34Talon Empire",
+      "number": 34,
       "displayName": "Talon Empire"
     }
   ],
