@@ -205,14 +205,77 @@ body.color-palette-gray .events-manage-title {
     max-width: none;
 }
 
-/* Row 2: keep controls compact; extra width goes to row 1 search fields, not stretched widgets */
+/* Row 2: equal-width columns so each control uses the full row horizontally */
 .events-manage-search-row--secondary {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: center;
-    gap: 10px 20px;
+    gap: 10px 12px;
     width: 100%;
-    justify-content: flex-start;
+}
+
+.events-manage-search-row--secondary .events-search-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.2);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.events-manage-search-row--secondary .events-search-checkbox input[type="checkbox"] {
+    flex-shrink: 0;
+}
+
+.events-manage-search-row--secondary .events-per-page-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.2);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.events-manage-search-row--secondary .events-per-page-group .events-search-label {
+    flex-shrink: 0;
+}
+
+.events-manage-search-row--secondary .events-per-page-group .events-search-input-small {
+    flex: 1 1 auto;
+    min-width: 56px;
+    max-width: none;
+    width: auto;
+}
+
+.events-manage-search-row--secondary .events-search-clear-btn {
+    width: 100%;
+    box-sizing: border-box;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    .events-manage-search-row--primary {
+        flex-wrap: wrap;
+    }
+
+    .events-manage-search-row--secondary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .events-manage-search-row--secondary {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 .events-per-page-group {
@@ -220,12 +283,6 @@ body.color-palette-gray .events-manage-title {
     align-items: center;
     gap: 10px;
     white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-    .events-manage-search-row--primary {
-        flex-wrap: wrap;
-    }
 }
 .events-search-label {
     color: rgba(255, 255, 255, 0.8);

@@ -32,6 +32,8 @@ export class SceneModel {
         // User preferences
         this.autoRotateEnabled = true;
         this.hyperloopVisible = true;
+        /** Aurora shell + cloud layer; when false, meshes hide and reload randomizes like a fresh page when re-enabled. */
+        this.globeWeatherEffectsVisible = true;
         this.eventMarker = null; // Current event marker for recentering
         this.activeFilters = new Set(); // Currently active filter selections
         this.isMapView = false; // Earth view mode: globe (false) or flat map (true)
@@ -194,8 +196,8 @@ export class SceneModel {
 
 
     /**
-     * Set stars
-     * @param {THREE.Points} stars - Stars point cloud
+     * Set stars (group with point layers, or legacy single Points)
+     * @param {THREE.Object3D} stars
      */
     setStars(stars) {
         this.stars = stars;
@@ -203,7 +205,7 @@ export class SceneModel {
 
     /**
      * Get stars
-     * @returns {THREE.Points}
+     * @returns {THREE.Object3D|null}
      */
     getStars() {
         return this.stars;
@@ -394,6 +396,20 @@ export class SceneModel {
      */
     getHyperloopVisible() {
         return this.hyperloopVisible;
+    }
+
+    /**
+     * @param {boolean} visible
+     */
+    setGlobeWeatherEffectsVisible(visible) {
+        this.globeWeatherEffectsVisible = !!visible;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    getGlobeWeatherEffectsVisible() {
+        return this.globeWeatherEffectsVisible !== false;
     }
 
     /**

@@ -182,10 +182,49 @@
         return createLeadingGraphicHtml(text, locationType) + ' ' + text;
     }
 
+    /**
+     * Resolve one manual token (e.g. from "Secondary countries" field) to a flag PNG filename.
+     * Tries full-display rules first, then plain country name lookup.
+     */
+    function resolveManualCountryTokenToFlagFile(token, locationType) {
+        var trimmed = String(token || '').trim();
+        if (!trimmed) return null;
+        var t = locationType || 'earth';
+        var viaDisplay = getResolvedFlagFilename(trimmed, t);
+        if (viaDisplay) return viaDisplay;
+        return resolveCountryToFilename(trimmed);
+    }
+
+    /**
+     * Parse comma-separated country/location tokens into unique flag filenames (event manager country filter).
+     */
+    function parseSecondaryCountryList(text, locationType) {
+        var tokens = (text || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+        var seen = {};
+        var out = [];
+        tokens.forEach(function (tok) {
+            var fn = resolveManualCountryTokenToFlagFile(tok, locationType);
+            if (fn && !seen[fn]) {
+                seen[fn] = true;
+                out.push(fn);
+            }
+        });
+        return out;
+    }
+
+    /** Sorted common country names from FLAG_FILE_BY_COMMON (for autocomplete). */
+    function getCountryCommonNamesForAutocomplete() {
+        var map = typeof window !== 'undefined' ? window.FLAG_FILE_BY_COMMON : null;
+        if (!map) return [];
+        return Object.keys(map).sort(function (a, b) { return a.localeCompare(b); });
+    }
+
     window.LocationFlagHelpers = {
         createLeadingGraphicHtml: createLeadingGraphicHtml,
         createLocationRowInnerHtml: createLocationRowInnerHtml,
         flagSrc: flagSrc,
-        getResolvedFlagFilename: getResolvedFlagFilename
+        getResolvedFlagFilename: getResolvedFlagFilename,
+        parseSecondaryCountryList: parseSecondaryCountryList,
+        getCountryCommonNamesForAutocomplete: getCountryCommonNamesForAutocomplete
     };
 })();

@@ -20,6 +20,24 @@ class EventFormService {
     }
 
     /**
+     * @param {string[]} flagFilenames
+     * @returns {string} Comma-separated labels for the secondary countries field
+     */
+    secondaryFlagsToFormString(flagFilenames) {
+        if (!flagFilenames || flagFilenames.length === 0) return '';
+        const map = typeof window !== 'undefined' ? window.FLAG_FILE_BY_COMMON : null;
+        return flagFilenames.map((fn) => {
+            if (map) {
+                const keys = Object.keys(map).sort();
+                for (let i = 0; i < keys.length; i++) {
+                    if (map[keys[i]] === fn) return keys[i];
+                }
+            }
+            return String(fn).replace(/\.png$/i, '').trim();
+        }).join(', ');
+    }
+
+    /**
      * Setup location type change handler
      */
     setupLocationTypeHandler() {
@@ -116,6 +134,8 @@ class EventFormService {
         document.getElementById('eventEditDescription').value = '';
         document.getElementById('eventEditFilters').value = '';
         document.getElementById('eventEditFactions').value = '';
+        const secondaryCountriesEl = document.getElementById('eventEditSecondaryCountries');
+        if (secondaryCountriesEl) secondaryCountriesEl.value = '';
         // Set default location type (will trigger updateLocationFields which sets defaults)
         this.setLocationType('earth');
         // Clear all source pairs and reset to one
@@ -155,6 +175,19 @@ class EventFormService {
             const found = this.eventManager.factions.find(f => f.displayName.toLowerCase() === displayName.toLowerCase());
             return found ? found.filename : displayName;
         });
+
+        const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
+        const parseSecondary = window.LocationFlagHelpers && typeof window.LocationFlagHelpers.parseSecondaryCountryList === 'function'
+            ? window.LocationFlagHelpers.parseSecondaryCountryList
+            : null;
+        if (secondaryCountriesInput && parseSecondary) {
+            const ltInput = document.getElementById('eventEditLocationType');
+            const locForSecondary = (ltInput && ltInput.value) ? ltInput.value : (variant.locationType || 'earth');
+            const secondaryList = parseSecondary(secondaryCountriesInput.value, locForSecondary);
+            variant.secondaryCountryFlags = secondaryList.length > 0 ? secondaryList : undefined;
+        } else if (secondaryCountriesInput) {
+            variant.secondaryCountryFlags = undefined;
+        }
         
         // Save location type and coordinates for this variant
         const locationTypeInput = document.getElementById('eventEditLocationType');
@@ -276,6 +309,10 @@ class EventFormService {
             return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
         }).join(', ');
         document.getElementById('eventEditFactions').value = displayFactions;
+        const secondaryCountriesField = document.getElementById('eventEditSecondaryCountries');
+        if (secondaryCountriesField) {
+            secondaryCountriesField.value = this.secondaryFlagsToFormString(variant.secondaryCountryFlags);
+        }
         
         // Load variant-specific location type and coordinates
         this.setLocationType(variant.locationType || 'earth');
@@ -454,6 +491,8 @@ class EventFormService {
             document.getElementById('eventEditDescription').value = '';
             document.getElementById('eventEditFilters').value = '';
             document.getElementById('eventEditFactions').value = '';
+            const secDel = document.getElementById('eventEditSecondaryCountries');
+            if (secDel) secDel.value = '';
             this.clearSourcePairs();
             this.eventManager.variantData[0] = {
                 name: '',
@@ -535,7 +574,10 @@ class EventFormService {
                 lon: variant.lon !== undefined ? variant.lon : undefined,
                 x: variant.x !== undefined ? variant.x : undefined,
                 y: variant.y !== undefined ? variant.y : undefined,
-                cityDisplayName: variant.cityDisplayName || undefined
+                cityDisplayName: variant.cityDisplayName || undefined,
+                secondaryCountryFlags: Array.isArray(variant.secondaryCountryFlags) && variant.secondaryCountryFlags.length > 0
+                    ? variant.secondaryCountryFlags.slice()
+                    : undefined
             }));
             this.eventManager.activeVariantIndex = 0;
         } else {
@@ -552,7 +594,10 @@ class EventFormService {
                 lon: event.lon !== undefined ? event.lon : undefined,
                 x: event.x !== undefined ? event.x : undefined,
                 y: event.y !== undefined ? event.y : undefined,
-                cityDisplayName: event.cityDisplayName || undefined
+                cityDisplayName: event.cityDisplayName || undefined,
+                secondaryCountryFlags: Array.isArray(event.secondaryCountryFlags) && event.secondaryCountryFlags.length > 0
+                    ? event.secondaryCountryFlags.slice()
+                    : undefined
             }];
             this.eventManager.activeVariantIndex = 0;
         }
@@ -568,6 +613,10 @@ class EventFormService {
                 return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
             }).join(', ');
             document.getElementById('eventEditFactions').value = displayFactions;
+            const secondaryPop = document.getElementById('eventEditSecondaryCountries');
+            if (secondaryPop) {
+                secondaryPop.value = this.secondaryFlagsToFormString(variant.secondaryCountryFlags);
+            }
             
             // Load variant-specific location type and coordinates
             this.setLocationType(variant.locationType || 'earth');

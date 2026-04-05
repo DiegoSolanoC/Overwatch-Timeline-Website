@@ -4,6 +4,8 @@
  */
 
 import { formatEventSlideTitleHtml } from './helpers/EventSlideShowHelpers.js';
+/** Side effect: defines `window.EventSlideGlitchHelpers` (glitch toggle + text click delegation). */
+import './helpers/EventSlideGlitchHelpers.js';
 import {
     setupMobileEventSlide,
     cleanupMobileEventSlide,
@@ -40,6 +42,11 @@ export class EventSlideManager {
         this.originalCameraPosition = null;
         this.originalGlobeRotation = null;
 
+        const eventSlideEl = document.getElementById('eventSlide');
+        if (eventSlideEl && typeof window.EventSlideGlitchHelpers?.bindGlitchTextClickDelegation === 'function') {
+            window.EventSlideGlitchHelpers.bindGlitchTextClickDelegation(eventSlideEl, uiView);
+        }
+
         this._inlineDescEdit = {
             active: false,
             dirty: false,
@@ -54,7 +61,8 @@ export class EventSlideManager {
             originalFilters: [],
             originalFactions: [],
             originalSources: [],
-            originalHeadlines: []
+            originalHeadlines: [],
+            originalSecondaryCountryFlags: []
         };
     }
 
@@ -122,6 +130,10 @@ export class EventSlideManager {
                     <input class="event-slide-inline-editor__input" id="eventSlideEditFactions" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" />
                 </div>
                 <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditSecondaryCountries">Secondary countries (comma-separated)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditSecondaryCountries" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Also match country filter (optional)" />
+                </div>
+                <div class="event-slide-inline-editor__row">
                     <label class="event-slide-inline-editor__label" for="eventSlideEditHeadlines">Headlines (one per line)</label>
                     <textarea class="event-slide-inline-editor__textarea" id="eventSlideEditHeadlines" rows="4" spellcheck="true" autocomplete="on" autocorrect="on" autocapitalize="sentences"></textarea>
                 </div>
@@ -143,9 +155,24 @@ export class EventSlideManager {
             }
         }
 
+        const editorEl = document.getElementById('eventSlideInlineEditor');
+        if (editorEl && !document.getElementById('eventSlideEditSecondaryCountries')) {
+            const factionsRow = document.getElementById('eventSlideEditFactions')?.closest('.event-slide-inline-editor__row');
+            if (factionsRow) {
+                const row = document.createElement('div');
+                row.className = 'event-slide-inline-editor__row';
+                row.innerHTML = `
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditSecondaryCountries">Secondary countries (comma-separated)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditSecondaryCountries" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Also match country filter (optional)" />
+                `;
+                factionsRow.after(row);
+            }
+        }
+
         const cityInput = document.getElementById('eventSlideEditCityDisplayName');
         const filtersInput = document.getElementById('eventSlideEditFilters');
         const factionsInput = document.getElementById('eventSlideEditFactions');
+        const secondaryCountriesInput = document.getElementById('eventSlideEditSecondaryCountries');
         const headlinesInput = document.getElementById('eventSlideEditHeadlines');
         const sourcesList = document.getElementById('eventSlideEditSources');
         const addSourceBtn = document.getElementById('eventSlideAddSourceBtn');
@@ -207,6 +234,7 @@ export class EventSlideManager {
         cityInput?.addEventListener('input', markDirty, { passive: true });
         filtersInput?.addEventListener('input', markDirty, { passive: true });
         factionsInput?.addEventListener('input', markDirty, { passive: true });
+        secondaryCountriesInput?.addEventListener('input', markDirty, { passive: true });
         headlinesInput?.addEventListener('input', markDirty, { passive: true });
 
         // Make the description field behave like a plain-text editor.
@@ -271,6 +299,9 @@ export class EventSlideManager {
             this._inlineDescEdit.originalFactions = Array.isArray(target.factions) ? [...target.factions] : [];
             this._inlineDescEdit.originalSources = Array.isArray(target.sources) ? JSON.parse(JSON.stringify(target.sources)) : [];
             this._inlineDescEdit.originalHeadlines = Array.isArray(target.headlines) ? [...target.headlines] : [];
+            this._inlineDescEdit.originalSecondaryCountryFlags = Array.isArray(target.secondaryCountryFlags)
+                ? [...target.secondaryCountryFlags]
+                : [];
             this._inlineDescEdit.eventData = eventData;
             this._inlineDescEdit.variantIndex = variantIndex;
 
@@ -297,6 +328,13 @@ export class EventSlideManager {
                 // Display factions without numeric prefix for readability
                 factionsInput.value = this._inlineDescEdit.originalFactions.map(f => String(f).replace(/^\d+/, '').trim()).join(', ');
             }
+            const secondaryEl = document.getElementById('eventSlideEditSecondaryCountries');
+            if (secondaryEl) {
+                const formSvc = window.eventManager?.formService || window.EventFormService;
+                secondaryEl.value = formSvc && typeof formSvc.secondaryFlagsToFormString === 'function'
+                    ? formSvc.secondaryFlagsToFormString(target.secondaryCountryFlags)
+                    : '';
+            }
             if (headlinesInput) headlinesInput.value = (this._inlineDescEdit.originalHeadlines || []).join('\n');
             renderSourcesEditor(this._inlineDescEdit.originalSources);
 
@@ -304,12 +342,21 @@ export class EventSlideManager {
             // Reset setup flag each time we enter edit mode so options stay in sync.
             if (filtersInput) filtersInput.dataset.autocompleteSetup = 'false';
             if (factionsInput) factionsInput.dataset.autocompleteSetup = 'false';
+            const secondaryCountriesInputEl = document.getElementById('eventSlideEditSecondaryCountries');
+            if (secondaryCountriesInputEl) secondaryCountriesInputEl.dataset.autocompleteSetup = 'false';
             const auto = window.eventManager?.formService?.autocompleteService || window.EventFormService?.autocompleteService;
             if (auto && typeof auto.setupAutocomplete === 'function') {
                 const heroes = window.eventManager?.heroes || window.globeController?.dataModel?.heroes || [];
                 const factionDisplayNames = (window.eventManager?.factions || []).map(f => f.displayName).filter(Boolean);
+                const countryOptions = window.LocationFlagHelpers
+                    && typeof window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete === 'function'
+                    ? window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete()
+                    : [];
                 if (filtersInput) auto.setupAutocomplete(filtersInput, heroes, 'heroes');
                 if (factionsInput) auto.setupAutocomplete(factionsInput, factionDisplayNames, 'factions');
+                if (secondaryCountriesInputEl && countryOptions.length > 0) {
+                    auto.setupAutocomplete(secondaryCountriesInputEl, countryOptions, 'countries');
+                }
             }
 
             // Track edits
@@ -355,11 +402,20 @@ export class EventSlideManager {
 
             const newSources = readSourcesEditor();
 
+            const secondaryField = document.getElementById('eventSlideEditSecondaryCountries');
+            const locTypeForSecondary = target.locationType || 'earth';
+            const parseSecondary = window.LocationFlagHelpers?.parseSecondaryCountryList;
+            let secondaryParsed = [];
+            if (secondaryField && typeof parseSecondary === 'function') {
+                secondaryParsed = parseSecondary(secondaryField.value, locTypeForSecondary);
+            }
+
             if (newName) target.name = newName;
             target.description = newText;
             target.cityDisplayName = newCity || undefined;
             target.filters = newFilters;
             target.factions = newFactions;
+            target.secondaryCountryFlags = secondaryParsed.length > 0 ? secondaryParsed : undefined;
             target.sources = newSources.length > 0 ? newSources : undefined;
             target.headlines = headlinesLines.length > 0 ? headlinesLines : undefined;
 
@@ -440,6 +496,7 @@ export class EventSlideManager {
         this._inlineDescEdit.originalFactions = [];
         this._inlineDescEdit.originalSources = [];
         this._inlineDescEdit.originalHeadlines = [];
+        this._inlineDescEdit.originalSecondaryCountryFlags = [];
     }
 
     _cancelInlineDescriptionEdit() {
@@ -764,10 +821,12 @@ export class EventSlideManager {
             // Minimal fallback
             const hasOlivia = hasOliviaColomar(eventName, description, eventData);
             if (hasOlivia) {
-                glitchToggleBtn.style.display = 'block';
+                glitchToggleBtn.style.display = 'inline-flex';
                 glitchToggleBtn.style.visibility = 'visible';
                 window.GlitchTextService?.setEnabled(true);
-                glitchToggleBtn.textContent = 'Disable Glitch';
+                if (window.EventSlideGlitchHelpers?.applyGlitchToggleButtonState) {
+                    window.EventSlideGlitchHelpers.applyGlitchToggleButtonState(glitchToggleBtn, true);
+                }
                 glitchToggleBtn.onclick = () => this.uiView.toggleGlitchEffect();
                 setTimeout(() => {
                     if (window.GlitchTextService?.isEnabled() && window.SoundEffectsManager?.play) {

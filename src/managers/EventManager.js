@@ -81,10 +81,74 @@ class EventManager {
     }
 
     /**
-     * Get events filtered by search query and hero/faction/country filters (for event manager list)
-     * Title: case-insensitive contains. Heroes: event has any selected (event.filters).
-     * Factions: event has any selected (event.factions, by filename).
-     * Country: resolved location flag PNG (LocationFlagHelpers.getResolvedFlagFilename) is one of searchCountryFilters.
+     * Hero/faction dimension: OR within each list (any hero / any faction). When both hero and faction
+     * filters are set, a row matches if it satisfies heroes OR factions (not both required).
+     * Country dimension: primary resolved flag or secondaryCountryFlags matches any selected country file.
+     */
+    _computeSearchAxisMatchesForItem(item) {
+        const heroFilters = this.searchHeroFilters || [];
+        const factionFilters = this.searchFactionFilters || [];
+        const countryFilters = this.searchCountryFilters || [];
+        const itemHeroes = item?.filters || [];
+        const itemFactions = item?.factions || [];
+        const hasH = heroFilters.length > 0;
+        const hasF = factionFilters.length > 0;
+        const heroHit = hasH && heroFilters.some(h => itemHeroes.includes(h));
+        const factionHit = hasF && factionFilters.some(f => itemFactions.includes(f));
+        let matchHeroFaction;
+        if (!hasH && !hasF) {
+            matchHeroFaction = true;
+        } else if (hasH && hasF) {
+            matchHeroFaction = heroHit || factionHit;
+        } else if (hasH) {
+            matchHeroFaction = heroHit;
+        } else {
+            matchHeroFaction = factionHit;
+        }
+
+        const flagFn = typeof window !== 'undefined' && window.LocationFlagHelpers && typeof window.LocationFlagHelpers.getResolvedFlagFilename === 'function'
+            ? window.LocationFlagHelpers.getResolvedFlagFilename
+            : null;
+        let matchCountry = true;
+        if (countryFilters.length > 0 && flagFn) {
+            const countrySet = new Set(countryFilters);
+            const locName = item?.cityDisplayName ?? '';
+            const locType = item?.locationType || 'earth';
+            const resolved = flagFn(locName, locType);
+            const primaryMatch = !!resolved && countrySet.has(resolved);
+            const secondary = item?.secondaryCountryFlags;
+            const secondaryMatch = Array.isArray(secondary) && secondary.some((fn) => countrySet.has(fn));
+            matchCountry = primaryMatch || secondaryMatch;
+        } else if (countryFilters.length > 0) {
+            matchCountry = false;
+        }
+        return { matchHeroFaction, matchCountry };
+    }
+
+    /**
+     * For list UI: which search axes match this item (variant row). Used for pills / accents when filter and country are both in play.
+     */
+    getSearchMatchAxesForItem(item) {
+        const heroFilters = this.searchHeroFilters || [];
+        const factionFilters = this.searchFactionFilters || [];
+        const countryFilters = this.searchCountryFilters || [];
+        const filterActive = heroFilters.length > 0 || factionFilters.length > 0;
+        const countryActive = countryFilters.length > 0;
+        if (!filterActive && !countryActive) {
+            return { filterActive: false, countryActive: false, filterHit: false, countryHit: false };
+        }
+        const { matchHeroFaction, matchCountry } = this._computeSearchAxisMatchesForItem(item);
+        return {
+            filterActive,
+            countryActive,
+            filterHit: filterActive && matchHeroFaction,
+            countryHit: countryActive && matchCountry
+        };
+    }
+
+    /**
+     * Get events filtered by search query and hero/faction/country (for event manager list)
+     * Title: AND with the rest. Heroes vs factions (when both selected): OR. Filter group vs country: OR when both are non-empty.
      */
     getFilteredEvents() {
         const all = this.events;
@@ -92,43 +156,35 @@ class EventManager {
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
         const countryFilters = this.searchCountryFilters || [];
-        const flagFn = typeof window !== 'undefined' && window.LocationFlagHelpers && typeof window.LocationFlagHelpers.getResolvedFlagFilename === 'function'
-            ? window.LocationFlagHelpers.getResolvedFlagFilename
-            : null;
         if (!q && heroFilters.length === 0 && factionFilters.length === 0 && countryFilters.length === 0) {
             return all;
         }
-        const countrySet = new Set(countryFilters);
+        const filterGroupActive = heroFilters.length > 0 || factionFilters.length > 0;
+        const countryGroupActive = countryFilters.length > 0;
+
         const matchesItem = (item) => {
             const name = (item?.name || '').toLowerCase();
             const matchTitle = !q || name.includes(q);
-            const itemHeroes = item?.filters || [];
-            const matchHeroes = heroFilters.length === 0 || heroFilters.some(h => itemHeroes.includes(h));
-            const itemFactions = item?.factions || [];
-            const matchFactions = factionFilters.length === 0 || factionFilters.some(f => itemFactions.includes(f));
-            let matchCountry = true;
-            if (countryFilters.length > 0 && flagFn) {
-                const locName = item?.cityDisplayName ?? '';
-                const locType = item?.locationType || 'earth';
-                const resolved = flagFn(locName, locType);
-                matchCountry = !!resolved && countrySet.has(resolved);
-            } else if (countryFilters.length > 0) {
-                matchCountry = false;
+            const { matchHeroFaction, matchCountry } = this._computeSearchAxisMatchesForItem(item);
+            let dimPass = true;
+            if (filterGroupActive && countryGroupActive) {
+                dimPass = matchHeroFaction || matchCountry;
+            } else if (filterGroupActive) {
+                dimPass = matchHeroFaction;
+            } else if (countryGroupActive) {
+                dimPass = matchCountry;
             }
-            return matchTitle && matchHeroes && matchFactions && matchCountry;
+            return matchTitle && dimPass;
         };
 
         return all.filter(event => {
-            // Main event matches (single event or multi-event header)
             if (matchesItem(event)) {
                 return true;
             }
 
-            // Variant match: if any variant matches, include event and set preview to that variant
             if (event?.variants && Array.isArray(event.variants) && event.variants.length > 0) {
                 const matchedIndex = event.variants.findIndex(v => matchesItem(v));
                 if (matchedIndex !== -1) {
-                    // Ensure preview shows the matching variant
                     const fullIndex = all.indexOf(event);
                     if (fullIndex !== -1 && this.eventItemVariantIndices) {
                         this.eventItemVariantIndices.set(`event-${fullIndex}`, matchedIndex);
@@ -479,11 +535,19 @@ class EventManager {
                 setTimeout(() => {
                     const filtersInput = document.getElementById('eventEditFilters');
                     const factionsInput = document.getElementById('eventEditFactions');
+                    const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
+                    const countryOptions = window.LocationFlagHelpers
+                        && typeof window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete === 'function'
+                        ? window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete()
+                        : [];
                     if (filtersInput && this.heroes.length > 0) {
                         this.formService.setupAutocomplete(filtersInput, this.heroes, 'heroes');
                     }
                     if (factionsInput && this.factions.length > 0) {
                         this.formService.setupAutocomplete(factionsInput, this.factions.map(f => f.displayName), 'factions');
+                    }
+                    if (secondaryCountriesInput && countryOptions.length > 0) {
+                        this.formService.setupAutocomplete(secondaryCountriesInput, countryOptions, 'countries');
                     }
                 }, 100);
             }
@@ -500,6 +564,10 @@ class EventManager {
             this.editingIndex = null;
             const filtersInput = document.getElementById('eventEditFilters');
             if (filtersInput) filtersInput.dataset.autocompleteSetup = 'false';
+            const factionsInput = document.getElementById('eventEditFactions');
+            if (factionsInput) factionsInput.dataset.autocompleteSetup = 'false';
+            const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
+            if (secondaryCountriesInput) secondaryCountriesInput.dataset.autocompleteSetup = 'false';
         }
     }
 
@@ -546,6 +614,123 @@ class EventManager {
             console.error('EventManager: Failed to save event:', result.error);
             alert('Error saving event: ' + (result.error || 'Unknown error'));
         }
+    }
+
+    /**
+     * Readable faction token for Event Manager hero/faction search field (matches parseFilterTokens).
+     */
+    getFactionDisplayTokenForSearch(filename) {
+        const fn = String(filename || '').trim();
+        if (!fn) return '';
+        const nk = fn.toLowerCase();
+        const factions = this.factions || [];
+        const f = factions.find((x) => String(x?.filename || '').toLowerCase() === nk);
+        if (f?.displayName) return String(f.displayName).trim();
+        const base = fn.replace(/\.png$/i, '').replace(/^\d+/, '').replace(/_/g, ' ').trim();
+        return base || fn;
+    }
+
+    /**
+     * FLAG_FILE_BY_COMMON value (e.g. France.png) → common name key for country search input.
+     */
+    flagFilenameToCommonCountryName(flagFile) {
+        const file = String(flagFile || '').trim();
+        if (!file) return null;
+        const map = typeof window !== 'undefined' ? window.FLAG_FILE_BY_COMMON : null;
+        if (!map) return null;
+        for (const common of Object.keys(map).sort()) {
+            if (map[common] === file) return common;
+        }
+        return null;
+    }
+
+    /**
+     * Prepend one hero / faction / country token to the Event Manager search inputs (deduped) and apply search.
+     * Only pass one of heroName, factionFilename, countryFlagFilename per call.
+     */
+    prependEventManagerSearchTokens({ heroName, factionFilename, countryFlagFilename } = {}) {
+        const filtersInput = document.getElementById('eventsSearchFilters');
+        const countryInput = document.getElementById('eventsSearchCountry');
+        const useSel = document.getElementById('eventsUseFilterSelectionCheckbox');
+        if (!filtersInput) return;
+
+        if (useSel?.checked) {
+            useSel.checked = false;
+            filtersInput.readOnly = false;
+            filtersInput.style.cursor = '';
+            filtersInput.style.opacity = '';
+        }
+
+        const prependToCommaList = (current, token) => {
+            const t = String(token || '').trim();
+            if (!t) return String(current || '').trim();
+            const parts = String(current || '').split(',').map((s) => s.trim()).filter(Boolean);
+            const tl = t.toLowerCase();
+            const rest = parts.filter((p) => p.toLowerCase() !== tl);
+            return [t, ...rest].join(', ');
+        };
+
+        /** Normalize list so it always ends with ", " for continued typing / autocomplete. */
+        const withTrailingCommaSpace = (value) => {
+            let v = String(value || '').trim();
+            if (!v) return '';
+            v = v.replace(/,\s*$/, '').trim();
+            if (!v) return '';
+            return `${v}, `;
+        };
+
+        if (heroName) {
+            const h = String(heroName).trim();
+            if (h) filtersInput.value = withTrailingCommaSpace(prependToCommaList(filtersInput.value, h));
+        }
+        if (factionFilename) {
+            const tok = this.getFactionDisplayTokenForSearch(factionFilename);
+            if (tok) filtersInput.value = withTrailingCommaSpace(prependToCommaList(filtersInput.value, tok));
+        }
+        if (countryFlagFilename && countryInput) {
+            const common = this.flagFilenameToCommonCountryName(countryFlagFilename)
+                || String(countryFlagFilename).replace(/\.png$/i, '').trim();
+            if (common) {
+                countryInput.value = withTrailingCommaSpace(prependToCommaList(countryInput.value, common));
+            }
+        }
+
+        filtersInput.dispatchEvent(new Event('input', { bubbles: true }));
+        if (countryInput) countryInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    /**
+     * Open the Event Manager panel (same net effect as toggle when closed).
+     */
+    openEventsManagePanel() {
+        const panel = document.getElementById('eventsManagePanel');
+        const toggle = document.getElementById('eventsManageToggle');
+        if (!panel) return;
+
+        if (!panel.classList.contains('open')) {
+            const musicPanel = document.getElementById('musicPanel');
+            const musicButton = document.getElementById('musicToggle');
+            if (musicPanel?.classList.contains('open')) {
+                musicPanel.classList.remove('open');
+                musicButton?.classList.remove('active');
+            }
+            const filtersPanel = document.getElementById('filtersPanel');
+            const filtersButton = document.getElementById('filtersToggle');
+            if (filtersPanel?.classList.contains('open')) {
+                filtersPanel.classList.remove('open');
+                filtersButton?.classList.remove('active');
+            }
+            if (window.SoundEffectsManager?.play) {
+                window.SoundEffectsManager.play('eventManager');
+            }
+            panel.classList.add('open');
+            toggle?.classList.add('active');
+            try {
+                window.EventsHoverPreviewBadge?.hide();
+            } catch (_) {}
+            this.renderService?.requestPageEntranceAnimation?.();
+        }
+        this.renderEvents();
     }
 }
 

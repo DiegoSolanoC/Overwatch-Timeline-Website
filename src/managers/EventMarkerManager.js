@@ -196,14 +196,16 @@ export class EventMarkerManager {
     }
 
     /**
-     * Refresh event markers (remove and re-add with animation)
+     * Refresh event markers (remove and re-add)
+     * @param {boolean} [animate=true] - Grow/shrink animation; use false when opening from event manager for snappier UX
+     * @returns {Promise<void>|undefined}
      */
-    refreshEventMarkers() {
+    refreshEventMarkers(animate = true) {
         // Check if globe is initialized before proceeding
         const globe = this.sceneModel.getGlobe();
         if (!globe) {
             console.warn('EventMarkerManager: Cannot refresh event markers - globe not initialized yet');
-            return;
+            return Promise.resolve();
         }
 
         // IMPORTANT: clear any pulse-ring meshes from the previous page immediately.
@@ -228,17 +230,10 @@ export class EventMarkerManager {
             window.globeController.interactionController.pulseService.setHoveredMarker(null);
         }
         
-        // Animate removal, then add new markers with animation
-        // Note: addEventMarkers now checks filters and sets initial locked state,
-        // so markers appear in the correct state from the start
-        this.removeEventMarkers(true).then(() => {
-            return this.addEventMarkers(true);
+        return this.removeEventMarkers(animate).then(() => {
+            return this.addEventMarkers(animate);
         }).then(() => {
-            // Filters are already applied during addEventMarkers, but call applyFilters
-            // to ensure consistency and update number buttons
             this.applyFilters();
-            
-            // Update plane visibility based on current page events
             if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
                 window.globeController.updatePlaneVisibility();
             }

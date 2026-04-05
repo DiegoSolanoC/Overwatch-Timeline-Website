@@ -508,7 +508,7 @@
                     <div class="event-control-buttons">
                         <button type="button" id="eventFullTextToggle" class="event-full-text-toggle-btn" aria-pressed="false">Full Text Display</button>
                         <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
-                        <button id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;">Enable Glitch</button>
+                        <button type="button" id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;" aria-label="Glitch effect" aria-pressed="false"><span class="event-glitch-toggle-btn__icon" aria-hidden="true"></span></button>
                     </div>
                     <div class="event-navigation-buttons">
                         <button id="eventPrevBtn" class="event-nav-btn" title="Previous Event">‹</button>
@@ -650,6 +650,10 @@
                     <div class="event-edit-field">
                         <label for="eventEditFactions">Faction Filters (comma-separated):</label>
                         <input type="text" id="eventEditFactions" class="event-edit-input" autocomplete="off">
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditSecondaryCountries">Secondary country list (comma-separated):</label>
+                        <input type="text" id="eventEditSecondaryCountries" class="event-edit-input" autocomplete="off" placeholder="Other countries or regions mentioned (optional)">
                     </div>
                     <div class="event-edit-field event-edit-field-full">
                         <label>Sources:</label>

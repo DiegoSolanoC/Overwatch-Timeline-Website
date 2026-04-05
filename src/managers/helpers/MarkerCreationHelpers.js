@@ -3,6 +3,12 @@
  * Extracted from EventMarkerManager to reduce duplication
  */
 
+/** Draw after clouds (0) / aurora (1) / rim (1–2) so pins and hover don’t fight atmosphere. */
+export const EVENT_PIN_RENDER_ORDER = 14;
+export const EVENT_MARKER_RENDER_ORDER = 15;
+/** Must match {@link EVENT_MARKER_RENDER_ORDER} usage in MarkerPulseService (script tag; no shared import). */
+export const EVENT_PULSE_RING_RENDER_ORDER = 17;
+
 /**
  * Creates a marker mesh with specified properties
  * @param {Object} params - Parameters
@@ -22,6 +28,7 @@ export function createMarkerMesh({ radius, color, position }) {
     const marker = new THREE.Mesh(markerGeometry, markerMaterial);
     marker.material.needsUpdate = true;
     marker.position.copy(position);
+    marker.renderOrder = EVENT_MARKER_RENDER_ORDER;
     
     return marker;
 }

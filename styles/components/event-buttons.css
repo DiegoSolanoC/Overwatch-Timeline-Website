@@ -146,22 +146,77 @@ body.color-palette-gray .event-nav-btn:hover:not(:disabled) {
     transform: scale(0.95);
 }
 
-/* Glitch Toggle Button - matches image toggle exactly */
+/* Glitch toggle: Hacked.png (same as in-slide stamp), no chip background */
 .event-glitch-toggle-btn {
-    background: #9c27b0;
-    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
     border: none;
-    padding: 10px 20px;
-    font-size: 14px;
+    padding: 2px;
+    margin: 0;
     cursor: pointer;
-    border-radius: 4px;
-    transition: background 0.3s ease;
-    align-self: flex-start;
-    line-height: 1.2;
+    line-height: 0;
     box-sizing: border-box;
     flex-shrink: 0;
+    align-self: center;
+    border-radius: 6px;
+    transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
 .event-glitch-toggle-btn:hover {
-    background: #ba68c8;
+    background: transparent;
+    opacity: 1;
+}
+
+.event-glitch-toggle-btn:focus-visible {
+    outline: 2px solid rgba(234, 128, 252, 0.85);
+    outline-offset: 3px;
+}
+
+.event-glitch-toggle-btn:active {
+    transform: scale(0.94);
+}
+
+.event-glitch-toggle-btn__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+}
+
+.event-glitch-toggle-btn__icon .event-glitch-toggle-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Inactive: calm; matches “glitch off” legibility */
+.event-glitch-toggle-btn:not(.event-glitch-toggle-btn--on) .event-glitch-toggle-img {
+    opacity: 0.68;
+    filter: saturate(0.72);
+    animation: none;
+}
+
+/* Active: same motion language as .hacked-overlay.hacked-glitch (hue + jitter) */
+.event-glitch-toggle-btn--on .event-glitch-toggle-img {
+    opacity: 1;
+    filter: saturate(1.08) drop-shadow(0 0 6px rgba(255, 102, 255, 0.45));
+    animation: hackedGlitchFilter 0.15s infinite, hackedGlitchTransform 0.15s infinite;
+}
+
+body.color-palette-gray .event-glitch-toggle-btn:focus-visible {
+    outline-color: rgba(77, 208, 225, 0.9);
+}
+
+body.color-palette-crimson .event-glitch-toggle-btn:focus-visible {
+    outline-color: rgba(255, 138, 128, 0.9);
+}
+
+body.color-palette-nulled .event-glitch-toggle-btn:focus-visible {
+    outline-color: rgba(179, 136, 255, 0.9);
 }

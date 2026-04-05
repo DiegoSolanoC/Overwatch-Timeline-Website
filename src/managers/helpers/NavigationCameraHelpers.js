@@ -171,11 +171,14 @@ export function handleNumberButtonMouseLeave(marker, sceneModel, uiView) {
         interactionController.restorePlanesVisibility();
     }
     
-    // Stop pulse effect
+    // Stop pulse effect (must clear pulseService hover too — glow logic uses pulseService.hoveredEventMarker only)
     if (interactionController) {
         if (interactionController.hoveredEventMarker === marker) {
             interactionController.stopEventMarkerPulse(marker);
             interactionController.hoveredEventMarker = null;
+            if (interactionController.pulseService && typeof interactionController.pulseService.setHoveredMarker === 'function') {
+                interactionController.pulseService.setHoveredMarker(null);
+            }
         }
     }
     
@@ -230,6 +233,9 @@ export function handleNumberButtonMouseEnter(marker, sceneModel, interactionCont
     // Start pulse on this marker
     interactionController.startEventMarkerPulse(marker);
     interactionController.hoveredEventMarker = marker;
+    if (interactionController.pulseService && typeof interactionController.pulseService.setHoveredMarker === 'function') {
+        interactionController.pulseService.setHoveredMarker(marker);
+    }
 }
 
 // Make available globally for script tag loading

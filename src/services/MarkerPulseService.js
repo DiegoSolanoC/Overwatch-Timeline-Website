@@ -2,11 +2,17 @@
  * MarkerPulseService - Handles marker pulse animation effects
  */
 
+// Keep in sync with MarkerCreationHelpers.EVENT_PULSE_RING_RENDER_ORDER (this file loads via script tag).
+const EVENT_PULSE_RING_RENDER_ORDER = 17;
+
 class MarkerPulseService {
     constructor(sceneModel) {
         this.sceneModel = sceneModel;
         this.hoveredEventMarker = null;
         this._glowColorScratch = new THREE.Color();
+        this._scratchWorldQuat = new THREE.Quaternion();
+        this._scratchWorldNormal = new THREE.Vector3();
+        this._scratchVec3 = new THREE.Vector3();
     }
 
     _ensureMarkerGlowState(marker) {
@@ -199,7 +205,7 @@ class MarkerPulseService {
         
         // Clear interval if exists
         if (marker.userData.pulseInterval) {
-            clearInterval(marker.userData.pulseInterval);
+            clearTimeout(marker.userData.pulseInterval);
             marker.userData.pulseInterval = null;
         }
         
@@ -344,13 +350,14 @@ class MarkerPulseService {
             transparent: true,
             opacity: 0.9, // Start more opaque in center
             side: THREE.DoubleSide,
-            depthWrite: isAwakening ? false : true
+            depthWrite: isAwakening ? false : true,
+            polygonOffset: true,
+            polygonOffsetFactor: -2,
+            polygonOffsetUnits: -2
         });
         
         const ring = new THREE.Mesh(circleGeometry, ringMaterial);
-        if (isAwakening) {
-            ring.renderOrder = 999; // ensure it draws on top
-        }
+        ring.renderOrder = isAwakening ? 999 : EVENT_PULSE_RING_RENDER_ORDER;
         
         // Store initial properties
         ring.userData.isPulseRing = true;
@@ -449,13 +456,40 @@ class MarkerPulseService {
             ? window.globeController.transportController.findMarsShip?.()
             : null;
 
-        // Unwrapped map mode:
-        // - For Moon/Mars/Station we parent rings to the scene, so keep them flat (+Z) and place by world position.
+        // Unwrapped map mode: rings are parented to the scene. Match the panel’s *world* orientation
+        // (Moon/Mars tilt with lookAt; local .quaternion alone can mismatch under animated scale).
+        // Offset along the plane’s +Z in world space toward the camera so the radar sits above the mesh.
         if (isMapView && (locationType === 'moon' || locationType === 'mars' || locationType === 'station' || locationType === 'marsShip')) {
             const markerWorldPos = new THREE.Vector3();
             marker.getWorldPosition(markerWorldPos);
+
+            let surfaceParent = null;
+            if (locationType === 'moon') surfaceParent = moonPlane;
+            else if (locationType === 'mars') surfaceParent = marsPlane;
+            else if (locationType === 'station') surfaceParent = issSatellite;
+            else if (locationType === 'marsShip') surfaceParent = marsShipSatellite;
+
+            if (surfaceParent) {
+                surfaceParent.updateMatrixWorld(true);
+                surfaceParent.getWorldQuaternion(this._scratchWorldQuat);
+                ring.quaternion.copy(this._scratchWorldQuat);
+                ring.rotateZ(Math.PI / 2);
+
+                const camera = this.sceneModel.getCamera ? this.sceneModel.getCamera() : null;
+                this._scratchWorldNormal.set(0, 0, 1).applyQuaternion(this._scratchWorldQuat).normalize();
+                if (camera) {
+                    this._scratchVec3.copy(camera.position).sub(markerWorldPos);
+                    if (this._scratchWorldNormal.dot(this._scratchVec3) < 0) {
+                        this._scratchWorldNormal.negate();
+                    }
+                }
+                const lift = (locationType === 'moon' || locationType === 'mars') ? 0.024 : 0.014;
+                markerWorldPos.addScaledVector(this._scratchWorldNormal, lift);
+            } else {
+                ring.quaternion.identity();
+            }
+
             ring.position.copy(markerWorldPos);
-            ring.quaternion.identity(); // CircleGeometry faces +Z (toward camera in map view)
             return;
         }
 
@@ -467,14 +501,14 @@ class MarkerPulseService {
             ring.quaternion.copy(earthMapPlane.quaternion);
             ring.rotateZ(Math.PI / 2);
         } else if (locationType === 'moon' && moonPlane && marker.parent === moonPlane) {
-            // Moon plane: ring should be flat on the plane (same orientation as plane)
-            ring.quaternion.copy(moonPlane.quaternion);
-            // Rotate 90 degrees around Z to make ring horizontal (CircleGeometry faces +Z by default)
+            // Child of moon plane: parent already applies tilt. Copying plane.quaternion here doubled rotation
+            // and skewed the radar into the mesh. Same local frame as the marker + small +Z lift.
+            ring.position.z += 0.02;
+            ring.quaternion.identity();
             ring.rotateZ(Math.PI / 2);
         } else if (locationType === 'mars' && marsPlane && marker.parent === marsPlane) {
-            // Mars plane: ring should be flat on the plane (same orientation as plane)
-            ring.quaternion.copy(marsPlane.quaternion);
-            // Rotate 90 degrees around Z to make ring horizontal
+            ring.position.z += 0.02;
+            ring.quaternion.identity();
             ring.rotateZ(Math.PI / 2);
         } else if (locationType === 'station' && issSatellite && marker.parent === issSatellite) {
             // Station: ring should match Earth's curvature (like earth events)
@@ -674,11 +708,11 @@ class MarkerPulseService {
                 if (this.hoveredEventMarker === marker && bestFadeCurve !== null) {
                     this._applyMarkerHoverGlow(marker, bestFadeCurve);
                 } else if (this.hoveredEventMarker !== marker) {
-                    // If not hovered, ensure we don't leave it brightened.
                     this._resetMarkerHoverGlow(marker);
                 } else if (this.hoveredEventMarker === marker && bestFadeCurve === null) {
-                    // Hovered but no active ring (edge cases): reset to base.
-                    this._resetMarkerHoverGlow(marker);
+                    // Between pulse waves the ring list can be empty momentarily; keep steady hover
+                    // brightness instead of resetting every frame (was visibly glitched).
+                    this._applyMarkerHoverGlow(marker, 0.38);
                 }
             }
         });

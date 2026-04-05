@@ -53,8 +53,11 @@ class MusicManager {
         this._musicMode = 'catalog';
         /** Catalog-only: repeat current track (mutually exclusive with shuffle in UI). */
         this.isLooping = false;
+        /** Reposition passive now-playing label after header hub resort (e.g. palette loads after music). */
+        this._owtlHeaderHubListenerAttached = false;
     }
 
+    /** Same coordinate space as `EventsHoverPreviewBadge` (under-button passive label). */
     _getBodyScale() {
         try {
             const t = window.getComputedStyle(document.body).transform;
@@ -101,19 +104,26 @@ class MusicManager {
         } catch (_) {}
     }
 
+    /** Header hub resort (e.g. palette loads after music) moves #musicToggle — always resolve fresh. */
+    _syncMusicToggleButton() {
+        const el = typeof document !== 'undefined' ? document.getElementById('musicToggle') : null;
+        if (el) this.musicButton = el;
+        return this.musicButton;
+    }
+
     _positionNowPlayingBadge() {
-        if (!this.musicButton) return;
+        const btn = this._syncMusicToggleButton();
+        if (!btn) return;
         this._ensureNowPlayingBadge();
         const badge = this.nowPlayingBadge;
         if (!badge) return;
 
         const scale = this._getBodyScale();
-        const rect = this.musicButton.getBoundingClientRect();
+        const rect = btn.getBoundingClientRect();
         const gap = 2;
-        const cx = (rect.left + (rect.width / 2)) / scale;
+        const cx = (rect.left + rect.width / 2) / scale;
         const top = (rect.bottom + gap) / scale;
 
-        // Clamp horizontally so the badge never goes off-screen.
         const vw = Math.max(1, (window.innerWidth || 1) / scale);
         const margin = 8;
         const w = badge.offsetWidth || 280;
@@ -126,8 +136,15 @@ class MusicManager {
         badge.style.top = `${top}px`;
     }
 
+    _onHeaderHubMutated() {
+        if (this.nowPlayingBadge && this.nowPlayingBadge.classList.contains('music-now-playing-badge--visible')) {
+            this._positionNowPlayingBadge();
+        }
+    }
+
     _startNowPlayingBadgeFollow() {
         this._stopNowPlayingBadgeFollow();
+        this._syncMusicToggleButton();
         this._positionNowPlayingBadge();
         let pending = null;
         const schedule = () => {
@@ -144,7 +161,9 @@ class MusicManager {
         const onResize = () => schedule();
         window.addEventListener('scroll', onScroll, true);
         window.addEventListener('resize', onResize);
-        const hub = this.musicButton && this.musicButton.closest ? this.musicButton.closest('.header-hub') : null;
+        const hub = this.musicButton && this.musicButton.closest
+            ? this.musicButton.closest('.header-hub')
+            : null;
         if (hub) hub.addEventListener('scroll', onScroll);
         this._nowPlayingFollowCleanup = () => {
             window.removeEventListener('scroll', onScroll, true);
@@ -326,7 +345,21 @@ class MusicManager {
         this.backgroundMusic.volume = initialVolume;
         if (this.volumeSlider) this.volumeSlider.value = Math.round(initialVolume * 100);
         if (this.volumeValue) this.volumeValue.textContent = Math.round(initialVolume * 100) + '%';
-        
+
+        // Start fetching the resumed track on the main audio element as early as possible
+        if (prioritySong && this.backgroundMusic && this.playbackService) {
+            try {
+                this.backgroundMusic.preload = 'auto';
+                var earlyEnc = this.playbackService.encodeMusicPath(prioritySong);
+                this.backgroundMusic.src = earlyEnc;
+                this.playbackService.setCurrentSong(prioritySong);
+                this.currentSong = prioritySong;
+                this.backgroundMusic.load();
+            } catch (earlyErr) {
+                console.warn('MusicManager: early track preload failed', earlyErr);
+            }
+        }
+
         var fadeIn = function () {
             self.volumeService.fadeIn(self.progressService.isSeeking, self.progressService.isDragging);
         };
@@ -461,6 +494,14 @@ class MusicManager {
         window.addEventListener('beforeunload', function () {
             if (window.saveMusicState) window.saveMusicState();
         });
+        window.addEventListener('pagehide', function () {
+            if (window.saveMusicState) window.saveMusicState();
+        }, true);
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden' && window.saveMusicState) {
+                window.saveMusicState();
+            }
+        });
 
         this.saveMusicState = function () {
             if (!self.backgroundMusic) return;
@@ -494,8 +535,6 @@ class MusicManager {
             );
         };
         
-        this.backgroundMusic.load();
-        
         if (H.setupPlayOnInteraction) {
             H.setupPlayOnInteraction(this, playMusic);
         }
@@ -518,7 +557,13 @@ class MusicManager {
             } catch (_) {}
         });
         this.panelService.setupCloseButton();
-        this.panelService.setupClickOutsideHandler();
+
+        if (!this._owtlHeaderHubListenerAttached) {
+            this._owtlHeaderHubListenerAttached = true;
+            try {
+                window.addEventListener('owtl-header-hub-mutated', () => this._onHeaderHubMutated());
+            } catch (_) { /* ignore */ }
+        }
         
         this.controlService.initializeButtonStates();
         this._updatePlayingDiscSpinning();

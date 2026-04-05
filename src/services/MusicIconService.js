@@ -20,6 +20,17 @@ class MusicIconService {
         this.skipBtnIcon = document.getElementById('skipBtnIcon');
         this.loopBtnIcon = document.getElementById('loopBtnIcon');
         this.shuffleBtnIcon = document.getElementById('shuffleBtnIcon');
+        // No on/off state — same baseline tone as “inactive” toggles; hover/full via CSS restores emphasis.
+        this._setIconTone(this.skipBtnIcon, false);
+    }
+
+    /**
+     * Full strength vs dimmed — same language as {@link updateLoopIcon} (active / inactive).
+     * @param {HTMLImageElement|null} img
+     * @param {boolean} fullTone
+     */
+    _setIconTone(img, fullTone) {
+        if (img) img.style.opacity = fullTone ? '1' : '0.5';
     }
 
     /**
@@ -29,6 +40,8 @@ class MusicIconService {
         if (this.pauseBtnIcon) {
             this.pauseBtnIcon.src = isPaused ? 'assets/images/icons/Play Icon.png' : 'assets/images/icons/Pause Icon.png';
             this.pauseBtnIcon.alt = isPaused ? 'Play' : 'Pause';
+            // Match loop/shuffle/mute: dim when "off" (playing), full when "on" (paused — .active on button).
+            this._setIconTone(this.pauseBtnIcon, !!isPaused);
         }
     }
 
@@ -39,6 +52,7 @@ class MusicIconService {
         if (this.muteBtnIcon) {
             this.muteBtnIcon.src = isMuted ? 'assets/images/icons/Muted Icon.png' : 'assets/images/icons/Unmuted Icon.png';
             this.muteBtnIcon.alt = isMuted ? 'Unmute' : 'Mute';
+            this._setIconTone(this.muteBtnIcon, !!isMuted);
         }
     }
 
@@ -47,19 +61,16 @@ class MusicIconService {
      */
     updateShuffleIcon(isShuffling) {
         if (this.shuffleBtnIcon) {
-            // For now, use the same icon regardless of state
-            // Could be enhanced to show different icons for active/inactive
             this.shuffleBtnIcon.src = 'assets/images/icons/Shuffle Icon.png';
+            this._setIconTone(this.shuffleBtnIcon, !!isShuffling);
         }
     }
 
     /**
-     * Loop toggle visual (SVG uses currentColor; opacity hints inactive state).
+     * Loop toggle: stronger when looping, dimmed when off (same for shuffle/mute above).
      */
     updateLoopIcon(isLooping) {
-        if (this.loopBtnIcon) {
-            this.loopBtnIcon.style.opacity = isLooping ? '1' : '0.5';
-        }
+        this._setIconTone(this.loopBtnIcon, !!isLooping);
     }
 }
 

@@ -94,6 +94,7 @@ export const createBackgroundMusicElement = (typeof window !== 'undefined' && wi
         if (document.getElementById('backgroundMusic')) return document.getElementById('backgroundMusic');
         const audio = document.createElement('audio');
         audio.id = 'backgroundMusic';
+        audio.preload = 'auto';
         audio.loop = true;
         document.body.appendChild(audio);
         if (statusService) statusService.update('✓ Audio element added', 'success');

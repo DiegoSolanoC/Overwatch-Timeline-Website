@@ -18,6 +18,7 @@ import {
     hideEventsHoverPreview,
     getHoverPreviewLines
 } from '../utils/EventsHoverPreviewBadge.js';
+import { dismissFiltersAndMusicPanels } from '../utils/PanelDismissHelpers.js';
 
 /**
  * Coordinate matching utilities
@@ -400,6 +401,8 @@ export class EventNavigationManager {
                     if (em.renderPaginationControls) em.renderPaginationControls();
                 }
 
+                dismissFiltersAndMusicPanels();
+
                 // Open event manager panel (keep globe visible)
                 const panel = document.getElementById('eventsManagePanel');
                 const toggleBtn = document.getElementById('eventsManageToggle');
@@ -409,6 +412,9 @@ export class EventNavigationManager {
                 if (toggleBtn) {
                     toggleBtn.classList.add('active');
                 }
+                try {
+                    window.EventsHoverPreviewBadge?.hide();
+                } catch (_) {}
             });
         }
     }
@@ -663,7 +669,8 @@ export class EventNavigationManager {
                 }
             };
 
-            newBtn.addEventListener('mouseenter', onNumberBtnHoverStart);
+            // Pointer events only: also subscribing to mouseenter would run this twice per hover
+            // (mouse + pointer), doubling pulse rings and camera moves — glitchy first moments).
             newBtn.addEventListener('pointerenter', onNumberBtnHoverStart);
 
             // Mouse leave: stop pulse, restore camera, resume auto rotation if enabled
@@ -682,7 +689,6 @@ export class EventNavigationManager {
                 }
             };
 
-            newBtn.addEventListener('mouseleave', onNumberBtnHoverEnd);
             newBtn.addEventListener('pointerleave', onNumberBtnHoverEnd);
 
             newBtn.addEventListener('click', (e) => {

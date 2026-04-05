@@ -135,6 +135,43 @@ export class EventContentManager {
         
         const CATEGORY_ICON_HEROES = 'assets/images/icons/Heroes Icon.png';
         const CATEGORY_ICON_FACTIONS = 'assets/images/icons/Factions Icon.png';
+        const CATEGORY_ICON_COUNTRIES = 'assets/images/icons/Location Icon.png';
+
+        const collectCountryFlagFilesForEvent = (ev) => {
+            const ordered = [];
+            const seen = new Set();
+            const lh = typeof window !== 'undefined' ? window.LocationFlagHelpers : null;
+            const loc = (ev && ev.cityDisplayName != null) ? String(ev.cityDisplayName) : '';
+            const locType = (ev && ev.locationType) ? String(ev.locationType) : 'earth';
+            const primary = lh && typeof lh.getResolvedFlagFilename === 'function'
+                ? lh.getResolvedFlagFilename(loc, locType)
+                : null;
+            if (primary) {
+                seen.add(primary);
+                ordered.push(primary);
+            }
+            const sec = Array.isArray(ev?.secondaryCountryFlags) ? ev.secondaryCountryFlags : [];
+            sec.forEach((f) => {
+                const fn = f != null ? String(f).trim() : '';
+                if (fn && !seen.has(fn)) {
+                    seen.add(fn);
+                    ordered.push(fn);
+                }
+            });
+            return ordered;
+        };
+
+        const commonLabelForFlagFile = (flagFile) => {
+            const map = typeof window !== 'undefined' ? window.FLAG_FILE_BY_COMMON : null;
+            const file = String(flagFile || '').trim();
+            if (!file) return '';
+            if (map) {
+                for (const common of Object.keys(map).sort()) {
+                    if (map[common] === file) return common;
+                }
+            }
+            return file.replace(/\.png$/i, '').trim() || file;
+        };
 
         const createCategoryFilterHeader = (labelText, iconSrc) => {
             const h = document.createElement('h4');
@@ -154,13 +191,35 @@ export class EventContentManager {
             return h;
         };
 
-        const createIconTag = ({ filterKey, displayName, type }) => {
+        const createIconTag = ({ filterKey, displayName, type, factionRawKey }) => {
             const tag = document.createElement('span');
-            tag.className = 'event-filter-tag event-filter-tag--icon';
+            tag.className = 'event-filter-tag event-filter-tag--icon event-filter-tag--clickable'
+                + (type === 'countries' ? ' event-filter-tag--country' : '');
             tag.title = displayName;
             tag.setAttribute('aria-label', displayName);
-            if (activeFilters.has(filterKey)) {
-                tag.classList.add('selected');
+            tag.setAttribute('role', 'button');
+            tag.tabIndex = 0;
+
+            const em = typeof window !== 'undefined' ? window.eventManager : null;
+            const countryFilters = em?.searchCountryFilters;
+            const heroSearch = em?.searchHeroFilters;
+            const factionSearch = em?.searchFactionFilters;
+            const fkLower = String(filterKey || '').toLowerCase();
+
+            if (type === 'countries') {
+                if (Array.isArray(countryFilters) && countryFilters.includes(filterKey)) {
+                    tag.classList.add('selected');
+                }
+            } else if (type === 'heroes') {
+                if (activeFilters.has(filterKey) || (Array.isArray(heroSearch) && heroSearch.includes(filterKey))) {
+                    tag.classList.add('selected');
+                }
+            } else if (type === 'factions') {
+                const inSearch = Array.isArray(factionSearch) && factionSearch.some((f) => String(f || '').toLowerCase() === fkLower);
+                const rawMatch = factionRawKey != null && activeFilters.has(factionRawKey);
+                if (activeFilters.has(filterKey) || rawMatch || inSearch) {
+                    tag.classList.add('selected');
+                }
             }
 
             const box = document.createElement('span');
@@ -171,12 +230,42 @@ export class EventContentManager {
             img.alt = displayName;
             img.loading = 'lazy';
 
-            img.src = (type === 'factions')
-                ? `assets/images/factions/${encodeURIComponent(filterKey)}.png`
-                : `assets/images/heroes/${encodeURIComponent(filterKey)}.png`;
+            if (type === 'factions') {
+                img.src = `assets/images/factions/${encodeURIComponent(filterKey)}.png`;
+            } else if (type === 'countries') {
+                const lh = window.LocationFlagHelpers;
+                img.classList.add('event-filter-icon--country');
+                img.src = lh && typeof lh.flagSrc === 'function'
+                    ? lh.flagSrc(filterKey)
+                    : `assets/images/flags/${encodeURIComponent(filterKey)}`;
+            } else {
+                img.src = `assets/images/heroes/${encodeURIComponent(filterKey)}.png`;
+            }
 
             box.appendChild(img);
             tag.appendChild(box);
+
+            const onActivate = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const mgr = window.eventManager;
+                if (!mgr?.prependEventManagerSearchTokens || !mgr.openEventsManagePanel) return;
+                if (type === 'heroes') {
+                    mgr.prependEventManagerSearchTokens({ heroName: filterKey });
+                } else if (type === 'factions') {
+                    mgr.prependEventManagerSearchTokens({ factionFilename: filterKey });
+                } else if (type === 'countries') {
+                    mgr.prependEventManagerSearchTokens({ countryFlagFilename: filterKey });
+                }
+                mgr.openEventsManagePanel();
+                window.SoundEffectsManager?.play?.('filterConfirm');
+            };
+
+            tag.addEventListener('click', onActivate);
+            tag.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') onActivate(e);
+            });
+
             return tag;
         };
         
@@ -185,6 +274,7 @@ export class EventContentManager {
             
             const heroFilters = event.filters || [];
             const factionFilters = event.factions || [];
+            const countryFlagFiles = collectCountryFlagFilesForEvent(event);
             
             // Display heroes section
             if (heroFilters.length > 0) {
@@ -228,17 +318,28 @@ export class EventContentManager {
                     const tag = createIconTag({
                         filterKey: resolvedFilename,
                         displayName,
-                        type: 'factions'
+                        type: 'factions',
+                        factionRawKey: faction
                     });
-                    // Selected state should follow active filters even if the event stored a displayName.
-                    if (activeFilters.has(faction) || activeFilters.has(resolvedFilename)) {
-                        tag.classList.add('selected');
-                    }
                     eventFiltersList.appendChild(tag);
                 });
             }
+
+            if (countryFlagFiles.length > 0) {
+                eventFiltersList.appendChild(
+                    createCategoryFilterHeader('Relevant Countries:', CATEGORY_ICON_COUNTRIES)
+                );
+                countryFlagFiles.forEach((flagFile) => {
+                    const label = commonLabelForFlagFile(flagFile);
+                    eventFiltersList.appendChild(createIconTag({
+                        filterKey: flagFile,
+                        displayName: label,
+                        type: 'countries'
+                    }));
+                });
+            }
             
-            if (heroFilters.length > 0 || factionFilters.length > 0) {
+            if (heroFilters.length > 0 || factionFilters.length > 0 || countryFlagFiles.length > 0) {
                 eventFiltersSection.style.display = 'block';
             } else {
                 eventFiltersSection.style.display = 'none';

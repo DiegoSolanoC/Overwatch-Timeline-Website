@@ -79,6 +79,16 @@
     border-radius: 0; /* sharp edges */
 }
 
+.event-filter-tag.event-filter-tag--clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.event-filter-tag.event-filter-tag--clickable:focus-visible {
+    outline: 2px solid var(--accent-primary, #ff6600);
+    outline-offset: 2px;
+}
+
 .event-filter-tag.event-filter-tag--icon .event-filter-image-container {
     width: 64px;
     height: 64px;
@@ -93,19 +103,30 @@
     overflow: hidden;
 }
 
-.event-filter-tag.event-filter-tag--icon.selected .event-filter-image-container {
-    background: rgba(27, 94, 32, 0.9); /* match Filters panel selected */
+.event-filter-tag.event-filter-tag--icon.selected .event-filter-image-container,
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country.selected .event-filter-image-container {
     position: relative;
+    overflow: visible; /* underline sits below the tile, not inside it */
 }
 
-/* Selected indicator line (matches header active underline vibe) */
+/* Room for the underline so rows don’t clip or collide */
+.event-filter-tag.event-filter-tag--icon.selected {
+    margin-bottom: 10px;
+}
+
+.event-filter-tag.event-filter-tag--icon.selected:not(.event-filter-tag--country) .event-filter-image-container {
+    background: rgba(27, 94, 32, 0.9); /* match Filters panel selected */
+}
+
+/* Thin selected line below the chip (not stacked inside the tile) */
 .event-filter-tag.event-filter-tag--icon.selected .event-filter-image-container::after {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 10px;
+    left: 12%;
+    right: 12%;
+    top: calc(100% + 5px);
+    height: 2px;
+    border-radius: 1px;
     background: rgba(76, 175, 80, 0.95);
 }
 
@@ -123,6 +144,52 @@
     object-fit: contain;
     border-radius: 0;
     display: block;
+}
+
+/* Relevant countries: no plate behind the chip — icon carries background / hover / selected */
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country .event-filter-image-container {
+    background: transparent;
+}
+
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country .event-filter-icon--country {
+    background: var(--event-filter-icon-bg);
+    object-fit: contain;
+    transition: transform var(--panel-transition), box-shadow var(--panel-transition), background var(--panel-transition);
+}
+
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country.selected .event-filter-image-container {
+    background: transparent;
+}
+
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country.selected .event-filter-icon--country {
+    background: rgba(27, 94, 32, 0.9);
+    box-shadow: none;
+}
+
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country:hover .event-filter-image-container {
+    transform: none;
+    box-shadow: none;
+}
+
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country:hover .event-filter-icon--country {
+    transform: translateY(-2px) scale(1.06);
+    box-shadow:
+        inset 0 0 22px 4px rgba(255, 255, 255, 0.45),
+        0 0 18px 3px rgba(255, 255, 255, 0.55),
+        0 0 38px 6px rgba(255, 255, 255, 0.22);
+}
+
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country.selected:hover .event-filter-icon--country {
+    box-shadow:
+        inset 0 0 22px 4px rgba(255, 255, 255, 0.45),
+        0 0 18px 3px rgba(255, 255, 255, 0.55),
+        0 0 38px 6px rgba(255, 255, 255, 0.22);
+}
+
+/* Icon chips: keep outer tag clear when selected (themes add green tint to .selected) */
+.event-filter-tag.event-filter-tag--icon.event-filter-tag--country.selected {
+    background: transparent !important;
+    border: none !important;
 }
 
 .event-filter-tag.selected {

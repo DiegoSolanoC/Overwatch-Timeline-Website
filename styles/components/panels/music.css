@@ -24,7 +24,8 @@
 }
 
 /* Mobile: Override desktop right position to ensure smooth transition */
-@media (max-width: var(--breakpoint-mobile)) {
+/* Literal 768px: `var(--)` in @media is ignored in common browsers (incl. Chrome device mode). */
+@media (max-width: 768px) {
     .music-panel {
         right: -100% !important; /* Start at -100% on mobile, not fixed width */
     }
@@ -70,6 +71,7 @@ body.color-palette-gray .music-panel-close:hover {
 .music-panel-content {
     padding: 20px 20px 20px 20px;
     height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -731,6 +733,16 @@ body.color-palette-gray .music-progress-bar::-moz-range-thumb {
     height: 24px;
     object-fit: contain;
     display: block;
+    transition: opacity var(--panel-transition, 0.2s ease);
+}
+
+.music-control-btn.active .control-icon {
+    opacity: 1 !important;
+}
+
+.music-control-buttons .music-control-btn:hover .control-icon,
+.music-control-buttons .music-control-btn:focus-visible .control-icon {
+    opacity: 1 !important;
 }
 
 .music-control-btn:hover {
@@ -766,4 +778,56 @@ body.color-palette-gray .music-control-btn.active:hover {
     background: rgba(255, 102, 0, 0.6);
     border-color: #ff8833;
     box-shadow: 0 4px 12px rgba(255, 102, 0, 0.4);
+}
+
+/* Mobile: transport controls stay on one row; share horizontal space so buttons stay large enough to tap */
+@media (max-width: 768px) {
+    /* Bottom-dock now playing: DOM stays desktop order; flex order puts sliders + grid in the middle. */
+    .music-panel-content > .music-actions {
+        order: 0;
+    }
+
+    .music-panel-content > .music-control-row,
+    .music-panel-content > .music-grid {
+        order: 1;
+    }
+
+    .music-panel-content > .music-now-playing {
+        order: 2;
+        margin-top: auto;
+    }
+
+    /* Extra bottom padding: footer Atlas News trapezoid (z-index above panel) can overlap panel bottom-left */
+    .music-panel-content {
+        padding-bottom: 42px;
+    }
+
+    /* Breathing room after volume sliders before the track grid / bottom overlap */
+    .music-panel-content > .music-control-row:last-of-type {
+        margin-bottom: 18px;
+    }
+
+    .music-control-buttons {
+        flex-wrap: nowrap;
+        gap: 8px;
+        justify-content: stretch;
+    }
+
+    .music-control-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 12px 6px;
+        border-width: 2px;
+        border-radius: 8px;
+        letter-spacing: 0;
+    }
+
+    .music-control-btn .control-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .music-progress-container {
+        gap: 8px;
+    }
 }

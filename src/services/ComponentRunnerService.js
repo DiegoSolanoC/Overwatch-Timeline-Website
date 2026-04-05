@@ -22,19 +22,20 @@ class ComponentRunnerService {
         this.statusService.update('🚀 Starting Universal Features auto-load...', 'info');
         
         try {
+            if (!this.loaderService.isLoaded('music')) {
+                this.statusService.update('→ Loading Music...', 'info');
+                await this.loaderService.loadMusic();
+                await new Promise(r => setTimeout(r, 120));
+            } else {
+                this.statusService.update('→ Music already loaded, skipping...', 'info');
+            }
+
             if (!this.loaderService.isLoaded('palette')) {
                 this.statusService.update('→ Loading Palette...', 'info');
                 await this.loaderService.loadPalette();
                 await new Promise(r => setTimeout(r, 300));
             } else {
                 this.statusService.update('→ Palette already loaded, skipping...', 'info');
-            }
-            
-            if (!this.loaderService.isLoaded('music')) {
-                this.statusService.update('→ Loading Music...', 'info');
-                await this.loaderService.loadMusic();
-            } else {
-                this.statusService.update('→ Music already loaded, skipping...', 'info');
             }
             
             this.statusService.update('✓ Universal Features auto-load complete!', 'success');

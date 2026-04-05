@@ -106,6 +106,12 @@ export function createGlobeControlButton({
                     parent.appendChild(b);
                 }
             });
+
+            try {
+                if (typeof window !== 'undefined' && window.dispatchEvent) {
+                    window.dispatchEvent(new CustomEvent('owtl-header-hub-mutated', { detail: { hub: 'headerHubRight' } }));
+                }
+            } catch (_) { /* ignore */ }
         }
 
         if (statusService) {

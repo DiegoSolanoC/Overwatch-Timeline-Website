@@ -10,6 +10,9 @@ function isEventHostSatelliteType(type) {
     return type === 'ISS' || type === 'MarsShip';
 }
 
+/** Roll rate vs orbital `effectiveSpeed` (rad/frame) for ISS barrel rotation. */
+const ISS_AXIS_SPIN_FACTOR = 22;
+
 export class SatelliteManager {
     constructor(sceneModel, transportModel, transportView) {
         this.sceneModel = sceneModel;
@@ -20,6 +23,8 @@ export class SatelliteManager {
         this._satellitePageKey = null;
         this._satellitePageHasStation = false;
         this._satellitePageHasMarsShip = false;
+        this._issLocalRollQuat = new THREE.Quaternion();
+        this._issLocalRollAxis = new THREE.Vector3(0, 0, 1);
     }
 
     setMapViewEnabled(enabled) {
@@ -624,6 +629,14 @@ export class SatelliteManager {
                     const rotationMatrix = new THREE.Matrix4();
                     rotationMatrix.makeBasis(rightDir, correctedUp, dir.negate());
                     satellite.quaternion.setFromRotationMatrix(rotationMatrix);
+                    if (data.type === 'ISS') {
+                        if (typeof data.stationAxisSpin !== 'number') {
+                            data.stationAxisSpin = Math.random() * Math.PI * 2;
+                        }
+                        data.stationAxisSpin += effectiveSpeed * ISS_AXIS_SPIN_FACTOR;
+                        this._issLocalRollQuat.setFromAxisAngle(this._issLocalRollAxis, data.stationAxisSpin);
+                        satellite.quaternion.multiply(this._issLocalRollQuat);
+                    }
                 } else {
                     const direction = new THREE.Vector3().subVectors(nextPosition3d, position3d).normalize();
                     const up3 = satellite.position.clone().normalize();
@@ -633,6 +646,14 @@ export class SatelliteManager {
                     const rotationMatrix = new THREE.Matrix4();
                     rotationMatrix.makeBasis(rightDir, correctedUp, direction.negate());
                     satellite.quaternion.setFromRotationMatrix(rotationMatrix);
+                    if (data.type === 'ISS') {
+                        if (typeof data.stationAxisSpin !== 'number') {
+                            data.stationAxisSpin = Math.random() * Math.PI * 2;
+                        }
+                        data.stationAxisSpin += effectiveSpeed * ISS_AXIS_SPIN_FACTOR;
+                        this._issLocalRollQuat.setFromAxisAngle(this._issLocalRollAxis, data.stationAxisSpin);
+                        satellite.quaternion.multiply(this._issLocalRollQuat);
+                    }
                 }
             }
             // Small satellites keep their random rotation (no alignment with path)

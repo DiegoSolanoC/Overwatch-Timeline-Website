@@ -720,6 +720,25 @@ class EventRenderService {
             ? window.LocationFlagHelpers.createLocationRowInnerHtml(locationDisplayText, displayLocationType)
             : `<img class="event-location-pin" src="assets/images/icons/Location Icon.png" alt="" width="28" height="28" decoding="async" /> ${locationDisplayText}`;
 
+        let searchPillsRow = '';
+        if (this.eventManager.getSearchMatchAxesForItem) {
+            const axes = this.eventManager.getSearchMatchAxesForItem(displayEvent);
+            if (axes.filterActive || axes.countryActive) {
+                if (axes.filterHit) item.classList.add('event-item--search-hit-filter');
+                if (axes.countryHit) item.classList.add('event-item--search-hit-country');
+                const pills = [];
+                if (axes.filterActive && axes.filterHit) {
+                    pills.push('<span class="event-search-hit-pill event-search-hit-pill--filter" title="Matches Filters (hero/faction)">Filters</span>');
+                }
+                if (axes.countryActive && axes.countryHit) {
+                    pills.push('<span class="event-search-hit-pill event-search-hit-pill--country" title="Matches country search">Country</span>');
+                }
+                if (pills.length) {
+                    searchPillsRow = `<div class="event-search-hit-pills-row" aria-label="Search match type">${pills.join('')}</div>`;
+                }
+            }
+        }
+
         item.innerHTML = `
             <div style="position: relative;">
             ${imageHtml}
@@ -729,6 +748,7 @@ class EventRenderService {
             </div>
             <div class="event-item-info">
                 <h3 class="event-item-title">${window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(displayEvent.name) : displayEvent.name}</h3>
+                ${searchPillsRow}
                 <p class="event-item-location">${locationRowInner}</p>
             </div>
             ${actionButtons}
@@ -802,6 +822,12 @@ class EventRenderService {
                 if (this.eventManager.openEventFromList) {
                     this.eventManager.openEventFromList(event, index);
                 }
+            });
+            // Same as View button: avoid extra gesture delay / drag quirks on the card chrome
+            item.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                if (e.target.closest('.multi-event-badge')) return;
+                e.preventDefault();
             });
         }
 

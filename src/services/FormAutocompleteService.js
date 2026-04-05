@@ -12,7 +12,7 @@ class FormAutocompleteService {
      * Setup autocomplete for filters/factions input
      * @param {HTMLElement} input - Input element
      * @param {Array} options - Array of option strings
-     * @param {string} type - Type of autocomplete ('heroes' or 'factions')
+     * @param {string} type - Type of autocomplete ('heroes', 'factions', or 'countries')
      */
     setupAutocomplete(input, options, type) {
         // Remove existing autocomplete if already set up

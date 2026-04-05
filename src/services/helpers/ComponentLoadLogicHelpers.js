@@ -89,14 +89,29 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
         className: 'hyperloop-btn active',
         title: 'Toggle Transport Systems',
         iconPath: 'assets/images/icons/Train Icon.png',
-        iconAlt: 'Transport'
+        iconAlt: 'Transport',
+        iconSpanId: 'hyperloopIcon'
+    }, statusService);
+
+    createGlobeControlButton({
+        id: 'weatherEffectsToggle',
+        className: 'weather-effects-btn active',
+        title: 'Toggle weather (aurora, clouds, shooting stars)',
+        iconPath: 'assets/images/icons/Weather Icon.png',
+        iconAlt: 'Weather',
+        iconSpanId: 'weatherEffectsIcon'
     }, statusService);
     
     if (controller.uiView) {
         controller.uiView.setupHyperloopToggle(() => {
             controller.transportView.updateHyperloopVisibility();
         });
-        statusService.update('✓ Transport toggle initialized', 'success');
+        controller.uiView.setupWeatherEffectsToggle(() => {
+            if (controller.globeView) {
+                controller.globeView.setWeatherEffectsVisible(controller.sceneModel.getGlobeWeatherEffectsVisible());
+            }
+        });
+        statusService.update('✓ Transport & weather toggles initialized', 'success');
     }
     
     // Load transport sound effect using helper
@@ -111,8 +126,8 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
  * Unload transport component
  */
 export async function unloadTransportLogic({ removeElementById, statusService }) {
-    // Remove transport toggle using helper
     removeElementById('hyperloopToggle', 'Transport toggle removed', statusService);
+    removeElementById('weatherEffectsToggle', 'Weather toggle removed', statusService);
 }
 
 /**

@@ -202,6 +202,10 @@ class EventEditService {
                 if (variant.cityDisplayName !== undefined) {
                     variantObj.cityDisplayName = variant.cityDisplayName;
                 }
+
+                if (Array.isArray(variant.secondaryCountryFlags) && variant.secondaryCountryFlags.length > 0) {
+                    variantObj.secondaryCountryFlags = variant.secondaryCountryFlags.slice();
+                }
                 
                 return variantObj;
             }).filter(v => v.name); // Only include variants with name
@@ -228,6 +232,10 @@ class EventEditService {
             }
         } else {
             // Regular single event
+            const v0 = variantData[0];
+            const secondary0 = v0 && Array.isArray(v0.secondaryCountryFlags) && v0.secondaryCountryFlags.length > 0
+                ? v0.secondaryCountryFlags.slice()
+                : undefined;
             event = {
                 name: mainName,
                 locationType: locationType,
@@ -239,6 +247,9 @@ class EventEditService {
                 sources: mainSources.length > 0 ? mainSources : undefined,
                 headlines: mainHeadlines && mainHeadlines.length > 0 ? mainHeadlines : undefined
             };
+            if (secondary0) {
+                event.secondaryCountryFlags = secondary0;
+            }
             // Add coordinates based on location type
             if (locationType === 'earth') {
                 event.lat = lat;

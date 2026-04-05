@@ -4,6 +4,7 @@
  */
 
 import { latLonToVector3 } from '../../utils/GeometryUtils.js';
+import { EVENT_PIN_RENDER_ORDER } from './MarkerCreationHelpers.js';
 
 /**
  * Creates pin line points and parent for a marker
@@ -100,6 +101,7 @@ export function createPinLine({ linePoints, color, animate, marker }) {
     });
     
     const line = new THREE.Line(lineGeometry, lineMaterial);
+    line.renderOrder = EVENT_PIN_RENDER_ORDER;
     line.userData.isEventMarkerPin = true;
     line.userData.marker = marker;
     marker.userData.pinLine = line;

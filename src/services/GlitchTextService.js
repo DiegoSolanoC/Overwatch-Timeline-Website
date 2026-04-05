@@ -35,9 +35,24 @@ class GlitchTextService {
         // Normalize multiple newlines to double newlines (paragraph breaks)
         processedText = processedText.replace(/\n\n+/g, '\n\n');
         
-        // Only apply glitch if enabled
+        // Only apply glitch if enabled — still wrap Olivia/Colomar so tap toggles glitch on
         if (!this.glitchEnabled) {
-            // Convert newlines to <br> tags
+            const placeholdersOff = [];
+            let offIdx = 0;
+            const wrapToggle = (match) => (
+                `<span class="glitchy-text-toggle-target" role="button" tabindex="0" title="Toggle glitch effect">${match}</span>`
+            );
+            processedText = processedText.replace(/\bOlivia\s+Colomar\b/gi, (match) => {
+                const ph = `__GLITCH_FULL_${offIdx}__`;
+                placeholdersOff[offIdx] = wrapToggle(match);
+                offIdx++;
+                return ph;
+            });
+            processedText = processedText.replace(/\bOlivia\b/gi, (match) => wrapToggle(match));
+            processedText = processedText.replace(/\bColomar\b/gi, (match) => wrapToggle(match));
+            placeholdersOff.forEach((replacement, index) => {
+                processedText = processedText.replace(`__GLITCH_FULL_${index}__`, replacement);
+            });
             processedText = processedText.replace(/\n/g, '<br>');
             return processedText;
         }
@@ -51,7 +66,7 @@ class GlitchTextService {
         processedText = processedText.replace(/\bOlivia\s+Colomar\b/gi, (match) => {
             const placeholder = `__GLITCH_FULL_${placeholderIndex}__`;
             const glitchOverlay = match.split('').map(() => this.getRandomGlitchChar()).join('');
-            placeholders[placeholderIndex] = `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
+            placeholders[placeholderIndex] = `<span class="glitchy-text-container" role="button" tabindex="0" title="Toggle glitch effect"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
             placeholderIndex++;
             return placeholder;
         });
@@ -59,13 +74,13 @@ class GlitchTextService {
         // Then replace "Olivia" individually (word boundary ensures it's not part of "Olivia Colomar" which is already replaced)
         processedText = processedText.replace(/\bOlivia\b/gi, (match) => {
             const glitchOverlay = match.split('').map(() => this.getRandomGlitchChar()).join('');
-            return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
+            return `<span class="glitchy-text-container" role="button" tabindex="0" title="Toggle glitch effect"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
         });
         
         // Then replace "Colomar" individually (word boundary ensures it's not part of "Olivia Colomar" which is already replaced)
         processedText = processedText.replace(/\bColomar\b/gi, (match) => {
             const glitchOverlay = match.split('').map(() => this.getRandomGlitchChar()).join('');
-            return `<span class="glitchy-text-container"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
+            return `<span class="glitchy-text-container" role="button" tabindex="0" title="Toggle glitch effect"><span class="glitchy-text-base">${match}</span><span class="glitchy-text-overlay">${glitchOverlay}</span></span>`;
         });
         
         // Restore placeholders (full "Olivia Colomar" replacements)
@@ -204,7 +219,11 @@ class GlitchTextService {
         }
         
         if (toggleButton) {
-            toggleButton.textContent = this.glitchEnabled ? 'Disable Glitch' : 'Enable Glitch';
+            if (window.EventSlideGlitchHelpers && typeof window.EventSlideGlitchHelpers.applyGlitchToggleButtonState === 'function') {
+                window.EventSlideGlitchHelpers.applyGlitchToggleButtonState(toggleButton, this.glitchEnabled);
+            } else {
+                toggleButton.textContent = this.glitchEnabled ? 'Disable Glitch' : 'Enable Glitch';
+            }
         }
         
         // Start or stop animation

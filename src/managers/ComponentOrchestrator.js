@@ -90,7 +90,7 @@ export class ComponentOrchestrator {
 
     /**
      * Run all Universal Features sequentially
-     * Loads: Palette, then Music
+     * Loads: Music first (resume / buffer smooth), then Palette
      */
     async runUniversalFeatures(options = {}) {
         const runBtn = document.getElementById('runUniversalBtn');
@@ -110,22 +110,21 @@ export class ComponentOrchestrator {
         updateStatus('🚀 Starting Universal Features auto-load...', 'info');
         
         try {
-            // Load Palette
-            if (!this.loadedComponents.palette) {
-                updateStatus('→ Loading Palette...', 'info');
-                await this.loaders.palette();
-                // Small delay between loads
-                await new Promise(r => setTimeout(r, 300));
-            } else {
-                updateStatus('→ Palette already loaded, skipping...', 'info');
-            }
-            
-            // Load Music
+            // Music first so saved track can buffer before heavier UI work
             if (!this.loadedComponents.music) {
                 updateStatus('→ Loading Music...', 'info');
                 await this.loaders.music();
+                await new Promise(r => setTimeout(r, 120));
             } else {
                 updateStatus('→ Music already loaded, skipping...', 'info');
+            }
+
+            if (!this.loadedComponents.palette) {
+                updateStatus('→ Loading Palette...', 'info');
+                await this.loaders.palette();
+                await new Promise(r => setTimeout(r, 300));
+            } else {
+                updateStatus('→ Palette already loaded, skipping...', 'info');
             }
             
             updateStatus('✓ Universal Features auto-load complete!', 'success');

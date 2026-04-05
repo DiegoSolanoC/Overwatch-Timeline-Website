@@ -7,9 +7,11 @@ import { configureTexture, loadTexture, changePlaneTexture } from './helpers/Glo
 import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './helpers/GlobePlaneHelpers.js';
 import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
 import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
-import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite, createGlobeAuroraShell, createGlobeCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint } from './helpers/GlobeInitHelpers.js';
+import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite, createGlobeAuroraShell, createGlobeCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint, rerandomizeGlobeCloudAtlas } from './helpers/GlobeInitHelpers.js';
 
 // THREE is loaded globally via script tag in index.html
+
+const MISC_STAR_PNG = 'assets/images/misc/Star.png';
 
 export class GlobeView {
     constructor(sceneModel, dataModel) {
@@ -26,17 +28,23 @@ export class GlobeView {
         this._auroraVeilAnim = null;
         this._cloudLayer = null;
 
-        // Shooting stars (lightweight pooled streaks)
+        /** Shared Star.png for background starfield (~30%) and shooting star heads (deduped load). */
+        this._miscStarPngPromise = null;
+
+        // Shooting stars: additive line trail + small misc/Star.png head (billboard, spins)
         this._shootingStars = {
             group: null,
             pool: [],
             nextSpawnSec: 0,
-            maxActive: 6
+            maxActive: 6,
+            _poolBuilt: false
         };
         // Reused in updateShootingStars (avoid per-frame Vector3 allocations)
         this._ssCamDir = new THREE.Vector3();
-        this._ssCurveAxis = new THREE.Vector3();
-        this._ssWorldUp = new THREE.Vector3(0, 1, 0);
+        this._ssBendQuat = new THREE.Quaternion();
+
+        /** Slow phase for starfield opacity shimmer (see updateAtmosphereEffects). */
+        this._starfieldShimmerPhase = Math.random() * Math.PI * 2;
     }
 
     /**
@@ -216,6 +224,71 @@ export class GlobeView {
      * Random veil size + boost on load (and first frame if not seeded).
      * Avoids every reload starting at the same strength / always ramping from zero.
      */
+    /**
+     * New random veil / boost and time phase (same idea as a fresh load).
+     */
+    _rerandomizeAuroraVeilState() {
+        this._auroraVeilAnim = null;
+        const a = this._auroraMesh;
+        if (a && a.material && a.material.uniforms && a.material.uniforms.uTime) {
+            a.material.uniforms.uTime.value = Math.random() * 400;
+        }
+        this._seedAuroraVeilAnimIfNeeded();
+    }
+
+    /**
+     * Toggle aurora + clouds from scene preference; turning on re-randomizes like reload.
+     * @param {boolean} enabled
+     */
+    setWeatherEffectsVisible(enabled) {
+        const on = !!enabled;
+        if (this._auroraMesh) {
+            if (on) this._rerandomizeAuroraVeilState();
+            this._auroraMesh.visible = on;
+        }
+        if (this._cloudLayer) {
+            if (!on) {
+                this._cloudLayer.visible = false;
+            } else {
+                const renderer = this.sceneModel.getRenderer();
+                const textureLoader = new THREE.TextureLoader();
+                rerandomizeGlobeCloudAtlas(this._cloudLayer, {
+                    textureLoader,
+                    renderer,
+                    cloudTextureVariants: GLOBE_CLOUD_ATLAS_VARIANTS,
+                    opacity: 0.5
+                });
+            }
+        }
+        this._setShootingStarsWeatherVisible(on);
+    }
+
+    /**
+     * Shooting stars follow the weather toggle (same UX as aurora/clouds).
+     * @param {boolean} on
+     */
+    _setShootingStarsWeatherVisible(on) {
+        const g = this._shootingStars.group;
+        if (g) {
+            g.visible = !!on;
+        }
+        if (!on && this._shootingStars.pool.length) {
+            for (const s of this._shootingStars.pool) {
+                s.active = false;
+                s.line.visible = false;
+                s.headMesh.visible = false;
+                s.lineMat.opacity = 0;
+                s.headMat.opacity = 0;
+            }
+        }
+        if (on) {
+            const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+            this._shootingStars.nextSpawnSec = isMobile
+                ? (8 + Math.random() * 8)
+                : (3 + Math.random() * 4);
+        }
+    }
+
     _seedAuroraVeilAnimIfNeeded() {
         if (this._auroraVeilAnim || !this._auroraMesh || !this._auroraMesh.material || !this._auroraMesh.material.uniforms) {
             return;
@@ -244,39 +317,56 @@ export class GlobeView {
     updateAtmosphereEffects(deltaSeconds) {
         const dt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
         const c = this._cloudLayer;
-        if (c && c.material && c.material.uniforms && c.material.uniforms.uTime) {
+        if (c && c.visible && c.material && c.material.uniforms && c.material.uniforms.uTime) {
             c.material.uniforms.uTime.value += dt;
         }
 
         const a = this._auroraMesh;
-        if (!a || !a.material || !a.material.uniforms) return;
+        if (a && a.visible && a.material && a.material.uniforms) {
+            const u = a.material.uniforms;
+            if (u.uTime) u.uTime.value += dt;
+            if (u.uVeilExpand && u.uVeilBoost) {
+                this._seedAuroraVeilAnimIfNeeded();
+                const st = this._auroraVeilAnim;
+                if (st) {
+                    st.nextPickSec -= dt;
+                    if (st.nextPickSec <= 0) {
+                        st.nextPickSec = 14 + Math.random() * 22;
+                        st.targetSize = Math.random() * 0.98;
+                        if (Math.random() < 0.14) {
+                            st.targetBoost = 1.12 + Math.random() * 0.5;
+                        } else {
+                            st.targetBoost = Math.random() * 1.25;
+                        }
+                    }
 
-        const u = a.material.uniforms;
-        if (u.uTime) u.uTime.value += dt;
-        if (!u.uVeilExpand || !u.uVeilBoost) return;
+                    const tSize = 1 - Math.exp(-0.28 * dt);
+                    const tBoost = 1 - Math.exp(-0.42 * dt);
+                    st.size += (st.targetSize - st.size) * Math.min(1, tSize);
+                    st.boost += (st.targetBoost - st.boost) * Math.min(1, tBoost);
 
-        this._seedAuroraVeilAnimIfNeeded();
-        const st = this._auroraVeilAnim;
-        if (!st) return;
-
-        st.nextPickSec -= dt;
-        if (st.nextPickSec <= 0) {
-            st.nextPickSec = 14 + Math.random() * 22;
-            st.targetSize = Math.random() * 0.98;
-            if (Math.random() < 0.14) {
-                st.targetBoost = 1.12 + Math.random() * 0.5;
-            } else {
-                st.targetBoost = Math.random() * 1.25;
+                    u.uVeilExpand.value = st.size;
+                    u.uVeilBoost.value = st.boost;
+                }
             }
         }
 
-        const tSize = 1 - Math.exp(-0.28 * dt);
-        const tBoost = 1 - Math.exp(-0.42 * dt);
-        st.size += (st.targetSize - st.size) * Math.min(1, tSize);
-        st.boost += (st.targetBoost - st.boost) * Math.min(1, tBoost);
-
-        u.uVeilExpand.value = st.size;
-        u.uVeilBoost.value = st.boost;
+        // Starfield: gentle opacity breathe (aurora-like slow drift).
+        const starRoot = this.sceneModel.getStars();
+        if (starRoot && starRoot.name === 'starfield' && starRoot.userData.starfieldMats) {
+            const mats = starRoot.userData.starfieldMats;
+            this._starfieldShimmerPhase += dt;
+            const shimmer =
+                0.055 * Math.sin(this._starfieldShimmerPhase * 0.33) +
+                0.05 * Math.sin(this._starfieldShimmerPhase * 0.19 + 1.05);
+            const mul = 0.93 + shimmer;
+            if (mats.classic && mats.classic.userData.baseOpacity != null) {
+                mats.classic.opacity = mats.classic.userData.baseOpacity * mul;
+            }
+            if (mats.textured && mats.textured.userData.baseOpacity != null) {
+                mats.textured.opacity = mats.textured.userData.baseOpacity * mul;
+            }
+        }
     }
 
     /**
@@ -350,50 +440,183 @@ export class GlobeView {
     }
 
     /**
-     * Add twinkling starfield background
+     * Random glow: 0–100% strength and hue among yellow / green / blue / white / purple.
+     * @param {{ forSpritePoints?: boolean }} [opts] - If true, vertex colors stay near white at low strength so Star.png albedo stays visible (PointsMaterial multiplies map × color).
+     * @returns {{ r: number, g: number, b: number, strength: number }}
      */
-    addStarfield() {
-        const scene = this.sceneModel.getScene();
-        const starGeometry = new THREE.BufferGeometry();
-        const starCount = 2000;
-        
-        const positions = new Float32Array(starCount * 3);
-        const sizes = new Float32Array(starCount);
-        const colors = new Float32Array(starCount * 3);
-        
-        for (let i = 0; i < starCount; i++) {
+    _pickStarGlowColor(opts = {}) {
+        const palettes = [
+            [1.0, 0.88, 0.35],
+            [0.34, 0.95, 0.52],
+            [0.38, 0.74, 1.0],
+            [1.0, 1.0, 1.0],
+            [0.68, 0.4, 0.98]
+        ];
+        const p = palettes[(Math.random() * palettes.length) | 0];
+        const strength = Math.random();
+        if (opts.forSpritePoints) {
+            const t = strength;
+            const k = 0.92;
+            return {
+                r: 1 + (p[0] - 1) * t * k,
+                g: 1 + (p[1] - 1) * t * k,
+                b: 1 + (p[2] - 1) * t * k,
+                strength
+            };
+        }
+        const core = 0.08;
+        return {
+            r: core + (p[0] - core) * strength,
+            g: core + (p[1] - core) * strength,
+            b: core + (p[2] - core) * strength,
+            strength
+        };
+    }
+
+    /**
+     * Random positions on the same sky shell as the original starfield.
+     * Per-star tint + glow strength (additive-friendly vertex colors, slightly larger when brighter).
+     * @param {number} count
+     * @param {{ forSpritePoints?: boolean }} [opts] - Pass for Star.png layer (tints without crushing the sprite).
+     * @returns {{positions: Float32Array, sizes: Float32Array, colors: Float32Array}}
+     */
+    _createStarShellAttributes(count, opts = {}) {
+        const positions = new Float32Array(count * 3);
+        const sizes = new Float32Array(count);
+        const colors = new Float32Array(count * 3);
+        const forSprite = opts.forSpritePoints === true;
+        for (let i = 0; i < count; i++) {
             const radius = 50 + Math.random() * 50;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos((Math.random() * 2) - 1);
-            
+
             positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
             positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
             positions[i * 3 + 2] = radius * Math.cos(phi);
-            
-            sizes[i] = Math.random() * 2.5 + 0.5;
-            
-            const brightness = 0.8 + Math.random() * 0.2;
-            colors[i * 3] = brightness;
-            colors[i * 3 + 1] = brightness;
-            colors[i * 3 + 2] = 0.95 + Math.random() * 0.05;
+
+            const glow = this._pickStarGlowColor(forSprite ? { forSpritePoints: true } : {});
+            const sizeSpread = Math.random() * 2.5 + 0.5;
+            sizes[i] = forSprite
+                ? sizeSpread * (0.92 + 0.35 * glow.strength)
+                : sizeSpread * (0.78 + 0.42 * glow.strength);
+
+            colors[i * 3] = glow.r;
+            colors[i * 3 + 1] = glow.g;
+            colors[i * 3 + 2] = glow.b;
         }
-        
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-        starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        
-        const starMaterial = new THREE.PointsMaterial({
+        return { positions, sizes, colors };
+    }
+
+    /**
+     * Single load of misc/Star.png for starfield sprites + shooting star heads.
+     * @returns {Promise<THREE.Texture|null>}
+     */
+    _ensureMiscStarPng() {
+        if (!this._miscStarPngPromise) {
+            this._miscStarPngPromise = new Promise((resolve) => {
+                const renderer = this.sceneModel.getRenderer();
+                const textureLoader = new THREE.TextureLoader();
+                if (renderer) {
+                    loadTexture(
+                        textureLoader,
+                        MISC_STAR_PNG,
+                        renderer,
+                        (tex) => resolve(tex),
+                        () => resolve(null)
+                    );
+                } else {
+                    textureLoader.load(
+                        MISC_STAR_PNG,
+                        (tex) => {
+                            tex.minFilter = THREE.LinearFilter;
+                            tex.magFilter = THREE.LinearFilter;
+                            tex.generateMipmaps = false;
+                            resolve(tex);
+                        },
+                        undefined,
+                        () => resolve(null)
+                    );
+                }
+            });
+        }
+        return this._miscStarPngPromise;
+    }
+
+    /**
+     * Background starfield: ~70% classic points, ~30% same shell with Star.png (additive, vertex-tinted).
+     */
+    addStarfield() {
+        const scene = this.sceneModel.getScene();
+        if (!scene) return;
+
+        const starCount = 2000;
+        const texturedFraction = 0.3;
+        const texturedCount = Math.round(starCount * texturedFraction);
+        const classicCount = Math.max(0, starCount - texturedCount);
+
+        const cl = this._createStarShellAttributes(classicCount);
+        const classicGeom = new THREE.BufferGeometry();
+        classicGeom.setAttribute('position', new THREE.BufferAttribute(cl.positions, 3));
+        classicGeom.setAttribute('size', new THREE.BufferAttribute(cl.sizes, 1));
+        classicGeom.setAttribute('color', new THREE.BufferAttribute(cl.colors, 3));
+
+        const classicBaseOp = 0.8;
+        const classicMat = new THREE.PointsMaterial({
             size: 0.15,
             vertexColors: true,
             transparent: true,
-            opacity: 0.8,
+            opacity: classicBaseOp,
             sizeAttenuation: true,
             blending: THREE.AdditiveBlending
         });
-        
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        this.sceneModel.setStars(stars);
-        scene.add(stars);
+        classicMat.userData.baseOpacity = classicBaseOp;
+
+        const classicPoints = new THREE.Points(classicGeom, classicMat);
+        classicPoints.name = 'starfield-classic';
+
+        const starFieldGroup = new THREE.Group();
+        starFieldGroup.name = 'starfield';
+        starFieldGroup.userData.starfieldMats = { classic: classicMat, textured: null };
+        starFieldGroup.add(classicPoints);
+        scene.add(starFieldGroup);
+        this.sceneModel.setStars(starFieldGroup);
+
+        if (texturedCount <= 0) return;
+
+        this._ensureMiscStarPng().then((tex) => {
+            if (!tex) return;
+            if (starFieldGroup.userData.starPngLayerAdded) return;
+            starFieldGroup.userData.starPngLayerAdded = true;
+
+            const tg = this._createStarShellAttributes(texturedCount, { forSpritePoints: true });
+            const texturedGeom = new THREE.BufferGeometry();
+            texturedGeom.setAttribute('position', new THREE.BufferAttribute(tg.positions, 3));
+            texturedGeom.setAttribute('size', new THREE.BufferAttribute(tg.sizes, 1));
+            texturedGeom.setAttribute('color', new THREE.BufferAttribute(tg.colors, 3));
+
+            const texturedBaseOp = 0.78;
+            const texturedMat = new THREE.PointsMaterial({
+                map: tex,
+                // Larger than classic points so Star.png reads as a shape (PointsMaterial ignores per-vertex size).
+                size: 0.62,
+                vertexColors: true,
+                transparent: true,
+                opacity: texturedBaseOp,
+                sizeAttenuation: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                alphaTest: 0.01
+            });
+            texturedMat.userData.baseOpacity = texturedBaseOp;
+
+            const texturedPoints = new THREE.Points(texturedGeom, texturedMat);
+            texturedPoints.name = 'starfield-textured';
+            texturedPoints.renderOrder = 1;
+            starFieldGroup.add(texturedPoints);
+            if (starFieldGroup.userData.starfieldMats) {
+                starFieldGroup.userData.starfieldMats.textured = texturedMat;
+            }
+        });
     }
 
     /**
@@ -414,13 +637,29 @@ export class GlobeView {
     }
 
     /**
-     * Add a small pool of "shooting star" streaks.
-     * These are separate from the static starfield for performance and simplicity.
+     * Add a small pool of shooting stars: streak (line) plus a spinning Star.png at the leading tip.
      */
     addShootingStars() {
         const scene = this.sceneModel.getScene();
         if (!scene) return;
+        if (this._shootingStars._poolBuilt) return;
+        this._shootingStars._poolBuilt = true;
+
+        this._ensureMiscStarPng().then((tex) => {
+            if (!tex) {
+                console.warn('Shooting star texture not available, using solid fallback head.');
+            }
+            this._createShootingStarsGroup(tex || null);
+        });
+    }
+
+    /**
+     * @param {THREE.Texture|null} mapTexture
+     */
+    _createShootingStarsGroup(mapTexture) {
         if (this._shootingStars.group) return;
+        const scene = this.sceneModel.getScene();
+        if (!scene) return;
 
         const group = new THREE.Group();
         group.name = 'shooting-stars';
@@ -432,10 +671,10 @@ export class GlobeView {
         const trailPointCount = isMobile ? 14 : 22;
 
         const makeStar = () => {
-            const geom = new THREE.BufferGeometry();
+            const lineGeom = new THREE.BufferGeometry();
             const arr = new Float32Array(trailPointCount * 3);
-            geom.setAttribute('position', new THREE.BufferAttribute(arr, 3));
-            const mat = new THREE.LineBasicMaterial({
+            lineGeom.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+            const lineMat = new THREE.LineBasicMaterial({
                 color: 0xffffff,
                 transparent: true,
                 opacity: 0,
@@ -443,30 +682,56 @@ export class GlobeView {
                 depthWrite: false,
                 depthTest: true
             });
-            const line = new THREE.Line(geom, mat);
+            const line = new THREE.Line(lineGeom, lineMat);
             line.visible = false;
             line.frustumCulled = false;
+            line.renderOrder = -10;
             group.add(line);
+
+            const headGeom = new THREE.PlaneGeometry(1, 1);
+            const headMat = new THREE.MeshBasicMaterial({
+                map: mapTexture || null,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                depthTest: true,
+                side: THREE.DoubleSide
+            });
+            if (!mapTexture) {
+                headMat.color.setRGB(0.78, 0.9, 1.0);
+            }
+            const headMesh = new THREE.Mesh(headGeom, headMat);
+            headMesh.visible = false;
+            headMesh.frustumCulled = false;
+            headMesh.renderOrder = -9;
+            group.add(headMesh);
+
             const trailPts = [];
             for (let i = 0; i < trailPointCount; i++) {
                 trailPts.push(new THREE.Vector3());
             }
             return {
                 line,
-                geom,
-                mat,
+                lineGeom,
+                lineMat,
                 trailPointCount,
                 trailPts,
+                headMesh,
+                headMat,
                 active: false,
                 age: 0,
                 duration: 1,
                 speed: 20,
                 head: new THREE.Vector3(),
                 dir: new THREE.Vector3(),
-                /** Radians per second; bend axis is built from dir × view each frame */
                 curvatureRadPerSec: 0,
-                /** Slow change of curvature so arcs are not perfectly circular */
-                curvatureDriftRadPerSec2: 0
+                curvatureDriftRadPerSec2: 0,
+                spinAngle: 0,
+                spinRadPerSec: 6,
+                baseScale: 0.65,
+                glowStrength: 1
             };
         };
 
@@ -474,13 +739,16 @@ export class GlobeView {
             this._shootingStars.pool.push(makeStar());
         }
 
-        // First spawn after a short random delay
         this._shootingStars.nextSpawnSec = isMobile
             ? (8 + Math.random() * 8)
             : (3 + Math.random() * 4);
 
         this._shootingStars.group = group;
         scene.add(group);
+        if (typeof this.sceneModel.getGlobeWeatherEffectsVisible === 'function'
+            && !this.sceneModel.getGlobeWeatherEffectsVisible()) {
+            group.visible = false;
+        }
     }
 
     _spawnShootingStar() {
@@ -544,22 +812,33 @@ export class GlobeView {
             star.trailPts[i].copy(star.head);
         }
 
-        // Randomized in-plane bend (sign + strength); drift stops identical arcs
-        const curveMag = 0.35 + Math.random() * 1.85;
+        // Gentle in-view-plane bend only (see updateShootingStars: rotate around view axis).
+        const curveMag = 0.18 + Math.random() * 0.55;
         star.curvatureRadPerSec = (Math.random() < 0.5 ? -1 : 1) * curveMag;
-        star.curvatureDriftRadPerSec2 = (Math.random() * 2 - 1) * 0.9;
+        star.curvatureDriftRadPerSec2 = (Math.random() * 2 - 1) * 0.35;
 
-        // Slightly tint some streaks cooler for variety
-        const tint = 0.92 + Math.random() * 0.08;
-        star.mat.color.setRGB(1.0 * tint, 1.0 * tint, (0.96 + Math.random() * 0.04));
+        const isMobile = window.innerWidth <= 768;
+        star.baseScale = (isMobile ? 0.4 : 0.5) + Math.random() * 0.22;
+
+        const glow = this._pickStarGlowColor();
+        star.glowStrength = glow.strength;
+        star.lineMat.color.setRGB(glow.r, glow.g, glow.b);
+        star.headMat.color.setRGB(glow.r, glow.g, glow.b);
+        const headMul = 0.9 + 0.32 * glow.strength;
+        star.headMesh.scale.setScalar(star.baseScale * headMul);
+
+        star.spinAngle = Math.random() * Math.PI * 2;
+        star.spinRadPerSec = (Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 9);
 
         star.line.visible = true;
-        star.mat.opacity = 0.001;
+        star.headMesh.visible = true;
+        star.lineMat.opacity = 0.001;
+        star.headMat.opacity = 0.001;
         this._updateShootingStarGeometry(star, 0.001);
     }
 
     _updateShootingStarGeometry(star, alpha) {
-        const pos = star.geom.attributes.position.array;
+        const pos = star.lineGeom.attributes.position.array;
         const n = star.trailPointCount;
         for (let i = 0; i < n; i++) {
             const p = star.trailPts[i];
@@ -567,13 +846,20 @@ export class GlobeView {
             pos[i * 3 + 1] = p.y;
             pos[i * 3 + 2] = p.z;
         }
-        star.geom.attributes.position.needsUpdate = true;
-        star.mat.opacity = alpha;
+        star.lineGeom.attributes.position.needsUpdate = true;
+        const g = typeof star.glowStrength === 'number' ? star.glowStrength : 1;
+        star.lineMat.opacity = alpha;
+        // Slightly brighter head when glow is strong (additive read)
+        star.headMat.opacity = alpha * (0.78 + 0.22 * g);
     }
 
     updateShootingStars(deltaSec) {
         // Respect page visibility (prevents "catch-up" spawns)
         if (this.sceneModel && this.sceneModel.isPageVisible === false) return;
+        if (this.sceneModel && typeof this.sceneModel.getGlobeWeatherEffectsVisible === 'function'
+            && !this.sceneModel.getGlobeWeatherEffectsVisible()) {
+            return;
+        }
 
         if (!this._shootingStars.group) return;
         const dt = Number.isFinite(deltaSec) ? Math.max(0, deltaSec) : 0;
@@ -581,10 +867,9 @@ export class GlobeView {
 
         const camera = this.sceneModel.getCamera();
         const camDir = this._ssCamDir;
-        const curveAxis = this._ssCurveAxis;
-        const worldUp = this._ssWorldUp;
+        const bendQuat = this._ssBendQuat;
 
-        // Update active streaks
+        // Update active stars
         for (const s of this._shootingStars.pool) {
             if (!s.active) continue;
             s.age += dt;
@@ -592,43 +877,40 @@ export class GlobeView {
             if (t >= 1) {
                 s.active = false;
                 s.line.visible = false;
-                s.mat.opacity = 0;
+                s.headMesh.visible = false;
+                s.lineMat.opacity = 0;
+                s.headMat.opacity = 0;
                 continue;
             }
 
-            // Bend path: rotate velocity in the plane perpendicular to (dir × view)
+            // 2D parabolic arcs in the image plane: velocity stays ⟂ view (no in/out of screen).
+            // Bend by rotating dir around the camera view axis only (screen-plane parabola, slight curve).
             if (camera) {
                 camera.getWorldDirection(camDir);
-                curveAxis.crossVectors(s.dir, camDir);
-                if (curveAxis.lengthSq() < 1e-10) {
-                    curveAxis.crossVectors(s.dir, worldUp);
+
+                let along = s.dir.dot(camDir);
+                if (Math.abs(along) > 1e-6) {
+                    s.dir.addScaledVector(camDir, -along);
+                    s.dir.normalize();
                 }
-                curveAxis.normalize();
 
                 s.curvatureRadPerSec += s.curvatureDriftRadPerSec2 * dt;
-                s.curvatureRadPerSec = Math.max(-2.8, Math.min(2.8, s.curvatureRadPerSec));
+                s.curvatureRadPerSec = Math.max(-1.35, Math.min(1.35, s.curvatureRadPerSec));
 
                 const bend = s.curvatureRadPerSec * dt;
-                const c = Math.cos(bend);
-                const sn = Math.sin(bend);
-                const vx = s.dir.x;
-                const vy = s.dir.y;
-                const vz = s.dir.z;
-                const kx = curveAxis.x;
-                const ky = curveAxis.y;
-                const kz = curveAxis.z;
-                const cx = ky * vz - kz * vy;
-                const cy = kz * vx - kx * vz;
-                const cz = kx * vy - ky * vx;
-                s.dir.x = vx * c + cx * sn;
-                s.dir.y = vy * c + cy * sn;
-                s.dir.z = vz * c + cz * sn;
+                bendQuat.setFromAxisAngle(camDir, bend);
+                s.dir.applyQuaternion(bendQuat);
                 s.dir.normalize();
+
+                along = s.dir.dot(camDir);
+                if (Math.abs(along) > 1e-6) {
+                    s.dir.addScaledVector(camDir, -along);
+                    s.dir.normalize();
+                }
             }
 
             s.head.addScaledVector(s.dir, s.speed * dt);
 
-            // Polyline trail: shift samples so the smear follows the curved path (tail → head).
             const pts = s.trailPts;
             const n = s.trailPointCount;
             for (let i = 0; i < n - 1; i++) {
@@ -636,7 +918,8 @@ export class GlobeView {
             }
             pts[n - 1].copy(s.head);
 
-            // Fade: quick ramp-in then fade out
+            s.spinAngle += s.spinRadPerSec * dt;
+
             let a = 1;
             if (t < 0.12) {
                 a = t / 0.12;
@@ -645,14 +928,20 @@ export class GlobeView {
             }
             const alpha = 0.85 * a;
 
-            // If it drifted too far, kill it early
             if (s.head.length() > 140) {
                 s.active = false;
                 s.line.visible = false;
-                s.mat.opacity = 0;
+                s.headMesh.visible = false;
+                s.lineMat.opacity = 0;
+                s.headMat.opacity = 0;
                 continue;
             }
 
+            s.headMesh.position.copy(s.head);
+            if (camera) {
+                s.headMesh.lookAt(camera.position);
+                s.headMesh.rotateZ(s.spinAngle);
+            }
             this._updateShootingStarGeometry(s, alpha);
         }
 
@@ -781,8 +1070,12 @@ export class GlobeView {
      * Refresh event markers (remove old, add new for current page)
      * Delegates to EventMarkerManager
      */
-    refreshEventMarkers() {
-        return this.eventMarkerManager.refreshEventMarkers();
+    /**
+     * @param {boolean} [animate=true]
+     * @returns {Promise<void>|undefined}
+     */
+    refreshEventMarkers(animate = true) {
+        return this.eventMarkerManager.refreshEventMarkers(animate);
     }
     
     /**

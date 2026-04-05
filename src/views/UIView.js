@@ -304,6 +304,13 @@ export class UIView {
     }
 
     /**
+     * @param {Function} [onToggle]
+     */
+    setupWeatherEffectsToggle(onToggle) {
+        this.toggleManager.setupWeatherEffectsToggle(onToggle);
+    }
+
+    /**
      * Setup globe <-> map view toggle
      */
     setupMapViewToggle() {

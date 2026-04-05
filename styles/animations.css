@@ -3,6 +3,17 @@
     display: inline-block;
     line-height: inherit;
     vertical-align: baseline;
+    cursor: pointer;
+}
+
+/* Plain-name tap target when glitch is off (same regex matches as glitch spans) */
+.glitchy-text-toggle-target {
+    cursor: pointer;
+}
+
+.event-slide--inline-editing .glitchy-text-container,
+.event-slide--inline-editing .glitchy-text-toggle-target {
+    cursor: text;
 }
 
 .glitchy-text-base {

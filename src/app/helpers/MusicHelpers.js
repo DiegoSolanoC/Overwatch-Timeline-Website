@@ -51,6 +51,7 @@ export function initializeMusicManager(immediate = false, delay = 50) {
 export function createBackgroundMusicElement() {
     const audio = document.createElement('audio');
     audio.id = 'backgroundMusic';
+    audio.preload = 'auto';
     audio.loop = true;
     document.body.appendChild(audio);
     return audio;

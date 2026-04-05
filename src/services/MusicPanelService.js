@@ -119,27 +119,6 @@ class MusicPanelService {
             }
         });
     }
-
-    /**
-     * Setup click-outside-to-close handler
-     */
-    setupClickOutsideHandler() {
-        document.addEventListener('click', (e) => {
-            if (this.musicPanel && this.musicPanel.classList.contains('open')) {
-                if (!this.musicPanel.contains(e.target) && 
-                    !this.musicButton.contains(e.target) && 
-                    e.target !== this.musicButton) {
-                    this.musicPanel.classList.remove('open');
-                    if (this.musicButton) {
-                        this.musicButton.classList.remove('active');
-                    }
-                    if (this._onToggle) {
-                        this._onToggle(false);
-                    }
-                }
-            }
-        });
-    }
 }
 
 // Export for ES6 modules

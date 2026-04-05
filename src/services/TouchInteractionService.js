@@ -41,6 +41,9 @@ class TouchInteractionService {
                 x: touch.clientX,
                 y: touch.clientY
             });
+
+            // Match mouse path: empty-globe click closes panels only when pointer did not move (see MarkerInteractionService)
+            window.mouseMoved = false;
             
             // Track initial touch position to detect if it's a drag vs tap
             this.sceneModel.initialTouchPosition = {
@@ -150,6 +153,10 @@ class TouchInteractionService {
                 const totalDeltaX = Math.abs(touch.clientX - initialPos.x);
                 const totalDeltaY = Math.abs(touch.clientY - initialPos.y);
                 const totalMovement = Math.sqrt(totalDeltaX * totalDeltaX + totalDeltaY * totalDeltaY);
+
+                if (totalMovement > 8) {
+                    window.mouseMoved = true;
+                }
                 
                 // If movement is significant (more than 5px), prevent page scrolling
                 if (totalMovement > 5) {

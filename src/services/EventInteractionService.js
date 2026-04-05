@@ -16,168 +16,129 @@ class EventInteractionService {
     }
 
     /**
-     * Open event info from list (like clicking a marker) - for GitHub Pages
+     * Open event info from list (View button or whole-card click on GitHub Pages).
+     * Matches navigation: same camera helper, slide opens before closing the manager panel, marker refresh returns a real Promise.
      */
     openEventFromList(event, index) {
         if (!this.eventManager) return;
-        
-        // Set flag to prevent panel from closing during event opening
+
         this.eventManager.isOpeningEvent = true;
-        
-        // Helper function to actually open the event (called after page change completes if needed)
-        const openEventAfterPageChange = () => {
-            // Close the event manager panel
+
+        const closeManagerPanel = () => {
             const panel = document.getElementById('eventsManagePanel');
-            if (panel) {
-                panel.classList.remove('open');
-            }
+            if (panel) panel.classList.remove('open');
             const toggleBtn = document.getElementById('eventsManageToggle');
-            if (toggleBtn) {
-                toggleBtn.classList.remove('active');
-            }
-            
-            // Clear the flag after a short delay to allow event slide to open
+            if (toggleBtn) toggleBtn.classList.remove('active');
             setTimeout(() => {
                 this.eventManager.isOpeningEvent = false;
-            }, 500);
-            
-            // Find the corresponding marker on the globe
-            if (window.globeController && window.globeController.globeView) {
-                const markers = window.globeController.sceneModel.getMarkers();
-                const eventMarker = markers.find(m => {
-                    if (m.userData && m.userData.isEventMarker) {
-                        const markerEvent = m.userData.event;
-                        // Match by index or by lat/lon
-                        return (markerEvent === event) || 
-                               (Math.abs(markerEvent.lat - event.lat) < 0.0001 && 
-                                Math.abs(markerEvent.lon - event.lon) < 0.0001);
-                    }
-                    return false;
-                });
-                
-                if (eventMarker && window.globeController.uiView) {
-                    // Check if this is a multi-event
-                    const isMultiEvent = event.variants && event.variants.length > 0;
-                    
-                    // Get the currently previewed variant index (default to 0)
-                    let variantIndex = 0;
-                    if (isMultiEvent) {
-                        const itemKey = `event-${index}`;
-                        variantIndex = this.eventManager.eventItemVariantIndices.get(itemKey) || 0;
-                    }
-                    
-                    const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
-                    
-                    // For multi-events, find the marker for the specific variant
-                    let targetMarker = eventMarker;
-                    if (isMultiEvent && variantIndex > 0) {
-                        // Look for the variant marker
-                        const variantMarker = markers.find(m => {
-                            if (m.userData && m.userData.isEventMarker && 
-                                m.userData.event === event &&
-                                m.userData.variantIndex === variantIndex) {
-                                return true;
-                            }
-                            return false;
-                        });
-                        if (variantMarker) {
-                            targetMarker = variantMarker;
-                        }
-                    }
-                    
-                    const eventName = displayEvent.name || eventMarker.userData.eventName;
-                    const eventDescription = displayEvent.description;
-                    const imagePath = this.eventManager.getEventImagePath ? 
-                        this.eventManager.getEventImagePath(displayEvent.name, displayEvent.image) : null;
-                    
-                    // Zoom to marker or reset to default view (for Moon/Mars) and show event slide
-                    if (window.globeController.interactionController) {
-                        const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
-                        if (locationType === 'moon' || locationType === 'mars') {
-                            // Reset camera to default view for Moon/Mars events
-                            window.globeController.interactionController.resetCameraToDefault();
-                        } else {
-                            // Zoom in and center on the marker (Earth events)
-                            window.globeController.interactionController.zoomToMarker(targetMarker);
-                        }
-                    }
-                    
-                    window.globeController.uiView.showEventSlide(
-                        eventName,
-                        imagePath,
-                        eventDescription,
-                        targetMarker,
-                        event
-                    );
-                    
-                    // Reset all multi-variant events to first variant after opening (for next time manager opens)
-                    this.resetAllEventVariants();
+            }, 320);
+        };
+
+        const openFromMarkers = () => {
+            if (!(window.globeController && window.globeController.globeView && window.globeController.uiView)) {
+                closeManagerPanel();
+                return;
+            }
+
+            const markers = window.globeController.sceneModel.getMarkers();
+            const eventMarker = markers.find(m => {
+                if (m.userData && m.userData.isEventMarker) {
+                    const markerEvent = m.userData.event;
+                    return (markerEvent === event) ||
+                        (markerEvent.lat !== undefined && event.lat !== undefined &&
+                            Math.abs(markerEvent.lat - event.lat) < 0.0001 &&
+                            Math.abs(markerEvent.lon - event.lon) < 0.0001);
+                }
+                return false;
+            });
+
+            if (!eventMarker) {
+                closeManagerPanel();
+                return;
+            }
+
+            const isMultiEvent = event.variants && event.variants.length > 0;
+            let variantIndex = 0;
+            if (isMultiEvent) {
+                const itemKey = `event-${index}`;
+                variantIndex = this.eventManager.eventItemVariantIndices.get(itemKey) || 0;
+            }
+            const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
+
+            let targetMarker = eventMarker;
+            if (isMultiEvent && variantIndex > 0) {
+                const variantMarker = markers.find(m => (
+                    m.userData && m.userData.isEventMarker &&
+                    m.userData.event === event &&
+                    m.userData.variantIndex === variantIndex
+                ));
+                if (variantMarker) targetMarker = variantMarker;
+            }
+
+            const eventName = displayEvent.name || eventMarker.userData.eventName;
+            const eventDescription = displayEvent.description;
+            const imagePath = this.eventManager.getEventImagePath
+                ? this.eventManager.getEventImagePath(displayEvent.name, displayEvent.image)
+                : null;
+
+            const ic = window.globeController.interactionController;
+            const navLoc = window.NavigationLocationHelpers;
+            if (ic && navLoc && typeof navLoc.handleLocationTypeCamera === 'function' && typeof navLoc.getLocationType === 'function') {
+                navLoc.handleLocationTypeCamera(ic, targetMarker, navLoc.getLocationType(targetMarker, displayEvent));
+            } else if (ic) {
+                const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
+                if (locationType === 'moon' || locationType === 'mars') {
+                    ic.resetCameraToDefault();
+                } else {
+                    ic.zoomToMarker(targetMarker);
                 }
             }
+
+            window.globeController.uiView.showEventSlide(
+                eventName,
+                imagePath,
+                eventDescription,
+                targetMarker,
+                event
+            );
+
+            this.resetAllEventVariants();
+            closeManagerPanel();
         };
-        
-        // Check if event is on current page, if not switch to the correct page
-        if (window.globeController && window.globeController.dataModel) {
-            const dataModel = window.globeController.dataModel;
-            const currentPage = dataModel.getCurrentEventPage();
-            const eventsPerPage = dataModel.eventsPerPage || 10;
-            const eventPage = Math.floor(index / eventsPerPage) + 1;
-            
-            if (eventPage !== currentPage) {
-                // Switch to the correct page
-                dataModel.setCurrentEventPage(eventPage);
-                
-                // Re-render events list first
-                if (this.eventManager.renderEvents) {
-                    this.eventManager.renderEvents();
-                }
-                
-                // Refresh markers and pagination, then open event after markers are ready
-                if (window.globeController.globeView) {
-                    const refreshPromise = window.globeController.globeView.refreshEventMarkers();
+
+        const runOpenFlow = () => {
+            if (window.globeController && window.globeController.dataModel) {
+                const dataModel = window.globeController.dataModel;
+                const currentPage = dataModel.getCurrentEventPage();
+                const eventsPerPage = dataModel.eventsPerPage || 10;
+                const eventPage = Math.floor(index / eventsPerPage) + 1;
+
+                if (eventPage !== currentPage) {
+                    dataModel.setCurrentEventPage(eventPage);
+                    if (window.globeController.uiView && typeof window.globeController.uiView.updatePaginationUI === 'function') {
+                        window.globeController.uiView.updatePaginationUI();
+                    }
+                    const gv = window.globeController.globeView;
+                    const refreshPromise = gv && typeof gv.refreshEventMarkers === 'function'
+                        ? gv.refreshEventMarkers(false)
+                        : null;
                     if (refreshPromise && typeof refreshPromise.then === 'function') {
-                        // refreshEventMarkers returns a promise
                         refreshPromise.then(() => {
-                            // Wait a bit more for markers to be fully ready
-                            setTimeout(() => {
-                                openEventAfterPageChange();
-                            }, 100);
+                            requestAnimationFrame(openFromMarkers);
                         }).catch(() => {
-                            // If promise rejects, just wait and try
-                            setTimeout(() => {
-                                openEventAfterPageChange();
-                            }, 300);
+                            setTimeout(openFromMarkers, 50);
                         });
                     } else {
-                        // refreshEventMarkers doesn't return a promise, just wait
-                        setTimeout(() => {
-                            openEventAfterPageChange();
-                        }, 400);
+                        requestAnimationFrame(openFromMarkers);
                     }
-                } else {
-                    // No globeView, just wait and open
-                    setTimeout(() => {
-                        openEventAfterPageChange();
-                    }, 300);
+                    return;
                 }
-                
-                if (window.globeController.uiView) {
-                    window.globeController.uiView.setupEventPagination(() => {
-                        if (window.globeController.globeView) {
-                            window.globeController.globeView.refreshEventMarkers();
-                        }
-                    });
-                }
-            } else {
-                // Event is on current page, open immediately
-                openEventAfterPageChange();
             }
-        } else {
-            // No globeController, just try to open
-            openEventAfterPageChange();
-        }
-        
-        // Clear flag if something goes wrong (safety net)
+            openFromMarkers();
+        };
+
+        runOpenFlow();
+
         setTimeout(() => {
             this.eventManager.isOpeningEvent = false;
         }, 2000);
@@ -246,6 +207,32 @@ class EventInteractionService {
         if (titleElement) {
             titleElement.innerHTML = window.GlitchTextService ? 
                 window.GlitchTextService.getDisplayEventName(variant.name) : variant.name;
+        }
+
+        // Refresh Filters / Country match pills + card tint for the active variant
+        itemElement.classList.remove('event-item--search-hit-filter', 'event-item--search-hit-country');
+        const oldPills = itemElement.querySelector('.event-search-hit-pills-row');
+        if (oldPills) oldPills.remove();
+        if (this.eventManager.getSearchMatchAxesForItem) {
+            const axes = this.eventManager.getSearchMatchAxesForItem(variant);
+            if (axes.filterActive || axes.countryActive) {
+                if (axes.filterHit) itemElement.classList.add('event-item--search-hit-filter');
+                if (axes.countryHit) itemElement.classList.add('event-item--search-hit-country');
+                const pills = [];
+                if (axes.filterActive && axes.filterHit) {
+                    pills.push('<span class="event-search-hit-pill event-search-hit-pill--filter" title="Matches Filters (hero/faction)">Filters</span>');
+                }
+                if (axes.countryActive && axes.countryHit) {
+                    pills.push('<span class="event-search-hit-pill event-search-hit-pill--country" title="Matches country search">Country</span>');
+                }
+                if (pills.length && titleElement) {
+                    const row = document.createElement('div');
+                    row.className = 'event-search-hit-pills-row';
+                    row.setAttribute('aria-label', 'Search match type');
+                    row.innerHTML = pills.join('');
+                    titleElement.insertAdjacentElement('afterend', row);
+                }
+            }
         }
         
         // Update location

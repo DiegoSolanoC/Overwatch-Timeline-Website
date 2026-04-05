@@ -11,13 +11,16 @@ const WELCOME_SFX_DELAY_MS = 650;
 const WELCOME_SFX_VOLUME_SCALE = 0.38;
 const WELCOME_SFX_VOLUME_CAP = 0.28;
 
-/** One-shot greeting during the loading overlay; runs before universal features / globe load. */
-function playWelcomeLoadingSoundOnce() {
-    if (typeof window !== 'undefined' && window.__welcomeLoadingSfxScheduled) {
+/**
+ * One-shot welcome SFX — only when the app plays a palette startup theme (see MusicManagerInitHelpers.loadMusicFiles).
+ * Same eligibility as the first startup MP3: no restored music session, no current song yet, manifest non-empty, theme path exists.
+ */
+function scheduleWelcomeSoundForStartupTheme() {
+    if (typeof window !== 'undefined' && window.__welcomeStartupSfxScheduled) {
         return;
     }
     if (typeof window !== 'undefined') {
-        window.__welcomeLoadingSfxScheduled = true;
+        window.__welcomeStartupSfxScheduled = true;
     }
     window.setTimeout(function () {
         try {
@@ -46,6 +49,10 @@ function playWelcomeLoadingSoundOnce() {
             /* ignore */
         }
     }, WELCOME_SFX_DELAY_MS);
+}
+
+if (typeof window !== 'undefined') {
+    window.scheduleWelcomeSoundForStartupTheme = scheduleWelcomeSoundForStartupTheme;
 }
 
 // Detect if we're running on GitHub Pages (or similar static hosting)
@@ -89,9 +96,6 @@ window.addEventListener('DOMContentLoaded', function () {
     if (loadingOverlay) {
         loadingOverlay.classList.add('active');
     }
-
-    // Greeting — first feedback that the session is booting (before heavy loads / music).
-    playWelcomeLoadingSoundOnce();
 
     // Update loading status using overlayStatusContent
     function updateLoadingStatus(message) {

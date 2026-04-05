@@ -293,6 +293,16 @@ body.color-palette-gray .music-progress-bar::-moz-range-thumb {
     height: 24px;
     object-fit: contain;
     display: block;
+    transition: opacity var(--panel-transition, 0.2s ease);
+}
+
+.music-control-btn.active .control-icon {
+    opacity: 1 !important;
+}
+
+.music-control-buttons .music-control-btn:hover .control-icon,
+.music-control-buttons .music-control-btn:focus-visible .control-icon {
+    opacity: 1 !important;
 }
 
 .music-control-btn:hover {

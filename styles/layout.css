@@ -334,6 +334,13 @@ body.app-timeline-default #headerHubRight .header-hub-btn[data-action="menu"] {
     max-height: 62px;
 }
 
+/* Weather icon: same rail as vehicles; asset reads small at default 78% header icon height */
+#weatherEffectsToggle .header-hub-icon,
+#weatherEffectsToggle img.header-hub-icon {
+    height: 86% !important;
+    max-height: 64px;
+}
+
 /* Hide old floating exit button in favor of header section */
 #exitButton {
     display: none !important;

@@ -64,22 +64,33 @@
         left: 90px !important; /* 20 + 60 (button width) + 10 (gap) */
     }
 
-    /* Map + Transport row (second row) */
+    /* Row 2 left: Map + Rotation (under Events / Filters) */
     .globe-control-btn#mapViewToggle {
         bottom: auto !important;
-        top: 80px !important; /* Below event manager row */
-        left: 20px !important;
-    }
-    .globe-control-btn.hyperloop-btn {
         top: 80px !important;
-        left: 90px !important; /* 20 + 60 + 10 gap */
+        left: 20px !important;
+        right: auto !important;
+    }
+    .globe-control-btn#autoRotateToggle {
+        top: 80px !important;
+        left: 90px !important; /* 20 + 60 + 10 gap — same row as map */
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
     }
 
-    /* Rotation row (third row, globe view only) */
-    .globe-control-btn#autoRotateToggle {
-        top: 140px !important; /* Below map+transport row */
-        left: 20px !important;
-        transform: none !important;
+    /* Row 1 right: Vehicles + Weather — same vertical band as Events / Filters (top: 20px) */
+    .globe-control-btn.hyperloop-btn {
+        top: 20px !important;
+        left: auto !important;
+        right: 90px !important;
+        bottom: auto !important;
+    }
+    .globe-control-btn.weather-effects-btn {
+        top: 20px !important;
+        left: auto !important;
+        right: 20px !important;
+        bottom: auto !important;
     }
 
     /* Map view: hide rotation toggle (map has no auto-rotation) */

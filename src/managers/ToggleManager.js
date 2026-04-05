@@ -181,6 +181,76 @@ export class ToggleManager {
     }
 
     /**
+     * Toggle polar aurora + cloud layer; re-enabling randomizes like reload.
+     * @param {Function} [onToggle] - Callback after state updates
+     */
+    setupWeatherEffectsToggle(onToggle) {
+        const toggleBtn = document.getElementById('weatherEffectsToggle');
+        if (!toggleBtn) return;
+
+        const weatherIcon = document.getElementById('weatherEffectsIcon');
+        const sceneModel = this.sceneModel;
+
+        if (sceneModel.getGlobeWeatherEffectsVisible()) {
+            toggleBtn.classList.add('active');
+        }
+
+        const weatherImg =
+            '<img src="assets/images/icons/Weather Icon.png" alt="Weather" style="width: 100%; height: 100%; object-fit: contain;">';
+        if (weatherIcon) {
+            weatherIcon.innerHTML = weatherImg;
+        }
+
+        const handleToggle = (event) => {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            const visible = !sceneModel.getGlobeWeatherEffectsVisible();
+            sceneModel.setGlobeWeatherEffectsVisible(visible);
+
+            if (visible) {
+                toggleBtn.classList.add('active');
+            } else {
+                toggleBtn.classList.remove('active');
+            }
+
+            if (weatherIcon) {
+                weatherIcon.innerHTML = weatherImg;
+            }
+
+            if (onToggle) {
+                onToggle();
+            }
+        };
+
+        toggleBtn.addEventListener('mousedown', (event) => {
+            event.stopPropagation();
+        });
+
+        toggleBtn.addEventListener('mouseup', (event) => {
+            event.stopPropagation();
+        });
+
+        let touchStartTime = 0;
+        toggleBtn.addEventListener('touchstart', (event) => {
+            event.stopPropagation();
+            touchStartTime = Date.now();
+        });
+
+        toggleBtn.addEventListener('touchend', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (Date.now() - touchStartTime < 300) {
+                handleToggle(event);
+            }
+        });
+
+        toggleBtn.addEventListener('click', handleToggle);
+    }
+
+    /**
      * Setup map view toggle (Earth globe <-> flat map)
      */
     setupMapViewToggle() {

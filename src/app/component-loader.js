@@ -189,12 +189,12 @@ async function unloadTransport() {
     
     await withUnloadWrapper(async () => {
         // Remove transport toggle button
-        const transportBtn = document.getElementById('hyperloopToggle');
-        if (transportBtn) {
-            transportBtn.remove();
-            updateStatus('✓ Transport toggle removed', 'success');
-        }
-        
+        ['hyperloopToggle', 'weatherEffectsToggle'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
+        updateStatus('✓ Transport / weather toggles removed', 'success');
+
         loadedComponents.transport = false;
     }, 'Transport', 'loadTransportBtn');
 }
@@ -228,13 +228,34 @@ async function loadTransport() {
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'hyperloop-btn'
         });
+
+        createGlobeControlButton({
+            id: 'weatherEffectsToggle',
+            className: 'active',
+            title: 'Toggle weather (aurora, clouds, shooting stars)',
+            label: 'Weather',
+            iconPath: 'assets/images/icons/Weather Icon.png',
+            iconAlt: 'Weather',
+            parentId: 'headerHubRight',
+            baseClass: 'header-hub-btn header-hub-btn--icon',
+            iconSpanId: 'weatherEffectsIcon',
+            headerOrder: 45,
+            mobileParentId: 'content',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'weather-effects-btn'
+        });
         
         // Setup transport toggle
         if (controller.uiView) {
             controller.uiView.setupHyperloopToggle(() => {
                 controller.transportView.updateHyperloopVisibility();
             });
-            updateStatus('✓ Transport toggle initialized', 'success');
+            controller.uiView.setupWeatherEffectsToggle(() => {
+                if (controller.globeView) {
+                    controller.globeView.setWeatherEffectsVisible(controller.sceneModel.getGlobeWeatherEffectsVisible());
+                }
+            });
+            updateStatus('✓ Transport & weather toggles initialized', 'success');
         }
         
         // Load transport sound effect

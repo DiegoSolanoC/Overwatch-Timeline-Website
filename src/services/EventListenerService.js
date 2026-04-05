@@ -153,43 +153,8 @@ class EventListenerService {
                 }
             });
         }
-        
-        // Close panel when clicking outside
-        document.addEventListener('click', (e) => {
-            if (panel && panel.classList.contains('open')) {
-                // Don't close panel if we're in the process of opening an event
-                if (this.eventManager.isOpeningEvent) {
-                    return;
-                }
-                
-                const toggleBtn = document.getElementById('eventsManageToggle');
-                const editModal = document.getElementById('eventEditModal');
-                // Check if clicking on a View button (don't close panel)
-                const isViewButton = e.target.classList && e.target.classList.contains('view-btn');
-                const isViewButtonParent = e.target.closest && e.target.closest('.view-btn');
-                // Don't close panel if clicking on edit modal, toggle button, or View buttons
-                if (!panel.contains(e.target) && 
-                    !toggleBtn.contains(e.target) && 
-                    e.target !== toggleBtn &&
-                    !editModal.contains(e.target) &&
-                    !editModal.classList.contains('open') &&
-                    !isViewButton &&
-                    !isViewButtonParent) {
-                    // Reset all multi-variant events to first variant
-                    if (this.eventManager.resetAllEventVariants) {
-                        this.eventManager.resetAllEventVariants();
-                    }
-                    
-                    panel.classList.remove('open');
-                    try {
-                        window.EventsHoverPreviewBadge?.hide();
-                    } catch (_) {}
-                    if (toggleBtn) {
-                        toggleBtn.classList.remove('active');
-                    }
-                }
-            }
-        });
+
+        // Music/filters panels: dismissed on empty globe click / double-click (not on drag); see MarkerInteractionService + InteractionController.
 
         // Hide/lock management buttons on GitHub Pages
         const isGitHubPages = this.eventManager.isGitHubPages ? this.eventManager.isGitHubPages() : false;
@@ -488,6 +453,31 @@ class EventListenerService {
         let manualFilterText = '';
         let isSyncingSelection = false;
 
+        let lastFilterSuggestionPayload = { items: [], beforePart: '' };
+        let filterSuggestionHoverIndex = -1;
+        let lastCountrySuggestionPayload = { items: [], beforePart: '' };
+        let countrySuggestionHoverIndex = -1;
+
+        const playFilterConfirmSfx = () => {
+            window.SoundEffectsManager?.play?.('filterConfirm');
+        };
+        const playFilterClearSfx = () => {
+            window.SoundEffectsManager?.play?.('filterClear');
+        };
+
+        if (suggestionsEl && !suggestionsEl._owtlSuggestionHoverBound) {
+            suggestionsEl._owtlSuggestionHoverBound = true;
+            suggestionsEl.addEventListener('mouseleave', () => {
+                filterSuggestionHoverIndex = -1;
+            });
+        }
+        if (countrySuggestionsEl && !countrySuggestionsEl._owtlSuggestionHoverBound) {
+            countrySuggestionsEl._owtlSuggestionHoverBound = true;
+            countrySuggestionsEl.addEventListener('mouseleave', () => {
+                countrySuggestionHoverIndex = -1;
+            });
+        }
+
         const normalizeFlagKey = (s) => {
             if (!s) return '';
             return String(s)
@@ -555,6 +545,8 @@ class EventListenerService {
 
         const hideCountrySuggestions = () => {
             if (!countrySuggestionsEl) return;
+            countrySuggestionHoverIndex = -1;
+            lastCountrySuggestionPayload = { items: [], beforePart: '' };
             countrySuggestionsEl.style.display = 'none';
             countrySuggestionsEl.innerHTML = '';
         };
@@ -566,6 +558,9 @@ class EventListenerService {
             const flagSrc = window.LocationFlagHelpers.flagSrc;
             countrySuggestionsEl.innerHTML = '';
             const max = Math.min(items.length, 8);
+            const slice = items.slice(0, max);
+            lastCountrySuggestionPayload = { items: slice, beforePart };
+            countrySuggestionHoverIndex = -1;
             for (let i = 0; i < max; i++) {
                 const item = items[i];
                 const btn = document.createElement('button');
@@ -587,17 +582,13 @@ class EventListenerService {
                 btn.appendChild(img);
                 btn.appendChild(labelSpan);
                 btn.appendChild(detailSpan);
+                btn.addEventListener('mouseenter', () => {
+                    countrySuggestionHoverIndex = i;
+                });
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!countryInput) return;
-                    const before = (beforePart || '').trim();
-                    const nextValue = before ? `${before}, ${item.common}, ` : `${item.common}, `;
-                    countryInput.value = nextValue;
-                    countryInput.classList.remove('no-filter-match');
-                    hideCountrySuggestions();
-                    countryInput.focus();
-                    applySearch();
+                    if (applyCountrySuggestionPick) applyCountrySuggestionPick(item, beforePart);
                 });
                 countrySuggestionsEl.appendChild(btn);
             }
@@ -739,30 +730,35 @@ class EventListenerService {
 
         const hideSuggestions = () => {
             if (!suggestionsEl) return;
+            filterSuggestionHoverIndex = -1;
+            lastFilterSuggestionPayload = { items: [], beforePart: '' };
             suggestionsEl.style.display = 'none';
             suggestionsEl.innerHTML = '';
         };
+
+        let applyFilterSuggestionPick;
+        let applyCountrySuggestionPick;
 
         const showSuggestions = (items, beforePart) => {
             if (!suggestionsEl) return;
             suggestionsEl.innerHTML = '';
             const max = Math.min(items.length, 8);
+            const slice = items.slice(0, max);
+            lastFilterSuggestionPayload = { items: slice, beforePart };
+            filterSuggestionHoverIndex = -1;
             for (let i = 0; i < max; i++) {
                 const item = items[i];
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'events-search-suggestion';
                 btn.innerHTML = `<span>${item.label}</span><span class="muted">${item.detail || ''}</span>`;
+                btn.addEventListener('mouseenter', () => {
+                    filterSuggestionHoverIndex = i;
+                });
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const before = (beforePart || '').trim();
-                    const nextValue = before ? `${before}, ${item.insert}, ` : `${item.insert}, `;
-                    filtersInput.value = nextValue;
-                    filtersInput.classList.remove('no-filter-match');
-                    hideSuggestions();
-                    filtersInput.focus();
-                    applySearch();
+                    if (applyFilterSuggestionPick) applyFilterSuggestionPick(item, beforePart);
                 });
                 suggestionsEl.appendChild(btn);
             }
@@ -812,6 +808,61 @@ class EventListenerService {
             if (this.eventManager.applySearchAndRender) {
                 this.eventManager.applySearchAndRender();
             }
+        };
+
+        applyFilterSuggestionPick = (item, beforePart) => {
+            playFilterConfirmSfx();
+            const before = (beforePart || '').trim();
+            const nextValue = before ? `${before}, ${item.insert}, ` : `${item.insert}, `;
+            filtersInput.value = nextValue;
+            filtersInput.classList.remove('no-filter-match');
+            hideSuggestions();
+            filtersInput.focus();
+            applySearch();
+            updateFilterPredictions();
+        };
+
+        applyCountrySuggestionPick = (item, beforePart) => {
+            playFilterConfirmSfx();
+            if (!countryInput) return;
+            const before = (beforePart || '').trim();
+            const nextValue = before ? `${before}, ${item.common}, ` : `${item.common}, `;
+            countryInput.value = nextValue;
+            countryInput.classList.remove('no-filter-match');
+            hideCountrySuggestions();
+            countryInput.focus();
+            applySearch();
+            updateCountryPredictions();
+        };
+
+        /**
+         * When the typed segment after the last comma is empty, Backspace removes the previous
+         * comma-separated token in one step (chip-like).
+         */
+        const tryRemoveLastCompletedToken = (input, e) => {
+            if (e.key !== 'Backspace' || !input || input.readOnly || (useSelectionCheckbox && useSelectionCheckbox.checked)) {
+                return false;
+            }
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            if (start !== end) return false;
+            const v = input.value;
+            const lc = v.lastIndexOf(',', start - 1);
+            const segStart = lc + 1;
+            const segment = v.slice(segStart, start);
+            if (segment.trim() !== '') return false;
+            if (lc < 0) return false;
+            const beforeComma = v.slice(0, lc);
+            const tokens = beforeComma.split(',').map((s) => s.trim()).filter(Boolean);
+            if (tokens.length === 0) return false;
+            e.preventDefault();
+            playFilterClearSfx();
+            tokens.pop();
+            const newVal = tokens.join(', ') + (tokens.length ? ', ' : '');
+            input.value = newVal;
+            const pos = newVal.length;
+            input.setSelectionRange(pos, pos);
+            return true;
         };
 
         const syncFiltersInputFromSelection = () => {
@@ -882,6 +933,23 @@ class EventListenerService {
         filtersInput.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 hideSuggestions();
+                return;
+            }
+            if (tryRemoveLastCompletedToken(filtersInput, e)) {
+                updateFilterPredictions();
+                applySearch();
+                return;
+            }
+            if (e.key === 'Enter') {
+                const vis = suggestionsEl && suggestionsEl.style.display !== 'none' && lastFilterSuggestionPayload.items.length > 0;
+                if (vis) {
+                    e.preventDefault();
+                    const idx = filterSuggestionHoverIndex >= 0 ? filterSuggestionHoverIndex : 0;
+                    const item = lastFilterSuggestionPayload.items[idx];
+                    if (item && applyFilterSuggestionPick) {
+                        applyFilterSuggestionPick(item, lastFilterSuggestionPayload.beforePart);
+                    }
+                }
             }
         });
         if (countryInput) {
@@ -896,6 +964,24 @@ class EventListenerService {
             countryInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     hideCountrySuggestions();
+                    return;
+                }
+                if (tryRemoveLastCompletedToken(countryInput, e)) {
+                    updateCountryPredictions();
+                    applySearch();
+                    return;
+                }
+                if (e.key === 'Enter') {
+                    const vis = countrySuggestionsEl && countrySuggestionsEl.style.display !== 'none'
+                        && lastCountrySuggestionPayload.items.length > 0;
+                    if (vis) {
+                        e.preventDefault();
+                        const idx = countrySuggestionHoverIndex >= 0 ? countrySuggestionHoverIndex : 0;
+                        const item = lastCountrySuggestionPayload.items[idx];
+                        if (item && applyCountrySuggestionPick) {
+                            applyCountrySuggestionPick(item, lastCountrySuggestionPayload.beforePart);
+                        }
+                    }
                 }
             });
         }

@@ -64,6 +64,11 @@ export class InteractionController {
         container.addEventListener('mouseup', () => this.onMouseUp());
         container.addEventListener('mouseleave', () => this.onMouseUp());
         container.addEventListener('click', (e) => this.onMarkerClick(e));
+        container.addEventListener('dblclick', () => {
+            if (typeof window.closeTimelineMusicFiltersPanelsIfOpen === 'function') {
+                window.closeTimelineMusicFiltersPanelsIfOpen();
+            }
+        });
         // Use { passive: false } for touch events so we can preventDefault to stop page scrolling
         container.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
         container.addEventListener('touchmove', (e) => this.onTouchMove(e), { passive: false });

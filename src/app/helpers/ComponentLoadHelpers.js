@@ -43,6 +43,12 @@ function _sortHeaderHubRight(parent) {
             parent.appendChild(b);
         }
     });
+
+    try {
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('owtl-header-hub-mutated', { detail: { hub: 'headerHubRight' } }));
+        }
+    } catch (_) { /* ignore */ }
 }
 
 function _sortHeaderHubLeft(parent) {
@@ -70,6 +76,12 @@ function _sortHeaderHubLeft(parent) {
     });
 
     sortable.forEach(el => parent.appendChild(el));
+
+    try {
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+            window.dispatchEvent(new CustomEvent('owtl-header-hub-mutated', { detail: { hub: 'headerHub' } }));
+        }
+    } catch (_) { /* ignore */ }
 }
 
 function _applyResponsiveMount(button) {

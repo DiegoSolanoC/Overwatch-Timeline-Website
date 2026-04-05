@@ -18,6 +18,110 @@
         return path.indexOf('/Themes/') !== -1;
     }
 
+    function normalizeUrlFilename(urlOrPath) {
+        try {
+            var seg = (urlOrPath || '').split('/').pop() || '';
+            seg = seg.split('?')[0];
+            return decodeURIComponent(seg).toLowerCase();
+        } catch (e) {
+            try {
+                return ((urlOrPath || '').split('/').pop() || '').split('?')[0].toLowerCase();
+            } catch (e2) {
+                return '';
+            }
+        }
+    }
+
+    /** True if the main audio element is already loading/loaded the same logical file (avoid load() reset). */
+    function audioElementMatchesLogicalPath(audioEl, logicalPath, encodeMusicPathFn) {
+        if (!audioEl || !logicalPath || typeof encodeMusicPathFn !== 'function') return false;
+        if (!audioEl.src) return false;
+        var enc = encodeMusicPathFn(logicalPath);
+        try {
+            if (audioEl.src === new URL(enc, window.location.href).href) return true;
+        } catch (e) { /* ignore */ }
+        var want = normalizeUrlFilename(enc);
+        var have = normalizeUrlFilename(audioEl.src);
+        return want.length > 0 && have === want;
+    }
+
+    /** Seek to saved time and play/pause; works once buffer is ready (avoids redundant load()). */
+    function applyResumeFromSavedState(manager, musicStateRef) {
+        var bg = manager.backgroundMusic;
+        if (!bg || !musicStateRef) return;
+
+        var applied = false;
+        var tRaw = musicStateRef.currentTime;
+        var wantSeek = tRaw !== undefined && tRaw !== null && !isNaN(tRaw) && tRaw > 0.2;
+
+        var cleanupListeners = function () {
+            bg.removeEventListener('loadedmetadata', restorePosition);
+            bg.removeEventListener('canplay', restorePosition);
+            bg.removeEventListener('canplaythrough', restorePosition);
+            bg.removeEventListener('durationchange', restorePosition);
+        };
+
+        var restorePosition = function () {
+            if (applied) return;
+            if (bg.readyState < 2) return;
+            var dur = bg.duration;
+            if (wantSeek && (!isFinite(dur) || dur <= 0)) {
+                return;
+            }
+
+            applied = true;
+            cleanupListeners();
+            if (failSafeTimer) {
+                clearTimeout(failSafeTimer);
+                failSafeTimer = null;
+            }
+
+            if (wantSeek) {
+                try {
+                    bg.currentTime = Math.min(Math.max(0, tRaw), Math.max(0, dur - 0.05));
+                } catch (e) { /* ignore */ }
+            }
+            if (musicStateRef.paused) {
+                bg.pause();
+                manager.iconService.updatePauseIcon(true);
+                if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
+            } else {
+                setTimeout(function () {
+                    var p2 = bg.play();
+                    if (p2 !== undefined) {
+                        p2.then(function () {
+                            manager.iconService.updatePauseIcon(false);
+                            if (manager.pauseBtn) manager.pauseBtn.classList.remove('active');
+                        }).catch(function () {
+                            bg.pause();
+                            manager.iconService.updatePauseIcon(true);
+                            if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
+                        });
+                    }
+                }, 50);
+            }
+            if (manager.progressService && manager.progressService.updateProgressBar) {
+                manager.progressService.updateProgressBar();
+            }
+        };
+
+        var failSafeTimer = setTimeout(function () {
+            if (!applied) {
+                wantSeek = false;
+                restorePosition();
+            }
+        }, 10000);
+
+        bg.addEventListener('loadedmetadata', restorePosition);
+        bg.addEventListener('canplay', restorePosition);
+        bg.addEventListener('canplaythrough', restorePosition);
+        bg.addEventListener('durationchange', restorePosition);
+        restorePosition();
+        setTimeout(restorePosition, 200);
+        setTimeout(restorePosition, 600);
+        setTimeout(restorePosition, 1600);
+    }
+
     function setupFadeAndEndBehavior(manager, opts) {
         var fadeIn = opts.fadeIn;
         var fadeOut = opts.fadeOut;
@@ -246,10 +350,14 @@
                     manager._musicMode = isAmbient ? 'ambient' : 'startup';
                     manager.currentSong = rawSong;
                     manager.playbackService.setCurrentSong(manager.currentSong);
-                    var encSpec = manager.playbackService.encodeMusicPath(manager.currentSong);
-                    manager.backgroundMusic.src = encSpec;
+                    var encSpec0 = manager.playbackService.encodeMusicPath(manager.currentSong);
+                    var encFn0 = function (p) { return manager.playbackService.encodeMusicPath(p); };
+                    var already0 = audioElementMatchesLogicalPath(manager.backgroundMusic, manager.currentSong, encFn0);
+                    if (!already0) {
+                        manager.backgroundMusic.src = encSpec0;
+                        manager.backgroundMusic.load();
+                    }
                     manager.backgroundMusic.loop = isAmbient;
-                    manager.backgroundMusic.load();
 
                     manager.updateNowPlaying();
                     manager.fileService.updateSelectedButton(
@@ -259,54 +367,7 @@
                         }
                     );
 
-                    var musicStateRef2 = musicState;
-                    var restorePosition2 = function () {
-                        if (manager.backgroundMusic.readyState >= 2) {
-                            if (musicStateRef2.currentTime !== undefined && musicStateRef2.currentTime > 0) {
-                                manager.backgroundMusic.currentTime = musicStateRef2.currentTime;
-                            }
-                            if (musicStateRef2.paused) {
-                                manager.backgroundMusic.pause();
-                                manager.iconService.updatePauseIcon(true);
-                                if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
-                            } else {
-                                setTimeout(function () {
-                                    var p2 = manager.backgroundMusic.play();
-                                    if (p2 !== undefined) {
-                                        p2.then(function () {
-                                            manager.iconService.updatePauseIcon(false);
-                                            if (manager.pauseBtn) manager.pauseBtn.classList.remove('active');
-                                        }).catch(function () {
-                                            manager.backgroundMusic.pause();
-                                            manager.iconService.updatePauseIcon(true);
-                                            if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
-                                        });
-                                    }
-                                }, 100);
-                            }
-                            manager.backgroundMusic.removeEventListener('loadedmetadata', restorePosition2);
-                            manager.backgroundMusic.removeEventListener('canplay', restorePosition2);
-                        }
-                    };
-
-                    manager.backgroundMusic.addEventListener('loadedmetadata', restorePosition2);
-                    manager.backgroundMusic.addEventListener('canplay', restorePosition2);
-
-                    setTimeout(function () {
-                        if (manager.backgroundMusic.readyState >= 2) {
-                            if (musicStateRef2.currentTime !== undefined && musicStateRef2.currentTime > 0) {
-                                manager.backgroundMusic.currentTime = musicStateRef2.currentTime;
-                            }
-                            if (musicStateRef2.paused) {
-                                manager.backgroundMusic.pause();
-                                manager.iconService.updatePauseIcon(true);
-                                if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
-                            } else {
-                                manager.backgroundMusic.play().catch(function () {});
-                            }
-                        }
-                    }, 1000);
-
+                    applyResumeFromSavedState(manager, musicState);
                     finalizeLoopUi(manager);
                     return true;
                 }
@@ -322,10 +383,14 @@
                         manager.currentSong = 'assets/audio/music/' + songToRestore.filename;
                         manager.playbackService.setCurrentSong(manager.currentSong);
 
-                        var encodedPath = manager.playbackService.encodeMusicPath(manager.currentSong);
-                        manager.backgroundMusic.src = encodedPath;
+                        var encFn1 = function (p) { return manager.playbackService.encodeMusicPath(p); };
+                        var encodedPath1 = encFn1(manager.currentSong);
+                        var already1 = audioElementMatchesLogicalPath(manager.backgroundMusic, manager.currentSong, encFn1);
+                        if (!already1) {
+                            manager.backgroundMusic.src = encodedPath1;
+                            manager.backgroundMusic.load();
+                        }
                         manager.backgroundMusic.loop = !!(manager.isLooping && !manager.shuffleService.isShuffling);
-                        manager.backgroundMusic.load();
 
                         manager.updateNowPlaying();
                         manager.fileService.updateSelectedButton(
@@ -335,54 +400,7 @@
                             }
                         );
 
-                        var musicStateRef = musicState;
-                        var restorePosition = function () {
-                            if (manager.backgroundMusic.readyState >= 2) {
-                                if (musicStateRef.currentTime !== undefined && musicStateRef.currentTime > 0) {
-                                    manager.backgroundMusic.currentTime = musicStateRef.currentTime;
-                                }
-                                if (musicStateRef.paused) {
-                                    manager.backgroundMusic.pause();
-                                    manager.iconService.updatePauseIcon(true);
-                                    if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
-                                } else {
-                                    setTimeout(function () {
-                                        var p = manager.backgroundMusic.play();
-                                        if (p !== undefined) {
-                                            p.then(function () {
-                                                manager.iconService.updatePauseIcon(false);
-                                                if (manager.pauseBtn) manager.pauseBtn.classList.remove('active');
-                                            }).catch(function (err) {
-                                                manager.backgroundMusic.pause();
-                                                manager.iconService.updatePauseIcon(true);
-                                                if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
-                                            });
-                                        }
-                                    }, 100);
-                                }
-                                manager.backgroundMusic.removeEventListener('loadedmetadata', restorePosition);
-                                manager.backgroundMusic.removeEventListener('canplay', restorePosition);
-                            }
-                        };
-
-                        manager.backgroundMusic.addEventListener('loadedmetadata', restorePosition);
-                        manager.backgroundMusic.addEventListener('canplay', restorePosition);
-
-                        setTimeout(function () {
-                            if (manager.backgroundMusic.readyState >= 2) {
-                                if (musicStateRef.currentTime !== undefined && musicStateRef.currentTime > 0) {
-                                    manager.backgroundMusic.currentTime = musicStateRef.currentTime;
-                                }
-                                if (musicStateRef.paused) {
-                                    manager.backgroundMusic.pause();
-                                    manager.iconService.updatePauseIcon(true);
-                                    if (manager.pauseBtn) manager.pauseBtn.classList.add('active');
-                                } else {
-                                    manager.backgroundMusic.play().catch(function () {});
-                                }
-                            }
-                        }, 1000);
-
+                        applyResumeFromSavedState(manager, musicState);
                         finalizeLoopUi(manager);
                         return true;
                     }
@@ -414,6 +432,8 @@
                 });
             }
 
+            var restored = manager.restoreMusicState();
+
             manager.fileService.createMusicButtons(
                 manager.musicGrid,
                 manager.currentSong,
@@ -426,11 +446,16 @@
                 function (btnPath, songPath) { return manager.playbackService.matchesSongPath(btnPath, songPath); }
             );
 
-            manager.fileService.preloadAllMusic(function (path) {
-                return manager.playbackService.encodeMusicPath(path);
-            });
-
-            var restored = manager.restoreMusicState();
+            var deferPreloadAll = function () {
+                manager.fileService.preloadAllMusic(function (path) {
+                    return manager.playbackService.encodeMusicPath(path);
+                });
+            };
+            if (typeof requestIdleCallback !== 'undefined') {
+                requestIdleCallback(deferPreloadAll, { timeout: 5000 });
+            } else {
+                setTimeout(deferPreloadAll, 2000);
+            }
             if (!restored && !manager.currentSong && manager.musicFiles.length > 0) {
                 var PH0 = window.MusicPaletteDefaultHelpers;
                 var themePath = PH0 && PH0.getStartupThemePath
@@ -450,6 +475,9 @@
                 manager.backgroundMusic.addEventListener('error', onStartupErr);
                 manager.backgroundMusic.addEventListener('playing', onStartupPlaying);
                 if (themePath) {
+                    if (typeof window !== 'undefined' && typeof window.scheduleWelcomeSoundForStartupTheme === 'function') {
+                        window.scheduleWelcomeSoundForStartupTheme();
+                    }
                     playMusic(themePath);
                     manager.updateNowPlaying();
                 } else if (typeof manager._transitionToAmbientLoop === 'function') {

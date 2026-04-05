@@ -254,7 +254,7 @@
             "Mauga"
           ],
           "factions": [
-            "03Ecopoints"
+            "02Ecopoints"
           ],
           "sources": [
             {
@@ -270,7 +270,12 @@
           "locationType": "earth",
           "lat": 21.304547,
           "lon": -157.855676,
-          "cityDisplayName": "Honolulu, Hawaii"
+          "cityDisplayName": "Honolulu, Hawaii",
+          "secondaryCountryFlags": [
+            "Cook Islands.png",
+            "New Zealand.png",
+            "Samoa.png"
+          ]
         },
         {
           "name": "The Super Coral Reef",
@@ -384,7 +389,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "03Ecopoints"
+        "02Ecopoints"
       ],
       "sources": [
         {
@@ -398,7 +403,10 @@
         "Borda Algae  can now be found in nearly all major bodies of fresh water according to study"
       ],
       "lat": 41.1579,
-      "lon": -8.6291
+      "lon": -8.6291,
+      "secondaryCountryFlags": [
+        "Venezuela.png"
+      ]
     },
     {
       "name": "Solar Threading",
@@ -633,7 +641,7 @@
       "name": "Grasping Gravity",
       "locationType": "earth",
       "cityDisplayName": "The Hague, Netherlands",
-      "description": "New sources of energy and pushes for cleaner solutions lead to many developments in the field of transportation, and the man leading the race would be Dr. Siebren De Kuiper, pioneer of gravitational research, as he believed that gravity was the greatest untapped resource humanity had, and one yet to conquer. For years his studies in The Hague pushed ideas to harness the power of gravity and led to many inventions that changed the world forever, most notoriously, the magnetic levitaitonal systems that most holocars and holobikes use in modern day, as well as the technology that would eventually lead to the creation of the Transcontintental Hyperloop.\n\nSiebren's work made flying cars not only a possibility, but a very standard form of living across the world, closing the gap between fossil fuels and a truly sustainable future.",
+      "description": "New sources of energy and pushes for cleaner solutions lead to many developments in the field of transportation, and the man leading the race would be Dr. Siebren De Kuiper, pioneer of gravitational research, as he believed that gravity was the greatest untapped resource humanity had, and one yet to conquer. For years his studies in The Hague pushed ideas to harness the power of gravity and led to many inventions that changed the world forever, most notoriously, the magnetic levitaitonal systems that most holocars and holobikes use in modern day, as well as the technology that would eventually lead to the creation of the Transcontintental Hyperloop, administered by Omar Takama, head of the Ministry of Transport at Oasis University.\n\nSiebren's work made flying cars not only a possibility, but a very standard form of living across the world, closing the gap between fossil fuels and a truly sustainable future.",
       "image": "",
       "filters": [
         "Sigma"
@@ -651,7 +659,11 @@
         "Transcontinental Train system begins construction"
       ],
       "lat": 52.0799838,
-      "lon": 4.3113461
+      "lon": 4.3113461,
+      "secondaryCountryFlags": [
+        "Morocco.png",
+        "Iraq.png"
+      ]
     },
     {
       "name": "Angela Zeigler is Born",
@@ -728,8 +740,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "05Omnica",
-        "06Crisis"
+        "04Omnica",
+        "12Crisis"
       ],
       "sources": [
         {
@@ -744,7 +756,12 @@
         "Germany invests on science development, and ocean exploration, hoping to open jobs as AI takes over"
       ],
       "lat": 30.0443879,
-      "lon": 31.2357257
+      "lon": 31.2357257,
+      "secondaryCountryFlags": [
+        "United States.png",
+        "Mexico.png",
+        "Finland.png"
+      ]
     },
     {
       "name": "Jean-Baptiste Augustin is Born",
@@ -913,7 +930,7 @@
           "description": "Like many other fields of science, astronomy had taken massive leaps over the years, with the monitoring of near-earth objects becoming so advanced, that it allowed humanity to avoid and divert the course of extinction-level asteroids and telescopes were becoming so accurate that many mysteries of old had been solved, and with those new ones arrived.\n\nAt the center of all of these developments was Lucheng Interstellar, a chinese corporation that had envisioned humanity's future in the stars, developing plans for long-range space travel over the years. But before this was possible, they needed to pursue further research into the long-term effects of low gravity on living organisms. In order to do this, they partnered with many scientists across the world, including the Indian Space Research Organization, which had been developing massive mag lev satellite launchers for years. Thanks to IRSO's launching tracks, Lucheng would be able to speed up the construction of their first major milestone in the stars, the Horizon Lunar Colony.",
           "filters": [],
           "factions": [
-            "09Lucheng"
+            "07Lucheng"
           ],
           "sources": [
             {
@@ -928,14 +945,18 @@
           "locationType": "earth",
           "lat": 23.2599,
           "lon": 77.4126,
-          "cityDisplayName": "Roshani, India"
+          "cityDisplayName": "Roshani, India",
+          "secondaryCountryFlags": [
+            "China.png",
+            "Horizon Lunar Colony.png"
+          ]
         },
         {
           "name": "Progress together",
           "description": "In order to survive in space, many logistics need to be solved and, much like before, the advancements made to accommodate the Colony would find many different uses across the world. Textile manufacturing for long-term space suits would be used by many workers down on earth due to their similar properties to Kevlar, saving many lives during the crisis. Medical advancements in radiation shielding lead to further research into cancer treatments, also applicable on Earth. A similar case happened for treatment of lower bone density and tissue rejuvenation. In the end, even with all of these discoveries, the key to the stars was found in older technology.\n\nDr. Wing Mui from Wancài Industries in Honk Kong would be responsible for developing advanced hydroponics systems that the Lunar Colony would use to source their breathable air. Using a combination of Namuaca's nano-filtration sheets and Lomakema's water extractor, powering them with a controlled population of Borda Algae, in the wastewater tanks. The result was a massive success, and approved for use in the colony. Mui would go on to be known as the woman who put potatoes on the moon and turned hydroponics into one of the greatest achievements in human history.",
           "filters": [],
           "factions": [
-            "09Lucheng"
+            "07Lucheng"
           ],
           "sources": [
             {
@@ -950,7 +971,10 @@
           "locationType": "earth",
           "lat": 30.05518,
           "lon": 107.8748712,
-          "cityDisplayName": "Chongqing, China"
+          "cityDisplayName": "Chongqing, China",
+          "secondaryCountryFlags": [
+            "Horizon Lunar Colony.png"
+          ]
         }
       ],
       "lat": 23.2599,
@@ -981,7 +1005,10 @@
         "Sniper with a cybernetic eye climbs to the top of Egypts militarty"
       ],
       "lat": 30.0443879,
-      "lon": 31.2357257
+      "lon": 31.2357257,
+      "secondaryCountryFlags": [
+        "Canada.png"
+      ]
     },
     {
       "name": "Tekhartha Zenyatta is Made",
@@ -1040,7 +1067,7 @@
         "Domina"
       ],
       "factions": [
-        "12Vishkar"
+        "05Vishkar"
       ],
       "sources": [
         {
@@ -1049,7 +1076,10 @@
         }
       ],
       "lat": 51.5074456,
-      "lon": -0.1277653
+      "lon": -0.1277653,
+      "secondaryCountryFlags": [
+        "India.png"
+      ]
     },
     {
       "name": "Olivia Colomar is Born",
@@ -1095,7 +1125,10 @@
         "Lucheng secures deal to ship a primate colony into Space for genetic research"
       ],
       "lat": -0.5,
-      "lon": 18
+      "lon": 18,
+      "secondaryCountryFlags": [
+        "Horizon Lunar Colony.png"
+      ]
     },
     {
       "name": "The Ironclad Guild",
@@ -1151,8 +1184,8 @@
         "Echo"
       ],
       "factions": [
-        "05Omnica",
-        "13Shambali"
+        "04Omnica",
+        "26Shambali"
       ],
       "sources": [
         {
@@ -1165,7 +1198,10 @@
         "Dr. Mina Liao commits career suicide, claiming her newest creation is alive"
       ],
       "lat": 42.3315509,
-      "lon": -83.0466403
+      "lon": -83.0466403,
+      "secondaryCountryFlags": [
+        "Singapore.png"
+      ]
     },
     {
       "name": "New Horizons",
@@ -1178,7 +1214,7 @@
         "Sigma"
       ],
       "factions": [
-        "09Lucheng"
+        "07Lucheng"
       ],
       "sources": [
         {
@@ -1191,7 +1227,10 @@
         "Scientists from across the world to visit the new Lunar base"
       ],
       "x": 60,
-      "y": 70
+      "y": 70,
+      "secondaryCountryFlags": [
+        "Moon.png"
+      ]
     },
     {
       "locationType": "earth",
@@ -1354,7 +1393,10 @@
         "US Military hires Dr. Naughton for secret project following her return from the Moon"
       ],
       "lat": 39.475518,
-      "lon": -106.1177077
+      "lon": -106.1177077,
+      "secondaryCountryFlags": [
+        "Australia.png"
+      ]
     },
     {
       "name": "Playing God",
@@ -1364,7 +1406,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "06Crisis"
+        "12Crisis"
       ],
       "sources": [
         {
@@ -1377,7 +1419,10 @@
         "AI regulation laws fail to go through across most of the Western world"
       ],
       "lat": 30.0443879,
-      "lon": 31.2357257
+      "lon": 31.2357257,
+      "secondaryCountryFlags": [
+        "Nigeria.png"
+      ]
     },
     {
       "name": "Aleksandra Zaryanova is Born",
@@ -1466,8 +1511,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "06Crisis",
-        "05Omnica"
+        "12Crisis",
+        "04Omnica"
       ],
       "sources": [
         {
@@ -1485,19 +1530,22 @@
         "Multiple countries report Omnic Invasion, war imminent"
       ],
       "lat": 6.4550575,
-      "lon": 3.3941795
+      "lon": 3.3941795,
+      "secondaryCountryFlags": [
+        "Egypt.png"
+      ]
     },
     {
       "name": "Ramattra is Made",
       "locationType": "earth",
-      "cityDisplayName": "Secret Omnium, Antarctica",
+      "cityDisplayName": "Secret Omnium, Antartica?",
       "description": "On March 29th of 2051, Ramattra was made. The R-7000 Ravager Units were Anubis' crowning jewel in the warbot army, built in a secret facility, somewhere cold and isolated. The Ravagers acted as battalion commanders and strategists, becoming one of the most dreaded units in the Crisis.",
       "image": "",
       "filters": [
         "Ramattra"
       ],
       "factions": [
-        "06Crisis"
+        "12Crisis"
       ],
       "sources": [
         {
@@ -1510,7 +1558,10 @@
         "Wealthy elites and celebrities presumed to be hiding in bunkers"
       ],
       "lat": -75.1,
-      "lon": 123.35
+      "lon": 123.35,
+      "secondaryCountryFlags": [
+        "Egypt.png"
+      ]
     },
     {
       "name": "The Caribbean Coalition",
@@ -1535,7 +1586,47 @@
         "Hurricane Crystal causes chaos across the Caribbean soon after Omnic Crisis attacks"
       ],
       "lat": 23.135305,
-      "lon": -82.3589631
+      "lon": -82.3589631,
+      "secondaryCountryFlags": [
+        "Belize.png",
+        "Guatemala.png",
+        "Honduras.png",
+        "El Salvador.png",
+        "Nicaragua.png",
+        "Costa Rica.png",
+        "Panama.png",
+        "Colombia.png",
+        "Venezuela.png",
+        "Guyana.png",
+        "Anguilla.png",
+        "Antigua And Barbuda.png",
+        "Aruba.png",
+        "Bahamas.png",
+        "Barbados.png",
+        "British Virgin Islands.png",
+        "Caribbean Netherlands.png",
+        "Cayman Islands.png",
+        "Cuba.png",
+        "Curacao.png",
+        "Dominica.png",
+        "Dominican Republic.png",
+        "Grenada.png",
+        "Guadeloupe.png",
+        "Haiti.png",
+        "Jamaica.png",
+        "Martinique.png",
+        "Montserrat.png",
+        "Puerto Rico.png",
+        "Saint Barthelemy.png",
+        "Saint Kitts And Nevis.png",
+        "Saint Lucia.png",
+        "Saint Martin.png",
+        "Saint Vincent And The Grenadines.png",
+        "Sint Maarten.png",
+        "Trinidad And Tobago.png",
+        "Turks And Caicos Islands.png",
+        "United States Virgin Islands.png"
+      ]
     },
     {
       "name": "Early Victories",
@@ -1595,7 +1686,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "06Crisis"
+        "12Crisis"
       ],
       "sources": [
         {
@@ -1608,7 +1699,11 @@
         "Spain forms an alliance with Portugal to face the Omnics  together"
       ],
       "lat": 41.1579,
-      "lon": -8.6291
+      "lon": -8.6291,
+      "secondaryCountryFlags": [
+        "Spain.png",
+        "Gibraltar.png"
+      ]
     },
     {
       "name": "To Hell With Them",
@@ -1670,8 +1765,8 @@
         "Sigma"
       ],
       "factions": [
-        "06Crisis",
-        "09Lucheng"
+        "12Crisis",
+        "07Lucheng"
       ],
       "sources": [
         {
@@ -1685,7 +1780,10 @@
         "IRSO sucessfully restablishes global satellite network"
       ],
       "lat": 23.2599,
-      "lon": 77.4126
+      "lon": 77.4126,
+      "secondaryCountryFlags": [
+        "China.png"
+      ]
     },
     {
       "name": "Fiery Pride",
@@ -1799,7 +1897,7 @@
       "filters": [],
       "factions": [
         "00Overwatch",
-        "06Crisis"
+        "12Crisis"
       ],
       "sources": [
         {
@@ -1812,7 +1910,10 @@
         "Overwatch Initiative passes United Nations hearings, scouting for candidates begins shortly after"
       ],
       "lat": 46.2017559,
-      "lon": 6.1466014
+      "lon": 6.1466014,
+      "secondaryCountryFlags": [
+        "Nigeria.png"
+      ]
     },
     {
       "name": "Eye of Horus",
@@ -1824,7 +1925,7 @@
         "Ana"
       ],
       "factions": [
-        "06Crisis"
+        "12Crisis"
       ],
       "sources": [
         {
@@ -1836,7 +1937,10 @@
         "Top Sniper prevents massacre in Cairo"
       ],
       "lat": 30.0443879,
-      "lon": 31.2357257
+      "lon": 31.2357257,
+      "secondaryCountryFlags": [
+        "Canada.png"
+      ]
     },
     {
       "name": "The Heroic Five",
@@ -1848,8 +1952,8 @@
         "Torbjörn"
       ],
       "factions": [
-        "10Ironclad",
-        "06Crisis"
+        "08Ironclad",
+        "12Crisis"
       ],
       "sources": [
         {
@@ -1861,7 +1965,12 @@
         "Sweden scientists develop new portable Bunkers to combat Omnics"
       ],
       "lat": 57.7072326,
-      "lon": 11.9670171
+      "lon": 11.9670171,
+      "secondaryCountryFlags": [
+        "Russia.png",
+        "Germany.png",
+        "Syria.png"
+      ]
     },
     {
       "name": "Building a Myth",
@@ -1956,7 +2065,7 @@
             "Torbjörn"
           ],
           "factions": [
-            "06Crisis"
+            "12Crisis"
           ],
           "sources": [
             {
@@ -1972,7 +2081,10 @@
           "locationType": "earth",
           "lat": 40.7579554,
           "lon": -73.9855319,
-          "cityDisplayName": "Manhattan, United States"
+          "cityDisplayName": "Manhattan, United States",
+          "secondaryCountryFlags": [
+            "Sweden.png"
+          ]
         },
         {
           "name": "Defense Network",
@@ -1981,8 +2093,8 @@
             "Torbjörn"
           ],
           "factions": [
-            "06Crisis",
-            "10Ironclad"
+            "12Crisis",
+            "08Ironclad"
           ],
           "sources": [
             {
@@ -1997,7 +2109,12 @@
           "locationType": "earth",
           "lat": 57.7072326,
           "lon": 11.9670171,
-          "cityDisplayName": "Gothenburg, Sweden"
+          "cityDisplayName": "Gothenburg, Sweden",
+          "secondaryCountryFlags": [
+            "Canada.png",
+            "United States.png",
+            "Finland.png"
+          ]
         }
       ],
       "lat": 40.7579554,
@@ -2049,7 +2166,7 @@
           ],
           "factions": [
             "00Overwatch",
-            "06Crisis"
+            "12Crisis"
           ],
           "sources": [
             {
@@ -2065,7 +2182,12 @@
           "locationType": "earth",
           "lat": 35.0115754,
           "lon": 135.7681441,
-          "cityDisplayName": "Kyoto, Japan"
+          "cityDisplayName": "Kyoto, Japan",
+          "secondaryCountryFlags": [
+            "China.png",
+            "Mongolia.png",
+            "Pakistan.png"
+          ]
         }
       ],
       "lat": 47.3744489,
@@ -2141,7 +2263,7 @@
       ],
       "factions": [
         "00Overwatch",
-        "06Crisis"
+        "12Crisis"
       ],
       "sources": [
         {
@@ -2153,7 +2275,10 @@
         "Detroit Omnium sucessfully decomissioned"
       ],
       "lat": 42.3315509,
-      "lon": -83.0466403
+      "lon": -83.0466403,
+      "secondaryCountryFlags": [
+        "Canada.png"
+      ]
     },
     {
       "locationType": "earth",
@@ -2381,7 +2506,7 @@
         "Venture"
       ],
       "factions": [
-        "14Wayfinders"
+        "20Wayfinders"
       ],
       "sources": [
         {
@@ -2393,7 +2518,14 @@
         "Archeologist struggle to recover relics among the ruins left by the Crisis"
       ],
       "lat": 45.1960403,
-      "lon": -63.1653789
+      "lon": -63.1653789,
+      "secondaryCountryFlags": [
+        "United States.png",
+        "Argentina.png",
+        "Iceland.png",
+        "Mexico.png",
+        "Singapore.png"
+      ]
     },
     {
       "locationType": "earth",
@@ -2476,7 +2608,7 @@
       "filters": [],
       "factions": [
         "00Overwatch",
-        "06Crisis"
+        "12Crisis"
       ],
       "lat": -6.1754049,
       "lon": 106.827168,
@@ -2489,6 +2621,35 @@
       "headlines": [
         "Troops in Baltimore fight alonside Omnics to stop remaining warbots",
         "Omnic Crisis officially over, can humanity ever recover?"
+      ],
+      "secondaryCountryFlags": [
+        "New Zealand.png",
+        "Spain.png"
+      ]
+    },
+    {
+      "name": "Energy For Mexico",
+      "locationType": "earth",
+      "cityDisplayName": "Mexico City, Mexico",
+      "description": "The dark days of the Crisis hit Mexico hard, but while Xibalba was never going to be turned back on, the engineers behind the program had spent the later months of the Crisis working on rerouting its functionality, and less than a week after the war ended, the lights finally came back on. While the grid was unstable, and many rural places remained dark, this was a literal spark of life for the surviving nation, and Guillermo Portero, a war hero who had been elected President following the Crisis, campaigned heavily on ensuring the sustainability of the grid.\n\n\n\nTo this day, the Festival de la Luz is celebrated all across Mexico, honoring those who were lost to the dark, and rejoicing in the fact the darkness was beaten. Despite everything, Xibalba's influence can still be felt across the country. During the festivities, paper mache piñatas in the image of the God program are made and stuffed with fireworks, to be set ablaze by midnight, marking the end of the holiday. It is clear that in spite of everything, the country still loves and mourns the loss of the AI, with many going a step further, thinking the government was wrong in turning it off to begin with, and wanting their God to rise from its slumber.",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "13Lumerico",
+        "21Los Muertos"
+      ],
+      "lat": 19.3207722,
+      "lon": -99.1514678,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Portero restores the light to all of Mexico",
+        "Giant power grid plants to be build across Mexico",
+        "Mexican gang violence on the rise even after blackouts seize"
       ]
     },
     {
@@ -2522,11 +2683,11 @@
       "name": "Adawe Departs",
       "locationType": "earth",
       "cityDisplayName": "City State of Numbani",
-      "description": "",
+      "description": "Following the Crisis, Adawe was committed to fully focus on her diplomatic duties. She was a strong advocate for peace between humans and the newly sentient Omnics, and called for peace talks between world governments and the emerging leadership figures amongst Omnics. Soon after the groundwork had been laid in the UN for peace negotiations, she announced she would step down as Overwatch's Strike Commander, ready to return to her home of Nigeria, where she planned to focus her efforts on the future of her Nation, for both Humans and Omnics. One year after her leave, she would begin the construction of what would one day become the city of Numbani, a place built from the ground up for Omnics and Humans to coexist as equals, with infrastructure designed to cater to Omnic needs with the same level of attention as human needs. The city of Harmony would become Adawe's biggest legacy and serve as an example to the world of what both humanity and Omnic kind could do when they worked in unity.",
       "image": "",
       "filters": [],
       "factions": [
-        "18Numbani",
+        "19Numbani",
         "00Overwatch"
       ],
       "lat": 12.0022,
@@ -2536,39 +2697,26 @@
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
-      ]
-    },
-    {
-      "name": "Energy For Mexico",
-      "locationType": "earth",
-      "cityDisplayName": "Mexico City, Mexico",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "13Lumerico",
-        "20Los Muertos"
       ],
-      "lat": 19.3207722,
-      "lon": -99.1514678,
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
+      "headlines": [
+        "Adawe departs Overwatch",
+        "Construction of the city of Numbani begins in Nigeria"
+      ],
+      "secondaryCountryFlags": [
+        "Nigeria.png",
+        "Switzerland.png"
       ]
     },
     {
       "name": "New Leadership",
       "locationType": "earth",
       "cityDisplayName": "Zurich, Switzerland",
-      "description": "",
+      "description": "With Adawe's departure, Jack Morrison was chosen to lead, acting as Strike commander. While many expected Reyes to take the position, and even react negatively to the news, it turns out that he had personally recommended Morrison for the role. The truth is that Reyes wished for a different position, one that wouldn't have him see the weight of the UN's judgment on his every action, and under Morrison he would get his wish, as he would get to coordinate a small team to cover operations.\n\n\n\nUnder Morrison's command, Overwatch was set to help rebuild the world, and as a statement of their newfound purpose, the first new addition to the Strike team since the Crisis ended would be announced. Emre Sarioglu, a tactical genius from Turkey who had grown in notoriety for both his military prowess, and his innate ability to build connections with everyone he worked for. While the rest of the Strike team often seemed untouchable, mighty and superhuman, Emre was just a regular guy, who always kept fighting a good fight, and inspiring others to do the same. He would go on to become an invaluable asset and a great middle man between the Strike team and the supporting staff across all of Overwatch's divisions, especially Search and Rescue.",
       "image": "",
       "filters": [
         "Emre",
         "Soldier 76",
-        "Reaper",
-        "Widowmaker"
+        "Reaper"
       ],
       "factions": [
         "00Overwatch",
@@ -2581,26 +2729,43 @@
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
+      ],
+      "headlines": [
+        "Jack Morrison chosen to lead Overwatch",
+        "Meet the new member of the Strike team, Emre Sarioglu"
+      ],
+      "secondaryCountryFlags": [
+        "Turkey.png"
       ]
     },
     {
       "name": "Loyal Guardian",
       "locationType": "earth",
       "cityDisplayName": "Bellaire, United States",
-      "description": "",
+      "description": "The Crisis had destroyed many homes, but once it ended, not many expected the return of some old faces. Wondering Omnics, newly awakened would often choose to attempt and return to their old lives, integrating into human society as much as possible, and while this was often not as straightforward as it could be, one case stood out.\n\n\n\nThe heir to the Arbalest empire, Ashe. Had lived a cold childhood. Parents are always busy with their meetings, making little time for their daughter. Fellow students staying away due to her status. The girl grew up to become a troublemaker, but there was at least one thing in her life she appreciated. The family's bouncer, Unit B.O.B. had stayed by her side for as long as she could remember, serving as the only real company she ever had. When the crisis began, B.O.B. vanished not long after. The girl refused to eat, and yelled to be left alone. Young Ashe blamed herself for her friend leaving her, and while her family went through the Crisis unscathed, she was lonelier than ever, convinced she would never see her one and only friend again.\n\n\n\nTwo years later, B.O.B. had returned to the Lead Rose manor, forever changed. While the girl was overjoyed to see her, and the Omnic reciprocated, she could tell he was different, even if she never fully understood what had happened.",
       "image": "",
       "filters": [
         "Ashe"
       ],
       "factions": [],
       "lat": 29.7057858,
-      "lon": -95.4588299
+      "lon": -95.4588299,
+      "sources": [
+        {
+          "text": "Deadlock Rebels",
+          "url": "https://overwatch.blizzard.com/en-us/media/short-story/deadlock-rebels-chapter-1/"
+        }
+      ],
+      "headlines": [
+        "Omnics worldwide begin to come back to their old homes",
+        "Machines refuse to return to unpaid labor"
+      ]
     },
     {
       "name": "Building the Future",
       "locationType": "earth",
       "cityDisplayName": "Toronto, Canada",
-      "description": "",
+      "description": "The Crisis left ruined cities all across the globe, and in places like Toronto, it was a matter of months before the weather became lethal. Without sufficient manpower, he city wouldn't be habitable by winter, and unable to wait for Overwatch to show up, Mayor Sabella Charon and engineer Malik Wilcox would have to figure out a way to save the city. In the end, no matter how they looked at it, Humans alone wouldn't be able to pull it off in time for winter, so in desperation, they decided to ask the awakened Omnics for help.\n\n\n\nThey offered the Omnics employment and shelter, as well as access to the resources needed in exchange for aiding construction crews, marking the first recorded instance of Omnics being willfully employed as people rather than tools. At the time, laws on Omnic labor were not set, and the subject was enough to kill both Charon and Wilcox's careers. When the secret came out, Wilcox was arrested and sent to a federal prison, but by the next winter his sentence would be commuted, as Toronto resolved they would need the Omnics again to make it through another winter. While many were suspicious at first, the rebuilding of Toronto proved coexistence was possible and would mark the beginning of the Omnic Rights movement. Still, not everyone was as willing to change. An anti-Omnic terrorist group going by Ontario United will begin to show up across the province, leading to Canadian Forces led by Sojourn to begin a systematic take-down. Sojourn would go on to become a major Omnic rights advocate, and delay her recruitment into Overwatch until her home was safe for Humans and Omnics alike.",
       "image": "",
       "filters": [
         "Sojourn"
@@ -2613,13 +2778,17 @@
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
+      ],
+      "headlines": [
+        "Omnics and Humans come together over the winter",
+        "Disputes over Omnic rights continue to grow"
       ]
     },
     {
       "name": "Operation White Dome",
       "locationType": "earth",
       "cityDisplayName": "Istanbul, Turkey",
-      "description": "",
+      "description": "Not so long after Sarioglu's recruitment, he would be deployed in Istabul for Operation White Dome. The team led by Ana Amari were meant to quell a pocket of hostile Anubis loyal Omnics. Neither Reyes or Morrison participated. As a way to show the world, Overwatch had the resources to match curated teams for different missions, but this ultimately put extra pressure on the Strike team, as they would be ambushed and take heavy fire that resulted in Lindholm being critically injured, causing him to lose both an arm and an eye. Wilhelm sustained lesser injuries while trying to stabilize Torbjörn.\n\n\n\nThe mission was a success, but it highlighted that the Strike team was in need of more recruits, and with the blessing of the UN, Morrison began expansion across the entire organization.",
       "image": "",
       "filters": [
         "Ana",
@@ -2637,13 +2806,17 @@
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
+      ],
+      "headlines": [
+        "Anubis allied Omnics attack Istanbul",
+        "Overwatch agent severely wounded"
       ]
     },
     {
       "name": "Brigitte Lindholm is Born",
       "locationType": "earth",
       "cityDisplayName": "Gothenburg, Sweden",
-      "description": "",
+      "description": "On September 22nd of 2053, Brigitte Lindholm was born. The youngest of Torbjörn and Ingrid's children. Following Operation White Dome, Reinhardt saw to Lindholm's recovery at the hospital. The grumpy old man grew frustrated by his insistence, so he proposed that if he left him alone, he would allow him to name his soon-to-be-born daughter. Reinhardt agreed, choosing the name Brigitte. The pair would grow close following the mission, and Lindholm would ultimately choose Wilhelm as the child's godfather, making him part of the family.\n\n\n\nBrigitte was the first of Torbjörn's kids to show interest in engineering. Following her father's footsteps by tinkering in his workshop, and listening to Reinhardt's chivalry stories when he paid them a visit.",
       "image": "",
       "filters": [
         "Brigitte",
@@ -2666,7 +2839,7 @@
       "name": "Watching the Globe",
       "locationType": "earth",
       "cityDisplayName": "Watchpoint Gibraltar",
-      "description": "",
+      "description": "As Overwatch expanded its personnel, they found themselves in need for more bases of operations. The solution became the Watchpoint system, massive specialized facilities all across the world that would not only allow Overwatch to focus its dedicated personnel into a single place, but also increase their influence and ease of action in many different countries. Plenty of criticism rose from the UN, with many thinking it was an overreach, but the approval rates were overwhelming, as after all, who wouldn't want superheroes living in their neighborhood? With the rise of Omnic violence, the many cities in need of humanitarian aid and rebuilding efforts being halted by lack of manpower, Overwatch's help was welcomed all around the globe.\n\n\n\nAcquiring permission for building the Watchpoints was a political battle of its own, but some of them came from resources shared from within. The Martins had been given a small military outpost and research lab on the Strait of Gibraltar following their support of Spain during the Crisis. Once the war was over, the base went unused, so they decided to donate the outpost to become the very first Watchpoint. Many bases were built for specialized purposes. Gibraltar got turned into an Orbital Launch site, but in addition to that, Overwatch would soon see many other bases. Grand Mesa, a weapons development facility. Kerguelen, reserved for biological studies. Xining, focused on social analysis and Omnic integration, as well as later on the maximum security prison at Grímsvötn. In addition to the Watchpoints, Overwatch also established headquarters in Zurich, establishing the beginning of a new hopeful era for humanity.",
       "image": "",
       "filters": [],
       "factions": [
@@ -2679,6 +2852,18 @@
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
+      ],
+      "headlines": [
+        "Overwatch begins to expand onto new bases",
+        "The Martins gift Overwatch their Gibraltar Laboratory"
+      ],
+      "secondaryCountryFlags": [
+        "Spain.png",
+        "United States.png",
+        "French Southern And Antarctic Lands.png",
+        "China.png",
+        "Iceland.png",
+        "Switzerland.png"
       ]
     },
     {
@@ -2696,6 +2881,29 @@
       ],
       "lat": 28.3949,
       "lon": 84.124,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
+    },
+    {
+      "name": "Undercover",
+      "locationType": "earth",
+      "cityDisplayName": "París,, France",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Reaper",
+        "Widowmaker"
+      ],
+      "factions": [
+        "00Overwatch",
+        "01Blackwatch"
+      ],
+      "lat": 48.8588897,
+      "lon": 2.320041,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -2785,38 +2993,20 @@
       "description": "",
       "image": "",
       "filters": [
-        "Mercy"
+        "Mercy",
+        "Sojourn"
       ],
       "factions": [
         "00Overwatch"
       ],
-      "lat": 47.3744489,
-      "lon": 8.5410422,
       "sources": [
         {
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
-      ]
-    },
-    {
-      "name": "Ontario United",
-      "locationType": "earth",
-      "cityDisplayName": "Ontario, Canada",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Sojourn"
       ],
-      "factions": [],
-      "lat": 50.000678,
-      "lon": -86.000977,
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ]
+      "lat": 47.3744489,
+      "lon": 8.5410422
     },
     {
       "name": "Findlay Docherty is Born",
@@ -3705,7 +3895,7 @@
     {
       "name": "Cold Snap",
       "locationType": "earth",
-      "cityDisplayName": "Ecopoint Antarctica",
+      "cityDisplayName": "Ecoopint Antartica",
       "description": "",
       "image": "",
       "filters": [
@@ -4266,7 +4456,7 @@
     },
     {
       "locationType": "earth",
-      "cityDisplayName": "Singapore, Singapore",
+      "cityDisplayName": "Singapore",
       "variants": [
         {
           "name": "Closed Fist",
@@ -4285,7 +4475,7 @@
           "locationType": "earth",
           "lat": 1.357107,
           "lon": 103.8194992,
-          "cityDisplayName": "Singapore, Singapore",
+          "cityDisplayName": "Singapore",
           "sources": [
             {
               "text": "Overwatch Declassified",
@@ -4837,7 +5027,7 @@
     {
       "name": "Destroyer",
       "locationType": "earth",
-      "cityDisplayName": "Boklovo, Kyrgyzstan",
+      "cityDisplayName": "Boklovo, Kurjikstan",
       "description": "",
       "image": "",
       "filters": [
@@ -4992,7 +5182,7 @@
     {
       "name": "Rise and Shine",
       "locationType": "earth",
-      "cityDisplayName": "Ecopoint Antarctica",
+      "cityDisplayName": "Ecoopint Antartica",
       "description": "",
       "image": "",
       "filters": [
@@ -6445,41 +6635,60 @@
       "lon": 12.4829321
     },
     {
-      "name": "From the Ashes",
       "locationType": "earth",
       "cityDisplayName": "Watchpoint Gibraltar",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Winston",
-        "Tracer",
-        "Mei",
-        "Reinhardt",
-        "Brigitte",
-        "Mercy",
-        "Genji",
-        "Echo",
-        "Cassidy",
-        "Pharah",
-        "Baptiste",
-        "Zarya",
-        "D.va",
-        "Sojourn",
-        "Bastion",
-        "Juno",
-        "Orisa",
-        "Wuyang",
-        "Anran",
-        "Jetpack Cat"
-      ],
-      "factions": [
-        "00Overwatch",
-        "34Talon Empire"
-      ],
-      "sources": [
+      "variants": [
         {
-          "text": "From the Ashes",
-          "url": "https://overwatch.blizzard.com/en-us/media/comic/from-the-ashes/"
+          "name": "The Gibraltar Attack",
+          "description": "",
+          "filters": [
+            "Winston",
+            "Tracer",
+            "Mei",
+            "Reinhardt",
+            "Brigitte",
+            "Mercy",
+            "Genji",
+            "Echo",
+            "Cassidy",
+            "Pharah",
+            "Baptiste",
+            "Zarya",
+            "D.va",
+            "Sojourn",
+            "Bastion",
+            "Juno",
+            "Orisa",
+            "Wuyang",
+            "Anran",
+            "Jetpack Cat"
+          ],
+          "factions": [
+            "00Overwatch",
+            "34Talon Empire"
+          ],
+          "sources": [
+            {
+              "text": "From the Ashes",
+              "url": "https://overwatch.blizzard.com/en-us/media/comic/from-the-ashes/"
+            }
+          ],
+          "image": "",
+          "locationType": "earth",
+          "lat": 36.1408,
+          "lon": -5.3536,
+          "cityDisplayName": "Watchpoint Gibraltar"
+        },
+        {
+          "name": "From the Ashes",
+          "description": "",
+          "filters": [],
+          "factions": [],
+          "image": "",
+          "locationType": "earth",
+          "lat": 36.1408,
+          "lon": -5.3536,
+          "cityDisplayName": "Watchpoint Gibraltar"
         }
       ],
       "lat": 36.1408,

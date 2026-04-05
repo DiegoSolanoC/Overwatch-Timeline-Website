@@ -2,6 +2,31 @@
  * MarkerInteractionService - Handles marker hover detection and click handling
  */
 
+/**
+ * Dismiss music and filters slide panels (globe empty click / double-click). Not called on drag — callers rely on {@link window.mouseMoved}.
+ */
+function closeTimelineMusicFiltersPanelsIfOpen() {
+    let closedMusic = false;
+    const musicPanel = document.getElementById('musicPanel');
+    const musicBtn = document.getElementById('musicToggle');
+    if (musicPanel && musicPanel.classList.contains('open')) {
+        closedMusic = true;
+        musicPanel.classList.remove('open');
+        if (musicBtn) musicBtn.classList.remove('active');
+    }
+    const filtersPanel = document.getElementById('filtersPanel');
+    const filtersBtn = document.getElementById('filtersToggle');
+    if (filtersPanel && filtersPanel.classList.contains('open')) {
+        filtersPanel.classList.remove('open');
+        if (filtersBtn) filtersBtn.classList.remove('active');
+    }
+    if (closedMusic && window.MusicManager && typeof window.MusicManager.updateNowPlaying === 'function') {
+        try {
+            window.MusicManager.updateNowPlaying();
+        } catch (_) {}
+    }
+}
+
 class MarkerInteractionService {
     constructor(sceneModel, uiView, pulseService) {
         this.sceneModel = sceneModel;
@@ -415,6 +440,8 @@ class MarkerInteractionService {
             if (this.uiView.currentEventMarker) {
                 this.uiView.hideEventSlide();
             }
+            // Empty globe tap (not a drag) closes music/filters panels
+            closeTimelineMusicFiltersPanelsIfOpen();
         }
     }
 }
@@ -427,4 +454,5 @@ if (typeof module !== 'undefined' && module.exports) {
 // Make globally accessible
 if (typeof window !== 'undefined') {
     window.MarkerInteractionService = MarkerInteractionService;
+    window.closeTimelineMusicFiltersPanelsIfOpen = closeTimelineMusicFiltersPanelsIfOpen;
 }

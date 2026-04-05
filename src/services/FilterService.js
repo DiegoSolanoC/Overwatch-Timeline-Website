@@ -125,9 +125,6 @@ class FilterService {
             
             // Setup button handlers
             this.setupButtons();
-            
-            // Setup click outside handler
-            this.setupClickOutside();
         });
     }
     
@@ -520,30 +517,6 @@ class FilterService {
                     this.closePanel();
                 });
             }
-        }
-    }
-    
-    // Setup click outside handler - delegates to helper
-    async setupClickOutside() {
-        const helper = window.FilterPanelHelpers?.setupClickOutside;
-        if (helper) {
-            helper(
-                this.filtersPanel, this.filtersButton,
-                () => this.resetToConfirmedFilters()
-            );
-        } else {
-            // Fallback implementation
-            document.addEventListener('click', (e) => {
-                if (this.filtersPanel && this.filtersPanel.classList.contains('open')) {
-                    if (!this.filtersPanel.contains(e.target) && 
-                        !this.filtersButton.contains(e.target) && 
-                        e.target !== this.filtersButton) {
-                        this.resetToConfirmedFilters();
-                        this.filtersPanel.classList.remove('open');
-                        if (this.filtersButton) this.filtersButton.classList.remove('active');
-                    }
-                }
-            });
         }
     }
 }

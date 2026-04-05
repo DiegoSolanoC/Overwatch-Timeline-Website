@@ -280,6 +280,15 @@ export function createGlobeAuroraShell({ radius = 1.022, uIntensity = 0.42 } = {
     return mesh;
 }
 
+/** 0 = neutral white clouds, 1 = full rim/palette color (keep low so atlases stay natural). */
+const GLOBE_CLOUD_PALETTE_BLEND = 0.34;
+
+function makeCloudTintColor(tintHex) {
+    const c = new THREE.Color(0xffffff).lerp(new THREE.Color(tintHex), GLOBE_CLOUD_PALETTE_BLEND);
+    c.multiplyScalar(0.92);
+    return c;
+}
+
 /**
  * Updates cloud mesh tint to match palette (texture: MeshBasicMaterial.color; procedural: uTint).
  * @param {THREE.Mesh|null} mesh
@@ -289,8 +298,7 @@ export function applyGlobeCloudPaletteTint(mesh, tintHex) {
     if (!mesh) return;
     mesh.userData.cloudTintHex = tintHex;
     if (!mesh.material) return;
-    const tintCol = new THREE.Color(tintHex);
-    tintCol.multiplyScalar(0.9);
+    const tintCol = makeCloudTintColor(tintHex);
     const m = mesh.material;
     if (m.uniforms && m.uniforms.uTint) {
         m.uniforms.uTint.value.set(tintCol.r, tintCol.g, tintCol.b);
@@ -313,34 +321,19 @@ export const GLOBE_CLOUD_ATLAS_VARIANTS = [
     { path: `assets/images/maps/${encodeURIComponent('Cloud Map 5.jpg')}` }
 ];
 
-/**
- * Slightly larger sphere above the Earth: cloud albedo layer (same UV as MAP.png).
- * NASA Blue Marble–style atlases (three.js `earth_clouds_*`); procedural fallback if load fails.
- * @param {Object} [opts]
- * @param {THREE.TextureLoader} [opts.textureLoader]
- * @param {THREE.WebGLRenderer} [opts.renderer]
- * @param {number} [opts.radius] - Default ~1.004
- * @param {number} [opts.opacity] - Overall transparency (~0.5 recommended)
- * @param {number} [opts.tintHex] - Multiplies cloud color (match rim / palette), e.g. 0x6fd3ff
- * @param {{ path: string }[]|null} [opts.cloudTextureVariants]
- * @param {string|null} [opts.cloudTexturePath] - Single atlas (ignored if cloudTextureVariants has length)
- * @returns {THREE.Mesh|null}
- */
-export function createGlobeCloudLayer({
-    textureLoader = null,
-    renderer = null,
-    radius = 1.004,
-    opacity = 0.5,
-    tintHex = 0xffffff,
-    cloudTextureVariants = null,
-    cloudTexturePath = null
-} = {}) {
-    const geometry = new THREE.SphereGeometry(radius, 64, 64);
+function cloudMeshShouldDisplay() {
+    try {
+        const m = window.globeController && window.globeController.sceneModel;
+        if (m && typeof m.getGlobeWeatherEffectsVisible === 'function') {
+            return m.getGlobeWeatherEffectsVisible() !== false;
+        }
+    } catch (_) { /* ignore */ }
+    return true;
+}
 
-    const tintCol = new THREE.Color(tintHex);
-    tintCol.multiplyScalar(0.9);
-
-    const proceduralMat = new THREE.ShaderMaterial({
+function makeGlobeCloudProceduralMaterial(opacity, tintHex) {
+    const tintCol = makeCloudTintColor(tintHex);
+    return new THREE.ShaderMaterial({
         uniforms: {
             uTime: { value: 0 },
             uOpacity: { value: opacity },
@@ -395,6 +388,111 @@ export function createGlobeCloudLayer({
         depthTest: true,
         side: THREE.FrontSide
     });
+}
+
+/**
+ * Picks a random cloud atlas (same as first load) and swaps the mesh material when ready.
+ * @param {THREE.Mesh} mesh
+ * @param {THREE.TextureLoader} textureLoader
+ * @param {THREE.WebGLRenderer} renderer
+ * @param {{ path: string }[]} variants
+ * @param {number} opacity
+ */
+function startCloudAtlasRandomLoad(mesh, textureLoader, renderer, variants, opacity) {
+    if (!mesh || !variants || !variants.length || !textureLoader || !renderer) return;
+    const choice = variants[Math.floor(Math.random() * variants.length)];
+    mesh.visible = false;
+    loadTexture(
+        textureLoader,
+        choice.path,
+        renderer,
+        (tex) => {
+            const old = mesh.material;
+            if (old && old.dispose) old.dispose();
+            tex.needsUpdate = true;
+            const h = mesh.userData.cloudTintHex != null ? mesh.userData.cloudTintHex : 0xffffff;
+            const tc = makeCloudTintColor(h);
+            mesh.material = new THREE.MeshBasicMaterial({
+                map: tex,
+                alphaMap: tex,
+                color: tc.clone(),
+                transparent: true,
+                opacity: Math.min(1, opacity),
+                depthWrite: false,
+                depthTest: true,
+                side: THREE.FrontSide,
+                fog: false
+            });
+            mesh.userData.proceduralClouds = false;
+            mesh.userData.cloudAtlasPath = choice.path;
+            mesh.visible = cloudMeshShouldDisplay();
+        },
+        () => {
+            mesh.visible = cloudMeshShouldDisplay();
+            console.warn('[globe clouds] Cloud albedo not loaded; using procedural layer:', choice.path);
+        }
+    );
+}
+
+/**
+ * Re-roll cloud atlas and reset procedural fallback (same random selection as page load).
+ * @param {THREE.Mesh|null} mesh
+ * @param {Object} [opts]
+ * @param {THREE.TextureLoader|null} [opts.textureLoader]
+ * @param {THREE.WebGLRenderer|null} [opts.renderer]
+ * @param {{ path: string }[]|null} [opts.cloudTextureVariants]
+ * @param {number} [opts.opacity]
+ */
+export function rerandomizeGlobeCloudAtlas(mesh, {
+    textureLoader = null,
+    renderer = null,
+    cloudTextureVariants = GLOBE_CLOUD_ATLAS_VARIANTS,
+    opacity = 0.5
+} = {}) {
+    if (!mesh) return;
+    const tintHex = mesh.userData.cloudTintHex != null ? mesh.userData.cloudTintHex : 0xffffff;
+    const old = mesh.material;
+    if (old) {
+        try {
+            if (old.map) old.map.dispose();
+            old.dispose();
+        } catch (_) { /* ignore */ }
+    }
+    mesh.material = makeGlobeCloudProceduralMaterial(opacity, tintHex);
+    mesh.userData.proceduralClouds = true;
+    delete mesh.userData.cloudAtlasPath;
+
+    if (cloudTextureVariants && cloudTextureVariants.length && textureLoader && renderer) {
+        startCloudAtlasRandomLoad(mesh, textureLoader, renderer, cloudTextureVariants, opacity);
+    } else {
+        mesh.visible = cloudMeshShouldDisplay();
+    }
+}
+
+/**
+ * Slightly larger sphere above the Earth: cloud albedo layer (same UV as MAP.png).
+ * NASA Blue Marble–style atlases (three.js `earth_clouds_*`); procedural fallback if load fails.
+ * @param {Object} [opts]
+ * @param {THREE.TextureLoader} [opts.textureLoader]
+ * @param {THREE.WebGLRenderer} [opts.renderer]
+ * @param {number} [opts.radius] - Default ~1.004
+ * @param {number} [opts.opacity] - Overall transparency (~0.5 recommended)
+ * @param {number} [opts.tintHex] - Multiplies cloud color (match rim / palette), e.g. 0x6fd3ff
+ * @param {{ path: string }[]|null} [opts.cloudTextureVariants]
+ * @param {string|null} [opts.cloudTexturePath] - Single atlas (ignored if cloudTextureVariants has length)
+ * @returns {THREE.Mesh|null}
+ */
+export function createGlobeCloudLayer({
+    textureLoader = null,
+    renderer = null,
+    radius = 1.004,
+    opacity = 0.5,
+    tintHex = 0xffffff,
+    cloudTextureVariants = null,
+    cloudTexturePath = null
+} = {}) {
+    const geometry = new THREE.SphereGeometry(radius, 64, 64);
+    const proceduralMat = makeGlobeCloudProceduralMaterial(opacity, tintHex);
 
     const mesh = new THREE.Mesh(geometry, proceduralMat);
     mesh.name = 'globeCloudLayer';
@@ -411,39 +509,7 @@ export function createGlobeCloudLayer({
               : [];
 
     if (variants.length && textureLoader && renderer) {
-        const choice = variants[Math.floor(Math.random() * variants.length)];
-        mesh.visible = false;
-        loadTexture(
-            textureLoader,
-            choice.path,
-            renderer,
-            (tex) => {
-                const old = mesh.material;
-                if (old && old.dispose) old.dispose();
-                tex.needsUpdate = true;
-                const h = mesh.userData.cloudTintHex != null ? mesh.userData.cloudTintHex : tintHex;
-                const tc = new THREE.Color(h);
-                tc.multiplyScalar(0.9);
-                mesh.material = new THREE.MeshBasicMaterial({
-                    map: tex,
-                    alphaMap: tex,
-                    color: tc.clone(),
-                    transparent: true,
-                    opacity: Math.min(1, opacity),
-                    depthWrite: false,
-                    depthTest: true,
-                    side: THREE.FrontSide,
-                    fog: false
-                });
-                mesh.userData.proceduralClouds = false;
-                mesh.userData.cloudAtlasPath = choice.path;
-                mesh.visible = true;
-            },
-            () => {
-                mesh.visible = true;
-                console.warn('[globe clouds] Cloud albedo not loaded; using procedural layer:', choice.path);
-            }
-        );
+        startCloudAtlasRandomLoad(mesh, textureLoader, renderer, variants, opacity);
     }
 
     return mesh;
@@ -561,4 +627,5 @@ if (typeof window !== 'undefined') {
     window.GlobeInitHelpers.createGlobeCloudLayer = createGlobeCloudLayer;
     window.GlobeInitHelpers.GLOBE_CLOUD_ATLAS_VARIANTS = GLOBE_CLOUD_ATLAS_VARIANTS;
     window.GlobeInitHelpers.applyGlobeCloudPaletteTint = applyGlobeCloudPaletteTint;
+    window.GlobeInitHelpers.rerandomizeGlobeCloudAtlas = rerandomizeGlobeCloudAtlas;
 }

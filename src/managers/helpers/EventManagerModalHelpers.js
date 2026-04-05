@@ -40,19 +40,27 @@ export function openEditModal({ index, events, formService, setEditingIndex, cle
         formService.setupLocationTypeHandler();
     }
     
-    // Setup autocomplete after modal is open (for both heroes and factions)
+    // Setup autocomplete after modal is open (heroes, factions, secondary countries)
     setTimeout(() => {
         const filtersInput = document.getElementById('eventEditFilters');
         const factionsInput = document.getElementById('eventEditFactions');
+        const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
+        const countryOptions = typeof window !== 'undefined' && window.LocationFlagHelpers
+            && typeof window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete === 'function'
+            ? window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete()
+            : [];
         
         if (filtersInput && heroes.length > 0 && formService) {
             formService.setupAutocomplete(filtersInput, heroes, 'heroes');
         }
         
         if (factionsInput && factions.length > 0 && formService) {
-            // Create array of display names for autocomplete
             const factionDisplayNames = factions.map(f => f.displayName);
             formService.setupAutocomplete(factionsInput, factionDisplayNames, 'factions');
+        }
+
+        if (secondaryCountriesInput && countryOptions.length > 0 && formService) {
+            formService.setupAutocomplete(secondaryCountriesInput, countryOptions, 'countries');
         }
     }, 100);
 }
@@ -72,6 +80,14 @@ export function closeEditModal(setEditingIndex) {
     const filtersInput = document.getElementById('eventEditFilters');
     if (filtersInput) {
         filtersInput.dataset.autocompleteSetup = 'false';
+    }
+    const factionsInput = document.getElementById('eventEditFactions');
+    if (factionsInput) {
+        factionsInput.dataset.autocompleteSetup = 'false';
+    }
+    const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
+    if (secondaryCountriesInput) {
+        secondaryCountriesInput.dataset.autocompleteSetup = 'false';
     }
 }
 

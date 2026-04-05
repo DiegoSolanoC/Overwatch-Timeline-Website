@@ -653,6 +653,29 @@ body.color-palette-nulled .palette-option-btn.active {
     height: 100%;
 }
 
+/* Floating weather toggle (mobile): match hub rail sizing like `#rotateIcon` / hyperloop */
+.globe-control-btn #weatherEffectsIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.globe-control-btn #weatherEffectsIcon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Weather PNG reads smaller than train/rotation in the same cell (more padding in asset) */
+@media (max-width: 768px) {
+    .globe-control-btn.weather-effects-btn #weatherEffectsIcon img {
+        transform: scale(1.14);
+        transform-origin: center center;
+    }
+}
+
 #globe-container:active {
     cursor: grabbing;
 }

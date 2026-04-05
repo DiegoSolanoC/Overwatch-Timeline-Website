@@ -70,9 +70,9 @@ export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, m
             };
         }
 
-        // Default Earth: use lat/lon coordinates on the sphere
+        // Earth globe: sit past cloud shell (~1.004) and aurora shell (~1.022) so depth/blend isn’t glitchy.
         return {
-            position: latLonToVector3(lat, lon, 1.02),
+            position: latLonToVector3(lat, lon, 1.03),
             targetParent: globe
         };
     }
