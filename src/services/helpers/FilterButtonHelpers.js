@@ -86,11 +86,14 @@ export function createFilterButtonElement(item, type, folder, stateManager, imag
     const img = createFilterImage(filterKey, displayName, type, folder, imageService);
     imageContainer.appendChild(img);
     
-    // Label
+    // Label (outer centers; inner holds line-clamp for long names)
     const label = document.createElement('div');
     label.className = 'filter-label';
-    label.textContent = displayName;
-    
+    const labelText = document.createElement('span');
+    labelText.className = 'filter-label-text';
+    labelText.textContent = displayName;
+    label.appendChild(labelText);
+
     filterBtn.appendChild(imageContainer);
     filterBtn.appendChild(label);
     

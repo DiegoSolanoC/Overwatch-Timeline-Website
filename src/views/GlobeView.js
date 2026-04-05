@@ -7,7 +7,7 @@ import { configureTexture, loadTexture, changePlaneTexture } from './helpers/Glo
 import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './helpers/GlobePlaneHelpers.js';
 import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
 import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
-import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite } from './helpers/GlobeInitHelpers.js';
+import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite, createGlobeAuroraShell, createGlobeCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint } from './helpers/GlobeInitHelpers.js';
 
 // THREE is loaded globally via script tag in index.html
 
@@ -21,6 +21,10 @@ export class GlobeView {
         this.eventMarkerManager = new EventMarkerManager(sceneModel, dataModel);
 
         this._rimGlowSprite = null;
+        this._auroraMesh = null;
+        /** Smoothed random veil size / intensity for aurora shader (see updateAtmosphereEffects). */
+        this._auroraVeilAnim = null;
+        this._cloudLayer = null;
 
         // Shooting stars (lightweight pooled streaks)
         this._shootingStars = {
@@ -95,6 +99,31 @@ export class GlobeView {
         this.sceneModel.setGlobe(globe);
         scene.add(globe);
 
+        // Cloud albedo: random `Cloud Map #` atlas per load, ~50% opacity, palette-tinted like rim
+        const cloudTintHex = isGray ? 0xffffff : (isCrimson ? 0xff8a80 : (isNulled ? 0xd1b3ff : 0x6fd3ff));
+        const cloudLayer = createGlobeCloudLayer({
+            textureLoader,
+            renderer,
+            radius: 1.004,
+            opacity: 0.5,
+            tintHex: cloudTintHex,
+            cloudTextureVariants: GLOBE_CLOUD_ATLAS_VARIANTS
+        });
+        if (cloudLayer) {
+            this._cloudLayer = cloudLayer;
+            globe.add(cloudLayer);
+        }
+
+        // Polar auroras (additive shell, latitudinal bands in object space — track real poles as globe spins)
+        const aurora = createGlobeAuroraShell({
+            uIntensity: isGray ? 0.34 : (isCrimson ? 0.38 : (isNulled ? 0.36 : 0.42))
+        });
+        if (aurora) {
+            this._auroraMesh = aurora;
+            globe.add(aurora);
+            this._seedAuroraVeilAnimIfNeeded();
+        }
+
         // Rim glow: blue → light blue, gray → white, crimson → warm red, nulled → soft violet.
         const rimColor = isGray ? 0xffffff : (isCrimson ? 0xff8a80 : (isNulled ? 0xd1b3ff : 0x6fd3ff));
         const rimGlow = createGlobeRimGlowSprite({
@@ -105,6 +134,7 @@ export class GlobeView {
         });
         if (rimGlow) {
             this._rimGlowSprite = rimGlow;
+            rimGlow.renderOrder = 2;
             globe.add(rimGlow);
         }
 
@@ -130,8 +160,11 @@ export class GlobeView {
         }
         scene.add(earthMapPlane);
 
-        // Add a background "sun" element (sprite + warm light).
-        addSunBackground({ scene });
+        // Add a background "sun" element (sprite + warm light); hidden in flat map view.
+        const sunBackground = addSunBackground({ scene });
+        if (sunBackground) {
+            this.sceneModel.setSunBackground(sunBackground);
+        }
         
         // Preload other Earth map textures for quick palette switching
         const allMapTextures = [
@@ -171,6 +204,79 @@ export class GlobeView {
             const k = (s.userData && Number.isFinite(s.userData.rimIntensity)) ? s.userData.rimIntensity : 1.0;
             if (k !== 1.0) s.material.color.multiplyScalar(k);
         }
+        const a = this._auroraMesh;
+        if (a && a.material && a.material.uniforms && a.material.uniforms.uIntensity) {
+            const ai = p === 'gray' ? 0.34 : (p === 'crimson' ? 0.38 : (p === 'nulled' ? 0.36 : 0.42));
+            a.material.uniforms.uIntensity.value = ai;
+        }
+        applyGlobeCloudPaletteTint(this._cloudLayer, color);
+    }
+
+    /**
+     * Random veil size + boost on load (and first frame if not seeded).
+     * Avoids every reload starting at the same strength / always ramping from zero.
+     */
+    _seedAuroraVeilAnimIfNeeded() {
+        if (this._auroraVeilAnim || !this._auroraMesh || !this._auroraMesh.material || !this._auroraMesh.material.uniforms) {
+            return;
+        }
+        const u = this._auroraMesh.material.uniforms;
+        if (!u.uVeilExpand || !u.uVeilBoost) return;
+
+        const st = {
+            size: Math.random() * 0.98,
+            targetSize: Math.random() * 0.98,
+            boost: Math.random() * 1.25,
+            targetBoost: Math.random() < 0.14
+                ? 1.12 + Math.random() * 0.5
+                : Math.random() * 1.25,
+            nextPickSec: 4 + Math.random() * 10
+        };
+        this._auroraVeilAnim = st;
+        u.uVeilExpand.value = st.size;
+        u.uVeilBoost.value = st.boost;
+    }
+
+    /**
+     * Advance atmosphere shaders (aurora motion). Safe to call every frame.
+     * @param {number} deltaSeconds
+     */
+    updateAtmosphereEffects(deltaSeconds) {
+        const dt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
+        const c = this._cloudLayer;
+        if (c && c.material && c.material.uniforms && c.material.uniforms.uTime) {
+            c.material.uniforms.uTime.value += dt;
+        }
+
+        const a = this._auroraMesh;
+        if (!a || !a.material || !a.material.uniforms) return;
+
+        const u = a.material.uniforms;
+        if (u.uTime) u.uTime.value += dt;
+        if (!u.uVeilExpand || !u.uVeilBoost) return;
+
+        this._seedAuroraVeilAnimIfNeeded();
+        const st = this._auroraVeilAnim;
+        if (!st) return;
+
+        st.nextPickSec -= dt;
+        if (st.nextPickSec <= 0) {
+            st.nextPickSec = 14 + Math.random() * 22;
+            st.targetSize = Math.random() * 0.98;
+            if (Math.random() < 0.14) {
+                st.targetBoost = 1.12 + Math.random() * 0.5;
+            } else {
+                st.targetBoost = Math.random() * 1.25;
+            }
+        }
+
+        const tSize = 1 - Math.exp(-0.28 * dt);
+        const tBoost = 1 - Math.exp(-0.42 * dt);
+        st.size += (st.targetSize - st.size) * Math.min(1, tSize);
+        st.boost += (st.targetBoost - st.boost) * Math.min(1, tBoost);
+
+        u.uVeilExpand.value = st.size;
+        u.uVeilBoost.value = st.boost;
     }
 
     /**
@@ -288,6 +394,23 @@ export class GlobeView {
         const stars = new THREE.Points(starGeometry, starMaterial);
         this.sceneModel.setStars(stars);
         scene.add(stars);
+    }
+
+    /**
+     * Starfield + sun sprite + sun light are for the 3D globe only; turn off in flat map view.
+     * @param {boolean} visible
+     */
+    setGlobeSkyVisible(visible) {
+        const v = !!visible;
+        const stars = this.sceneModel.getStars();
+        if (stars) {
+            stars.visible = v;
+        }
+        const sunBg = this.sceneModel.getSunBackground();
+        if (sunBg) {
+            if (sunBg.sprite) sunBg.sprite.visible = v;
+            if (sunBg.light) sunBg.light.visible = v;
+        }
     }
 
     /**

@@ -63,69 +63,18 @@ class MarkerInteractionService {
         
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
-        
-        // Get all event markers from globe, Moon plane, Mars plane, and ISS satellite
+
+        const markers = this.sceneModel.getMarkers();
         const eventMarkers = [];
-        const globe = this.sceneModel.getGlobe();
-        if (globe) {
-            globe.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
+        if (markers && markers.length > 0) {
+            for (let i = 0; i < markers.length; i++) {
+                const m = markers[i];
+                if (m && m.userData && m.userData.isEventMarker) {
+                    eventMarkers.push(m);
                 }
-            });
-        }
-
-        // Also check Earth map plane for event markers (map view)
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        if (earthMapPlane) {
-            earthMapPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        // Also check Moon and Mars planes for event markers
-        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
-        if (moonPlane) {
-            moonPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        if (marsPlane) {
-            marsPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    eventMarkers.push(child);
-                }
-            });
-        }
-        
-        // Also check ISS satellite for station markers
-        if (window.globeController && window.globeController.transportController) {
-            const issSatellite = window.globeController.transportController.findISS();
-            if (issSatellite) {
-                issSatellite.traverse((child) => {
-                    if (child.userData && child.userData.isEventMarker) {
-                        eventMarkers.push(child);
-                    }
-                });
-            }
-
-            // Also check Mars Ship for marsShip markers
-            const marsShipSatellite = window.globeController.transportController.findMarsShip?.();
-            if (marsShipSatellite) {
-                marsShipSatellite.traverse((child) => {
-                    if (child.userData && child.userData.isEventMarker) {
-                        eventMarkers.push(child);
-                    }
-                });
             }
         }
-        
+
         if (eventMarkers.length === 0) return;
         
         const intersects = raycaster.intersectObjects(eventMarkers);
@@ -288,93 +237,15 @@ class MarkerInteractionService {
         // Seaport markers were blocking event markers from being clicked
         const clickableObjects = [];
         
-        // Add ONLY event markers from the array
         if (markers && markers.length > 0) {
-            markers.forEach(marker => {
+            for (let i = 0; i < markers.length; i++) {
+                const marker = markers[i];
                 if (marker && marker.userData && marker.userData.isEventMarker) {
                     clickableObjects.push(marker);
                 }
-            });
-        }
-        console.log('[onMarkerClick] Event markers from array:', clickableObjects.length);
-        
-        // Also traverse scene to catch event markers that might not be in array
-        const globe = this.sceneModel.getGlobe();
-        if (globe) {
-            let foundInTraverse = 0;
-            globe.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    if (!clickableObjects.includes(child)) {
-                        clickableObjects.push(child);
-                        foundInTraverse++;
-                    }
-                }
-            });
-            console.log('[onMarkerClick] Added event markers from globe traverse:', foundInTraverse);
-        }
-
-        // Also traverse Earth map plane (map view) to catch markers that might not be in array
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        if (earthMapPlane) {
-            earthMapPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    if (!clickableObjects.includes(child)) {
-                        clickableObjects.push(child);
-                    }
-                }
-            });
-        }
-        
-        // Also check Moon and Mars planes for event markers
-        const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
-        if (moonPlane) {
-            moonPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    if (!clickableObjects.includes(child)) {
-                        clickableObjects.push(child);
-                    }
-                }
-            });
-        }
-        
-        const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        if (marsPlane) {
-            marsPlane.traverse((child) => {
-                if (child.userData && child.userData.isEventMarker) {
-                    if (!clickableObjects.includes(child)) {
-                        clickableObjects.push(child);
-                    }
-                }
-            });
-        }
-        
-        // Also check ISS satellite for station markers
-        if (window.globeController && window.globeController.transportController) {
-            const issSatellite = window.globeController.transportController.findISS();
-            if (issSatellite) {
-                issSatellite.traverse((child) => {
-                    if (child.userData && child.userData.isEventMarker) {
-                        if (!clickableObjects.includes(child)) {
-                            clickableObjects.push(child);
-                        }
-                    }
-                });
-            }
-
-            // Also check Mars Ship for marsShip markers
-            const marsShipSatellite = window.globeController.transportController.findMarsShip?.();
-            if (marsShipSatellite) {
-                marsShipSatellite.traverse((child) => {
-                    if (child.userData && child.userData.isEventMarker) {
-                        if (!clickableObjects.includes(child)) {
-                            clickableObjects.push(child);
-                        }
-                    }
-                });
             }
         }
-        
-        console.log('[onMarkerClick] Total clickable objects (EVENT MARKERS ONLY):', clickableObjects.length);
+        console.log('[onMarkerClick] Event markers (from sceneModel list):', clickableObjects.length);
         
         // Log first few markers for debugging
         if (clickableObjects.length > 0) {

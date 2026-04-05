@@ -248,6 +248,9 @@ export class InteractionController {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
+            if (this.sceneModel && typeof this.sceneModel.applyRendererPixelRatioCap === 'function') {
+                this.sceneModel.applyRendererPixelRatioCap();
+            }
         }
     }
     

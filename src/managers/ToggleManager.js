@@ -138,7 +138,7 @@ export class ToggleManager {
                 console.log('🚄 Transport systems ENABLED (Trains, Planes)');
             } else {
                 toggleBtn.classList.remove('active');
-                console.log('⏸️ Transport systems DISABLED - all vehicles will finish invisibly, no new spawns');
+                console.log('⏸️ Transport systems DISABLED — simulation paused, vehicle meshes hidden, trails cleared, no new spawns');
             }
             
             // Always keep the icon as an image, never change to emoji

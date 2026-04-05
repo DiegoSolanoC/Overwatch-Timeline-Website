@@ -5,12 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting…</title>
     <script>
-        // GitHub Pages project site: pathname e.g. /Repo/missing → /Repo/main.html
+        /**
+         * GitHub Pages 404 → app root (project site or user site).
+         * user.github.io/Repo/bad/path → /Repo/index.html
+         * user.github.io/bad → /index.html (user/org root)
+         */
         (function () {
             var seg = location.pathname.split('/').filter(Boolean);
-            seg.pop();
-            var basePath = seg.length ? '/' + seg.join('/') + '/' : '/';
-            location.replace(basePath + 'main.html');
+            var basePath;
+            if (seg.length <= 1) {
+                basePath = '/';
+            } else {
+                basePath = '/' + seg.slice(0, -1).join('/') + '/';
+            }
+            location.replace(basePath + 'index.html');
         })();
     </script>
 </head>

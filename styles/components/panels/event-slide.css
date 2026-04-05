@@ -271,12 +271,31 @@
 
 .event-slide-top .event-slide-location,
 .event-slide-location {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.78);
     margin: 0 0 0 0; /* No margin adjustments needed in top section */
-    line-height: 1.4;
+    line-height: 1.5;
     cursor: pointer;
     transition: color 0.2s ease;
+}
+
+.event-slide-location .event-location-flag,
+.event-slide-location .event-location-pin {
+    vertical-align: middle;
+    margin-right: 12px;
+}
+
+.event-slide-location .event-location-pin {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.event-slide-location .event-location-flag {
+    height: 36px;
+    width: auto;
+    max-width: 76px;
+    object-fit: contain;
 }
 
 .event-slide-location:hover {

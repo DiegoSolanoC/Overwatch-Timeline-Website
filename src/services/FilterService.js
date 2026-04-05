@@ -318,6 +318,9 @@ class FilterService {
             // Fallback implementation
             if (this.heroesTab) {
                 this.heroesTab.addEventListener('click', () => {
+                    if (!this.heroesTab.classList.contains('active') && window.SoundEffectsManager) {
+                        window.SoundEffectsManager.play('switchMap');
+                    }
                     this.currentFilterType = 'heroes';
                     this.heroesTab.classList.add('active');
                     this.heroesTab.setAttribute('aria-selected', 'true');
@@ -331,6 +334,9 @@ class FilterService {
             }
             if (this.factionsTab) {
                 this.factionsTab.addEventListener('click', () => {
+                    if (!this.factionsTab.classList.contains('active') && window.SoundEffectsManager) {
+                        window.SoundEffectsManager.play('switchMap');
+                    }
                     this.currentFilterType = 'factions';
                     this.factionsTab.classList.add('active');
                     this.factionsTab.setAttribute('aria-selected', 'true');

@@ -9,6 +9,9 @@
 export function setupTabs(heroesTab, factionsTab, heroes, factions, createFilterButtons, updateFilterCounts) {
     if (heroesTab) {
         heroesTab.addEventListener('click', () => {
+            if (!heroesTab.classList.contains('active') && window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('switchMap');
+            }
             heroesTab.classList.add('active');
             heroesTab.setAttribute('aria-selected', 'true');
             if (factionsTab) {
@@ -22,6 +25,9 @@ export function setupTabs(heroesTab, factionsTab, heroes, factions, createFilter
     
     if (factionsTab) {
         factionsTab.addEventListener('click', () => {
+            if (!factionsTab.classList.contains('active') && window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('switchMap');
+            }
             factionsTab.classList.add('active');
             factionsTab.setAttribute('aria-selected', 'true');
             if (heroesTab) {

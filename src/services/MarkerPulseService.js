@@ -6,6 +6,7 @@ class MarkerPulseService {
     constructor(sceneModel) {
         this.sceneModel = sceneModel;
         this.hoveredEventMarker = null;
+        this._glowColorScratch = new THREE.Color();
     }
 
     _ensureMarkerGlowState(marker) {
@@ -38,9 +39,9 @@ class MarkerPulseService {
 
         // Apply by scaling RGB; Three.js Color can exceed 1.0 and still appear brighter depending on pipeline.
         if (marker.material.color && typeof marker.material.color.setHex === 'function') {
-            const c = new THREE.Color(base.colorHex);
-            c.multiplyScalar(intensity);
-            marker.material.color.copy(c);
+            this._glowColorScratch.setHex(base.colorHex);
+            this._glowColorScratch.multiplyScalar(intensity);
+            marker.material.color.copy(this._glowColorScratch);
         }
 
         // Optional: slightly increase opacity early, then return to base opacity.

@@ -264,15 +264,23 @@ class EventInteractionService {
             if (!locationName && variantLocationType === 'earth' && variant.lat !== undefined && variant.lon !== undefined) {
                 locationName = `${variant.lat.toFixed(4)}, ${variant.lon.toFixed(4)}`;
             }
-            // For Moon/Mars events, display coordinates
+            // For Moon/Mars/Station/MarsShip events, display coordinates / defaults
             if (!locationName && variantLocationType !== 'earth') {
-                if (variant.x !== undefined && variant.y !== undefined) {
+                if (variantLocationType === 'station') {
+                    locationName = 'Space Station (ISS)';
+                } else if (variantLocationType === 'marsShip') {
+                    locationName = 'Red Promise Escape Ship';
+                } else if (variant.x !== undefined && variant.y !== undefined) {
                     locationName = `${variantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variant.x.toFixed(1)}, ${variant.y.toFixed(1)})`;
                 } else {
                     locationName = variantLocationType === 'moon' ? 'Moon' : 'Mars';
                 }
             }
-            locationElement.innerHTML = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || 'Unknown'}`;
+            const locText = locationName || 'Unknown';
+            const rowInner = (typeof window !== 'undefined' && window.LocationFlagHelpers && typeof window.LocationFlagHelpers.createLocationRowInnerHtml === 'function')
+                ? window.LocationFlagHelpers.createLocationRowInnerHtml(locText, variantLocationType)
+                : `<img class="event-location-pin" src="assets/images/icons/Location Icon.png" alt="" width="28" height="28" decoding="async" /> ${locText}`;
+            locationElement.innerHTML = rowInner;
         }
         
         // Update badge text

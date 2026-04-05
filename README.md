@@ -51,7 +51,7 @@ The application is configured to work on GitHub Pages. Follow these steps to dep
 
 **Option A — GitHub Actions (recommended)**  
 1. Go to **Settings** → **Pages** → **Build and deployment** → **Source**: **GitHub Actions**.  
-2. Push to `main` / `master`; the workflow `.github/workflows/deploy.yml` runs `node generate-manifest.js` and publishes the repo root.  
+2. Push to `main` / `master`; the workflow `.github/workflows/deploy.yml` runs **`npm run build:pages`** (regenerates `manifest.json` and copies a clean tree into **`_site/`** without `.git` / `node_modules`) and publishes **`_site`**.  
 3. First run: approve the **github-pages** environment if GitHub prompts you.
 
 **Option B — Deploy from a branch**  
@@ -65,7 +65,7 @@ The application is configured to work on GitHub Pages. Follow these steps to dep
 Make sure these files are in your repository root:
 - `index.html` - Main entry point (GitHub Pages will serve this at the root URL)
 - `main.html` - Main timeline application (use this URL for direct access)
-- `404.html` - Redirects to `main.html` so broken links still reach the app
+- `404.html` - Redirects unknown paths to `index.html` under the same GitHub Pages base (project or user site)
 - `.nojekyll` - Empty file; tells GitHub Pages not to use Jekyll
 - `styles.css` and `styles/` - All CSS (layout, footer, news ticker, pagination, mobile)
 - `src/` - All JavaScript (component-loader, controllers, managers, services)

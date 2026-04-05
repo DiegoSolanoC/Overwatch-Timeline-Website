@@ -5,11 +5,16 @@
   "scripts": {
     "start": "node generate-manifest.js && node server.js",
     "generate": "node generate-manifest.js",
-    "build:pages": "node generate-manifest.js",
+    "build:pages": "node generate-manifest.js && node scripts/prepare-github-pages.mjs",
     "dev": "node generate-manifest.js && node server.js",
-    "launch": "node generate-manifest.js && start cmd /k \"node server.js\" && timeout /t 3 /nobreak >nul && start chrome.exe http://localhost:8000"
+    "launch": "node generate-manifest.js && start cmd /k \"node server.js\" && timeout /t 3 /nobreak >nul && start chrome.exe http://localhost:8000",
+    "flags": "node scripts/download-flags.mjs",
+    "flags:lookup": "node scripts/build-flags-lookup.mjs"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
 }
 
 

@@ -123,6 +123,9 @@ export class GlobeController {
                     earthMapPlane.material.needsUpdate = true;
                 }
             }
+            if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
+                this.globeView.setGlobeSkyVisible(false);
+            }
         }
         
         // Position Moon/Mars panels immediately after globe initialization
@@ -140,6 +143,9 @@ export class GlobeController {
 
         // Add starfield
         this.globeView.addStarfield();
+        if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
+            this.globeView.setGlobeSkyVisible(!this.sceneModel.getMapViewEnabled());
+        }
         // Add occasional shooting stars (background streaks)
         this.globeView.addShootingStars();
 
@@ -355,20 +361,20 @@ export class GlobeController {
             // Keep the map plane fixed (no billboard/lookAt), camera pans instead.
         }
 
-        // Update transport systems
-        this.transportController.updateTrains();
-        this.transportController.updatePlanes();
-        this.transportController.updateBoats();
+        // Transport simulation only while vehicles are enabled (saves CPU when toggled off).
+        // Satellites: decor "small" sats are unloaded when transport is off; ISS / Mars Ship always run.
+        if (this.sceneModel.getHyperloopVisible()) {
+            this.transportController.updateTrains();
+            this.transportController.updatePlanes();
+            this.transportController.updateBoats();
+            this.transportView.updateTrailSegments();
+            this.transportView.updateBoatTrailSegments();
+        }
         this.transportController.updateSatellites();
-        // Satellite trails now use plane trail system, updated in updateTrailSegments
-
-        // Update trails
-        this.transportView.updateTrailSegments();
-        this.transportView.updateBoatTrailSegments();
 
         // Update label position
         this.uiView.updateLabelPosition();
-        
+
         // Update pulse rings for event markers
         if (this.interactionController) {
             // updateMarkerPulse() ends by calling updatePulseRings(); avoid doing rings twice per frame.
@@ -376,9 +382,15 @@ export class GlobeController {
             this.interactionController.updateStationPinLines();
         }
 
-        // Background shooting stars
-        if (this.globeView && typeof this.globeView.updateShootingStars === 'function') {
-            this.globeView.updateShootingStars(deltaTime / 1000);
+        // Globe-only VFX (hidden in map view — skip uniform updates / logic)
+        if (!isMapView) {
+            if (this.globeView && typeof this.globeView.updateShootingStars === 'function') {
+                this.globeView.updateShootingStars(deltaTime / 1000);
+            }
+
+            if (this.globeView && typeof this.globeView.updateAtmosphereEffects === 'function') {
+                this.globeView.updateAtmosphereEffects(deltaTime / 1000);
+            }
         }
         
         // Check and auto-show image if conditions are met
@@ -407,6 +419,10 @@ export class GlobeController {
         // Swap visibility (globe includes its child routes/markers)
         globe.visible = !isEnabled;
         earthMapPlane.visible = isEnabled;
+
+        if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
+            this.globeView.setGlobeSkyVisible(!isEnabled);
+        }
 
         // Map plane visual style: semi-transparent overlay map
         if (earthMapPlane.material) {

@@ -65,6 +65,7 @@ class EventManager {
         this.searchQuery = ''; // Event manager search: filter by title
         this.searchHeroFilters = []; // Hero names (event.filters)
         this.searchFactionFilters = []; // Faction filenames (event.factions, e.g. "04Talon")
+        this.searchCountryFilters = []; // Flag PNG filenames (FLAG_FILE_BY_COMMON values, e.g. "France.png")
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
         this.eventItemVariantIndices = new Map(); // Track current variant index for each event item
@@ -80,18 +81,24 @@ class EventManager {
     }
 
     /**
-     * Get events filtered by search query and hero/faction filters (for event manager list)
+     * Get events filtered by search query and hero/faction/country filters (for event manager list)
      * Title: case-insensitive contains. Heroes: event has any selected (event.filters).
      * Factions: event has any selected (event.factions, by filename).
+     * Country: resolved location flag PNG (LocationFlagHelpers.getResolvedFlagFilename) is one of searchCountryFilters.
      */
     getFilteredEvents() {
         const all = this.events;
         const q = (this.searchQuery || '').trim().toLowerCase();
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
-        if (!q && heroFilters.length === 0 && factionFilters.length === 0) {
+        const countryFilters = this.searchCountryFilters || [];
+        const flagFn = typeof window !== 'undefined' && window.LocationFlagHelpers && typeof window.LocationFlagHelpers.getResolvedFlagFilename === 'function'
+            ? window.LocationFlagHelpers.getResolvedFlagFilename
+            : null;
+        if (!q && heroFilters.length === 0 && factionFilters.length === 0 && countryFilters.length === 0) {
             return all;
         }
+        const countrySet = new Set(countryFilters);
         const matchesItem = (item) => {
             const name = (item?.name || '').toLowerCase();
             const matchTitle = !q || name.includes(q);
@@ -99,7 +106,16 @@ class EventManager {
             const matchHeroes = heroFilters.length === 0 || heroFilters.some(h => itemHeroes.includes(h));
             const itemFactions = item?.factions || [];
             const matchFactions = factionFilters.length === 0 || factionFilters.some(f => itemFactions.includes(f));
-            return matchTitle && matchHeroes && matchFactions;
+            let matchCountry = true;
+            if (countryFilters.length > 0 && flagFn) {
+                const locName = item?.cityDisplayName ?? '';
+                const locType = item?.locationType || 'earth';
+                const resolved = flagFn(locName, locType);
+                matchCountry = !!resolved && countrySet.has(resolved);
+            } else if (countryFilters.length > 0) {
+                matchCountry = false;
+            }
+            return matchTitle && matchHeroes && matchFactions && matchCountry;
         };
 
         return all.filter(event => {

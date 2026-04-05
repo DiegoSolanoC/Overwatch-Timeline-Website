@@ -295,7 +295,8 @@ class EventRenderService {
             const hasSearch = this.eventManager && (
                 (this.eventManager.searchQuery && this.eventManager.searchQuery.trim()) ||
                 (this.eventManager.searchHeroFilters && this.eventManager.searchHeroFilters.length > 0) ||
-                (this.eventManager.searchFactionFilters && this.eventManager.searchFactionFilters.length > 0)
+                (this.eventManager.searchFactionFilters && this.eventManager.searchFactionFilters.length > 0) ||
+                (this.eventManager.searchCountryFilters && this.eventManager.searchCountryFilters.length > 0)
             );
             const msg = hasSearch
                 ? 'No matching events. Try changing search or filters.'
@@ -615,7 +616,7 @@ class EventRenderService {
             if (locationType === 'station') {
                 locationName = 'Space Station (ISS)';
             } else if (locationType === 'marsShip') {
-                locationName = 'Red Promice Escape Ship';
+                locationName = 'Red Promise Escape Ship';
             } else if (locationX !== undefined && locationY !== undefined) {
                 locationName = `${locationType === 'moon' ? 'Moon' : 'Mars'}: (${locationX.toFixed(1)}, ${locationY.toFixed(1)})`;
             } else {
@@ -664,7 +665,7 @@ class EventRenderService {
                 if (currentVariantLocationType === 'station') {
                     locationName = 'Space Station (ISS)';
                 } else if (currentVariantLocationType === 'marsShip') {
-                    locationName = 'Red Promice Escape Ship';
+                    locationName = 'Red Promise Escape Ship';
                 } else if (variantX !== undefined && variantY !== undefined) {
                     locationName = `${currentVariantLocationType === 'moon' ? 'Moon' : 'Mars'}: (${variantX.toFixed(1)}, ${variantY.toFixed(1)})`;
                 } else {
@@ -713,6 +714,12 @@ class EventRenderService {
             </div>
         `;
 
+        const displayLocationType = (displayEvent && displayEvent.locationType) || event.locationType || 'earth';
+        const locationDisplayText = locationName || `${event.lat ? event.lat.toFixed(4) : '0'}, ${event.lon ? event.lon.toFixed(4) : '0'}`;
+        const locationRowInner = (window.LocationFlagHelpers && typeof window.LocationFlagHelpers.createLocationRowInnerHtml === 'function')
+            ? window.LocationFlagHelpers.createLocationRowInnerHtml(locationDisplayText, displayLocationType)
+            : `<img class="event-location-pin" src="assets/images/icons/Location Icon.png" alt="" width="28" height="28" decoding="async" /> ${locationDisplayText}`;
+
         item.innerHTML = `
             <div style="position: relative;">
             ${imageHtml}
@@ -722,7 +729,7 @@ class EventRenderService {
             </div>
             <div class="event-item-info">
                 <h3 class="event-item-title">${window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(displayEvent.name) : displayEvent.name}</h3>
-                <p class="event-item-location"><img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName || `${event.lat ? event.lat.toFixed(4) : '0'}, ${event.lon ? event.lon.toFixed(4) : '0'}`}</p>
+                <p class="event-item-location">${locationRowInner}</p>
             </div>
             ${actionButtons}
         `;

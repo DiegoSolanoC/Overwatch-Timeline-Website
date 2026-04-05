@@ -1490,7 +1490,7 @@
     {
       "name": "Ramattra is Made",
       "locationType": "earth",
-      "cityDisplayName": "Secret Omnium, Antartica?",
+      "cityDisplayName": "Secret Omnium, Antarctica",
       "description": "On March 29th of 2051, Ramattra was made. The R-7000 Ravager Units were Anubis' crowning jewel in the warbot army, built in a secret facility, somewhere cold and isolated. The Ravagers acted as battalion commanders and strategists, becoming one of the most dreaded units in the Crisis.",
       "image": "",
       "filters": [
@@ -3705,7 +3705,7 @@
     {
       "name": "Cold Snap",
       "locationType": "earth",
-      "cityDisplayName": "Ecoopint Antartica",
+      "cityDisplayName": "Ecopoint Antarctica",
       "description": "",
       "image": "",
       "filters": [
@@ -4266,7 +4266,7 @@
     },
     {
       "locationType": "earth",
-      "cityDisplayName": "Singapore",
+      "cityDisplayName": "Singapore, Singapore",
       "variants": [
         {
           "name": "Closed Fist",
@@ -4285,7 +4285,7 @@
           "locationType": "earth",
           "lat": 1.357107,
           "lon": 103.8194992,
-          "cityDisplayName": "Singapore",
+          "cityDisplayName": "Singapore, Singapore",
           "sources": [
             {
               "text": "Overwatch Declassified",
@@ -4437,6 +4437,37 @@
       "lon": -105.938456
     },
     {
+      "name": "Shrike",
+      "locationType": "earth",
+      "cityDisplayName": "Necropolis, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Ana"
+      ],
+      "factions": [
+        "03Talon",
+        "20Wayfinders"
+      ],
+      "lat": 29,
+      "lon": 31
+    },
+    {
+      "name": "Found Family",
+      "locationType": "earth",
+      "cityDisplayName": "Glasgow, Scotland",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Hazard"
+      ],
+      "factions": [
+        "30Phreaks"
+      ],
+      "lat": 55.861155,
+      "lon": -4.2501687
+    },
+    {
       "name": "Runs in the Family",
       "locationType": "earth",
       "cityDisplayName": "Deadlock Gorge, United States",
@@ -4467,37 +4498,6 @@
       ],
       "lat": -25,
       "lon": 135
-    },
-    {
-      "name": "Shrike",
-      "locationType": "earth",
-      "cityDisplayName": "Necropolis, Egypt",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Ana"
-      ],
-      "factions": [
-        "03Talon",
-        "20Wayfinders"
-      ],
-      "lat": 29,
-      "lon": 31
-    },
-    {
-      "name": "Found Family",
-      "locationType": "earth",
-      "cityDisplayName": "Glasgow, Scotland",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Hazard"
-      ],
-      "factions": [
-        "30Phreaks"
-      ],
-      "lat": 55.861155,
-      "lon": -4.2501687
     },
     {
       "locationType": "earth",
@@ -4539,21 +4539,6 @@
       "lon": -43.2093727
     },
     {
-      "name": "Anubis Escapes",
-      "locationType": "earth",
-      "cityDisplayName": "Cairo, Egypt",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Pharah"
-      ],
-      "factions": [
-        "32Helix Securities"
-      ],
-      "lat": 30.0443879,
-      "lon": 31.2357257
-    },
-    {
       "name": "Left Behind",
       "locationType": "earth",
       "cityDisplayName": "Monte Cristi, Dominican Republic",
@@ -4568,6 +4553,21 @@
       ],
       "lat": 19.7177718,
       "lon": -71.4448113
+    },
+    {
+      "name": "Anubis Escapes",
+      "locationType": "earth",
+      "cityDisplayName": "Cairo, Egypt",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Pharah"
+      ],
+      "factions": [
+        "32Helix Securities"
+      ],
+      "lat": 30.0443879,
+      "lon": 31.2357257
     },
     {
       "name": "Siberian Front",
@@ -4837,7 +4837,7 @@
     {
       "name": "Destroyer",
       "locationType": "earth",
-      "cityDisplayName": "Boklovo, Kurjikstan.",
+      "cityDisplayName": "Boklovo, Kyrgyzstan",
       "description": "",
       "image": "",
       "filters": [
@@ -4846,8 +4846,8 @@
       "factions": [
         "08Ironclad"
       ],
-      "lat": 48.503904,
-      "lon": 50.667571
+      "lat": 41.5089324,
+      "lon": 74.724091
     },
     {
       "name": "Shooting Star",
@@ -4992,7 +4992,7 @@
     {
       "name": "Rise and Shine",
       "locationType": "earth",
-      "cityDisplayName": "Ecoopint Antartica",
+      "cityDisplayName": "Ecopoint Antarctica",
       "description": "",
       "image": "",
       "filters": [
@@ -6020,7 +6020,7 @@
           ],
           "image": "",
           "locationType": "marsShip",
-          "cityDisplayName": "Dorado, Mexico"
+          "cityDisplayName": "Red Promise Escape Ship"
         },
         {
           "name": "Emergency Landing",

@@ -131,11 +131,16 @@
                 <div class="events-manage-search" id="eventsManageSearch">
                     <div class="events-manage-search-row events-manage-search-row--primary">
                         <label for="eventsSearchInput" class="events-search-label">Search:</label>
-                        <input type="text" id="eventsSearchInput" class="events-search-input" placeholder="By title..." autocomplete="off" />
+                        <input type="text" id="eventsSearchInput" class="events-search-input events-search-input--title" placeholder="By title..." autocomplete="off" />
                         <label for="eventsSearchFilters" class="events-search-label">Filters:</label>
-                        <div class="events-search-field">
+                        <div class="events-search-field events-search-field--filters">
                             <input type="text" id="eventsSearchFilters" class="events-search-input" placeholder="Hero or faction, comma-separated..." autocomplete="off" />
                             <div id="eventsSearchFiltersSuggestions" class="events-search-suggestions" style="display: none;"></div>
+                        </div>
+                        <label for="eventsSearchCountry" class="events-search-label">Country:</label>
+                        <div class="events-search-field events-search-field--country">
+                            <input type="text" id="eventsSearchCountry" class="events-search-input" placeholder="By flag / country name, comma-separated..." autocomplete="off" />
+                            <div id="eventsSearchCountrySuggestions" class="events-search-suggestions" style="display: none;"></div>
                         </div>
                     </div>
                     <div class="events-manage-search-row events-manage-search-row--secondary">
@@ -287,6 +292,8 @@
     <script src="src/services/GlitchTextService.js?v=8"></script>
     <script src="src/services/EventDataService.js?v=8"></script>
     <script src="src/services/LocationService.js?v=8"></script>
+    <script src="src/data/flagFileByCommonName.js?v=8"></script>
+    <script src="src/utils/LocationFlagHelpers.js?v=8"></script>
     <script src="src/services/EventRenderService.js?v=8"></script>
     <script src="src/services/EventEditService.js?v=8"></script>
     <script src="src/services/NewsTickerService.js?v=8"></script>

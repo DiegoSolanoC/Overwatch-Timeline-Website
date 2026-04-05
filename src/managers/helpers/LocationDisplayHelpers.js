@@ -4,12 +4,16 @@
  */
 
 /**
- * Creates location content HTML with icon
+ * Creates location content HTML with country flag (or fictional / off-world flag) when resolvable.
  * @param {string} locationName - Location name to display
- * @returns {string} - HTML string with icon and location name
+ * @param {string} [locationType='earth'] - earth | moon | mars | station | marsShip
+ * @returns {string} - HTML string with flag/icon and location name
  */
-export function createLocationContent(locationName) {
-    return `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+export function createLocationContent(locationName, locationType = 'earth') {
+    if (typeof window !== 'undefined' && window.LocationFlagHelpers && typeof window.LocationFlagHelpers.createLocationRowInnerHtml === 'function') {
+        return window.LocationFlagHelpers.createLocationRowInnerHtml(locationName, locationType);
+    }
+    return `<img class="event-location-pin" src="assets/images/icons/Location Icon.png" alt="" width="28" height="28" decoding="async" /> ${locationName}`;
 }
 
 /**
@@ -141,7 +145,7 @@ export function getStationLocationName(locationName = null) {
  * @returns {string}
  */
 export function getMarsShipLocationName(locationName = null) {
-    return locationName || 'Red Promice Escape Ship';
+    return locationName || 'Red Promise Escape Ship';
 }
 
 /**
@@ -161,7 +165,7 @@ export function setupEarthLocation(element, lat, lon, marker, isAlreadyOpen, exi
     const locationName = getEarthLocationName(lat, lon, existingLocationName);
     
     if (locationName) {
-        const content = createLocationContent(locationName);
+        const content = createLocationContent(locationName, 'earth');
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, 'earth');
         
@@ -169,7 +173,7 @@ export function setupEarthLocation(element, lat, lon, marker, isAlreadyOpen, exi
         if (enableUpdateCallback) {
             const updateLocationInSlide = (updatedLat, updatedLon, updatedLocationName) => {
                 if (Math.abs(updatedLat - lat) < 0.01 && Math.abs(updatedLon - lon) < 0.01) {
-                    const updatedContent = createLocationContent(updatedLocationName);
+                    const updatedContent = createLocationContent(updatedLocationName, 'earth');
                     element.innerHTML = updatedContent;
                     setupLocationClickHandler(element, marker, 'earth');
                 }
@@ -180,7 +184,7 @@ export function setupEarthLocation(element, lat, lon, marker, isAlreadyOpen, exi
         return true;
     } else {
         // Show coordinates as fallback
-        const content = createLocationContent(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+        const content = createLocationContent(`${lat.toFixed(4)}, ${lon.toFixed(4)}`, 'earth');
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, 'earth');
         return true;
@@ -204,7 +208,7 @@ export function setupMoonMarsLocation(element, locationType, x, y, locationName,
     const name = getMoonMarsLocationName(locationType, x, y, locationName);
     
     if (name) {
-        const content = createLocationContent(name);
+        const content = createLocationContent(name, locationType);
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, locationType);
         return true;
@@ -228,7 +232,7 @@ export function setupStationLocation(element, locationName, marker, isAlreadyOpe
     const name = getStationLocationName(locationName);
     
     if (name) {
-        const content = createLocationContent(name);
+        const content = createLocationContent(name, 'station');
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, 'station');
         return true;
@@ -246,7 +250,7 @@ export function setupMarsShipLocation(element, locationName, marker, isAlreadyOp
 
     const name = getMarsShipLocationName(locationName);
     if (name) {
-        const content = createLocationContent(name);
+        const content = createLocationContent(name, 'marsShip');
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, 'marsShip');
         return true;

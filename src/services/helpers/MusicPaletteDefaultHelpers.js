@@ -1,9 +1,20 @@
 /**
- * Palette-specific default background-music tracks (shuffle off / skip / first load).
- * Blue & Dark (gray): Winston's Desk — Crimson: The Wolf's Talon — Nulled: Null Sector
+ * Music palette helpers: UI palette key, startup theme paths (Themes/), ambient loop (Default.ogg).
+ * Manifest tracks no longer have palette-specific "defaults"; all catalog songs sort in manifest order.
  */
 (function () {
     'use strict';
+
+    var AMBIENT_REL = 'assets/audio/Default.ogg';
+    var THEMES_BASE = 'assets/audio/Themes';
+
+    /** Preferred filenames in Themes/ (first existing conceptually — browser cannot list dir). */
+    var STARTUP_FILES = {
+        blue: ['Overwatch.mp3', 'overwatch.mp3'],
+        gray: ['Overwatch.mp3', 'overwatch.mp3'],
+        crimson: ['Talon.mp3', 'talon.mp3'],
+        nulled: ['Null Sector.mp3', 'Null Sector.ogg', 'null sector.mp3']
+    };
 
     function normalizePaletteKey(saved) {
         if (saved === 'gray') return 'gray';
@@ -20,75 +31,62 @@
         }
     }
 
-    /**
-     * @param {Array<{filename:string,name:string}>} musicFiles
-     * @param {string} paletteKey - blue | gray | crimson | nulled
-     */
-    function findDefaultMusicForPalette(musicFiles, paletteKey) {
-        if (!musicFiles || musicFiles.length === 0) return null;
-        const key = normalizePaletteKey(paletteKey);
-        const lowerName = function (s) {
-            return s && s.name ? String(s.name).toLowerCase() : '';
-        };
-        var find = function (pred) {
-            for (var i = 0; i < musicFiles.length; i++) {
-                if (pred(lowerName(musicFiles[i]))) return musicFiles[i];
-            }
-            return null;
-        };
-
-        if (key === 'crimson') {
-            var w = find(function (n) { return n.indexOf('wolf') !== -1 && n.indexOf('talon') !== -1; });
-            if (w) return w;
-        } else if (key === 'nulled') {
-            var ns = find(function (n) { return n.indexOf('null sector') !== -1; });
-            if (ns) return ns;
-        } else {
-            var wd = find(function (n) { return n.indexOf('winston') !== -1 && n.indexOf('desk') !== -1; });
-            if (wd) return wd;
-            wd = find(function (n) { return n.indexOf('winston') !== -1 || n.indexOf('desk') !== -1; });
-            if (wd) return wd;
-        }
-        return musicFiles[0];
+    function startupPathForFilename(filename) {
+        return THEMES_BASE + '/' + filename;
     }
 
     /**
-     * Default track for this palette first; remaining tracks keep manifest order.
-     * @param {Array<{filename:string,name:string}>} musicFiles
+     * Resolved path for palette startup MP3 under assets/audio/Themes/
      * @param {string} paletteKey
+     * @returns {string|null}
      */
-    function orderMusicFilesWithDefaultFirst(musicFiles, paletteKey) {
-        if (!musicFiles || musicFiles.length === 0) return [];
-        var def = findDefaultMusicForPalette(musicFiles, paletteKey);
-        if (!def || !def.filename) return musicFiles.slice();
-        var rest = [];
-        for (var i = 0; i < musicFiles.length; i++) {
-            if (musicFiles[i].filename !== def.filename) rest.push(musicFiles[i]);
-        }
-        return [def].concat(rest);
+    function getStartupThemePath(paletteKey) {
+        var key = normalizePaletteKey(paletteKey);
+        var list = STARTUP_FILES[key] || STARTUP_FILES.blue;
+        if (!list || list.length === 0) return null;
+        return startupPathForFilename(list[0]);
     }
 
-    function musicPathForEntry(entry) {
-        if (!entry || !entry.filename) return null;
-        return 'assets/audio/music/' + entry.filename;
+    function getAmbientLoopPath() {
+        return AMBIENT_REL;
     }
 
-    function pathMatchesMusicFile(path, file) {
-        if (!path || !file || !file.filename) return false;
+    function pathTail(path) {
+        if (!path) return '';
         var parts = path.split('/');
-        var tail = parts[parts.length - 1] || '';
-        try {
-            var decoded = decodeURIComponent(tail);
-            return decoded === file.filename || tail === file.filename;
-        } catch (_) {
-            return tail === file.filename;
-        }
+        return parts[parts.length - 1] || '';
     }
 
-    function currentPathIsPaletteDefault(currentPath, musicFiles, paletteKey) {
-        var def = findDefaultMusicForPalette(musicFiles, paletteKey);
-        if (!def) return false;
-        return pathMatchesMusicFile(currentPath, def);
+    function isAmbientPath(path) {
+        if (!path) return false;
+        return path.indexOf('Default.ogg') !== -1;
+    }
+
+    function isStartupThemePath(path) {
+        if (!path) return false;
+        return path.indexOf('/Themes/') !== -1 || path.indexOf('/audio/Themes/') !== -1;
+    }
+
+    function isCatalogMusicPath(path) {
+        if (!path) return false;
+        return path.indexOf('/audio/music/') !== -1;
+    }
+
+    /**
+     * Display title for startup / ambient (now-playing label).
+     * @param {string} path
+     */
+    function getSpecialNowPlayingTitle(path) {
+        if (!path) return null;
+        if (isAmbientPath(path)) return 'Site ambience';
+        if (isStartupThemePath(path)) {
+            var t = pathTail(path).toLowerCase();
+            if (t.indexOf('talon') !== -1) return 'Talon (startup)';
+            if (t.indexOf('null') !== -1) return 'Null Sector (startup)';
+            if (t.indexOf('overwatch') !== -1) return 'Overwatch (startup)';
+            return 'Startup theme';
+        }
+        return null;
     }
 
     function notifyMusicDefaultPaletteChange(previousPalette, newPalette) {
@@ -105,11 +103,12 @@
     window.MusicPaletteDefaultHelpers = {
         normalizePaletteKey: normalizePaletteKey,
         getActiveMusicPaletteKey: getActiveMusicPaletteKey,
-        findDefaultMusicForPalette: findDefaultMusicForPalette,
-        orderMusicFilesWithDefaultFirst: orderMusicFilesWithDefaultFirst,
-        musicPathForEntry: musicPathForEntry,
-        pathMatchesMusicFile: pathMatchesMusicFile,
-        currentPathIsPaletteDefault: currentPathIsPaletteDefault,
+        getStartupThemePath: getStartupThemePath,
+        getAmbientLoopPath: getAmbientLoopPath,
+        isAmbientPath: isAmbientPath,
+        isStartupThemePath: isStartupThemePath,
+        isCatalogMusicPath: isCatalogMusicPath,
+        getSpecialNowPlayingTitle: getSpecialNowPlayingTitle,
         notifyMusicDefaultPaletteChange: notifyMusicDefaultPaletteChange
     };
 })();

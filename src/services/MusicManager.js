@@ -49,6 +49,10 @@ class MusicManager {
         this.muteBtnIcon = null;
         this.skipBtnIcon = null;
         this.shuffleBtnIcon = null;
+        /** @type {'startup'|'ambient'|'catalog'} */
+        this._musicMode = 'catalog';
+        /** Catalog-only: repeat current track (mutually exclusive with shuffle in UI). */
+        this.isLooping = false;
     }
 
     _getBodyScale() {
@@ -273,6 +277,11 @@ class MusicManager {
         
         var self = this;
         this.stateService = new window.MusicStateService();
+        if (window.MusicStateService.isLocalDevHost()) {
+            try {
+                localStorage.removeItem(this.stateService.storageKey);
+            } catch (e) { /* ignore */ }
+        }
         this.shuffleService = new window.MusicShuffleService();
         this.volumeService = new window.MusicVolumeService(this.backgroundMusic);
         this.progressService = new window.MusicProgressService(this.backgroundMusic);
@@ -285,7 +294,8 @@ class MusicManager {
             this.volumeService,
             this.shuffleService,
             this.iconService,
-            function () { return self.saveMusicState(); }
+            function () { return self.saveMusicState(); },
+            this
         );
         
         this.progressService.init();
@@ -297,8 +307,14 @@ class MusicManager {
         var initialVolume = 0.1;
         if (savedState) {
             if (savedState.currentSong) {
-                prioritySong = savedState.currentSong;
-                logAssetLoad('MUSIC_PRIORITY', 'Priority loading: ' + prioritySong);
+                var PHP = window.MusicPaletteDefaultHelpers;
+                var ambientOnlySaved = PHP && typeof PHP.isAmbientPath === 'function'
+                    && PHP.isAmbientPath(savedState.currentSong)
+                    && !(PHP.isStartupThemePath && PHP.isStartupThemePath(savedState.currentSong));
+                if (!ambientOnlySaved) {
+                    prioritySong = savedState.currentSong;
+                    logAssetLoad('MUSIC_PRIORITY', 'Priority loading: ' + prioritySong);
+                }
             }
             if (savedState.volume !== undefined && savedState.volume > 0) {
                 initialVolume = savedState.volume;
@@ -319,7 +335,7 @@ class MusicManager {
                 self.progressService.isSeeking,
                 self.progressService.isDragging,
                 function () {
-                    if (!self.shuffleService.isShuffling && self.backgroundMusic.loop && !self.progressService.isInteracting()) {
+                    if (self._musicMode === 'catalog' && !self.shuffleService.isShuffling && self.isLooping && !self.progressService.isInteracting()) {
                         self.backgroundMusic.currentTime = 0;
                         setTimeout(function () {
                             if (!self.backgroundMusic.paused && !self.progressService.isInteracting()) {
@@ -339,9 +355,30 @@ class MusicManager {
         this._playMusic = playMusic;
         var playNextSong = H.createPlayNextSong ? H.createPlayNextSong(this, playMusic) : function () {};
 
+        this._transitionToAmbientLoop = function () {
+            var PH = window.MusicPaletteDefaultHelpers;
+            var path = PH && PH.getAmbientLoopPath ? PH.getAmbientLoopPath() : 'assets/audio/Default.ogg';
+            playMusic(path);
+            self.updateNowPlaying();
+            self.saveMusicState();
+        };
+
         if (H.setupFadeAndEndBehavior) {
-            H.setupFadeAndEndBehavior(this, { fadeIn: fadeIn, fadeOut: fadeOut, playNextSong: playNextSong });
+            H.setupFadeAndEndBehavior(this, {
+                fadeIn: fadeIn,
+                fadeOut: fadeOut,
+                playNextSong: playNextSong,
+                transitionToAmbient: function () {
+                    self._transitionToAmbientLoop();
+                }
+            });
         }
+
+        this.controlService.onShuffleEnabled = function () {
+            if (self._musicMode === 'ambient' || self._musicMode === 'startup') {
+                playNextSong();
+            }
+        };
 
         window.encodeMusicPath = function (path) { return self.playbackService.encodeMusicPath(path); };
 
@@ -379,14 +416,25 @@ class MusicManager {
         };
 
         this.updateNowPlaying = function () {
+            var PH0 = window.MusicPaletteDefaultHelpers;
+            var path = self.currentSong;
+            var hideTrackTitle = !!(path && PH0 && (
+                (typeof PH0.isStartupThemePath === 'function' && PH0.isStartupThemePath(path)) ||
+                (typeof PH0.isAmbientPath === 'function' && PH0.isAmbientPath(path))
+            ));
+
             var el = document.getElementById('musicCurrentSong');
-            var name = getCurrentSongName();
+            var npRow = document.getElementById('musicNowPlaying');
+            if (npRow) {
+                npRow.classList.toggle('music-now-playing--hide-track-title', hideTrackTitle);
+            }
+
+            var name = hideTrackTitle ? '' : getCurrentSongName();
             if (el) el.textContent = name;
 
-            // Passive badge: show current song under Music button.
-            // It will be behind the music panel (z-index) and also hidden when the panel is open.
+            // Passive badge: catalog only (no title for startup / site ambience).
             var panelOpen = !!(self.musicPanel && self.musicPanel.classList.contains('open'));
-            var shouldShow = !!(self.currentSong && !panelOpen);
+            var shouldShow = !!(path && !panelOpen && !hideTrackTitle);
             self._setNowPlayingBadgeVisible(shouldShow);
             if (shouldShow) {
                 self._transitionNowPlayingBadgeText(name);
@@ -421,7 +469,8 @@ class MusicManager {
                 self.currentSong,
                 self.shuffleService.isShuffling,
                 self.shuffleService.currentSongIndex,
-                self.shuffleService.shuffleQueue
+                self.shuffleService.shuffleQueue,
+                self.isLooping
             );
             if (st) self.stateService.saveState(st);
         };
@@ -490,14 +539,12 @@ class MusicManager {
         const next = H.normalizePaletteKey(newPalette);
         if (prev === next) return;
 
-        if (!this.shuffleService || !this.shuffleService.isShuffling) {
-            if (H.currentPathIsPaletteDefault(this.currentSong, this.musicFiles, prev)) {
-                const nextEntry = H.findDefaultMusicForPalette(this.musicFiles, next);
-                if (nextEntry && this._playMusic && !H.pathMatchesMusicFile(this.currentSong, nextEntry)) {
-                    this._playMusic(H.musicPathForEntry(nextEntry));
-                    this.updateNowPlaying();
-                    this.saveMusicState();
-                }
+        if (!this.shuffleService.isShuffling && this._musicMode === 'startup' && typeof this._playMusic === 'function') {
+            const themePath = H.getStartupThemePath(next);
+            if (themePath) {
+                this._playMusic(themePath);
+                this.updateNowPlaying();
+                this.saveMusicState();
             }
         }
 

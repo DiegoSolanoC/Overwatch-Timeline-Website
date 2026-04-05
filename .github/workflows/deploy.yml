@@ -31,8 +31,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Generate manifest for assets
-        run: node generate-manifest.js
+      - name: Build static site (manifest + _site/)
+        run: npm run build:pages
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -40,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

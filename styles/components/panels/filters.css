@@ -209,6 +209,7 @@ body.color-palette-gray .filter-tab.active .filter-count {
     width: 100%;
     max-width: 100%;
     align-content: start; /* Prevent rows from stretching when there's extra space */
+    align-items: start; /* Row height from tallest tile only; label height capped below */
 }
 
 /* Custom scrollbar styling for filters grid */
@@ -301,16 +302,37 @@ body.color-palette-gray .filter-tab.active .filter-count {
     color: white; /* White text for contrast */
     font-size: 14px; /* Larger font for better visibility */
     font-weight: 600; /* Bolder font */
-    padding: 8px 4px;
+    padding: 6px 4px;
     /* Overlap icon tile by 1px to hide scale/transform hairline between regions */
     margin-top: -1px;
     position: relative;
     z-index: 1;
     border-radius: 0; /* Sharp edges */
-    text-align: center;
     transition: all var(--panel-transition);
     box-sizing: border-box;
     letter-spacing: 0.5px; /* Better readability */
+    flex: 0 0 auto;
+    height: 3rem;
+    min-height: 3rem;
+    max-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Line clamp lives on inner span so the label flex can vertically center short names */
+.filter-btn .filter-label-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    hyphens: auto;
+    line-height: 1.2;
+    text-align: center;
+    width: 100%;
+    max-height: calc(1.2em * 2);
 }
 
 /* Gray palette: light gray background for filter label */

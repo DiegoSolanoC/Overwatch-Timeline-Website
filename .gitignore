@@ -13,6 +13,9 @@ Thumbs.db
 *.tmp
 *.bak
 
+# GitHub Pages local build output
+_site/
+
 
 
 

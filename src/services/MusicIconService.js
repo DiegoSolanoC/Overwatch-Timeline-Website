@@ -8,6 +8,7 @@ class MusicIconService {
         this.muteBtnIcon = null;
         this.skipBtnIcon = null;
         this.shuffleBtnIcon = null;
+        this.loopBtnIcon = null;
     }
 
     /**
@@ -17,6 +18,7 @@ class MusicIconService {
         this.pauseBtnIcon = document.getElementById('pauseBtnIcon');
         this.muteBtnIcon = document.getElementById('muteBtnIcon');
         this.skipBtnIcon = document.getElementById('skipBtnIcon');
+        this.loopBtnIcon = document.getElementById('loopBtnIcon');
         this.shuffleBtnIcon = document.getElementById('shuffleBtnIcon');
     }
 
@@ -48,6 +50,15 @@ class MusicIconService {
             // For now, use the same icon regardless of state
             // Could be enhanced to show different icons for active/inactive
             this.shuffleBtnIcon.src = 'assets/images/icons/Shuffle Icon.png';
+        }
+    }
+
+    /**
+     * Loop toggle visual (SVG uses currentColor; opacity hints inactive state).
+     */
+    updateLoopIcon(isLooping) {
+        if (this.loopBtnIcon) {
+            this.loopBtnIcon.style.opacity = isLooping ? '1' : '0.5';
         }
     }
 }

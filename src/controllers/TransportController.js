@@ -179,6 +179,27 @@ export class TransportController {
     }
 
     /**
+     * Recreate decor satellites when transport is turned on (after unload).
+     * @returns {THREE.Group[]} Newly created satellite groups (empty if none).
+     */
+    ensureDecorSatellitesLoaded() {
+        const created = this.satelliteManager.ensureDecorSatellitesLoaded();
+        if (created.length > 0 && this.globeView && typeof this.globeView.addSatelliteMarkers === 'function') {
+            this.globeView.addSatelliteMarkers(created);
+        }
+        const isMap = this.sceneModel.getMapViewEnabled && this.sceneModel.getMapViewEnabled();
+        if (created.length > 0 && isMap) {
+            this.setSatellitesMapViewEnabled(true);
+        }
+        return created;
+    }
+
+    /** Remove and dispose background "small" satellites (ISS / Mars Ship stay). */
+    disposeDecorSatellites() {
+        this.satelliteManager.disposeDecorSatellites();
+    }
+
+    /**
      * Find the ISS satellite
      * Delegates to SatelliteManager
      * @returns {Object|null} ISS satellite object or null

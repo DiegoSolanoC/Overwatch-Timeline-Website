@@ -141,7 +141,10 @@ class LocationService {
                     const event = this.eventManager.events[itemIndex];
                     const tolerance = 0.01;
                     if (Math.abs(event.lat - lat) < tolerance && Math.abs(event.lon - lon) < tolerance) {
-                        locationEl.innerHTML = `<img src="assets/images/icons/Location Icon.png" alt="Location" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"> ${locationName}`;
+                        const rowInner = (typeof window !== 'undefined' && window.LocationFlagHelpers && typeof window.LocationFlagHelpers.createLocationRowInnerHtml === 'function')
+                            ? window.LocationFlagHelpers.createLocationRowInnerHtml(locationName, 'earth')
+                            : `<img class="event-location-pin" src="assets/images/icons/Location Icon.png" alt="" width="28" height="28" decoding="async" /> ${locationName}`;
+                        locationEl.innerHTML = rowInner;
                     }
                 }
             }

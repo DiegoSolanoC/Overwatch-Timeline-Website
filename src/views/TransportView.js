@@ -45,6 +45,8 @@ export class TransportView {
      * @param {THREE.Vector3} direction - Direction vector
      */
     createTrailSegment(position, direction) {
+        if (!this.sceneModel.getHyperloopVisible()) return;
+
         const globe = this.sceneModel.getGlobe();
         const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
@@ -107,6 +109,8 @@ export class TransportView {
      * @param {THREE.Vector3} up - Up direction
      */
     createBoatTrailSegment(position, forward, right, up) {
+        if (!this.sceneModel.getHyperloopVisible()) return;
+
         const globe = this.sceneModel.getGlobe();
         const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
@@ -187,9 +191,47 @@ export class TransportView {
     /**
      * Update visibility of all transport elements
      */
+    /**
+     * Remove plane/boat/satellite streak meshes when transport is disabled (free GPU objects, stop fade loops).
+     */
+    purgePlaneTrails() {
+        const planeTrails = this.transportModel.getPlaneTrails();
+        for (let i = planeTrails.length - 1; i >= 0; i--) {
+            const trail = planeTrails[i];
+            if (trail?.parent) trail.parent.remove(trail);
+            if (trail?.geometry) trail.geometry.dispose();
+            if (trail?.material) trail.material.dispose();
+            this.transportModel.removePlaneTrail(trail);
+        }
+    }
+
+    purgeBoatTrails() {
+        const boatTrails = this.transportModel.getBoatTrails();
+        for (let i = boatTrails.length - 1; i >= 0; i--) {
+            const trail = boatTrails[i];
+            if (trail?.parent) trail.parent.remove(trail);
+            if (trail?.geometry) trail.geometry.dispose();
+            if (trail?.material) trail.material.dispose();
+            this.transportModel.removeBoatTrail(trail);
+        }
+    }
+
     updateHyperloopVisibility() {
         const scene = this.sceneModel.getScene();
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        const transportController = typeof window !== 'undefined' && window.globeController
+            ? window.globeController.transportController
+            : null;
+
+        if (!hyperloopVisible) {
+            this.purgePlaneTrails();
+            this.purgeBoatTrails();
+            if (transportController && typeof transportController.disposeDecorSatellites === 'function') {
+                transportController.disposeDecorSatellites();
+            }
+        } else if (transportController && typeof transportController.ensureDecorSatellitesLoaded === 'function') {
+            transportController.ensureDecorSatellitesLoaded();
+        }
         const markers = this.sceneModel.getMarkers();
         const trains = this.transportModel.getTrains();
         const planes = this.transportModel.getPlanes();
@@ -208,6 +250,9 @@ export class TransportView {
                 }
                 // If it's a variant marker (isMainVariant === false), don't change its visibility
                 // Let VariantMarkerManager control it
+            } else if (marker.userData && marker.userData.isSatelliteMarker) {
+                // Reserved for future rocket UI; never show as purple dots (see GlobeView.addSatelliteMarkers)
+                marker.visible = false;
             } else {
                 marker.visible = hyperloopVisible;
             }
@@ -275,6 +320,8 @@ export class TransportView {
      * @param {THREE.Vector3} position - Position
      */
     createSatelliteTrailDot(position) {
+        if (!this.sceneModel.getHyperloopVisible()) return;
+
         const globe = this.sceneModel.getGlobe();
         const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;

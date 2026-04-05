@@ -280,6 +280,8 @@ export class PlaneManager {
      * Update planes - handles movement, landing, and trail spawning
      */
     updatePlanes() {
+        if (!this.sceneModel.getHyperloopVisible()) return;
+
         const globe = this.sceneModel.getGlobe();
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();

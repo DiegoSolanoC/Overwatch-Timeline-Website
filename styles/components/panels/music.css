@@ -575,6 +575,11 @@ body.color-palette-gray .music-actions {
     box-sizing: border-box; /* Ensure padding is included in size */
 }
 
+/* Startup theme / site ambience: no title row (progress controls only). */
+.music-now-playing--hide-track-title .music-current-song-row {
+    display: none;
+}
+
 .music-current-song-row {
     display: flex;
     align-items: center;

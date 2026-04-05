@@ -14,14 +14,11 @@ class MusicPlaybackService {
      */
     encodeMusicPath(path) {
         if (!path) return path;
-        // Split path to encode only the filename, not the folder
         const parts = path.split('/');
-        if (parts.length === 2) {
-            const folder = parts[0];
-            const filename = parts[1];
-            return `${folder}/${encodeURIComponent(filename)}`;
-        }
-        return path; // Return as-is if format is unexpected
+        if (parts.length < 2) return path;
+        const filename = parts[parts.length - 1];
+        const dir = parts.slice(0, -1).join('/');
+        return `${dir}/${encodeURIComponent(filename)}`;
     }
 
     /**
@@ -48,11 +45,14 @@ class MusicPlaybackService {
     /**
      * Load a song (set source and prepare for playback)
      */
-    loadSong(songPath, isShuffling, onMetadataLoaded) {
+    loadSong(songPath, isShuffling, onMetadataLoaded, loopOverride) {
         if (!songPath || !this.backgroundMusic) return;
-        
-        // Set loop based on shuffle state
-        this.backgroundMusic.loop = !isShuffling;
+
+        if (typeof loopOverride === 'boolean') {
+            this.backgroundMusic.loop = loopOverride;
+        } else {
+            this.backgroundMusic.loop = !isShuffling;
+        }
         
         // Encode the path to handle special characters
         const encodedPath = this.encodeMusicPath(songPath);
@@ -154,20 +154,15 @@ class MusicPlaybackService {
         if (isShuffling && shuffleQueue && shuffleQueue.length > 0) {
             const nextIndex = (currentSongIndex + 1) % shuffleQueue.length;
             return shuffleQueue[nextIndex];
-        } else {
-            if (this.musicFiles.length === 0) return null;
-            const H = (typeof window !== 'undefined' && window.MusicPaletteDefaultHelpers)
-                ? window.MusicPaletteDefaultHelpers
-                : null;
-            if (H) {
-                const pal = H.getActiveMusicPaletteKey();
-                return H.findDefaultMusicForPalette(this.musicFiles, pal);
-            }
-            const winstonsDesk = this.musicFiles.find(s =>
-                s.name.toLowerCase().includes('winston') || s.name.toLowerCase().includes('desk')
-            );
-            return winstonsDesk || this.musicFiles[0];
         }
+        if (this.musicFiles.length === 0) return null;
+        const cur = this.currentSong || '';
+        let idx = this.musicFiles.findIndex(s =>
+            cur.endsWith('/' + s.filename) || decodeURIComponent(cur).endsWith('/' + s.filename)
+        );
+        if (idx < 0) idx = 0;
+        else idx = (idx + 1) % this.musicFiles.length;
+        return this.musicFiles[idx];
     }
 
     /**

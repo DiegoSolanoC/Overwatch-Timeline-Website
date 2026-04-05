@@ -33,7 +33,7 @@ function _createRadialGlowTexture({ size = 256 } = {}) {
     return tex;
 }
 
-function _createRingGlowTexture({ size = 256 } = {}) {
+function _createRingGlowTexture({ size = 384 } = {}) {
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -44,12 +44,14 @@ function _createRingGlowTexture({ size = 256 } = {}) {
     const cy = size / 2;
     const r = size / 2;
 
-    // Donut-like glow: transparent center → bright rim → soft falloff.
+    // Donut-like limb: dark center → faint airglow → brighter terminator band → soft outer falloff.
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     g.addColorStop(0.0, 'rgba(255,255,255,0.0)');
-    g.addColorStop(0.55, 'rgba(255,255,255,0.0)');
-    g.addColorStop(0.70, 'rgba(255,255,255,0.55)');
-    g.addColorStop(0.82, 'rgba(255,255,255,0.28)');
+    g.addColorStop(0.50, 'rgba(255,255,255,0.0)');
+    g.addColorStop(0.58, 'rgba(255,248,235,0.14)');
+    g.addColorStop(0.70, 'rgba(255,255,255,0.82)');
+    g.addColorStop(0.80, 'rgba(255,245,225,0.42)');
+    g.addColorStop(0.90, 'rgba(255,238,210,0.16)');
     g.addColorStop(1.0, 'rgba(255,255,255,0.0)');
 
     ctx.fillStyle = g;
@@ -150,7 +152,7 @@ export function addSunBackground({ scene }) {
  * @returns {THREE.Sprite|null}
  */
 export function createGlobeRimGlowSprite({ color = 0x6fd3ff, scale = 2.7, opacity = 0.75, intensity = 1.0 } = {}) {
-    const tex = _createRingGlowTexture({ size: 256 });
+    const tex = _createRingGlowTexture({ size: 384 });
     if (!tex) return null;
 
     const mat = new THREE.SpriteMaterial({
@@ -174,6 +176,277 @@ export function createGlobeRimGlowSprite({ color = 0x6fd3ff, scale = 2.7, opacit
     sprite.frustumCulled = false;
     sprite.userData.rimIntensity = (Number.isFinite(intensity) && intensity > 0) ? intensity : 1.0;
     return sprite;
+}
+
+/**
+ * Thin sphere shell slightly outside the globe: polar aurora bands (object-space lat) + soft ripples.
+ * Uses additive blending; animates via uTime in {@link GlobeView#updateAtmosphereEffects}.
+ * @param {Object} [opts]
+ * @param {number} [opts.radius] - Slightly > globe (1); sits outside surface/rim for visibility (default ~1.022)
+ * @param {number} [opts.uIntensity] - Palette baseline strength (default ~0.42); veil boost multiplies in shader
+ * @returns {THREE.Mesh|null}
+ */
+export function createGlobeAuroraShell({ radius = 1.022, uIntensity = 0.42 } = {}) {
+    const geometry = new THREE.SphereGeometry(radius, 72, 72);
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 },
+            uIntensity: { value: uIntensity },
+            uVeilExpand: { value: 0 },
+            uVeilBoost: { value: 1.0 }
+        },
+        vertexShader: `
+            varying vec3 vObjNormal;
+            void main() {
+                vObjNormal = normal;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform float uTime;
+            uniform float uIntensity;
+            uniform float uVeilExpand;
+            uniform float uVeilBoost;
+            varying vec3 vObjNormal;
+
+            float hash11(float x) {
+                return fract(sin(x) * 43758.5453123);
+            }
+
+            float triNoise3(vec3 p) {
+                vec3 i = floor(p);
+                vec3 f = fract(p);
+                f = f * f * (3.0 - 2.0 * f);
+                float n0 = i.x + i.y * 57.0 + 113.0 * i.z;
+                return mix(
+                    mix(mix(hash11(n0 + 0.0), hash11(n0 + 1.0), f.x),
+                        mix(hash11(n0 + 57.0), hash11(n0 + 58.0), f.x), f.y),
+                    mix(mix(hash11(n0 + 113.0), hash11(n0 + 114.0), f.x),
+                        mix(hash11(n0 + 170.0), hash11(n0 + 171.0), f.x), f.y),
+                    f.z);
+            }
+
+            void main() {
+                vec3 n = normalize(vObjNormal);
+                float pole = abs(n.y);
+                float ve = clamp(uVeilExpand, 0.0, 1.0);
+                // ve=0: off (no aurora). Higher: wider polar veil (up to full cap at ve=1).
+                float innerP = mix(0.878, 0.52, ve);
+                float outerP = mix(0.952, 0.68, ve);
+                float cap0 = mix(0.974, 0.90, ve);
+                float cap1 = mix(0.999, 0.997, ve);
+                float band = smoothstep(innerP, outerP, pole) * (1.0 - smoothstep(cap0, cap1, pole));
+                if (band < 0.002) discard;
+
+                vec3 drift = vec3(uTime * 0.025, uTime * 0.018, uTime * 0.022);
+                vec3 q = n * 4.2 + drift;
+                float g0 = triNoise3(q);
+                float g1 = triNoise3(q * 2.15 + vec3(13.7, 8.3, 21.1));
+                float g2 = triNoise3(q * 4.6 + vec3(5.1, 19.2, 3.4));
+                float grain = g0 * 0.52 + g1 * 0.32 + g2 * 0.16;
+
+                float ang = atan(n.x, n.z);
+                float angWarp = (grain - 0.5) * 0.6 + (g1 - 0.5) * 0.28;
+                float curtains = sin((ang + angWarp) * 7.0 + uTime * 0.35 + g2 * 1.8) * 0.5 + 0.5;
+                float ripples = sin(pole * (22.0 + 7.0 * g0) - uTime * 0.85 + grain * 4.5) * 0.5 + 0.5;
+                float pulse = sin(uTime * 0.5 + pole * (10.0 + 5.0 * g1) + grain * 2.2) * 0.12 + 0.88;
+
+                float bright = 0.62 + 0.52 * grain;
+                float strength = band * (0.30 + 0.52 * curtains * ripples) * pulse * bright * uIntensity * uVeilBoost;
+                float veilPresence = smoothstep(0.0, 0.028, ve);
+                strength *= veilPresence;
+
+                vec3 col = vec3(0.10, 0.90, 0.40);
+                float fr0 = mix(0.918, 0.91, ve);
+                float fr1 = mix(0.984, 0.975, ve);
+                float fringe = smoothstep(fr0, fr1, pole);
+                col = mix(col, vec3(0.30, 0.95, 0.72), fringe * 0.4);
+                col *= mix(vec3(0.9, 0.95, 1.0), vec3(1.05, 1.0, 0.92), grain * 0.35 + g2 * 0.15);
+
+                gl_FragColor = vec4(col * strength, 1.0);
+            }
+        `,
+        transparent: true,
+        depthWrite: false,
+        depthTest: true,
+        side: THREE.FrontSide,
+        blending: THREE.AdditiveBlending
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = 'globeAuroraShell';
+    mesh.renderOrder = 1;
+    mesh.frustumCulled = false;
+    return mesh;
+}
+
+/**
+ * Updates cloud mesh tint to match palette (texture: MeshBasicMaterial.color; procedural: uTint).
+ * @param {THREE.Mesh|null} mesh
+ * @param {number} tintHex - e.g. rim key color 0x6fd3ff
+ */
+export function applyGlobeCloudPaletteTint(mesh, tintHex) {
+    if (!mesh) return;
+    mesh.userData.cloudTintHex = tintHex;
+    if (!mesh.material) return;
+    const tintCol = new THREE.Color(tintHex);
+    tintCol.multiplyScalar(0.9);
+    const m = mesh.material;
+    if (m.uniforms && m.uniforms.uTint) {
+        m.uniforms.uTint.value.set(tintCol.r, tintCol.g, tintCol.b);
+    } else if (m.color) {
+        m.color.copy(tintCol);
+    }
+}
+
+/**
+ * Curated equirectangular (2:1) cloud atlases — one random path per page load.
+ * Files live in `assets/images/maps/` as `Cloud Map 1.png` … (spaces URL-encoded for loading).
+ *
+ * @type {{ path: string }[]}
+ */
+export const GLOBE_CLOUD_ATLAS_VARIANTS = [
+    { path: `assets/images/maps/${encodeURIComponent('Cloud Map 1.png')}` },
+    { path: `assets/images/maps/${encodeURIComponent('Cloud Map 2.png')}` },
+    { path: `assets/images/maps/${encodeURIComponent('Cloud Map 3.png')}` },
+    { path: `assets/images/maps/${encodeURIComponent('Cloud Map 4.png')}` },
+    { path: `assets/images/maps/${encodeURIComponent('Cloud Map 5.jpg')}` }
+];
+
+/**
+ * Slightly larger sphere above the Earth: cloud albedo layer (same UV as MAP.png).
+ * NASA Blue Marble–style atlases (three.js `earth_clouds_*`); procedural fallback if load fails.
+ * @param {Object} [opts]
+ * @param {THREE.TextureLoader} [opts.textureLoader]
+ * @param {THREE.WebGLRenderer} [opts.renderer]
+ * @param {number} [opts.radius] - Default ~1.004
+ * @param {number} [opts.opacity] - Overall transparency (~0.5 recommended)
+ * @param {number} [opts.tintHex] - Multiplies cloud color (match rim / palette), e.g. 0x6fd3ff
+ * @param {{ path: string }[]|null} [opts.cloudTextureVariants]
+ * @param {string|null} [opts.cloudTexturePath] - Single atlas (ignored if cloudTextureVariants has length)
+ * @returns {THREE.Mesh|null}
+ */
+export function createGlobeCloudLayer({
+    textureLoader = null,
+    renderer = null,
+    radius = 1.004,
+    opacity = 0.5,
+    tintHex = 0xffffff,
+    cloudTextureVariants = null,
+    cloudTexturePath = null
+} = {}) {
+    const geometry = new THREE.SphereGeometry(radius, 64, 64);
+
+    const tintCol = new THREE.Color(tintHex);
+    tintCol.multiplyScalar(0.9);
+
+    const proceduralMat = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 },
+            uOpacity: { value: opacity },
+            uTint: { value: new THREE.Vector3(tintCol.r, tintCol.g, tintCol.b) }
+        },
+        vertexShader: `
+            varying vec3 vObjNormal;
+            void main() {
+                vObjNormal = normal;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform float uTime;
+            uniform float uOpacity;
+            uniform vec3 uTint;
+            varying vec3 vObjNormal;
+            float hash11(float x) {
+                return fract(sin(x) * 43758.5453123);
+            }
+            float triNoise3(vec3 p) {
+                vec3 i = floor(p);
+                vec3 f = fract(p);
+                f = f * f * (3.0 - 2.0 * f);
+                float n0 = i.x + i.y * 57.0 + 113.0 * i.z;
+                return mix(
+                    mix(mix(hash11(n0 + 0.0), hash11(n0 + 1.0), f.x),
+                        mix(hash11(n0 + 57.0), hash11(n0 + 58.0), f.x), f.y),
+                    mix(mix(hash11(n0 + 113.0), hash11(n0 + 114.0), f.x),
+                        mix(hash11(n0 + 170.0), hash11(n0 + 171.0), f.x), f.y),
+                    f.z);
+            }
+            void main() {
+                vec3 n = normalize(vObjNormal);
+                float mu = abs(n.y);
+                vec3 drift = vec3(uTime * 0.011, uTime * 0.017, uTime * 0.009);
+                vec3 p = n * 2.95 + drift;
+                float d = triNoise3(p) * 0.52 + triNoise3(p * 2.07 + vec3(3.1, 7.4, 2.8)) * 0.30
+                    + triNoise3(p * 5.1 + vec3(11.0, 4.2, 6.9)) * 0.18;
+                float deck = smoothstep(0.10, 0.38, mu) * (1.0 - smoothstep(0.72, 0.94, mu));
+                deck = mix(0.42, 1.0, deck);
+                float cov = smoothstep(0.38, 0.74, d) * deck;
+                float alpha = cov * uOpacity;
+                if (alpha < 0.015) discard;
+                float lit = 0.82 + 0.18 * cov;
+                vec3 albedo = vec3(0.93, 0.95, 1.0) * lit * uTint;
+                gl_FragColor = vec4(albedo, alpha);
+            }
+        `,
+        transparent: true,
+        depthWrite: false,
+        depthTest: true,
+        side: THREE.FrontSide
+    });
+
+    const mesh = new THREE.Mesh(geometry, proceduralMat);
+    mesh.name = 'globeCloudLayer';
+    mesh.renderOrder = 0;
+    mesh.frustumCulled = false;
+    mesh.userData.proceduralClouds = true;
+    mesh.userData.cloudTintHex = tintHex;
+
+    const variants =
+        cloudTextureVariants && cloudTextureVariants.length
+            ? cloudTextureVariants
+            : cloudTexturePath
+              ? [{ path: cloudTexturePath }]
+              : [];
+
+    if (variants.length && textureLoader && renderer) {
+        const choice = variants[Math.floor(Math.random() * variants.length)];
+        mesh.visible = false;
+        loadTexture(
+            textureLoader,
+            choice.path,
+            renderer,
+            (tex) => {
+                const old = mesh.material;
+                if (old && old.dispose) old.dispose();
+                tex.needsUpdate = true;
+                const h = mesh.userData.cloudTintHex != null ? mesh.userData.cloudTintHex : tintHex;
+                const tc = new THREE.Color(h);
+                tc.multiplyScalar(0.9);
+                mesh.material = new THREE.MeshBasicMaterial({
+                    map: tex,
+                    alphaMap: tex,
+                    color: tc.clone(),
+                    transparent: true,
+                    opacity: Math.min(1, opacity),
+                    depthWrite: false,
+                    depthTest: true,
+                    side: THREE.FrontSide,
+                    fog: false
+                });
+                mesh.userData.proceduralClouds = false;
+                mesh.userData.cloudAtlasPath = choice.path;
+                mesh.visible = true;
+            },
+            () => {
+                mesh.visible = true;
+                console.warn('[globe clouds] Cloud albedo not loaded; using procedural layer:', choice.path);
+            }
+        );
+    }
+
+    return mesh;
 }
 
 /**
@@ -284,4 +557,8 @@ if (typeof window !== 'undefined') {
     window.GlobeInitHelpers.setupCelestialPlanes = setupCelestialPlanes;
     window.GlobeInitHelpers.addSunBackground = addSunBackground;
     window.GlobeInitHelpers.createGlobeRimGlowSprite = createGlobeRimGlowSprite;
+    window.GlobeInitHelpers.createGlobeAuroraShell = createGlobeAuroraShell;
+    window.GlobeInitHelpers.createGlobeCloudLayer = createGlobeCloudLayer;
+    window.GlobeInitHelpers.GLOBE_CLOUD_ATLAS_VARIANTS = GLOBE_CLOUD_ATLAS_VARIANTS;
+    window.GlobeInitHelpers.applyGlobeCloudPaletteTint = applyGlobeCloudPaletteTint;
 }

@@ -464,6 +464,17 @@ export class TransportModel {
     }
 
     /**
+     * Remove a satellite orbit line from tracking
+     * @param {Object} orbitLine - Orbit line object
+     */
+    removeSatelliteOrbitLine(orbitLine) {
+        const index = this.satelliteOrbitLines.indexOf(orbitLine);
+        if (index > -1) {
+            this.satelliteOrbitLines.splice(index, 1);
+        }
+    }
+
+    /**
      * Get all satellite orbit lines
      * @returns {Array}
      */

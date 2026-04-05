@@ -60,6 +60,9 @@ export function createMusicPanel() {
                         <button id="muteBtn" class="music-control-btn">
                             <img id="muteBtnIcon" src="assets/images/icons/Unmuted Icon.png" alt="Mute" class="control-icon">
                         </button>
+                        <button id="loopBtn" type="button" class="music-control-btn" aria-label="Loop current track">
+                            <img id="loopBtnIcon" src="assets/images/icons/Loop Icon.svg" alt="Loop" class="control-icon">
+                        </button>
                         <button id="shuffleBtn" class="music-control-btn">
                             <img id="shuffleBtnIcon" src="assets/images/icons/Shuffle Icon.png" alt="Shuffle" class="control-icon">
                         </button>

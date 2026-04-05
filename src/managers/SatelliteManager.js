@@ -5,12 +5,21 @@
 import { vector3ToLatLon, latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
 import { getTransportVehicleColors, getMarsShipEmissiveHex } from '../utils/TransportPaletteColors.js';
 
+/** ISS and Mars Ship host events — never tied to the transport / decor vehicle toggle. */
+function isEventHostSatelliteType(type) {
+    return type === 'ISS' || type === 'MarsShip';
+}
+
 export class SatelliteManager {
     constructor(sceneModel, transportModel, transportView) {
         this.sceneModel = sceneModel;
         this.transportModel = transportModel;
         this.transportView = transportView;
         this._mapOrbitsEnabled = false; // user-requested default: hidden
+        /** Cache ISS/Mars Ship speed flags — invalidates when event page or list length changes */
+        this._satellitePageKey = null;
+        this._satellitePageHasStation = false;
+        this._satellitePageHasMarsShip = false;
     }
 
     setMapViewEnabled(enabled) {
@@ -54,7 +63,9 @@ export class SatelliteManager {
             } else {
                 data.hideInMap = false; // Keep ISS and Mars Ship visible
             }
-            satellite.visible = this.sceneModel.getHyperloopVisible() && !(isMapView && data.hideInMap);
+            const transportOn = this.sceneModel.getHyperloopVisible();
+            const venue = isEventHostSatelliteType(data.type);
+            satellite.visible = (venue || transportOn) && !(isMapView && data.hideInMap);
         });
 
         // Build polylines for orbit paths on the map plane (currently disabled by user request: hide orbit lines)
@@ -437,7 +448,7 @@ export class SatelliteManager {
         
         satelliteGroup.position.set(initialPosition.x, initialPosition.y, initialPosition.z);
         
-        satelliteGroup.visible = this.sceneModel.getHyperloopVisible();
+        satelliteGroup.visible = isEventHostSatelliteType(type) || this.sceneModel.getHyperloopVisible();
         if (globe) globe.add(satelliteGroup);
         this.transportModel.addSatellite(satelliteGroup);
         
@@ -473,27 +484,32 @@ export class SatelliteManager {
         
         if (window.globeController && window.globeController.dataModel) {
             const dataModel = window.globeController.dataModel;
-            const currentPageEvents = dataModel.getEventsForCurrentPage();
-            
-            // Check if any current page events are station/marsShip type
-            hasStationMarkerOnPage = currentPageEvents.some(event => {
-                const eventLocationType = event.locationType || 'earth';
-                if (eventLocationType === 'station') return true;
-                // Also check variants
-                if (event.variants) {
-                    return event.variants.some(variant => (variant.locationType || eventLocationType) === 'station');
-                }
-                return false;
-            });
-
-            hasMarsShipMarkerOnPage = currentPageEvents.some(event => {
-                const eventLocationType = event.locationType || 'earth';
-                if (eventLocationType === 'marsShip') return true;
-                if (event.variants) {
-                    return event.variants.some(variant => (variant.locationType || eventLocationType) === 'marsShip');
-                }
-                return false;
-            });
+            const pageNum = typeof dataModel.getCurrentEventPage === 'function'
+                ? dataModel.getCurrentEventPage()
+                : dataModel.currentEventPage;
+            const pageKey = `${pageNum}\0${dataModel.eventsPerPage}\0${dataModel.events.length}`;
+            if (pageKey !== this._satellitePageKey) {
+                this._satellitePageKey = pageKey;
+                const currentPageEvents = dataModel.getEventsForCurrentPage();
+                this._satellitePageHasStation = currentPageEvents.some(event => {
+                    const eventLocationType = event.locationType || 'earth';
+                    if (eventLocationType === 'station') return true;
+                    if (event.variants) {
+                        return event.variants.some(variant => (variant.locationType || eventLocationType) === 'station');
+                    }
+                    return false;
+                });
+                this._satellitePageHasMarsShip = currentPageEvents.some(event => {
+                    const eventLocationType = event.locationType || 'earth';
+                    if (eventLocationType === 'marsShip') return true;
+                    if (event.variants) {
+                        return event.variants.some(variant => (variant.locationType || eventLocationType) === 'marsShip');
+                    }
+                    return false;
+                });
+            }
+            hasStationMarkerOnPage = this._satellitePageHasStation;
+            hasMarsShipMarkerOnPage = this._satellitePageHasMarsShip;
         }
         
         // Check if hovering over a station marker
@@ -526,6 +542,12 @@ export class SatelliteManager {
         
         satellites.forEach(satellite => {
             const data = satellite.userData;
+            if (!data?.isSatellite) return;
+
+            if (data.type === 'small' && !hyperloopVisible) {
+                return;
+            }
+
             if (isMapView && data?.hideInMap) {
                 satellite.visible = false;
                 return;
@@ -615,49 +637,145 @@ export class SatelliteManager {
             }
             // Small satellites keep their random rotation (no alignment with path)
             
-            // Handle trail spawning (small dots offset to sides randomly)
-            data.lastTrailSpawn++;
-            if (data.lastTrailSpawn >= data.trailSpawnInterval) {
-                // Random chance to spawn (slightly more common)
-                const chance = isMapView ? 0.125 : 0.25; // Map view: half as many dots
-                if (Math.random() < chance) {
-                    this.transportView.createSatelliteTrailDot(satellite.position);
+            // Trail dots only for decor satellites while transport is on
+            if (data.type === 'small' && hyperloopVisible) {
+                data.lastTrailSpawn++;
+                if (data.lastTrailSpawn >= data.trailSpawnInterval) {
+                    const chance = isMapView ? 0.125 : 0.25;
+                    if (Math.random() < chance) {
+                        this.transportView.createSatelliteTrailDot(satellite.position);
+                    }
+                    data.lastTrailSpawn = 0;
+                    data.trailSpawnInterval = Math.floor(Math.random() * 7) + 3;
                 }
-                data.lastTrailSpawn = 0;
-                // Intervals with random variation (3-10 frames between checks, reduced from 5-15)
-                data.trailSpawnInterval = Math.floor(Math.random() * 7) + 3;
             }
             
-            satellite.visible = hyperloopVisible;
+            const venue = isEventHostSatelliteType(data.type);
+            satellite.visible = (venue || hyperloopVisible) && !(isMapView && data.hideInMap);
         });
+    }
+
+    /**
+     * Remove purple placeholder markers tracked in SceneModel that belong to a satellite group.
+     * @param {THREE.Object3D} satellite
+     */
+    _removeSatelliteMarkersForSatellite(satellite) {
+        const markers = this.sceneModel.getMarkers();
+        for (let i = markers.length - 1; i >= 0; i--) {
+            const m = markers[i];
+            if (m.userData?.isSatelliteMarker && m.userData?.parentSatellite === satellite) {
+                if (m.parent) m.parent.remove(m);
+                if (m.geometry) m.geometry.dispose();
+                if (m.material) m.material.dispose();
+                markers.splice(i, 1);
+            }
+        }
+    }
+
+    _disposeDecorSatellite(satellite) {
+        const data = satellite.userData;
+        if (!data) return;
+
+        this._removeSatelliteMarkersForSatellite(satellite);
+
+        if (data.mapOrbitLines && Array.isArray(data.mapOrbitLines)) {
+            data.mapOrbitLines.forEach(line => {
+                if (line?.parent) line.parent.remove(line);
+                if (line?.geometry) line.geometry.dispose();
+                if (line?.material) line.material.dispose();
+            });
+            data.mapOrbitLines = [];
+        }
+
+        const orbitLine = data.orbitLine;
+        if (orbitLine) {
+            if (orbitLine.parent) orbitLine.parent.remove(orbitLine);
+            if (orbitLine.geometry) orbitLine.geometry.dispose();
+            if (orbitLine.material) orbitLine.material.dispose();
+            this.transportModel.removeSatelliteOrbitLine(orbitLine);
+            data.orbitLine = null;
+        }
+
+        if (satellite.parent) satellite.parent.remove(satellite);
+        satellite.traverse(child => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                const mats = Array.isArray(child.material) ? child.material : [child.material];
+                mats.forEach(mat => mat?.dispose?.());
+            }
+        });
+        this.transportModel.removeSatellite(satellite);
+    }
+
+    /**
+     * Dispose all background "small" satellites. ISS / Mars Ship remain.
+     */
+    disposeDecorSatellites() {
+        const satellites = this.transportModel.getSatellites();
+        for (let i = satellites.length - 1; i >= 0; i--) {
+            const sat = satellites[i];
+            if (sat?.userData?.type === 'small') {
+                this._disposeDecorSatellite(sat);
+            }
+        }
+    }
+
+    /**
+     * Create the 25 decor satellites; used at init (when transport on) and when turning transport back on.
+     * @returns {THREE.Group[]} Created roots (same as transport model order for new items).
+     */
+    initializeDecorSatellites() {
+        const uniformOrbitRadius = 1.22;
+        const created = [];
+        for (let i = 1; i <= 25; i++) {
+            const orbitSpeed = 0.0008 + Math.random() * 0.0015;
+            const startAngle = Math.random() * Math.PI * 2;
+            const rotationAngle = Math.random() * Math.PI * 2;
+            const inclination = (Math.random() - 0.5) * Math.PI;
+
+            const sat = this.createSatellite({
+                type: 'small',
+                orbitRadius: uniformOrbitRadius,
+                orbitSpeed,
+                inclination,
+                startAngle,
+                rotationAngle,
+                name: `Satellite ${i}`
+            });
+            created.push(sat);
+        }
+        return created;
+    }
+
+    /**
+     * Recreate decor satellites if transport is enabled and none are loaded (after unload).
+     * @returns {THREE.Group[]} Newly created groups (empty if already present or transport off).
+     */
+    ensureDecorSatellitesLoaded() {
+        if (!this.sceneModel.getHyperloopVisible()) {
+            return [];
+        }
+        const sats = this.transportModel.getSatellites();
+        const hasVenue = sats.some(s => isEventHostSatelliteType(s?.userData?.type));
+        if (!hasVenue) {
+            return [];
+        }
+        const hasSmall = sats.some(s => s?.userData?.type === 'small');
+        if (hasSmall) {
+            return [];
+        }
+        return this.initializeDecorSatellites();
     }
 
     /**
      * Initialize satellites
      */
     initializeSatellites() {
-        // All satellites use simple circular orbits at the same height (1.22, matching ISS)
-        const uniformOrbitRadius = 1.22;
-        
-        // Create 25 small satellites with varied inclinations (atom-like orbits)
-        for (let i = 1; i <= 25; i++) {
-            const orbitSpeed = 0.0008 + Math.random() * 0.0015; // Random constant speed
-            const startAngle = Math.random() * Math.PI * 2; // Random start position
-            const rotationAngle = Math.random() * Math.PI * 2; // Random orbit plane rotation
-            const inclination = (Math.random() - 0.5) * Math.PI; // Random inclination (-90 to +90 degrees) for atom-like effect
-            
-            this.createSatellite({
-                type: 'small',
-                orbitRadius: uniformOrbitRadius,
-                orbitSpeed: orbitSpeed,
-                inclination: inclination, // Varied inclinations for atom-like orbits
-                startAngle: startAngle,
-                rotationAngle: rotationAngle,
-                name: `Satellite ${i}`
-            });
+        if (this.sceneModel.getHyperloopVisible()) {
+            this.initializeDecorSatellites();
         }
-        
-        // ISS (large) - purple color, further out
+
+        // ISS (large) — always present (station events)
         const issOrbitRadius = 1.25; // ISS slightly further out
         this.createSatellite({
             type: 'ISS',

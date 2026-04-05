@@ -10,6 +10,8 @@ export class SceneModel {
         this.renderer = null;
         this.globe = null;
         this.stars = null;
+        /** @type {{sprite: THREE.Sprite, light: THREE.DirectionalLight}|null} Background sun from addSunBackground */
+        this.sunBackground = null;
         this.earthMapPlane = null;
         this.moonPlane = null;
         this.marsPlane = null;
@@ -80,7 +82,7 @@ export class SceneModel {
         // Renderer setup
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(container.clientWidth, container.clientHeight);
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.applyRendererPixelRatioCap();
         container.appendChild(this.renderer.domElement);
 
         // Add lighting for normal map visualization (MeshStandardMaterial needs lighting)
@@ -129,6 +131,17 @@ export class SceneModel {
      */
     getRenderer() {
         return this.renderer;
+    }
+
+    /**
+     * Limit devicePixelRatio to reduce fill cost on HiDPI / phones; call after resize/orientation change.
+     */
+    applyRendererPixelRatioCap() {
+        if (!this.renderer) return;
+        const rawDpr = window.devicePixelRatio || 1;
+        const narrow = window.innerWidth <= 768;
+        const capped = narrow ? Math.min(rawDpr, 1.75) : Math.min(rawDpr, 2.25);
+        this.renderer.setPixelRatio(capped);
     }
 
     /**
@@ -194,6 +207,17 @@ export class SceneModel {
      */
     getStars() {
         return this.stars;
+    }
+
+    /**
+     * @param {{sprite: THREE.Sprite, light: THREE.DirectionalLight}|null} sunBackground
+     */
+    setSunBackground(sunBackground) {
+        this.sunBackground = sunBackground;
+    }
+
+    getSunBackground() {
+        return this.sunBackground;
     }
 
     /**

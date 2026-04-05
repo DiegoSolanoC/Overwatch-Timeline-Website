@@ -168,6 +168,10 @@ body.color-palette-gray .music-actions {
     box-sizing: border-box;
 }
 
+.music-now-playing--hide-track-title .music-current-song-row {
+    display: none;
+}
+
 .music-current-song-row {
     display: flex;
     align-items: center;

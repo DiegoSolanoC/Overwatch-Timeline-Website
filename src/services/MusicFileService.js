@@ -34,6 +34,9 @@ class MusicFileService {
                     'Pragma': 'no-cache'
                 }
             });
+            if (!response.ok) {
+                throw new Error(`manifest.json HTTP ${response.status}`);
+            }
             const manifest = await response.json();
             logAssetLoad('MUSIC', `manifest.json loaded (${manifest.music ? manifest.music.length : 0} music files)`);
             
@@ -53,7 +56,7 @@ class MusicFileService {
             }
         } catch (error) {
             console.error('Error loading manifest.json:', error);
-            return [];
+            throw error;
         }
     }
 
@@ -112,14 +115,7 @@ class MusicFileService {
         
         musicGrid.innerHTML = '';
 
-        const H = (typeof window !== 'undefined' && window.MusicPaletteDefaultHelpers)
-            ? window.MusicPaletteDefaultHelpers
-            : null;
-        const ordered = (H && this.musicFiles.length > 0)
-            ? H.orderMusicFilesWithDefaultFirst(this.musicFiles, H.getActiveMusicPaletteKey())
-            : this.musicFiles;
-        
-        ordered.forEach(song => {
+        this.musicFiles.forEach(song => {
             const musicBtn = document.createElement('div');
             musicBtn.className = 'music-grid-btn';
             // Store original path (will be encoded when used)

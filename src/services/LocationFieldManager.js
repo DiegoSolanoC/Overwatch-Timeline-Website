@@ -124,7 +124,7 @@ class LocationFieldManager {
             // Set default city display name if field is empty
             if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
                 cityDisplayNameInput.value = (locationType === 'marsShip')
-                    ? 'Red Promice Escape Ship'
+                    ? 'Red Promise Escape Ship'
                     : 'Interstellar Journey Space Station';
             }
         } else {

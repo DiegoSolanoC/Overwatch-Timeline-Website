@@ -431,19 +431,30 @@ class EventListenerService {
     }
 
     /**
-     * Setup event manager search bar: title input + single filter text box (comma-separated hero/faction names).
-     * Tokens that don't match any hero or faction are ignored.
+     * Setup event manager search bar: title + hero/faction tokens + country/flag tokens (FLAG_FILE_BY_COMMON keys).
      */
     setupEventManagerSearch() {
         if (!this.eventManager) return;
         const searchInput = document.getElementById('eventsSearchInput');
         const filtersInput = document.getElementById('eventsSearchFilters');
         const suggestionsEl = document.getElementById('eventsSearchFiltersSuggestions');
+        const countryInput = document.getElementById('eventsSearchCountry');
+        const countrySuggestionsEl = document.getElementById('eventsSearchCountrySuggestions');
         const useSelectionCheckbox = document.getElementById('eventsUseFilterSelectionCheckbox');
         const perPageInput = document.getElementById('eventsPerPageInput');
         const showAllCheckbox = document.getElementById('eventsShowAllCheckbox');
         const clearBtn = document.getElementById('eventsSearchClear');
         if (!searchInput || !filtersInput) return;
+
+        const defaultFactionDisplayName = (filename) => {
+            const base = String(filename ?? '').replace(/\.png$/i, '').trim();
+            if (!base) return '';
+            const bare = base.replace(/^\d+/, '').replace(/_/g, ' ').trim();
+            const token = bare || base;
+            return token.split(/\s+/).filter(Boolean).map((w) => {
+                return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+            }).join(' ');
+        };
 
         const buildFilterIndex = () => {
             const heroes = this.eventManager.heroes || [];
@@ -455,12 +466,19 @@ class EventListenerService {
             });
             const factionEntries = (factions || []).map(f => {
                 const filename = typeof f === 'object' && f !== null && f.filename != null ? f.filename : f;
-                const displayName = typeof f === 'object' && f !== null && f.displayName != null ? f.displayName : filename;
+                const fn = (filename || '').toString();
+                const rawDisplay = typeof f === 'object' && f !== null && f.displayName != null
+                    ? String(f.displayName).trim()
+                    : '';
+                let displayName = rawDisplay;
+                if (!displayName || displayName === fn || displayName.toLowerCase() === fn.toLowerCase()) {
+                    displayName = defaultFactionDisplayName(fn);
+                }
                 return {
-                    filename: (filename || '').toString(),
-                    displayName: (displayName || '').toString(),
-                    filenameLower: (filename || '').toString().toLowerCase(),
-                    displayLower: (displayName || '').toString().toLowerCase(),
+                    filename: fn,
+                    displayName,
+                    filenameLower: fn.toLowerCase(),
+                    displayLower: displayName.toLowerCase(),
                 };
             });
             return { heroes, heroByLower, factionEntries };
@@ -469,6 +487,141 @@ class EventListenerService {
         let filterIndex = buildFilterIndex();
         let manualFilterText = '';
         let isSyncingSelection = false;
+
+        const normalizeFlagKey = (s) => {
+            if (!s) return '';
+            return String(s)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+        };
+
+        const buildFlagIndex = () => {
+            const map = typeof window !== 'undefined' && window.FLAG_FILE_BY_COMMON ? window.FLAG_FILE_BY_COMMON : null;
+            if (!map) return [];
+            return Object.keys(map)
+                .map((common) => ({
+                    common,
+                    file: map[common],
+                    commonLower: common.toLowerCase(),
+                    keyNorm: normalizeFlagKey(common),
+                }))
+                .sort((a, b) => a.common.localeCompare(b.common));
+        };
+
+        let flagIndex = buildFlagIndex();
+
+        const parseCountryTokens = (text) => {
+            flagIndex = buildFlagIndex();
+            const entries = flagIndex;
+            const tokens = (text || '').split(',').map((t) => t.trim()).filter((t) => t.length > 0);
+            const matchedFiles = [];
+            const seen = new Set();
+            tokens.forEach((token) => {
+                const lower = token.toLowerCase();
+                let hit = entries.find((e) => e.commonLower === lower);
+                if (!hit) {
+                    hit = entries.find((e) => e.file.toLowerCase() === lower);
+                }
+                if (!hit) {
+                    const nk = normalizeFlagKey(token);
+                    hit = entries.find((e) => e.keyNorm === nk);
+                }
+                if (hit && hit.file && !seen.has(hit.file)) {
+                    seen.add(hit.file);
+                    matchedFiles.push(hit.file);
+                }
+            });
+            return matchedFiles;
+        };
+
+        const getCurrentCountryTokenInfo = () => {
+            const value = (countryInput && countryInput.value) ? countryInput.value : '';
+            const lastComma = value.lastIndexOf(',');
+            const before = lastComma >= 0 ? value.slice(0, lastComma) : '';
+            const currentRaw = lastComma >= 0 ? value.slice(lastComma + 1) : value;
+            const current = currentRaw.trimStart();
+            return { before, current, lastComma };
+        };
+
+        const getCountryCandidates = (prefixLower) => {
+            flagIndex = buildFlagIndex();
+            const entries = flagIndex;
+            if (!prefixLower) return [];
+            return entries.filter((e) => e.commonLower.startsWith(prefixLower)).slice(0, 10);
+        };
+
+        const hideCountrySuggestions = () => {
+            if (!countrySuggestionsEl) return;
+            countrySuggestionsEl.style.display = 'none';
+            countrySuggestionsEl.innerHTML = '';
+        };
+
+        const showCountrySuggestions = (items, beforePart) => {
+            if (!countrySuggestionsEl || !window.LocationFlagHelpers || typeof window.LocationFlagHelpers.flagSrc !== 'function') {
+                return;
+            }
+            const flagSrc = window.LocationFlagHelpers.flagSrc;
+            countrySuggestionsEl.innerHTML = '';
+            const max = Math.min(items.length, 8);
+            for (let i = 0; i < max; i++) {
+                const item = items[i];
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'events-search-suggestion events-search-suggestion--with-flag';
+                const img = document.createElement('img');
+                img.className = 'events-search-suggestion-flag';
+                img.src = flagSrc(item.file);
+                img.alt = '';
+                img.width = 32;
+                img.height = 20;
+                img.decoding = 'async';
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'events-search-suggestion-label';
+                labelSpan.textContent = item.common;
+                const detailSpan = document.createElement('span');
+                detailSpan.className = 'muted';
+                detailSpan.textContent = 'Country';
+                btn.appendChild(img);
+                btn.appendChild(labelSpan);
+                btn.appendChild(detailSpan);
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!countryInput) return;
+                    const before = (beforePart || '').trim();
+                    const nextValue = before ? `${before}, ${item.common}, ` : `${item.common}, `;
+                    countryInput.value = nextValue;
+                    countryInput.classList.remove('no-filter-match');
+                    hideCountrySuggestions();
+                    countryInput.focus();
+                    applySearch();
+                });
+                countrySuggestionsEl.appendChild(btn);
+            }
+            countrySuggestionsEl.style.display = max > 0 ? 'block' : 'none';
+        };
+
+        const updateCountryPredictions = () => {
+            if (!countryInput) return;
+            const { before, current } = getCurrentCountryTokenInfo();
+            const prefix = (current || '').trim();
+            if (!prefix) {
+                countryInput.classList.remove('no-filter-match');
+                hideCountrySuggestions();
+                return;
+            }
+            const candidates = getCountryCandidates(prefix.toLowerCase());
+            if (candidates.length === 0) {
+                countryInput.classList.add('no-filter-match');
+                hideCountrySuggestions();
+            } else {
+                countryInput.classList.remove('no-filter-match');
+                showCountrySuggestions(candidates, before);
+            }
+        };
 
         const parseFilterTokens = (text) => {
             // Rebuild index lazily if data arrived after listeners were set up
@@ -570,14 +723,13 @@ class EventListenerService {
                     results.push({ label, detail: 'Hero', insert: label });
                 }
             });
-            // Factions: show displayName (and filename as muted detail), match displayName OR filename
+            // Factions: primary label = readable name; muted detail = "Faction" (same pattern as heroes)
             (filterIndex.factionEntries || []).forEach(f => {
                 if (!f.displayName && !f.filename) return;
                 const match = f.displayLower.startsWith(prefixLower) || f.filenameLower.startsWith(prefixLower);
                 if (match) {
-                    const label = f.displayName || f.filename;
-                    const detail = f.displayName && f.filename ? f.filename : 'Faction';
-                    results.push({ label, detail, insert: label });
+                    const label = f.displayName || defaultFactionDisplayName(f.filename) || f.filename;
+                    results.push({ label, detail: 'Faction', insert: label });
                 }
             });
             // Sort by label length then alpha
@@ -651,6 +803,12 @@ class EventListenerService {
             const { matchedHeroes, matchedFactions } = parseFilterTokens(filterText);
             this.eventManager.searchHeroFilters = matchedHeroes;
             this.eventManager.searchFactionFilters = matchedFactions;
+            if (countryInput) {
+                const countryText = (countryInput.value || '').trim();
+                this.eventManager.searchCountryFilters = parseCountryTokens(countryText);
+            } else {
+                this.eventManager.searchCountryFilters = [];
+            }
             if (this.eventManager.applySearchAndRender) {
                 this.eventManager.applySearchAndRender();
             }
@@ -722,15 +880,32 @@ class EventListenerService {
             applySearch();
         });
         filtersInput.addEventListener('keydown', (e) => {
-            // ESC hides suggestions quickly
             if (e.key === 'Escape') {
                 hideSuggestions();
             }
         });
+        if (countryInput) {
+            countryInput.addEventListener('input', () => {
+                updateCountryPredictions();
+                applySearch();
+            });
+            countryInput.addEventListener('change', () => {
+                updateCountryPredictions();
+                applySearch();
+            });
+            countryInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideCountrySuggestions();
+                }
+            });
+        }
         document.addEventListener('click', (e) => {
-            if (!suggestionsEl) return;
-            if (e.target === filtersInput || suggestionsEl.contains(e.target)) return;
-            hideSuggestions();
+            if (suggestionsEl && e.target !== filtersInput && !suggestionsEl.contains(e.target)) {
+                hideSuggestions();
+            }
+            if (countrySuggestionsEl && countryInput && e.target !== countryInput && !countrySuggestionsEl.contains(e.target)) {
+                hideCountrySuggestions();
+            }
         });
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
@@ -745,9 +920,15 @@ class EventListenerService {
                 filtersInput.value = '';
                 filtersInput.classList.remove('no-filter-match');
                 hideSuggestions();
+                if (countryInput) {
+                    countryInput.value = '';
+                    countryInput.classList.remove('no-filter-match');
+                    hideCountrySuggestions();
+                }
                 this.eventManager.searchQuery = '';
                 this.eventManager.searchHeroFilters = [];
                 this.eventManager.searchFactionFilters = [];
+                this.eventManager.searchCountryFilters = [];
                 if (this.eventManager.applySearchAndRender) {
                     this.eventManager.applySearchAndRender();
                 }
@@ -803,6 +984,7 @@ class EventListenerService {
 
         // Initial prediction state
         updateFilterPredictions();
+        updateCountryPredictions();
         // Initial selection sync (if checkbox defaulted on for any reason)
         syncFiltersInputFromSelection();
     }

@@ -163,7 +163,7 @@ body.color-palette-gray .events-manage-title {
     gap: 10px;
     margin-bottom: 15px;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(var(--accent-primary-rgb), 0.2);
 }
 
 .events-manage-search-row {
@@ -174,23 +174,33 @@ body.color-palette-gray .events-manage-title {
     width: 100%;
 }
 
-/* Keep Search + Filters on one line (desktop). */
+/* Title + hero/faction + country: wrap on narrow widths */
 .events-manage-search-row--primary {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
-/* Expand row 1 inputs to fill available width. */
-.events-manage-search-row--primary #eventsSearchInput.events-search-input {
-    flex: 1 1 220px;
+.events-manage-search-row--primary .events-search-input--title {
+    flex: 1 1 150px;
+    max-width: none;
+    min-width: 120px;
+}
+
+.events-manage-search-row--primary .events-search-field--filters {
+    flex: 1 1 240px;
+    min-width: 180px;
+}
+
+.events-manage-search-row--primary .events-search-field--filters .events-search-input {
+    width: 100%;
     max-width: none;
 }
 
-.events-manage-search-row--primary .events-search-field {
-    flex: 2 1 360px;
-    min-width: 260px;
+.events-manage-search-row--primary .events-search-field--country {
+    flex: 1 1 220px;
+    min-width: 180px;
 }
 
-.events-manage-search-row--primary .events-search-field .events-search-input {
+.events-manage-search-row--primary .events-search-field--country .events-search-input {
     width: 100%;
     max-width: none;
 }
@@ -228,7 +238,7 @@ body.color-palette-gray .events-manage-title {
     max-width: 220px;
     padding: 6px 10px;
     font-size: 13px;
-    border: 1px solid rgba(33, 150, 243, 0.5);
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.45);
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.08);
     color: white;
@@ -260,8 +270,9 @@ body.color-palette-gray .events-manage-title {
 }
 .events-search-input:focus {
     outline: none;
-    border-color: rgba(33, 150, 243, 0.9);
+    border-color: rgba(var(--accent-primary-rgb), 0.9);
     background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 1px rgba(var(--accent-primary-rgb), 0.2);
 }
 
 /* Filters textbox: turn red when current token has no matches */
@@ -273,12 +284,7 @@ body.color-palette-gray .events-manage-title {
 .events-search-input.no-filter-match::placeholder {
     color: rgba(255, 120, 120, 0.7);
 }
-body.color-palette-gray .events-search-input {
-    border-color: rgba(255, 102, 0, 0.5);
-}
-body.color-palette-gray .events-search-input:focus {
-    border-color: rgba(255, 102, 0, 0.9);
-}
+/* Gray / crimson / nulled: inputs use --accent-primary-rgb via rules above */
 
 /* Wrapper for filters input + suggestions dropdown */
 .events-search-field {
@@ -294,10 +300,11 @@ body.color-palette-gray .events-search-input:focus {
     max-height: 180px;
     overflow-y: auto;
     z-index: 1000;
-    background: rgba(10, 25, 41, 0.98);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--bg-secondary);
+    background: color-mix(in srgb, var(--bg-secondary) 94%, #000 6%);
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.35);
     border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.2);
     padding: 6px 0;
 }
 
@@ -316,28 +323,52 @@ body.color-palette-gray .events-search-input:focus {
     font-size: 13px;
 }
 
+.events-search-suggestion--with-flag {
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.events-search-suggestion-flag {
+    width: 32px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.events-search-suggestion-label {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.events-search-suggestion--with-flag .muted {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
 .events-search-suggestion:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(var(--accent-primary-rgb), 0.14);
 }
 
 .events-search-suggestion .muted {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(var(--accent-primary-rgb), 0.85);
     font-size: 12px;
+    font-weight: 500;
 }
 .events-search-clear-btn {
     padding: 6px 14px;
     font-size: 12px;
     font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.45);
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(var(--accent-primary-rgb), 0.12);
     color: white;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .events-search-clear-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(var(--accent-primary-rgb), 0.22);
+    border-color: rgba(var(--accent-primary-rgb), 0.75);
 }
 
 /* Note: Events list, pagination, event items, and edit modal styles

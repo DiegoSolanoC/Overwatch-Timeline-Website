@@ -11,8 +11,13 @@ export class ImageOverlayManager {
         this.imageOverlayVisible = false;
         this.imageToggleState = false;
         this.imageAutoHideTimeout = null;
-        this.lastCameraPosition = null;
         this.lastGlobeRotation = null;
+        this._camPosNow = new THREE.Vector3();
+        this._camPosLast = new THREE.Vector3();
+        this._hasCamMovementSample = false;
+        this._markerWorldScratch = new THREE.Vector3();
+        this._targetDirScratch = new THREE.Vector3();
+        this._camDirScratch = new THREE.Vector3();
         this.stillnessStartTime = null;
         this.wasDragging = false;
     }
@@ -340,39 +345,35 @@ export class ImageOverlayManager {
             return;
         }
         
-        // Get current positions
-        const currentCameraPos = camera.position.clone();
+        this._camPosNow.copy(camera.position);
         const currentGlobeRot = {
             x: globe.rotation.x,
             y: globe.rotation.y,
             z: globe.rotation.z
         };
-        
-        // Check if camera/globe has moved significantly
-        // Use a threshold that allows for very small movements (momentum damping)
-        const movementThreshold = 0.005; // Small threshold for detecting significant movement
+
+        const movementThreshold = 0.005;
         let hasMovedSignificantly = false;
-        
-        if (this.lastCameraPosition && this.lastGlobeRotation) {
-            const cameraMovement = currentCameraPos.distanceTo(this.lastCameraPosition);
+
+        if (this._hasCamMovementSample && this.lastGlobeRotation) {
+            const cameraMovement = this._camPosNow.distanceTo(this._camPosLast);
             const globeRotDiff = Math.abs(currentGlobeRot.x - this.lastGlobeRotation.x) +
                                 Math.abs(currentGlobeRot.y - this.lastGlobeRotation.y) +
                                 Math.abs(currentGlobeRot.z - this.lastGlobeRotation.z);
-            
             if (cameraMovement > movementThreshold || globeRotDiff > movementThreshold) {
                 hasMovedSignificantly = true;
             }
         }
-        
-        // Update last positions
-        this.lastCameraPosition = currentCameraPos.clone();
+
+        this._camPosLast.copy(this._camPosNow);
         this.lastGlobeRotation = { ...currentGlobeRot };
-        
-        // Check if recentered on event marker
-        const markerWorldPos = new THREE.Vector3();
-        this.uiView.currentEventMarker.getWorldPosition(markerWorldPos);
-        const targetDirection = markerWorldPos.clone().normalize();
-        const cameraDirection = camera.position.clone().normalize();
+        this._hasCamMovementSample = true;
+
+        this.uiView.currentEventMarker.getWorldPosition(this._markerWorldScratch);
+        this._targetDirScratch.copy(this._markerWorldScratch).normalize();
+        this._camDirScratch.copy(camera.position).normalize();
+        const targetDirection = this._targetDirScratch;
+        const cameraDirection = this._camDirScratch;
         
         const currentLat = Math.asin(cameraDirection.y);
         const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);

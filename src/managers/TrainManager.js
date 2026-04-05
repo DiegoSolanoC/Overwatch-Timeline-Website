@@ -274,6 +274,8 @@ export class TrainManager {
      * Update trains - handles movement, multi-stop transitions, and wagon positioning
      */
     updateTrains() {
+        if (!this.sceneModel.getHyperloopVisible()) return;
+
         const globe = this.sceneModel.getGlobe();
         const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
@@ -544,7 +546,7 @@ export class TrainManager {
         console.log(`📊 Cities in graph: ${Object.keys(routeGraph).length}`);
         
         const DEPARTURE_COOLDOWN_MS = 8000;
-        if (routeCurves.length > 0) {
+        if (routeCurves.length > 0 && this.sceneModel.getHyperloopVisible()) {
             // Initial spawn: respect reservations + departure cooldown
             for (let attempt = 0; attempt < 12; attempt++) {
                 const randomRoute = routeCurves[Math.floor(Math.random() * routeCurves.length)];
