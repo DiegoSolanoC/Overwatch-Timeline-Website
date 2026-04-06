@@ -77,9 +77,17 @@
             <div class="event-slide-close" id="eventSlideClose">&times;</div>
             <div class="event-slide-content" id="eventSlideContent">
                 <div class="event-slide-top" id="eventSlideTop">
+                    <p id="eventSlideEra" class="event-slide-era-heading event-slide-era-heading--empty" aria-hidden="true"></p>
                     <div id="eventVariantToggles" style="display: none; margin-bottom: 15px; display: flex; gap: 8px; flex-wrap: wrap;"></div>
                     <h2 id="eventSlideTitle">Event</h2>
                     <p id="eventSlideLocation" class="event-slide-location" style="display: none;"></p>
+                    <p id="eventSlideTimelineMeta" class="event-slide-timeline-meta" style="display: none;" aria-live="polite"></p>
+                </div>
+                <div class="event-slide-mid-controls" id="eventSlideMidControls" aria-label="Event display options">
+                    <div class="event-control-buttons">
+                        <button type="button" id="eventFullTextToggle" class="event-full-text-toggle-btn" aria-pressed="false">Full Text Display</button>
+                        <button type="button" id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
+                    </div>
                 </div>
                 <div class="event-slide-scrollable" id="eventSlideScrollable">
                     <p id="eventSlideText">Placeholder text for event information.</p>
@@ -93,8 +101,6 @@
                 </div>
                 <div class="event-slide-bottom" id="eventSlideBottom">
                     <div class="event-control-buttons">
-                        <button type="button" id="eventFullTextToggle" class="event-full-text-toggle-btn" aria-pressed="false">Full Text Display</button>
-                        <button id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
                         <button type="button" id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;" aria-label="Glitch effect" aria-pressed="false"><span class="event-glitch-toggle-btn__icon" aria-hidden="true"></span></button>
                     </div>
                     <div class="event-navigation-buttons">
@@ -119,7 +125,10 @@
             <div class="events-manage-content">
                 <div class="events-manage-header">
                     <div class="events-manage-title-section">
-                        <h2 class="events-manage-title">Event Management</h2>
+                        <div class="events-manage-title-row">
+                            <h2 class="events-manage-title">Event Management</h2>
+                            <button type="button" id="eventsManageToolbarToggleBtn" class="events-manage-toolbar-toggle-btn" aria-pressed="false" title="Hide or show search, filters, country, and pagination bar">Hide controls</button>
+                        </div>
                         <p class="events-manage-count" id="eventsCount">0 Events</p>
                     </div>
                     <div class="events-manage-actions">
@@ -184,6 +193,25 @@
                     <div class="event-edit-field">
                         <label for="eventEditNumber">Event Number:</label>
                         <input type="number" id="eventEditNumber" class="event-edit-input" autocomplete="off" min="1" step="1">
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <div class="event-edit-year-range-pair" role="group" aria-label="Year range (optional)">
+                            <div class="event-edit-year-range-cell">
+                                <label for="eventEditYearStart">First year (range)</label>
+                                <input type="number" id="eventEditYearStart" class="event-edit-input" autocomplete="off" step="1" placeholder="e.g. 2060">
+                            </div>
+                            <div class="event-edit-year-range-cell">
+                                <label for="eventEditYearEnd">Second year (optional)</label>
+                                <input type="number" id="eventEditYearEnd" class="event-edit-input" autocomplete="off" step="1" placeholder="Blank = single known year">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <p style="margin: 0; font-size: 12px; opacity: 0.88; line-height: 1.35;">Timeline is optional. Use two years when the event could fall anywhere in that window; leave the second year empty when the date is known to a single year.</p>
+                    </div>
+                    <div class="event-edit-field event-edit-field-full">
+                        <label for="eventEditEraName">Era name (optional)</label>
+                        <input type="text" id="eventEditEraName" class="event-edit-input" autocomplete="off" placeholder="e.g. Pre-Crisis">
                     </div>
                     <div class="event-edit-field event-edit-field-full">
                         <label for="eventEditCity">City Name (for location lookup):</label>
@@ -285,11 +313,11 @@
     <script src="src/services/CameraControlService.js?v=8"></script>
     <script src="src/services/MouseInteractionService.js?v=8"></script>
     <script src="src/services/TouchInteractionService.js?v=8"></script>
-    <script src="src/services/MarkerInteractionService.js?v=8"></script>
+    <script src="src/services/MarkerInteractionService.js?v=9"></script>
     <script src="src/services/StationFollowService.js?v=8"></script>
     
     <!-- Load component loader for globe/menu/features -->
-    <script type="module" src="src/app/component-loader.js?v=11"></script>
+    <script type="module" src="src/app/component-loader.js?v=12"></script>
     
     <!-- Load services -->
     <script src="src/services/SoundEffectsManager.js?v=8"></script>
@@ -298,6 +326,7 @@
     <script src="src/services/LocationService.js?v=8"></script>
     <script src="src/data/flagFileByCommonName.js?v=8"></script>
     <script src="src/utils/LocationFlagHelpers.js?v=8"></script>
+    <script src="src/utils/EventTimelineHelpers.js?v=8"></script>
     <script src="src/services/EventRenderService.js?v=8"></script>
     <script src="src/services/EventEditService.js?v=8"></script>
     <script src="src/services/NewsTickerService.js?v=8"></script>
@@ -340,7 +369,7 @@
     <script type="module" src="src/services/helpers/FilterCountHelpers.js?v=8"></script>
     <script src="src/services/FilterService.js?v=8"></script>
     <script src="src/services/SidebarService.js?v=8"></script>
-    <script src="src/services/AppKeyboardShortcutsService.js?v=8"></script>
+    <script src="src/services/AppKeyboardShortcutsService.js?v=9"></script>
     <script src="src/services/PanelResizeService.js?v=8"></script>
     
     <!-- Load main script for sidebar and other UI -->

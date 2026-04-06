@@ -109,6 +109,8 @@ export function updateEventSlideContent(eventSlideManager, eventName, descriptio
     if (eventSlideLocation && eventData) {
         eventSlideManager.setupLocationDisplay(eventSlideLocation, eventData, marker, isMultiEvent, initialVariantIndex, isAlreadyOpen);
     }
+
+    updateEventSlideTimelineMeta(eventData);
     
     // Update description
     if (eventSlideText) {
@@ -135,6 +137,37 @@ export function handleVariantMarkers(uiView, currentEventData, eventData) {
 /**
  * Update event sources and filters
  */
+/**
+ * Year range under the slide title only (era is shown on map/list hover preview, not in this panel).
+ * @param {Object|null} eventData
+ */
+export function updateEventSlideTimelineMeta(eventData) {
+    const helpers = typeof window !== 'undefined' ? window.EventTimelineHelpers : null;
+    const yearOnly = helpers && typeof helpers.formatTimelineYearRangeOnly === 'function'
+        ? helpers.formatTimelineYearRangeOnly(eventData)
+        : '';
+
+    const eraEl = document.getElementById('eventSlideEra');
+    if (eraEl) {
+        eraEl.textContent = '';
+        eraEl.classList.add('event-slide-era-heading--empty');
+        eraEl.setAttribute('aria-hidden', 'true');
+    }
+
+    const timelineMeta = document.getElementById('eventSlideTimelineMeta');
+    if (!timelineMeta) return;
+
+    const line = yearOnly || '';
+
+    if (line) {
+        timelineMeta.textContent = line;
+        timelineMeta.style.display = '';
+    } else {
+        timelineMeta.textContent = '';
+        timelineMeta.style.display = 'none';
+    }
+}
+
 export function updateEventSourcesAndFilters(uiView, currentEvent) {
     uiView.updateEventSources(currentEvent);
     uiView.updateEventFilters(currentEvent);
@@ -152,6 +185,7 @@ if (typeof window !== 'undefined') {
     }
     window.EventSlideShowHelpers.initializeEventSlideState = initializeEventSlideState;
     window.EventSlideShowHelpers.updateEventSlideContent = updateEventSlideContent;
+    window.EventSlideShowHelpers.updateEventSlideTimelineMeta = updateEventSlideTimelineMeta;
     window.EventSlideShowHelpers.handleVariantMarkers = handleVariantMarkers;
     window.EventSlideShowHelpers.updateEventSourcesAndFilters = updateEventSourcesAndFilters;
     window.EventSlideShowHelpers.getGlobalEventNumber1Based = getGlobalEventNumber1Based;

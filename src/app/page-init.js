@@ -10,6 +10,42 @@ const WELCOME_SFX_DELAY_MS = 650;
 /** Quieter than typical UI SFX; scales with Sound Effects volume slider. */
 const WELCOME_SFX_VOLUME_SCALE = 0.38;
 const WELCOME_SFX_VOLUME_CAP = 0.28;
+/** When startup theme + welcome path runs, music should be audible at this level. */
+const STARTUP_WELCOME_MUSIC_VOLUME = 0.3;
+
+/**
+ * Unmute and set music volume for the first-run startup theme + welcome SFX path.
+ */
+function applyStartupWelcomeMusicDefaults() {
+    try {
+        var mm = window.MusicManager;
+        if (!mm || !mm.initialized || !mm.volumeService || !mm.backgroundMusic) {
+            return;
+        }
+        mm.volumeService.stopFade();
+        mm.backgroundMusic.muted = false;
+        if (mm.muteBtn) {
+            mm.muteBtn.classList.remove('active');
+        }
+        if (mm.iconService && typeof mm.iconService.updateMuteIcon === 'function') {
+            mm.iconService.updateMuteIcon(false);
+        }
+        mm.volumeService.setTargetVolume(STARTUP_WELCOME_MUSIC_VOLUME);
+        mm.volumeService.setVolume(STARTUP_WELCOME_MUSIC_VOLUME);
+        mm.backgroundMusic.volume = STARTUP_WELCOME_MUSIC_VOLUME;
+        if (mm.volumeSlider) {
+            mm.volumeSlider.value = Math.round(STARTUP_WELCOME_MUSIC_VOLUME * 100);
+        }
+        if (mm.volumeValue) {
+            mm.volumeValue.textContent = Math.round(STARTUP_WELCOME_MUSIC_VOLUME * 100) + '%';
+        }
+        if (typeof mm.saveMusicState === 'function') {
+            mm.saveMusicState();
+        }
+    } catch (_) {
+        /* ignore */
+    }
+}
 
 /**
  * One-shot welcome SFX — only when the app plays a palette startup theme (see MusicManagerInitHelpers.loadMusicFiles).
@@ -22,7 +58,9 @@ function scheduleWelcomeSoundForStartupTheme() {
     if (typeof window !== 'undefined') {
         window.__welcomeStartupSfxScheduled = true;
     }
+    applyStartupWelcomeMusicDefaults();
     window.setTimeout(function () {
+        applyStartupWelcomeMusicDefaults();
         try {
             const audio = new Audio(WELCOME_SFX_URL);
             audio.preload = 'auto';
@@ -53,6 +91,7 @@ function scheduleWelcomeSoundForStartupTheme() {
 
 if (typeof window !== 'undefined') {
     window.scheduleWelcomeSoundForStartupTheme = scheduleWelcomeSoundForStartupTheme;
+    window.applyStartupWelcomeMusicDefaults = applyStartupWelcomeMusicDefaults;
 }
 
 // Detect if we're running on GitHub Pages (or similar static hosting)

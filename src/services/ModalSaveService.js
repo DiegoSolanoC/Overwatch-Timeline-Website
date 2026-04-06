@@ -115,6 +115,9 @@ class ModalSaveService {
         }
 
         const cityDisplayName = document.getElementById('eventEditCityDisplayName')?.value.trim() || '';
+        const yearStartStr = document.getElementById('eventEditYearStart')?.value ?? '';
+        const yearEndStr = document.getElementById('eventEditYearEnd')?.value ?? '';
+        const eraNameStr = document.getElementById('eventEditEraName')?.value ?? '';
 
         return {
             locationType,
@@ -128,7 +131,10 @@ class ModalSaveService {
             mainFactionsStr,
             mainSources,
             mainHeadlines,
-            cityDisplayName
+            cityDisplayName,
+            yearStartStr,
+            yearEndStr,
+            eraNameStr
         };
     }
 

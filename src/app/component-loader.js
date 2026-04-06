@@ -260,6 +260,7 @@ async function loadTransport() {
         
         // Load transport sound effect
         loadSoundEffect('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3', 'Loading transport sound effect...');
+        loadSoundEffect('weather', 'assets/audio/sfx/Weather.mp3', 'Loading weather sound effect...');
         
         // Ensure transport systems are visible
         if (controller.transportView) {

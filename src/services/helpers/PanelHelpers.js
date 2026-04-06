@@ -178,6 +178,13 @@ export function createEventPagination(statusService) {
             <button class="event-number-btn" data-position="9" title="Event 9">9</button>
             <button class="event-number-btn" data-position="10" title="Event 10">10</button>
         </div>
+        <div class="event-page-slider-row event-page-slider-row--desktop-only">
+            <div class="event-page-slider-wrap">
+                <div class="event-page-slider-ticks" id="eventPageSliderTicks" aria-hidden="true"></div>
+                <input type="range" id="eventPageSlider" class="event-page-slider" min="0" max="10000" value="0" step="1"
+                    title="Scrub pages" aria-label="Pages along timeline" aria-valuemin="0" aria-valuemax="10000" aria-valuenow="0" />
+            </div>
+        </div>
     `;
     
     // Apply mobile positioning (centered, same as desktop)

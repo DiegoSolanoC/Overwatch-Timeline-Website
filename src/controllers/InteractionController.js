@@ -257,6 +257,14 @@ export class InteractionController {
                 this.sceneModel.applyRendererPixelRatioCap();
             }
         }
+
+        try {
+            const sunBg = this.sceneModel.getSunBackground && this.sceneModel.getSunBackground();
+            const GH = typeof window !== 'undefined' ? window.GlobeInitHelpers : null;
+            if (sunBg && GH && typeof GH.applySunBackgroundForViewport === 'function') {
+                GH.applySunBackgroundForViewport(sunBg);
+            }
+        } catch (_) { /* ignore */ }
     }
     
     /**

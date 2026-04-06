@@ -170,6 +170,12 @@
         transition: right 0.3s ease !important;
     }
 
+    /* Event manager: hide search/filters block (literal 768px — reliable vs. var() in @media) */
+    .events-manage-panel--toolbar-collapsed #eventsManageSearch,
+    .events-manage-panel--toolbar-collapsed .events-manage-search {
+        display: none !important;
+    }
+
     /* Event image overlay – top half, full width */
     .event-image-overlay {
         top: 60px !important;
@@ -295,6 +301,10 @@
         width: 100% !important;
     }
 
+    .event-slide-era-heading {
+        display: none !important;
+    }
+
     .event-slide-content h2#eventSlideTitle,
     .event-slide-scrollable h2#eventSlideTitle {
         display: block !important;
@@ -401,6 +411,10 @@
         transform: translateX(-50%) !important;
         align-items: center;
         gap: 6px !important;
+    }
+
+    .event-page-slider-row--desktop-only {
+        display: none !important;
     }
 
     .page-controls-row {

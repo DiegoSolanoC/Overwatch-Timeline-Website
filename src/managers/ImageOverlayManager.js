@@ -200,6 +200,22 @@ export class ImageOverlayManager {
                 pageInput.style.cursor = '';
             }
         }
+
+        const pageSlider = document.getElementById('eventPageSlider');
+        if (pageSlider) {
+            if (disable && !pageSlider.hasAttribute('data-original-disabled')) {
+                pageSlider.setAttribute('data-original-disabled', pageSlider.disabled ? 'true' : 'false');
+                pageSlider.disabled = true;
+                pageSlider.style.opacity = '0.4';
+                pageSlider.style.cursor = 'not-allowed';
+            } else if (!disable && pageSlider.hasAttribute('data-original-disabled')) {
+                const wasOriginallyDisabled = pageSlider.getAttribute('data-original-disabled') === 'true';
+                pageSlider.disabled = wasOriginallyDisabled;
+                pageSlider.removeAttribute('data-original-disabled');
+                pageSlider.style.opacity = '';
+                pageSlider.style.cursor = '';
+            }
+        }
         
         // Event number buttons (1-10)
         const numberButtonsContainer = document.getElementById('eventNumberButtons');

@@ -5,6 +5,7 @@
 let badgeEl = null;
 let textNumberEl = null;
 let textTitleEl = null;
+let textEraEl = null;
 let textVariantsEl = null;
 let hoverPreviewFollowCleanup = null;
 
@@ -39,18 +40,21 @@ function ensureBadge() {
     badgeEl.style.zIndex = '165';
     badgeEl.setAttribute('aria-hidden', 'true');
     badgeEl.innerHTML = `
-        <div class="music-now-playing-label">Event</div>
-        <div class="music-now-playing-badge-title-row events-hover-preview-title-row">
-            <span class="events-hover-preview-number" aria-hidden="true"></span>
-            <div class="events-hover-preview-title-stack">
-                <div class="music-now-playing-song events-hover-preview-title"></div>
-                <div class="events-hover-preview-variants" aria-hidden="true"></div>
+        <div class="events-hover-preview-stack">
+            <div class="events-hover-preview-era" aria-hidden="true"></div>
+            <div class="events-hover-preview-mainline">
+                <span class="events-hover-preview-number" aria-hidden="true"></span>
+                <div class="events-hover-preview-title-column">
+                    <span class="events-hover-preview-title"></span>
+                    <div class="events-hover-preview-variants" aria-hidden="true"></div>
+                </div>
             </div>
         </div>
     `;
     document.body.appendChild(badgeEl);
     textNumberEl = badgeEl.querySelector('.events-hover-preview-number');
     textTitleEl = badgeEl.querySelector('.events-hover-preview-title');
+    textEraEl = badgeEl.querySelector('.events-hover-preview-era');
     textVariantsEl = badgeEl.querySelector('.events-hover-preview-variants');
 }
 
@@ -90,14 +94,20 @@ export function getPlainEventTitleForHover(eventObj) {
 /**
  * Multi-variant roots often have no `name`; use first variant as primary title and list the rest.
  * @param {Object|null} eventObj - Root timeline event (may include `variants[]`)
- * @returns {{ primary: string, otherVariants: string[] }}
+ * @returns {{ primary: string, otherVariants: string[], era: string }}
  */
 export function getHoverPreviewLines(eventObj) {
-    if (!eventObj) return { primary: '', otherVariants: [] };
+    if (!eventObj) return { primary: '', otherVariants: [], era: '' };
+    const era =
+        typeof window !== 'undefined'
+        && window.EventTimelineHelpers
+        && typeof window.EventTimelineHelpers.getEraNameTrimmed === 'function'
+            ? window.EventTimelineHelpers.getEraNameTrimmed(eventObj)
+            : '';
     const variants = Array.isArray(eventObj.variants) ? eventObj.variants : [];
     if (variants.length === 0) {
         const single = getPlainEventTitleForHover(eventObj);
-        return { primary: single || '', otherVariants: [] };
+        return { primary: single || '', otherVariants: [], era };
     }
     const variantTitles = variants.map((v, i) => {
         const t = v ? getPlainEventTitleForHover(v) : '';
@@ -106,15 +116,16 @@ export function getHoverPreviewLines(eventObj) {
     const parentName = getPlainEventTitleForHover(eventObj);
     const primary = variantTitles[0] || parentName || 'Event';
     const otherVariants = variantTitles.slice(1);
-    return { primary, otherVariants };
+    return { primary, otherVariants, era };
 }
 
 /**
  * @param {number|null|undefined} globalNumber1Based
  * @param {string} titlePlain - Primary line (e.g. first variant or single event name)
  * @param {string[]} [otherVariantTitles] - Additional variant names (smaller text)
+ * @param {string} [eraPlain] - Optional era name (root event field); shown under title on hover only
  */
-export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles) {
+export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles, eraPlain) {
     try {
         if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
             return;
@@ -129,10 +140,19 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
     if (textNumberEl) {
         textNumberEl.textContent =
             globalNumber1Based != null && Number.isFinite(globalNumber1Based)
-                ? `#${globalNumber1Based}`
+                ? String(globalNumber1Based)
                 : '';
     }
     if (textTitleEl) textTitleEl.textContent = titlePlain || '';
+
+    const eraTrim = eraPlain != null ? String(eraPlain).trim() : '';
+    if (textEraEl) {
+        textEraEl.textContent = eraTrim;
+        textEraEl.style.display = eraTrim ? 'block' : 'none';
+    }
+    if (badgeEl) {
+        badgeEl.classList.toggle('events-hover-preview-badge--no-era', !eraTrim);
+    }
 
     const extras = Array.isArray(otherVariantTitles) ? otherVariantTitles.filter((t) => t && String(t).trim()) : [];
     if (textVariantsEl) {
@@ -189,11 +209,16 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
 export function hideEventsHoverPreview() {
     stopHoverPreviewFollow();
     if (!badgeEl) return;
+    if (textEraEl) {
+        textEraEl.textContent = '';
+        textEraEl.style.display = 'none';
+    }
     if (textVariantsEl) {
         textVariantsEl.innerHTML = '';
         textVariantsEl.style.display = 'none';
     }
     badgeEl.classList.remove('events-hover-preview-badge--multiline');
+    badgeEl.classList.remove('events-hover-preview-badge--no-era');
     badgeEl.classList.remove('music-now-playing-badge--visible');
 }
 

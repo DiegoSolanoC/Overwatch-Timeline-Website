@@ -116,6 +116,7 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
     
     // Load transport sound effect using helper
     loadSoundEffect('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3', statusService);
+    loadSoundEffect('weather', 'assets/audio/sfx/Weather.mp3', statusService);
     
     if (controller.transportView) {
         controller.transportView.updateHyperloopVisibility();

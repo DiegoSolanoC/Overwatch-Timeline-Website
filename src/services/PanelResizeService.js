@@ -358,6 +358,10 @@
         });
     }
 
+    if (typeof window !== 'undefined') {
+        window.PanelResizeGearTick = { play: playGearTick };
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

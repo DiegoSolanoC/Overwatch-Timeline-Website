@@ -76,8 +76,10 @@ body.color-palette-gray .events-manage-close:hover {
 
 .events-manage-header {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 12px;
     margin-bottom: 20px;
     padding-bottom: 15px;
     padding-right: 80px; /* Add padding to avoid X button overlap */
@@ -93,7 +95,102 @@ body.color-palette-gray .events-manage-header {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    flex: 1;
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.events-manage-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.events-manage-actions {
+    display: flex;
+    gap: 10px;
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+@media (max-width: var(--breakpoint-mobile)) {
+    .events-manage-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .events-manage-actions {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .events-manage-title-row {
+        width: 100%;
+    }
+
+    .events-manage-panel--toolbar-collapsed #eventsManageSearch,
+    .events-manage-panel--toolbar-collapsed .events-manage-search {
+        display: none !important;
+    }
+}
+
+/* Same collapse rule with literal breakpoint (covers browsers where var() in @media fails) */
+@media (max-width: 768px) {
+    .events-manage-panel--toolbar-collapsed #eventsManageSearch,
+    .events-manage-panel--toolbar-collapsed .events-manage-search {
+        display: none !important;
+    }
+}
+
+/* Mobile-only: hide on desktop */
+.events-manage-toolbar-toggle-btn {
+    display: none;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    background: rgba(33, 150, 243, 0.35);
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    line-height: 1.2;
+    padding: 10px 14px;
+    min-height: 44px;
+    min-width: 44px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+@media (max-width: 768px) {
+    .events-manage-toolbar-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.events-manage-toolbar-toggle-btn:hover {
+    background: rgba(33, 150, 243, 0.5);
+    border-color: rgba(255, 255, 255, 0.55);
+}
+
+.events-manage-toolbar-toggle-btn:active {
+    transform: scale(0.98);
+}
+
+body.color-palette-gray .events-manage-toolbar-toggle-btn {
+    background: rgba(255, 102, 0, 0.38);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+body.color-palette-gray .events-manage-toolbar-toggle-btn:hover {
+    background: rgba(255, 102, 0, 0.52);
 }
 
 .events-manage-title {
@@ -113,11 +210,6 @@ body.color-palette-gray .events-manage-title {
     margin: 0;
     font-size: 14px;
     font-weight: 400;
-}
-
-.events-manage-actions {
-    display: flex;
-    gap: 10px;
 }
 
 .events-manage-action-btn {

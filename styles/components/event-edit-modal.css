@@ -214,6 +214,29 @@ body.color-palette-gray .location-type-btn.active:hover {
     grid-column: 1 / -1;
 }
 
+.event-edit-year-range-pair {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.event-edit-year-range-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 130px;
+}
+
+.event-edit-year-range-cell label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
 .event-edit-field label {
     color: rgba(255, 255, 255, 0.9);
     font-size: 12px;

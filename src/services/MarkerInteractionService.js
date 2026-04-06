@@ -3,7 +3,8 @@
  */
 
 /**
- * Dismiss music and filters slide panels (globe empty click / double-click). Not called on drag — callers rely on {@link window.mouseMoved}.
+ * Dismiss slide-out chrome: music, filters, event manager, palette (globe empty click / double-click / before opening event from marker).
+ * Mirrors toggle close behavior; not called on drag — callers rely on {@link window.mouseMoved}.
  */
 function closeTimelineMusicFiltersPanelsIfOpen() {
     let closedMusic = false;
@@ -19,6 +20,30 @@ function closeTimelineMusicFiltersPanelsIfOpen() {
     if (filtersPanel && filtersPanel.classList.contains('open')) {
         filtersPanel.classList.remove('open');
         if (filtersBtn) filtersBtn.classList.remove('active');
+    }
+    const managePanel = document.getElementById('eventsManagePanel');
+    const manageToggle = document.getElementById('eventsManageToggle');
+    if (managePanel && managePanel.classList.contains('open')) {
+        try {
+            window.eventManager?.resetAllEventVariants?.();
+        } catch (_) {}
+        managePanel.classList.remove('open');
+        if (manageToggle) manageToggle.classList.remove('active');
+        try {
+            window.EventsHoverPreviewBadge?.hide?.();
+        } catch (_) {}
+    }
+    const paletteMenu = document.getElementById('paletteMenu');
+    if (paletteMenu && paletteMenu.classList.contains('open')) {
+        if (typeof window._closePaletteMenu === 'function') {
+            try {
+                window._closePaletteMenu();
+            } catch (_) {}
+        } else {
+            paletteMenu.classList.remove('open');
+            const paletteToggle = document.getElementById('colorPaletteToggle');
+            if (paletteToggle) paletteToggle.classList.remove('active');
+        }
     }
     if (closedMusic && window.MusicManager && typeof window.MusicManager.updateNowPlaying === 'function') {
         try {
@@ -58,9 +83,13 @@ class MarkerInteractionService {
         const lines =
             typeof badge.getHoverPreviewLines === 'function'
                 ? badge.getHoverPreviewLines(eventObj)
-                : { primary: String(eventObj.name || '').replace(/<[^>]+>/g, ''), otherVariants: [] };
+                : {
+                    primary: String(eventObj.name || '').replace(/<[^>]+>/g, ''),
+                    otherVariants: [],
+                    era: ''
+                };
         if (typeof badge.show === 'function') {
-            badge.show(n, lines.primary, lines.otherVariants);
+            badge.show(n, lines.primary, lines.otherVariants, lines.era);
         }
     }
 

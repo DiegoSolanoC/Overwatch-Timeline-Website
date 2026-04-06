@@ -254,31 +254,24 @@ export class EventMarkerManager {
         if (activeFilters.size === 0) {
             this.unlockAllEvents();
             setTimeout(() => {
-                if (window.globeController?.uiView?.updateNumberButtons &&
-                    typeof window.globeController.uiView.updateNumberButtons === 'function') {
-                    window.globeController.uiView.updateNumberButtons();
+                const ui = window.globeController?.uiView;
+                if (ui?.updateNumberButtons && typeof ui.updateNumberButtons === 'function') {
+                    ui.updateNumberButtons();
+                }
+                if (ui?.updatePaginationUI && typeof ui.updatePaginationUI === 'function') {
+                    ui.updatePaginationUI();
                 }
             }, 50);
             return;
         }
         
-        // Helper function to check and lock/unlock a marker
+        // Helper function to check and lock/unlock a marker (multi-variant: unlock if any variant matches)
         const processMarker = (child) => {
             if (child.userData && child.userData.isEventMarker) {
                 const event = child.userData.event;
-                const eventHeroFilters = event.filters || [];
-                const eventFactionFilters = event.factions || [];
-                
-                // Check if event has at least one matching hero or faction filter
-                const hasMatchingHero = eventHeroFilters.some(filter => activeFilters.has(filter));
-                const hasMatchingFaction = eventFactionFilters.some(faction => activeFilters.has(faction));
-                const hasMatchingFilter = hasMatchingHero || hasMatchingFaction;
-                
-                if (hasMatchingFilter) {
-                    // Unlock if it matches
+                if (!shouldEventBeLocked(event, activeFilters)) {
                     this.unlockEvent(child);
                 } else {
-                    // Lock if it doesn't match
                     this.lockEvent(child);
                 }
             }
@@ -290,13 +283,15 @@ export class EventMarkerManager {
         // Update number buttons after filters are applied
         // Use a small delay to ensure markers are locked before checking
         setTimeout(() => {
-            if (window.globeController && window.globeController.uiView) {
-                // Call updateNumberButtons if it exists (stored from setupEventNumberButtons)
-                if (window.globeController.uiView.updateNumberButtons && 
-                    typeof window.globeController.uiView.updateNumberButtons === 'function') {
-                    window.globeController.uiView.updateNumberButtons();
+            const ui = window.globeController?.uiView;
+            if (ui) {
+                if (ui.updateNumberButtons && typeof ui.updateNumberButtons === 'function') {
+                    ui.updateNumberButtons();
                 } else {
                     console.warn('[EventMarkerManager] updateNumberButtons function not found!');
+                }
+                if (ui.updatePaginationUI && typeof ui.updatePaginationUI === 'function') {
+                    ui.updatePaginationUI();
                 }
             }
         }, 50); // Small delay to ensure markers are processed

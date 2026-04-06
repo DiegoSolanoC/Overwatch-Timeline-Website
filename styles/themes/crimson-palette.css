@@ -114,6 +114,39 @@ body.color-palette-crimson .page-input-container {
     background: var(--btn-crimson-bg) !important;
 }
 
+body.color-palette-crimson .event-page-slider::-webkit-slider-runnable-track {
+    border-color: rgba(239, 83, 80, 0.45) !important;
+}
+
+body.color-palette-crimson .event-page-slider::-webkit-slider-thumb {
+    background: linear-gradient(180deg, #ef5350 0%, #c62828 100%) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body.color-palette-crimson .event-page-slider::-moz-range-track {
+    border-color: rgba(239, 83, 80, 0.45) !important;
+}
+
+body.color-palette-crimson .event-page-slider::-moz-range-thumb {
+    background: linear-gradient(180deg, #ef5350 0%, #c62828 100%) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body.color-palette-crimson .event-page-slider-tick--major {
+    background: rgba(239, 83, 80, 0.92) !important;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.55) !important;
+}
+
+body.color-palette-crimson .event-page-slider-tick--sub {
+    background: rgba(255, 138, 128, 0.55) !important;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.color-palette-crimson .event-page-slider-tick--sub.event-page-slider-tick--filter-hit {
+    background: rgba(76, 175, 80, 0.95) !important;
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.65) !important;
+}
+
 body.color-palette-crimson .event-number-btn {
     background: rgba(85, 30, 38, 0.9) !important;
 }

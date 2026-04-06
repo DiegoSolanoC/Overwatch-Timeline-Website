@@ -198,6 +198,10 @@ class ToggleService {
                 event.preventDefault();
             }
 
+            if (window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('weather');
+            }
+
             const visible = !sceneModel.getGlobeWeatherEffectsVisible();
             sceneModel.setGlobeWeatherEffectsVisible(visible);
 

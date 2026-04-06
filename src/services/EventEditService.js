@@ -102,8 +102,17 @@ class EventEditService {
             mainFactionsStr,
             mainSources,
             mainHeadlines,
-            cityDisplayName
+            cityDisplayName,
+            yearStartStr,
+            yearEndStr,
+            eraNameStr
         } = formData;
+
+        const Timeline = this.constructor;
+        const timeline = Timeline.parseTimelineFormStrings(yearStartStr, yearEndStr);
+        if (timeline.error) {
+            return { error: timeline.error };
+        }
 
         const isMultiEvent = variantData.length > 1;
 
@@ -260,7 +269,84 @@ class EventEditService {
             }
         }
 
+        this.constructor.applyTimelineToEvent(event, timeline);
+        const eraTrimmed = (eraNameStr != null ? String(eraNameStr) : '').trim();
+        this.constructor.applyEraNameToEvent(event, eraTrimmed);
         return { event: event };
+    }
+
+    /**
+     * Parse optional timeline fields from the modal (shared across variants).
+     * @param {string} [yearStartStr]
+     * @param {string} [yearEndStr]
+     * @returns {{ yearStart?: number, yearEnd?: number } | { error: string }}
+     */
+    static parseTimelineFormStrings(yearStartStr, yearEndStr) {
+        const s = (yearStartStr != null ? String(yearStartStr) : '').trim();
+        const e = (yearEndStr != null ? String(yearEndStr) : '').trim();
+
+        if (!s && !e) {
+            return {};
+        }
+        if (!s && e) {
+            return { error: 'Enter a first year, or clear all timeline fields.' };
+        }
+
+        const yearStartRaw = parseInt(s, 10);
+        if (Number.isNaN(yearStartRaw)) {
+            return { error: 'First year must be a whole number.' };
+        }
+
+        let yearStart = yearStartRaw;
+        /** @type {number | undefined} */
+        let yearEnd;
+
+        if (!e) {
+            yearEnd = undefined;
+        } else {
+            const parsedEnd = parseInt(e, 10);
+            if (Number.isNaN(parsedEnd)) {
+                return { error: 'Second year must be a whole number.' };
+            }
+            const lo = Math.min(yearStartRaw, parsedEnd);
+            const hi = Math.max(yearStartRaw, parsedEnd);
+            yearStart = lo;
+            yearEnd = lo === hi ? undefined : hi;
+        }
+
+        return {
+            yearStart,
+            ...(yearEnd != null ? { yearEnd } : {}),
+        };
+    }
+
+    /**
+     * @param {Object} event
+     * @param {Object} timeline — from parseTimelineFormStrings (no error key)
+     */
+    static applyTimelineToEvent(event, timeline) {
+        if (!event || !timeline) return;
+        delete event.yearStart;
+        delete event.yearEnd;
+        delete event.timePercentage;
+        if (timeline.yearStart != null) {
+            event.yearStart = timeline.yearStart;
+        }
+        if (timeline.yearEnd != null) {
+            event.yearEnd = timeline.yearEnd;
+        }
+    }
+
+    /**
+     * @param {Object} event
+     * @param {string} trimmedName — already trimmed; empty removes the field
+     */
+    static applyEraNameToEvent(event, trimmedName) {
+        if (!event) return;
+        delete event.eraName;
+        if (trimmedName) {
+            event.eraName = trimmedName;
+        }
     }
 
     /**

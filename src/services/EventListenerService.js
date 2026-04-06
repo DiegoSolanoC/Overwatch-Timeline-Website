@@ -38,6 +38,8 @@ class EventListenerService {
             }, 200);
             return;
         }
+
+        this.setupEventsManageToolbarCollapse(panel);
         
         // If listeners already set up, skip (but allow re-setup if needed)
         if (this.eventManager.listenersSetup && toggleBtn && panel) {
@@ -393,6 +395,70 @@ class EventListenerService {
         this.setupEventManagerSearch();
         this.eventManager.listenersSetup = true;
         console.log('EventListenerService: All listeners set up successfully');
+    }
+
+    /**
+     * Mobile: large toggle button collapses the search/filters toolbar. Desktop: class cleared; toolbar always shown.
+     */
+    setupEventsManageToolbarCollapse(panel) {
+        if (this._eventsManageToolbarCollapseBound) return;
+        const btn = document.getElementById('eventsManageToolbarToggleBtn');
+        const searchEl = document.getElementById('eventsManageSearch');
+        if (!panel || !btn) return;
+        this._eventsManageToolbarCollapseBound = true;
+
+        const storageKey = 'eventsManageToolbarCollapsed';
+        const mql = window.matchMedia('(max-width: 768px)');
+
+        const LABEL_HIDE = 'Hide controls';
+        const LABEL_SHOW = 'Show controls';
+
+        const apply = () => {
+            const mobile = mql.matches;
+            const collapsed = btn.getAttribute('aria-pressed') === 'true';
+
+            if (!mobile) {
+                panel.classList.remove('events-manage-panel--toolbar-collapsed');
+                btn.textContent = LABEL_HIDE;
+                if (searchEl) searchEl.style.removeProperty('display');
+                return;
+            }
+
+            panel.classList.toggle('events-manage-panel--toolbar-collapsed', collapsed);
+            btn.textContent = collapsed ? LABEL_SHOW : LABEL_HIDE;
+            if (searchEl) {
+                if (collapsed) {
+                    searchEl.style.setProperty('display', 'none', 'important');
+                } else {
+                    searchEl.style.removeProperty('display');
+                }
+            }
+        };
+
+        try {
+            if (localStorage.getItem(storageKey) === '1') {
+                btn.setAttribute('aria-pressed', 'true');
+            }
+        } catch (_) {}
+
+        apply();
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!mql.matches) return;
+            const next = btn.getAttribute('aria-pressed') !== 'true';
+            btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+            apply();
+            try {
+                localStorage.setItem(storageKey, next ? '1' : '0');
+            } catch (_) {}
+        });
+
+        if (typeof mql.addEventListener === 'function') {
+            mql.addEventListener('change', apply);
+        } else {
+            mql.addListener(apply);
+        }
     }
 
     /**

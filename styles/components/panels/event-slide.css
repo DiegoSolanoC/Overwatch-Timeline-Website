@@ -197,6 +197,20 @@
     align-items: center;
 }
 
+.event-slide-inline-editor__year-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: end;
+}
+
+.event-slide-inline-editor__year-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
 .event-slide-inline-editor__actions {
     display: flex;
     justify-content: flex-start;
@@ -236,6 +250,7 @@
 
 /* Top section - always visible, never scrolls (title, location, variant toggles) */
 .event-slide-top {
+    order: 1;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -244,8 +259,24 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Full Text + image toggles: on mobile, DOM order places this between location and description; on desktop, flex order moves it below the scrollable block */
+.event-slide-mid-controls {
+    order: 2;
+    flex-shrink: 0;
+    margin: 0 0 12px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.event-slide-mid-controls .event-control-buttons {
+    margin-top: 0;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+}
+
 /* Scrollable area for description, sources, and filters */
 .event-slide-scrollable {
+    order: 3;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -259,6 +290,34 @@
     box-sizing: border-box;
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Desktop-only: era above number + title (mobile hides via max-width rules + default none) */
+.event-slide-era-heading {
+    display: none;
+    margin: 0 0 12px 0;
+    padding: 0;
+    font-size: 2.45rem;
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: 0.03em;
+    color: var(--accent-primary);
+    text-wrap: balance;
+}
+
+.event-slide-era-heading--empty {
+    display: none !important;
+    margin: 0;
+}
+
+@media (min-width: 769px) {
+    .event-slide-era-heading:not(.event-slide-era-heading--empty) {
+        display: block;
+    }
+
+    .event-slide-top .event-slide-era-heading:not(.event-slide-era-heading--empty) ~ h2#eventSlideTitle {
+        margin-top: 0;
+    }
 }
 
 .event-slide-top h2,
@@ -302,6 +361,15 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
+.event-slide-timeline-meta {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.72);
+    margin: 6px 0 0 0;
+    line-height: 1.4;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
 .event-slide-scrollable p#eventSlideText,
 .event-slide-content p#eventSlideText {
     line-height: 1.6;
@@ -321,10 +389,21 @@
 
 /* Bottom section - always at bottom, never scrolls */
 .event-slide-bottom {
+    order: 4;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     margin-top: auto;
+}
+
+@media (min-width: 769px) {
+    .event-slide-mid-controls {
+        order: 3;
+    }
+
+    .event-slide-scrollable {
+        order: 2;
+    }
 }
 
 /* Fade transition for event title */
@@ -433,6 +512,10 @@
         width: 100% !important;
     }
     
+    .event-slide-era-heading {
+        display: none !important;
+    }
+
     /* Mobile: Ensure title, location, and description are visible */
     .event-slide-content h2#eventSlideTitle,
     .event-slide-scrollable h2#eventSlideTitle {

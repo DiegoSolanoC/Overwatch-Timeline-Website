@@ -234,6 +234,10 @@ class EventDataService {
                 console.log('EventDataService: Using localStorage version (', this.events.length, 'events)');
                 console.log('EventDataService: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                 this.updateStatus(`EventDataService: Using ${this.events.length} events from localStorage`, 'success');
+
+                if (fileEvents && fileEventCount === this.events.length) {
+                    this.mergeTimelineMetadataFromFileEvents(fileEvents);
+                }
                 
                 // CRITICAL: On GitHub Pages, always prefer file if it has more events (even if localStorage exists)
                 // On localhost, update if file has significantly more events (5+ more) or localStorage is outdated
@@ -325,6 +329,48 @@ class EventDataService {
         this.updateStatus('EventDataService: ERROR - No events found. Check events.json file.', 'error');
         
         return { events: this.events, source: 'none', shouldSync: true };
+    }
+
+    /**
+     * When localStorage is preferred but events.json was fetched, copy era/year fields from the file
+     * for any event that is missing them locally. Fixes stale localStorage after editing data/events.json.
+     * @param {Array<Object>} fileEvents - Parsed events from events.json
+     * @returns {boolean} true if any field was merged
+     */
+    mergeTimelineMetadataFromFileEvents(fileEvents) {
+        if (!fileEvents || !Array.isArray(this.events) || this.events.length !== fileEvents.length) {
+            return false;
+        }
+        let changed = false;
+        for (let i = 0; i < this.events.length; i++) {
+            const local = this.events[i];
+            const file = fileEvents[i];
+            if (!local || !file) continue;
+
+            const eraF = file.eraName;
+            if (eraF != null && String(eraF).trim() !== '') {
+                if (local.eraName == null || local.eraName === '') {
+                    local.eraName = eraF;
+                    changed = true;
+                }
+            }
+            for (const key of ['yearStart', 'yearEnd']) {
+                const fv = file[key];
+                if (fv != null && fv !== '' && !Number.isNaN(Number(fv))) {
+                    if (local[key] == null || local[key] === '') {
+                        const n = Number(fv);
+                        local[key] = Number.isInteger(n) ? n : Math.trunc(n);
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if (changed) {
+            console.log('EventDataService: Merged eraName / year fields from events.json into events missing those fields (localStorage was stale)');
+            this.updateStatus('EventDataService: Synced era & year fields from events.json', 'success');
+            this.saveEvents();
+        }
+        return changed;
     }
 
     /**

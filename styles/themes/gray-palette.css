@@ -105,6 +105,43 @@ body.color-palette-gray .page-input-container {
     background: var(--btn-gray-bg) !important;
 }
 
+/* Globe page scrub bar */
+body.color-palette-gray .event-page-slider::-webkit-slider-runnable-track {
+    border-color: rgba(255, 102, 0, 0.45) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.color-palette-gray .event-page-slider::-webkit-slider-thumb {
+    background: linear-gradient(180deg, var(--accent-primary) 0%, rgba(204, 82, 0, 1) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body.color-palette-gray .event-page-slider::-moz-range-track {
+    border-color: rgba(255, 102, 0, 0.45) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.color-palette-gray .event-page-slider::-moz-range-thumb {
+    background: linear-gradient(180deg, var(--accent-primary) 0%, rgba(204, 82, 0, 1) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body.color-palette-gray .event-page-slider-tick--major {
+    background: rgba(255, 140, 64, 0.85) !important;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.color-palette-gray .event-page-slider-tick--sub {
+    background: rgba(255, 180, 120, 0.55) !important;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Filter match: same green semantics as filter counts */
+body.color-palette-gray .event-page-slider-tick--sub.event-page-slider-tick--filter-hit {
+    background: rgba(76, 175, 80, 0.95) !important;
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.65) !important;
+}
+
 body.color-palette-gray .event-number-btn {
     background: rgba(74, 74, 74, 0.9) !important;
 }

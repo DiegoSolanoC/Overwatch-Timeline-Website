@@ -11,7 +11,17 @@ import { cloneButton, cloneButtons, playNavigationSound } from './helpers/Naviga
 import { handleNumberButtonMouseEnter, handleNumberButtonMouseLeave } from './helpers/NavigationCameraHelpers.js';
 import { handleNumberButtonClick } from './helpers/NavigationEventHelpers.js';
 import { resetButtonStyles, isEventMarkerLocked } from './helpers/NavigationButtonStateHelpers.js';
-import { handlePrevPageClick, handleNextPageClick, handlePageInputChange, updatePaginationButtonStates } from './helpers/NavigationPaginationHelpers.js';
+import {
+    handlePrevPageClick,
+    handleNextPageClick,
+    handlePageInputChange,
+    updatePaginationButtonStates,
+    EVENT_PAGE_SLIDER_RESOLUTION,
+    normalizedProgressFromSliderValue,
+    pageFromSliderProgress,
+    sliderValueForPageCenter
+} from './helpers/NavigationPaginationHelpers.js';
+import { shouldEventBeLocked } from './helpers/MarkerCreationHelpers.js';
 import { getGlobalEventNumber1Based } from './helpers/EventSlideShowHelpers.js';
 import {
     showEventsHoverPreview,
@@ -431,6 +441,13 @@ export class EventNavigationManager {
 
         if (!prevBtn || !nextBtn || !pageInput || !pageTotal || !this.dataModel) return;
 
+        const pageSliderEl = document.getElementById('eventPageSlider');
+        if (pageSliderEl && pageSliderEl.parentNode) {
+            const freshSlider = pageSliderEl.cloneNode(true);
+            pageSliderEl.parentNode.replaceChild(freshSlider, pageSliderEl);
+        }
+        const pageSlider = document.getElementById('eventPageSlider');
+
         // Remove existing event listeners by cloning the buttons (removes all listeners)
         const cloned = cloneButtons(['prevPageBtn', 'nextPageBtn', 'pageInput']);
         const newPrevBtn = cloned['prevPageBtn'];
@@ -446,6 +463,81 @@ export class EventNavigationManager {
             newPageInput.value = currentPage;
             newPageInput.max = totalPages;
             pageTotal.textContent = `/ ${totalPages}`;
+
+            const ticksEl = document.getElementById('eventPageSliderTicks');
+            if (ticksEl) {
+                ticksEl.innerHTML = '';
+                const tpTicks = Math.max(1, totalPages);
+                const eventsPerPage = this.dataModel.eventsPerPage || 10;
+                const totalEvents = Array.isArray(this.dataModel.events) ? this.dataModel.events.length : 0;
+                if (tpTicks > 1) {
+                    for (let i = 1; i < tpTicks; i++) {
+                        const tick = document.createElement('span');
+                        tick.className = 'event-page-slider-tick event-page-slider-tick--major';
+                        tick.style.left = `${(i / tpTicks) * 100}%`;
+                        ticksEl.appendChild(tick);
+                    }
+                }
+                const activeFilters =
+                    window.globeController?.sceneModel?.activeFilters || null;
+                const filtersOn = activeFilters && activeFilters.size > 0;
+                const events = Array.isArray(this.dataModel.events) ? this.dataModel.events : [];
+
+                for (let p = 0; p < tpTicks; p++) {
+                    const onPage = Math.min(
+                        eventsPerPage,
+                        Math.max(0, totalEvents - p * eventsPerPage)
+                    );
+                    if (onPage <= 1) continue;
+                    for (let k = 1; k < onPage; k++) {
+                        const sub = document.createElement('span');
+                        sub.className = 'event-page-slider-tick event-page-slider-tick--sub';
+                        sub.style.left = `${((p + k / onPage) / tpTicks) * 100}%`;
+                        if (filtersOn) {
+                            const gL = p * eventsPerPage + (k - 1);
+                            const gR = p * eventsPerPage + k;
+                            const evL = gL >= 0 && gL < totalEvents ? events[gL] : null;
+                            const evR = gR >= 0 && gR < totalEvents ? events[gR] : null;
+                            const passes = (ev) =>
+                                !!(ev && !shouldEventBeLocked(ev, activeFilters));
+                            if (passes(evL) || passes(evR)) {
+                                sub.classList.add('event-page-slider-tick--filter-hit');
+                            }
+                        }
+                        ticksEl.appendChild(sub);
+                    }
+                }
+            }
+
+            if (pageSlider) {
+                const tp = Math.max(1, totalPages);
+                const cur = Math.min(Math.max(1, currentPage), tp);
+                const prevTp = this.uiView._eventPageSliderLastTotalPages;
+                if (prevTp !== totalPages) {
+                    this.uiView._suppressEventPageSliderSync = false;
+                    this.uiView._eventPageSliderLastTotalPages = totalPages;
+                }
+                pageSlider.min = '0';
+                pageSlider.max = String(EVENT_PAGE_SLIDER_RESOLUTION);
+                pageSlider.step = '1';
+                pageSlider.disabled = totalPages <= 1;
+                const pointerActive = this.uiView._eventPageSliderPointerActive === true;
+                const skipProgrammaticSlider =
+                    pointerActive || this.uiView._suppressEventPageSliderSync === true;
+                if (totalPages > 1 && !skipProgrammaticSlider) {
+                    pageSlider.value = String(sliderValueForPageCenter(cur, tp));
+                }
+                const label = `Pages: scrub the bar (${cur} of ${tp})`;
+                pageSlider.title = label;
+                pageSlider.setAttribute('aria-label', label);
+                pageSlider.setAttribute('aria-valuemin', '0');
+                pageSlider.setAttribute('aria-valuemax', String(EVENT_PAGE_SLIDER_RESOLUTION));
+                pageSlider.setAttribute('aria-valuenow', pageSlider.value);
+                pageSlider.setAttribute(
+                    'aria-valuetext',
+                    `Page ${cur} of ${tp}; move within the current segment until you cross into the next page`
+                );
+            }
 
             // Enable wrap buttons - change icon and behavior at boundaries
             if (totalPages > 1) {
@@ -529,6 +621,91 @@ export class EventNavigationManager {
                 handleNextPageClick(this.dataModel, wrappedUpdatePaginationUI, onPageChange);
             }
         });
+
+        if (pageSlider) {
+            const sliderGesture = {
+                down: false,
+                dragLike: false,
+                inputEvents: 0,
+                tapPendingPageSound: false
+            };
+            let removeMoveListener = null;
+            const clearMoveListener = () => {
+                if (removeMoveListener) {
+                    removeMoveListener();
+                    removeMoveListener = null;
+                }
+            };
+            const endSliderPointer = () => {
+                this.uiView._eventPageSliderPointerActive = false;
+                this.uiView._suppressEventPageSliderSync = true;
+                if (
+                    sliderGesture.tapPendingPageSound
+                    && window.SoundEffectsManager
+                    && typeof window.SoundEffectsManager.play === 'function'
+                ) {
+                    window.SoundEffectsManager.play('page');
+                }
+                sliderGesture.tapPendingPageSound = false;
+                sliderGesture.down = false;
+                sliderGesture.dragLike = false;
+                sliderGesture.inputEvents = 0;
+                clearMoveListener();
+            };
+            pageSlider.addEventListener('pointerdown', (e) => {
+                sliderGesture.down = true;
+                sliderGesture.dragLike = false;
+                sliderGesture.inputEvents = 0;
+                sliderGesture.tapPendingPageSound = false;
+                this.uiView._eventPageSliderPointerActive = true;
+                clearMoveListener();
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const onMove = (ev) => {
+                    if (!sliderGesture.down) return;
+                    const dx = ev.clientX - startX;
+                    const dy = ev.clientY - startY;
+                    if (dx * dx + dy * dy > 100) {
+                        sliderGesture.dragLike = true;
+                        sliderGesture.tapPendingPageSound = false;
+                    }
+                };
+                window.addEventListener('pointermove', onMove);
+                removeMoveListener = () => window.removeEventListener('pointermove', onMove);
+                const onUp = () => {
+                    window.removeEventListener('pointerup', onUp);
+                    window.removeEventListener('pointercancel', onUp);
+                    endSliderPointer();
+                };
+                window.addEventListener('pointerup', onUp);
+                window.addEventListener('pointercancel', onUp);
+            });
+            pageSlider.addEventListener('input', () => {
+                const tp = Math.max(1, this.dataModel.getTotalEventPages());
+                if (tp <= 1) return;
+                const t = normalizedProgressFromSliderValue(pageSlider.value);
+                const newPage = pageFromSliderProgress(t, tp);
+                const cur = this.dataModel.getCurrentEventPage();
+                if (newPage === cur) return;
+                const oldPage = cur;
+                sliderGesture.inputEvents += 1;
+                handlePageInputChange(newPage, this.dataModel, wrappedUpdatePaginationUI, onPageChange, false);
+                const scrubDrag =
+                    sliderGesture.dragLike || sliderGesture.inputEvents >= 2;
+                if (scrubDrag) {
+                    sliderGesture.tapPendingPageSound = false;
+                    if (
+                        oldPage !== newPage
+                        && window.PanelResizeGearTick
+                        && typeof window.PanelResizeGearTick.play === 'function'
+                    ) {
+                        window.PanelResizeGearTick.play();
+                    }
+                } else {
+                    sliderGesture.tapPendingPageSound = true;
+                }
+            });
+        }
 
         // Manual page input
         newPageInput.addEventListener('change', (e) => {
@@ -642,8 +819,8 @@ export class EventNavigationManager {
 
                 if (targetEvent && !lockedOnMap) {
                     const n = getGlobalEventNumber1Based(targetEvent, this.dataModel);
-                    const { primary, otherVariants } = getHoverPreviewLines(targetEvent);
-                    showEventsHoverPreview(n, primary, otherVariants);
+                    const { primary, otherVariants, era } = getHoverPreviewLines(targetEvent);
+                    showEventsHoverPreview(n, primary, otherVariants, era);
                 }
 
                 if (!marker) return;

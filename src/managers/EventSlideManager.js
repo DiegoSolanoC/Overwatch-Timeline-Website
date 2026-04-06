@@ -4,6 +4,7 @@
  */
 
 import { formatEventSlideTitleHtml } from './helpers/EventSlideShowHelpers.js';
+import { getPreferredVariantIndexForActiveFilters } from './helpers/MarkerCreationHelpers.js';
 /** Side effect: defines `window.EventSlideGlitchHelpers` (glitch toggle + text click delegation). */
 import './helpers/EventSlideGlitchHelpers.js';
 import {
@@ -92,12 +93,23 @@ export class EventSlideManager {
         if (!editBtn || !saveBtn || !eventSlide) return;
 
         const allowed = this._isInlineEditAllowed();
-        editBtn.disabled = !allowed;
-        saveBtn.disabled = !allowed;
-        editBtn.style.opacity = allowed ? '' : '0.45';
-        saveBtn.style.opacity = allowed ? '' : '0.45';
-        editBtn.title = allowed ? 'Edit description' : 'Disabled on GitHub Pages';
-        saveBtn.title = allowed ? 'Save description' : 'Disabled on GitHub Pages';
+        if (!allowed) {
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'none';
+            editBtn.disabled = true;
+            saveBtn.disabled = true;
+        } else {
+            editBtn.style.display = '';
+            editBtn.disabled = false;
+            saveBtn.disabled = false;
+            if (!this._inlineDescEdit.active) {
+                saveBtn.style.display = 'none';
+            }
+            editBtn.style.opacity = '';
+            saveBtn.style.opacity = '';
+            editBtn.title = 'Edit description';
+            saveBtn.title = 'Save description';
+        }
 
         if (editBtn.dataset.inlineEditSetup === 'true') return;
         editBtn.dataset.inlineEditSetup = 'true';
@@ -120,6 +132,20 @@ export class EventSlideManager {
                 <div class="event-slide-inline-editor__row">
                     <label class="event-slide-inline-editor__label" for="eventSlideEditCityDisplayName">Location label</label>
                     <input class="event-slide-inline-editor__input" id="eventSlideEditCityDisplayName" type="text" spellcheck="true" autocomplete="on" autocorrect="on" autocapitalize="sentences" />
+                </div>
+                <div class="event-slide-inline-editor__row event-slide-inline-editor__year-row">
+                    <div class="event-slide-inline-editor__year-cell">
+                        <label class="event-slide-inline-editor__label" for="eventSlideEditYearStart">First year (range)</label>
+                        <input class="event-slide-inline-editor__input" id="eventSlideEditYearStart" type="number" step="1" autocomplete="off" />
+                    </div>
+                    <div class="event-slide-inline-editor__year-cell">
+                        <label class="event-slide-inline-editor__label" for="eventSlideEditYearEnd">Second year (optional)</label>
+                        <input class="event-slide-inline-editor__input" id="eventSlideEditYearEnd" type="number" step="1" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditEraName">Era name (optional)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditEraName" type="text" spellcheck="true" autocomplete="on" />
                 </div>
                 <div class="event-slide-inline-editor__row">
                     <label class="event-slide-inline-editor__label" for="eventSlideEditFilters">Heroes (comma-separated)</label>
@@ -170,6 +196,9 @@ export class EventSlideManager {
         }
 
         const cityInput = document.getElementById('eventSlideEditCityDisplayName');
+        const yearStartInput = document.getElementById('eventSlideEditYearStart');
+        const yearEndInput = document.getElementById('eventSlideEditYearEnd');
+        const eraNameInput = document.getElementById('eventSlideEditEraName');
         const filtersInput = document.getElementById('eventSlideEditFilters');
         const factionsInput = document.getElementById('eventSlideEditFactions');
         const secondaryCountriesInput = document.getElementById('eventSlideEditSecondaryCountries');
@@ -232,6 +261,9 @@ export class EventSlideManager {
 
         // Dirty tracking for structured inputs
         cityInput?.addEventListener('input', markDirty, { passive: true });
+        yearStartInput?.addEventListener('input', markDirty, { passive: true });
+        yearEndInput?.addEventListener('input', markDirty, { passive: true });
+        eraNameInput?.addEventListener('input', markDirty, { passive: true });
         filtersInput?.addEventListener('input', markDirty, { passive: true });
         factionsInput?.addEventListener('input', markDirty, { passive: true });
         secondaryCountriesInput?.addEventListener('input', markDirty, { passive: true });
@@ -288,6 +320,7 @@ export class EventSlideManager {
 
             const { target, eventData, variantIndex } = this._getCurrentDescriptionTarget();
             if (!target) return;
+            if (!eventData) return;
 
             // Start editing
             this._inlineDescEdit.active = true;
@@ -323,6 +356,9 @@ export class EventSlideManager {
             // Show the structured editor block for the other fields
             if (editor) editor.style.display = 'block';
             if (cityInput) cityInput.value = this._inlineDescEdit.originalCityDisplayName;
+            if (yearStartInput) yearStartInput.value = eventData.yearStart != null && eventData.yearStart !== '' ? String(eventData.yearStart) : '';
+            if (yearEndInput) yearEndInput.value = eventData.yearEnd != null && eventData.yearEnd !== '' ? String(eventData.yearEnd) : '';
+            if (eraNameInput) eraNameInput.value = eventData.eraName != null ? String(eventData.eraName) : '';
             if (filtersInput) filtersInput.value = this._inlineDescEdit.originalFilters.join(', ');
             if (factionsInput) {
                 // Display factions without numeric prefix for readability
@@ -373,8 +409,21 @@ export class EventSlideManager {
             if (!this._isInlineEditAllowed()) return;
             if (!this._inlineDescEdit.active) return;
 
-            const { target } = this._getCurrentDescriptionTarget();
+            const { target, eventData: rootEvent } = this._getCurrentDescriptionTarget();
             if (!target) return;
+
+            if (rootEvent && window.EventEditService && window.EventEditService.constructor) {
+                const EC = window.EventEditService.constructor;
+                const y1 = document.getElementById('eventSlideEditYearStart')?.value ?? '';
+                const y2 = document.getElementById('eventSlideEditYearEnd')?.value ?? '';
+                const timeline = EC.parseTimelineFormStrings(y1, y2);
+                if (timeline.error) {
+                    alert(timeline.error);
+                    return;
+                }
+                EC.applyTimelineToEvent(rootEvent, timeline);
+                EC.applyEraNameToEvent(rootEvent, (document.getElementById('eventSlideEditEraName')?.value ?? '').trim());
+            }
 
             const newName = (eventSlideTitle.innerText ?? eventSlideTitle.textContent ?? '').trim();
             const newText = (eventSlideText.textContent ?? '').replace(/\r\n/g, '\n');
@@ -482,6 +531,10 @@ export class EventSlideManager {
             const eventSlideLocation = document.getElementById('eventSlideLocation');
             if (eventSlideLocation && eventData) {
                 this.setupLocationDisplay(eventSlideLocation, eventData, marker, isMulti, this.uiView?.currentVariantIndex ?? this.currentVariantIndex, true);
+            }
+            const refreshMeta = window.EventSlideShowHelpers?.updateEventSlideTimelineMeta;
+            if (typeof refreshMeta === 'function') {
+                refreshMeta(eventData);
             }
         }
 
@@ -616,9 +669,43 @@ export class EventSlideManager {
         // If user was inline-editing and didn't save, discard edits when switching/opening.
         this._cancelInlineDescriptionEdit();
 
+        try {
+            if (typeof window.closeTimelineMusicFiltersPanelsIfOpen === 'function') {
+                window.closeTimelineMusicFiltersPanelsIfOpen();
+            }
+        } catch (_) {}
+
         // Play event click sound when opening event
         if (window.SoundEffectsManager) {
             window.SoundEffectsManager.play('eventClick');
+        }
+
+        const isMultiEvent = !!(eventData && eventData.variants && eventData.variants.length > 0);
+        let initialVariantIndex = 0;
+        if (isMultiEvent && marker && marker.userData && marker.userData.variantIndex !== undefined) {
+            initialVariantIndex = marker.userData.variantIndex;
+        }
+        const activeFilters = this.sceneModel && this.sceneModel.activeFilters;
+        if (activeFilters && activeFilters.size > 0 && isMultiEvent && initialVariantIndex === 0) {
+            initialVariantIndex = getPreferredVariantIndexForActiveFilters(eventData, activeFilters);
+        }
+
+        if (isMultiEvent) {
+            const dv = eventData.variants[initialVariantIndex] || eventData.variants[0];
+            if (dv) {
+                eventName = dv.name || eventName;
+                if (dv.description != null) {
+                    description = dv.description;
+                }
+                if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
+                    const ip = window.eventManager.getEventImagePath(dv.name, dv.image);
+                    if (ip) {
+                        imagePath = ip;
+                    }
+                } else if (dv.image) {
+                    imagePath = dv.image;
+                }
+            }
         }
 
         // Process image path using helper
@@ -636,15 +723,15 @@ export class EventSlideManager {
         // Initialize event slide state using helper
         const initializeEventSlideState = window.EventSlideShowHelpers?.initializeEventSlideState;
         if (initializeEventSlideState) {
-            initializeEventSlideState(this, marker, eventData, 0, this.uiView);
+            initializeEventSlideState(this, marker, eventData, initialVariantIndex, this.uiView);
         } else {
             // Minimal fallback
             this.currentEventMarker = marker;
             this.currentEventData = eventData;
-            this.currentVariantIndex = 0;
+            this.currentVariantIndex = initialVariantIndex;
             this.uiView.currentEventMarker = marker;
             this.uiView.currentEventData = eventData;
-            this.uiView.currentVariantIndex = 0;
+            this.uiView.currentVariantIndex = initialVariantIndex;
             this.previousAutoRotateState = this.sceneModel.getAutoRotateEnabled();
             this.sceneModel.setAutoRotateEnabled(true);
             this.sceneModel.setAutoRotate(false);
@@ -652,24 +739,6 @@ export class EventSlideManager {
         }
 
         if (eventSlide) {
-            // Check if this is a multi-event
-            const isMultiEvent = eventData && eventData.variants && eventData.variants.length > 0;
-
-            // Get the variant index from the marker if available (for multi-events)
-            let initialVariantIndex = 0;
-            if (isMultiEvent && marker && marker.userData && marker.userData.variantIndex !== undefined) {
-                initialVariantIndex = marker.userData.variantIndex;
-            }
-
-            // Store the current variant index
-            this.currentVariantIndex = initialVariantIndex;
-            const syncState = window.EventSlideStateHelpers?.syncStateWithUIView;
-            if (syncState) {
-                syncState(this.uiView, { currentVariantIndex: initialVariantIndex });
-            } else {
-                this.uiView.currentVariantIndex = initialVariantIndex;
-            }
-
             // Setup variant toggle buttons using helper
             const setupVariantToggles = window.EventSlideContentHelpers?.setupVariantToggles;
             if (setupVariantToggles) {
@@ -714,6 +783,9 @@ export class EventSlideManager {
                 const eventSlideLocation = document.getElementById('eventSlideLocation');
                 if (eventSlideLocation && eventData) {
                     this.setupLocationDisplay(eventSlideLocation, eventData, marker, isMultiEvent, initialVariantIndex, isAlreadyOpen);
+                }
+                if (window.EventSlideShowHelpers && typeof window.EventSlideShowHelpers.updateEventSlideTimelineMeta === 'function') {
+                    window.EventSlideShowHelpers.updateEventSlideTimelineMeta(eventData);
                 }
                 this.updateContentWithFade(eventSlideText, getDisplayText(description || 'Placeholder text for event information. This will be replaced with actual event details.'), isAlreadyOpen);
             }

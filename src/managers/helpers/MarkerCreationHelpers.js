@@ -87,6 +87,46 @@ export function createMarkerUserData({
 }
 
 /**
+ * True if this entity's hero/faction ids intersect active globe filters.
+ * @param {Object|null|undefined} entity - Event root or variant object
+ * @param {Set} activeFilters - Set of active filter IDs
+ */
+export function entityMatchesActiveFilters(entity, activeFilters) {
+    if (!entity || !activeFilters || activeFilters.size === 0) {
+        return false;
+    }
+    const heroFilters = entity.filters || [];
+    const factionFilters = entity.factions || [];
+    return heroFilters.some((id) => activeFilters.has(id))
+        || factionFilters.some((id) => activeFilters.has(id));
+}
+
+/**
+ * First variant index that matches filters, or 0 if only the root matches, or 0 when no filters.
+ * @param {Object|null|undefined} event - Root timeline event (may include `variants[]`)
+ * @param {Set} activeFilters
+ * @returns {number}
+ */
+export function getPreferredVariantIndexForActiveFilters(event, activeFilters) {
+    if (!event || !activeFilters || activeFilters.size === 0) {
+        return 0;
+    }
+    const variants = event.variants;
+    if (!variants || variants.length === 0) {
+        return 0;
+    }
+    for (let i = 0; i < variants.length; i++) {
+        if (entityMatchesActiveFilters(variants[i], activeFilters)) {
+            return i;
+        }
+    }
+    if (entityMatchesActiveFilters(event, activeFilters)) {
+        return 0;
+    }
+    return 0;
+}
+
+/**
  * Checks if an event should be locked based on active filters
  * @param {Object} event - Event object
  * @param {Set} activeFilters - Set of active filter IDs
@@ -96,14 +136,17 @@ export function shouldEventBeLocked(event, activeFilters) {
     if (!activeFilters || activeFilters.size === 0) {
         return false;
     }
-    
-    const eventHeroFilters = event.filters || [];
-    const eventFactionFilters = event.factions || [];
-    const hasMatchingHero = eventHeroFilters.some(filter => activeFilters.has(filter));
-    const hasMatchingFaction = eventFactionFilters.some(faction => activeFilters.has(faction));
-    const hasMatchingFilter = hasMatchingHero || hasMatchingFaction;
-    
-    return !hasMatchingFilter;
+    if (!event) {
+        return true;
+    }
+    const variants = event.variants;
+    if (variants && variants.length > 0) {
+        if (entityMatchesActiveFilters(event, activeFilters)) {
+            return false;
+        }
+        return !variants.some((v) => entityMatchesActiveFilters(v, activeFilters));
+    }
+    return !entityMatchesActiveFilters(event, activeFilters);
 }
 
 /**

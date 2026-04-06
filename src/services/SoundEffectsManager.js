@@ -273,6 +273,8 @@ class SoundEffectsManager {
         this.loadSound('hackOff', 'assets/audio/sfx/Hack Off.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Transport Toggle.mp3');
         this.loadSound('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3');
+        if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Weather.mp3');
+        this.loadSound('weather', 'assets/audio/sfx/Weather.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Rotation Toggle.mp3');
         this.loadSound('rotationToggle', 'assets/audio/sfx/Rotation Toggle.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Event Manager.mp3');

@@ -102,6 +102,26 @@ export function createGlobeMesh(textureLoader, renderer, initialTexturePath, nor
     return new THREE.Mesh(geometry, material);
 }
 
+/** World-space sun anchor (directional light copies this). */
+const SUN_BACKGROUND_BASE_POSITION = new THREE.Vector3(-35, 20, -90);
+/** Matches `--breakpoint-mobile` / project mobile layout. */
+const SUN_VIEWPORT_MOBILE_MAX_WIDTH = 768;
+/** Pull sun toward origin (Earth) on small screens (lower = closer). */
+const SUN_MOBILE_DISTANCE_SCALE = 0.52;
+
+/**
+ * Move sun sprite + light closer to the globe on mobile; restore desktop offset when wide.
+ * @param {{sprite: THREE.Sprite, light: THREE.DirectionalLight}|null|undefined} sunBg
+ */
+export function applySunBackgroundForViewport(sunBg) {
+    if (!sunBg || !sunBg.sprite) return;
+    const mobile = typeof window !== 'undefined' && window.innerWidth <= SUN_VIEWPORT_MOBILE_MAX_WIDTH;
+    const pos = SUN_BACKGROUND_BASE_POSITION.clone();
+    if (mobile) pos.multiplyScalar(SUN_MOBILE_DISTANCE_SCALE);
+    sunBg.sprite.position.copy(pos);
+    if (sunBg.light) sunBg.light.position.copy(pos);
+}
+
 /**
  * Adds a simple "sun" background element for immersion.
  * Visual: additive sprite with radial gradient.
@@ -127,19 +147,19 @@ export function addSunBackground({ scene }) {
     });
 
     const sprite = new THREE.Sprite(mat);
-    sprite.position.set(-35, 20, -90);
     sprite.scale.set(10, 10, 1);
     sprite.renderOrder = -10;
     sprite.frustumCulled = false;
     scene.add(sprite);
 
     const light = new THREE.DirectionalLight(0xfff0d6, 0.45);
-    light.position.copy(sprite.position);
     scene.add(light);
     scene.add(light.target);
     light.target.position.set(0, 0, 0);
 
-    return { sprite, light };
+    const result = { sprite, light };
+    applySunBackgroundForViewport(result);
+    return result;
 }
 
 /**
@@ -280,6 +300,106 @@ export function createGlobeAuroraShell({ radius = 1.022, uIntensity = 0.42 } = {
     return mesh;
 }
 
+/**
+ * Equirectangular flat map (2:1 plane): aurora bands at top/bottom using UV latitude + additive blend.
+ * Veil uniforms match the globe shell so {@link GlobeView} can drive both from one animation state.
+ * @param {Object} [opts]
+ * @param {number} [opts.uIntensity]
+ * @returns {THREE.Mesh|null}
+ */
+export function createFlatMapAuroraShell({ uIntensity = 0.42 } = {}) {
+    const geometry = new THREE.PlaneGeometry(2.0, 1.0, 64, 32);
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 },
+            uIntensity: { value: uIntensity },
+            uVeilExpand: { value: 0 },
+            uVeilBoost: { value: 1.0 }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform float uTime;
+            uniform float uIntensity;
+            uniform float uVeilExpand;
+            uniform float uVeilBoost;
+            varying vec2 vUv;
+
+            float hash11(float x) {
+                return fract(sin(x) * 43758.5453123);
+            }
+
+            float triNoise3(vec3 p) {
+                vec3 i = floor(p);
+                vec3 f = fract(p);
+                f = f * f * (3.0 - 2.0 * f);
+                float n0 = i.x + i.y * 57.0 + 113.0 * i.z;
+                return mix(
+                    mix(mix(hash11(n0 + 0.0), hash11(n0 + 1.0), f.x),
+                        mix(hash11(n0 + 57.0), hash11(n0 + 58.0), f.x), f.y),
+                    mix(mix(hash11(n0 + 113.0), hash11(n0 + 114.0), f.x),
+                        mix(hash11(n0 + 170.0), hash11(n0 + 171.0), f.x), f.y),
+                    f.z);
+            }
+
+            void main() {
+                /* Wider polar caps than the globe shader: flat map framing often crops the very top/bottom. */
+                float pole = abs(vUv.y - 0.5) * 2.0;
+                float ve = clamp(uVeilExpand, 0.0, 1.0);
+                float innerP = mix(0.38, 0.22, ve);
+                float outerP = mix(0.62, 0.40, ve);
+                float cap0 = mix(0.92, 0.78, ve);
+                float cap1 = mix(0.998, 0.96, ve);
+                float band = smoothstep(innerP, outerP, pole) * (1.0 - smoothstep(cap0, cap1, pole));
+                if (band < 0.002) discard;
+
+                vec3 drift = vec3(uTime * 0.025, uTime * 0.018, uTime * 0.022);
+                vec3 q = vec3(vUv.x * 8.4, vUv.y * 4.2, 0.0) + drift;
+                float g0 = triNoise3(q);
+                float g1 = triNoise3(q * 2.15 + vec3(13.7, 8.3, 21.1));
+                float g2 = triNoise3(q * 4.6 + vec3(5.1, 19.2, 3.4));
+                float grain = g0 * 0.52 + g1 * 0.32 + g2 * 0.16;
+
+                float ang = vUv.x * 6.283185307 * 2.0;
+                float angWarp = (grain - 0.5) * 0.6 + (g1 - 0.5) * 0.28;
+                float curtains = sin((ang + angWarp) * 7.0 + uTime * 0.35 + g2 * 1.8) * 0.5 + 0.5;
+                float ripples = sin(pole * (22.0 + 7.0 * g0) - uTime * 0.85 + grain * 4.5) * 0.5 + 0.5;
+                float pulse = sin(uTime * 0.5 + pole * (10.0 + 5.0 * g1) + grain * 2.2) * 0.12 + 0.88;
+
+                float bright = 0.66 + 0.52 * grain;
+                float strength = band * (0.36 + 0.52 * curtains * ripples) * pulse * bright * uIntensity * uVeilBoost;
+                float veilPresence = smoothstep(0.0, 0.02, ve) * 0.92 + 0.08;
+                strength *= veilPresence;
+
+                vec3 col = vec3(0.10, 0.90, 0.40);
+                float fr0 = mix(0.85, 0.78, ve);
+                float fr1 = mix(0.96, 0.92, ve);
+                float fringe = smoothstep(fr0, fr1, pole);
+                col = mix(col, vec3(0.30, 0.95, 0.72), fringe * 0.4);
+                col *= mix(vec3(0.9, 0.95, 1.0), vec3(1.05, 1.0, 0.92), grain * 0.35 + g2 * 0.15);
+
+                gl_FragColor = vec4(col * strength, 1.0);
+            }
+        `,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = 'flatMapAuroraShell';
+    mesh.renderOrder = 4;
+    mesh.frustumCulled = false;
+    return mesh;
+}
+
 /** 0 = neutral white clouds, 1 = full rim/palette color (keep low so atlases stay natural). */
 const GLOBE_CLOUD_PALETTE_BLEND = 0.34;
 
@@ -390,6 +510,64 @@ function makeGlobeCloudProceduralMaterial(opacity, tintHex) {
     });
 }
 
+function makeMapCloudProceduralMaterial(opacity, tintHex) {
+    const tintCol = makeCloudTintColor(tintHex);
+    return new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 },
+            uOpacity: { value: opacity },
+            uTint: { value: new THREE.Vector3(tintCol.r, tintCol.g, tintCol.b) }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform float uTime;
+            uniform float uOpacity;
+            uniform vec3 uTint;
+            varying vec2 vUv;
+            float hash11(float x) {
+                return fract(sin(x) * 43758.5453123);
+            }
+            float triNoise3(vec3 p) {
+                vec3 i = floor(p);
+                vec3 f = fract(p);
+                f = f * f * (3.0 - 2.0 * f);
+                float n0 = i.x + i.y * 57.0 + 113.0 * i.z;
+                return mix(
+                    mix(mix(hash11(n0 + 0.0), hash11(n0 + 1.0), f.x),
+                        mix(hash11(n0 + 57.0), hash11(n0 + 58.0), f.x), f.y),
+                    mix(mix(hash11(n0 + 113.0), hash11(n0 + 114.0), f.x),
+                        mix(hash11(n0 + 170.0), hash11(n0 + 171.0), f.x), f.y),
+                    f.z);
+            }
+            void main() {
+                float mu = abs(vUv.y - 0.5) * 2.0;
+                vec3 drift = vec3(uTime * 0.011, uTime * 0.017, uTime * 0.009);
+                vec3 p = vec3(vUv.x * 8.0, vUv.y * 4.0, uTime * 0.02) + drift;
+                float d = triNoise3(p) * 0.52 + triNoise3(p * 2.07 + vec3(3.1, 7.4, 2.8)) * 0.30
+                    + triNoise3(p * 5.1 + vec3(11.0, 4.2, 6.9)) * 0.18;
+                float deck = smoothstep(0.10, 0.38, mu) * (1.0 - smoothstep(0.72, 0.94, mu));
+                deck = mix(0.42, 1.0, deck);
+                float cov = smoothstep(0.38, 0.74, d) * deck;
+                float alpha = cov * uOpacity;
+                if (alpha < 0.015) discard;
+                float lit = 0.82 + 0.18 * cov;
+                vec3 albedo = vec3(0.93, 0.95, 1.0) * lit * uTint;
+                gl_FragColor = vec4(albedo, alpha);
+            }
+        `,
+        transparent: true,
+        depthWrite: false,
+        depthTest: true,
+        side: THREE.DoubleSide
+    });
+}
+
 /**
  * Picks a random cloud atlas (same as first load) and swaps the mesh material when ready.
  * @param {THREE.Mesh} mesh
@@ -442,12 +620,14 @@ function startCloudAtlasRandomLoad(mesh, textureLoader, renderer, variants, opac
  * @param {THREE.WebGLRenderer|null} [opts.renderer]
  * @param {{ path: string }[]|null} [opts.cloudTextureVariants]
  * @param {number} [opts.opacity]
+ * @param {function(number, number): THREE.Material} [opts.makeProcedural]
  */
-export function rerandomizeGlobeCloudAtlas(mesh, {
+function rerandomizeCloudAtlasMesh(mesh, {
     textureLoader = null,
     renderer = null,
     cloudTextureVariants = GLOBE_CLOUD_ATLAS_VARIANTS,
-    opacity = 0.5
+    opacity = 0.5,
+    makeProcedural = makeGlobeCloudProceduralMaterial
 } = {}) {
     if (!mesh) return;
     const tintHex = mesh.userData.cloudTintHex != null ? mesh.userData.cloudTintHex : 0xffffff;
@@ -458,7 +638,7 @@ export function rerandomizeGlobeCloudAtlas(mesh, {
             old.dispose();
         } catch (_) { /* ignore */ }
     }
-    mesh.material = makeGlobeCloudProceduralMaterial(opacity, tintHex);
+    mesh.material = makeProcedural(opacity, tintHex);
     mesh.userData.proceduralClouds = true;
     delete mesh.userData.cloudAtlasPath;
 
@@ -467,6 +647,14 @@ export function rerandomizeGlobeCloudAtlas(mesh, {
     } else {
         mesh.visible = cloudMeshShouldDisplay();
     }
+}
+
+export function rerandomizeGlobeCloudAtlas(mesh, opts = {}) {
+    return rerandomizeCloudAtlasMesh(mesh, { ...opts, makeProcedural: makeGlobeCloudProceduralMaterial });
+}
+
+export function rerandomizeFlatMapCloudAtlas(mesh, opts = {}) {
+    return rerandomizeCloudAtlasMesh(mesh, { ...opts, makeProcedural: makeMapCloudProceduralMaterial });
 }
 
 /**
@@ -497,6 +685,42 @@ export function createGlobeCloudLayer({
     const mesh = new THREE.Mesh(geometry, proceduralMat);
     mesh.name = 'globeCloudLayer';
     mesh.renderOrder = 0;
+    mesh.frustumCulled = false;
+    mesh.userData.proceduralClouds = true;
+    mesh.userData.cloudTintHex = tintHex;
+
+    const variants =
+        cloudTextureVariants && cloudTextureVariants.length
+            ? cloudTextureVariants
+            : cloudTexturePath
+              ? [{ path: cloudTexturePath }]
+              : [];
+
+    if (variants.length && textureLoader && renderer) {
+        startCloudAtlasRandomLoad(mesh, textureLoader, renderer, variants, opacity);
+    }
+
+    return mesh;
+}
+
+/**
+ * Cloud layer for the 2:1 flat map plane (same equirectangular UVs as {@link createEarthMapPlane}).
+ * @param {Object} [opts] - Same shape as {@link createGlobeCloudLayer} except no radius.
+ */
+export function createFlatMapCloudLayer({
+    textureLoader = null,
+    renderer = null,
+    opacity = 0.5,
+    tintHex = 0xffffff,
+    cloudTextureVariants = null,
+    cloudTexturePath = null
+} = {}) {
+    const geometry = new THREE.PlaneGeometry(2.0, 1.0, 1, 1);
+    const proceduralMat = makeMapCloudProceduralMaterial(opacity, tintHex);
+
+    const mesh = new THREE.Mesh(geometry, proceduralMat);
+    mesh.name = 'flatMapCloudLayer';
+    mesh.renderOrder = 1;
     mesh.frustumCulled = false;
     mesh.userData.proceduralClouds = true;
     mesh.userData.cloudTintHex = tintHex;
@@ -622,10 +846,14 @@ if (typeof window !== 'undefined') {
     window.GlobeInitHelpers.createEarthMapPlane = createEarthMapPlane;
     window.GlobeInitHelpers.setupCelestialPlanes = setupCelestialPlanes;
     window.GlobeInitHelpers.addSunBackground = addSunBackground;
+    window.GlobeInitHelpers.applySunBackgroundForViewport = applySunBackgroundForViewport;
     window.GlobeInitHelpers.createGlobeRimGlowSprite = createGlobeRimGlowSprite;
     window.GlobeInitHelpers.createGlobeAuroraShell = createGlobeAuroraShell;
+    window.GlobeInitHelpers.createFlatMapAuroraShell = createFlatMapAuroraShell;
     window.GlobeInitHelpers.createGlobeCloudLayer = createGlobeCloudLayer;
+    window.GlobeInitHelpers.createFlatMapCloudLayer = createFlatMapCloudLayer;
     window.GlobeInitHelpers.GLOBE_CLOUD_ATLAS_VARIANTS = GLOBE_CLOUD_ATLAS_VARIANTS;
     window.GlobeInitHelpers.applyGlobeCloudPaletteTint = applyGlobeCloudPaletteTint;
     window.GlobeInitHelpers.rerandomizeGlobeCloudAtlas = rerandomizeGlobeCloudAtlas;
+    window.GlobeInitHelpers.rerandomizeFlatMapCloudAtlas = rerandomizeFlatMapCloudAtlas;
 }

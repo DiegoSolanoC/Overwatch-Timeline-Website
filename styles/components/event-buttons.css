@@ -60,6 +60,10 @@ body.color-palette-gray .event-full-text-toggle-btn:hover {
     flex-shrink: 0; /* Don't shrink - always at bottom */
 }
 
+.event-slide-mid-controls .event-control-buttons {
+    margin-top: 0;
+}
+
 /* Event Navigation Buttons (prev/next in full list) */
 .event-navigation-buttons {
     display: flex;

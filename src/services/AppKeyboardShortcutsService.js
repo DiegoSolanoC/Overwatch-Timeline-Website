@@ -24,6 +24,23 @@
         return false;
     }
 
+    /**
+     * Escape should still dismiss our panels when focus is in a field inside them.
+     * (Plain Q is not bypassed — avoids closing while typing "q" in search.)
+     */
+    function escapeOkWhileTypingInTarget(target) {
+        if (!target || !target.closest) return false;
+        return !!(
+            target.closest('#filtersPanel')
+            || target.closest('#musicPanel')
+            || target.closest('#eventsManagePanel')
+            || target.closest('#paletteMenu')
+            || target.closest('#eventSlide')
+            || target.closest('#eventEditModal')
+            || target.closest('#externalLinkConfirmOverlay')
+        );
+    }
+
     function modifiersActive(e) {
         return e.ctrlKey || e.metaKey || e.altKey;
     }
@@ -292,8 +309,14 @@
         if (hideEventSlideIfOpen()) return true;
 
         var palette = document.getElementById('paletteMenu');
-        if (palette && palette.classList.contains('open') && typeof window._closePaletteMenu === 'function') {
-            window._closePaletteMenu();
+        if (palette && palette.classList.contains('open')) {
+            if (typeof window._closePaletteMenu === 'function') {
+                window._closePaletteMenu();
+            } else {
+                palette.classList.remove('open');
+                var paletteToggle = document.getElementById('colorPaletteToggle');
+                if (paletteToggle) paletteToggle.classList.remove('active');
+            }
             return true;
         }
 
@@ -333,19 +356,32 @@
         return false;
     }
 
+    /** Repeatedly peel {@link closeTopOverlay} so one keypress clears event slide + image + palette + filters + music + manage, etc. */
+    function closeAllOverlayLayers() {
+        var any = false;
+        var guard = 24;
+        while (guard-- > 0 && closeTopOverlay()) {
+            any = true;
+        }
+        return any;
+    }
+
     function onKeyDown(e) {
         if (modifiersActive(e)) return;
 
         var target = e.target;
-        if (isTypingContext(target)) return;
-
         var key = e.key;
         var lower = typeof key === 'string' ? key.toLowerCase() : '';
 
         if (key === 'Escape' || lower === 'q') {
-            if (closeTopOverlay()) consumeEvent(e);
+            if (isTypingContext(target)) {
+                if (key !== 'Escape' || !escapeOkWhileTypingInTarget(target)) return;
+            }
+            if (closeAllOverlayLayers()) consumeEvent(e);
             return;
         }
+
+        if (isTypingContext(target)) return;
 
         if (lower === 'e') {
             if (isEventSlideOpen()) {
@@ -382,6 +418,10 @@
         }
         if (lower === 'v') {
             if (clickIfEnabled('hyperloopToggle')) consumeEvent(e);
+            return;
+        }
+        if (lower === 't') {
+            if (clickIfEnabled('weatherEffectsToggle')) consumeEvent(e);
             return;
         }
         if (lower === 'c') {
@@ -499,4 +539,7 @@
 
     document.addEventListener('keydown', onKeyDown, true);
     document.addEventListener('wheel', onWheel, { capture: true, passive: false });
+
+    /** Full stack dismiss (Escape/Q): modals, event slide, palette, filters, music, event manager, sidebar */
+    window.closeAllDismissiblePanels = closeAllOverlayLayers;
 })();

@@ -134,6 +134,12 @@ class EventFormService {
         document.getElementById('eventEditDescription').value = '';
         document.getElementById('eventEditFilters').value = '';
         document.getElementById('eventEditFactions').value = '';
+        const yStart = document.getElementById('eventEditYearStart');
+        const yEnd = document.getElementById('eventEditYearEnd');
+        if (yStart) yStart.value = '';
+        if (yEnd) yEnd.value = '';
+        const eraEl = document.getElementById('eventEditEraName');
+        if (eraEl) eraEl.value = '';
         const secondaryCountriesEl = document.getElementById('eventEditSecondaryCountries');
         if (secondaryCountriesEl) secondaryCountriesEl.value = '';
         // Set default location type (will trigger updateLocationFields which sets defaults)
@@ -517,6 +523,13 @@ class EventFormService {
         // Clear any existing variant data first
         this.eventManager.variantData = [];
         this.eventManager.activeVariantIndex = 0;
+
+        const ysEl = document.getElementById('eventEditYearStart');
+        const yeEl = document.getElementById('eventEditYearEnd');
+        if (ysEl) ysEl.value = event.yearStart != null && event.yearStart !== '' ? String(event.yearStart) : '';
+        if (yeEl) yeEl.value = event.yearEnd != null && event.yearEnd !== '' ? String(event.yearEnd) : '';
+        const eraPop = document.getElementById('eventEditEraName');
+        if (eraPop) eraPop.value = event.eraName != null ? String(event.eraName) : '';
         
         // Set event number to current position (1-indexed)
         const eventNumberInput = document.getElementById('eventEditNumber');
