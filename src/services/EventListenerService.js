@@ -692,8 +692,10 @@ class EventListenerService {
             const tokens = (text || '').split(',').map(t => t.trim()).filter(t => t.length > 0);
             const matchedHeroes = [];
             const matchedFactions = [];
+            const unmatchedTokens = [];
             const seenHero = new Set();
             const seenFaction = new Set();
+            const seenUnmatched = new Set();
 
             tokens.forEach(token => {
                 const lower = token.toLowerCase();
@@ -708,11 +710,17 @@ class EventListenerService {
                     if (match && match.filename && !seenFaction.has(match.filename)) {
                         seenFaction.add(match.filename);
                         matchedFactions.push(match.filename);
+                    } else {
+                        const t = token.trim();
+                        if (t && !seenUnmatched.has(lower)) {
+                            seenUnmatched.add(lower);
+                            unmatchedTokens.push(t);
+                        }
                     }
                 }
             });
 
-            return { matchedHeroes, matchedFactions };
+            return { matchedHeroes, matchedFactions, unmatchedTokens };
         };
 
         const getSelectedFilterKeys = () => {
@@ -777,7 +785,13 @@ class EventListenerService {
                 const label = (h || '').toString();
                 if (!label) return;
                 if (label.toLowerCase().startsWith(prefixLower)) {
-                    results.push({ label, detail: 'Hero', insert: label });
+                    results.push({
+                        kind: 'hero',
+                        label,
+                        detail: 'Hero',
+                        insert: label,
+                        heroKey: label
+                    });
                 }
             });
             // Factions: primary label = readable name; muted detail = "Faction" (same pattern as heroes)
@@ -786,7 +800,13 @@ class EventListenerService {
                 const match = f.displayLower.startsWith(prefixLower) || f.filenameLower.startsWith(prefixLower);
                 if (match) {
                     const label = f.displayName || defaultFactionDisplayName(f.filename) || f.filename;
-                    results.push({ label, detail: 'Faction', insert: label });
+                    results.push({
+                        kind: 'faction',
+                        label,
+                        detail: 'Faction',
+                        insert: label,
+                        factionFilename: f.filename
+                    });
                 }
             });
             // Sort by label length then alpha
@@ -816,8 +836,27 @@ class EventListenerService {
                 const item = items[i];
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'events-search-suggestion';
-                btn.innerHTML = `<span>${item.label}</span><span class="muted">${item.detail || ''}</span>`;
+                btn.className = 'events-search-suggestion events-search-suggestion--with-flag';
+                const img = document.createElement('img');
+                img.className = 'events-search-suggestion-flag events-search-suggestion-flag--filter-icon';
+                img.alt = '';
+                if (item.kind === 'faction' && item.factionFilename) {
+                    img.src = `assets/images/factions/${encodeURIComponent(item.factionFilename)}.png`;
+                } else {
+                    const hk = item.heroKey || item.label;
+                    img.src = `assets/images/heroes/${encodeURIComponent(hk)}.png`;
+                }
+                img.decoding = 'async';
+                img.onerror = () => { img.style.visibility = 'hidden'; };
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'events-search-suggestion-label';
+                labelSpan.textContent = item.label;
+                const detailSpan = document.createElement('span');
+                detailSpan.className = 'muted';
+                detailSpan.textContent = item.detail || '';
+                btn.appendChild(img);
+                btn.appendChild(labelSpan);
+                btn.appendChild(detailSpan);
                 btn.addEventListener('mouseenter', () => {
                     filterSuggestionHoverIndex = i;
                 });
@@ -851,7 +890,8 @@ class EventListenerService {
             }
             const candidates = getTokenCandidates(prefix.toLowerCase());
             if (candidates.length === 0) {
-                filtersInput.classList.add('no-filter-match');
+                // Allow free-text tokens (e.g. title keywords like "Iris"); not every segment is a hero/faction id.
+                filtersInput.classList.remove('no-filter-match');
                 hideSuggestions();
             } else {
                 filtersInput.classList.remove('no-filter-match');
@@ -862,9 +902,10 @@ class EventListenerService {
         const applySearch = () => {
             this.eventManager.searchQuery = (searchInput && searchInput.value) ? searchInput.value.trim() : '';
             const filterText = (filtersInput && filtersInput.value) ? filtersInput.value.trim() : '';
-            const { matchedHeroes, matchedFactions } = parseFilterTokens(filterText);
+            const { matchedHeroes, matchedFactions, unmatchedTokens } = parseFilterTokens(filterText);
             this.eventManager.searchHeroFilters = matchedHeroes;
             this.eventManager.searchFactionFilters = matchedFactions;
+            this.eventManager.searchUnmatchedFilterTokens = unmatchedTokens || [];
             if (countryInput) {
                 const countryText = (countryInput.value || '').trim();
                 this.eventManager.searchCountryFilters = parseCountryTokens(countryText);
@@ -1080,6 +1121,7 @@ class EventListenerService {
                 this.eventManager.searchQuery = '';
                 this.eventManager.searchHeroFilters = [];
                 this.eventManager.searchFactionFilters = [];
+                this.eventManager.searchUnmatchedFilterTokens = [];
                 this.eventManager.searchCountryFilters = [];
                 if (this.eventManager.applySearchAndRender) {
                     this.eventManager.applySearchAndRender();

@@ -215,9 +215,20 @@ export class EventContentManager {
                     tag.classList.add('selected');
                 }
             } else if (type === 'factions') {
-                const inSearch = Array.isArray(factionSearch) && factionSearch.some((f) => String(f || '').toLowerCase() === fkLower);
-                const rawMatch = factionRawKey != null && activeFilters.has(factionRawKey);
-                if (activeFilters.has(filterKey) || rawMatch || inSearch) {
+                const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+                const inSearch = Array.isArray(factionSearch) && factionSearch.some((f) =>
+                    (fh && typeof fh.factionIdsMatch === 'function')
+                        ? (fh.factionIdsMatch(f, filterKey) || (factionRawKey != null && fh.factionIdsMatch(f, factionRawKey)))
+                        : String(f || '').toLowerCase() === fkLower);
+                let tagMatches = activeFilters.has(filterKey) || inSearch;
+                if (!tagMatches && factionRawKey != null && activeFilters.has(factionRawKey)) {
+                    tagMatches = true;
+                }
+                if (!tagMatches && fh && typeof fh.activeFilterSetMatchesFactionId === 'function') {
+                    tagMatches = fh.activeFilterSetMatchesFactionId(activeFilters, filterKey)
+                        || (factionRawKey != null && fh.activeFilterSetMatchesFactionId(activeFilters, factionRawKey));
+                }
+                if (tagMatches) {
                     tag.classList.add('selected');
                 }
             }

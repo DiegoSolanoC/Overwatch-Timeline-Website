@@ -231,6 +231,16 @@ export class GlobeController {
         this.transportController.spawnPlanesRandomly();
         this.transportController.spawnBoatsRandomly();
         
+        // Create transport location markers (airports, train stations, seaports)
+        const airports = this.dataModel.getAllAirports();
+        this.transportView.createAirportMarkers(airports);
+        
+        const cities = this.dataModel.getAllCities();
+        this.transportView.createTrainStationMarkers(cities);
+        
+        const seaports = this.dataModel.getAllSeaports();
+        this.transportView.createSeaportMarkers(seaports);
+        
         // Initialize satellites
         this.transportController.initializeSatellites();
         
@@ -392,6 +402,11 @@ export class GlobeController {
                 this.globeView.updateAtmosphereEffects(deltaTime / 1000);
             }
         }
+
+        // Pattern wave animation (works for both globe and map view)
+        if (this.globeView && typeof this.globeView.updatePatternWave === 'function') {
+            this.globeView.updatePatternWave(deltaTime / 1000);
+        }
         
         // Check and auto-show image if conditions are met
         this.uiView.checkAndAutoShowImage();
@@ -487,6 +502,11 @@ export class GlobeController {
         // Recreate event markers onto globe vs map plane
         if (this.globeView && typeof this.globeView.refreshEventMarkers === 'function') {
             this.globeView.refreshEventMarkers();
+        }
+        
+        // Update all transport markers visibility for new view mode
+        if (this.transportView && typeof this.transportView.updateAllTransportMarkersVisibility === 'function') {
+            this.transportView.updateAllTransportMarkersVisibility();
         }
     }
 

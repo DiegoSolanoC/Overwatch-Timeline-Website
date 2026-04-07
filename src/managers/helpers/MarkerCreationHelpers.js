@@ -87,6 +87,33 @@ export function createMarkerUserData({
 }
 
 /**
+ * Legacy faction strings in events.json that don't match manifest `filename` (filter chip keys).
+ * Values must match {@link manifest.json} `factions[].filename` exactly.
+ */
+const LEGACY_FACTION_ID_TO_CANONICAL = {
+    '09Lucheng': '07Lucheng',
+    '13Shambali': '26Shambali',
+    '25Shambali': '26Shambali',
+    '26Null Sector': '27Null Sector',
+    '05Omnica': '04Omnica',
+    '10Ironclad': '08Ironclad'
+};
+
+function factionIdMatchesActiveFilters(factionId, activeFilters) {
+    if (factionId == null || !activeFilters) return false;
+    const id = String(factionId).trim();
+    if (!id) return false;
+    if (activeFilters.has(id)) return true;
+    const canonical = LEGACY_FACTION_ID_TO_CANONICAL[id];
+    if (canonical && activeFilters.has(canonical)) return true;
+    const fh = typeof window !== 'undefined' && window.FactionMatchHelpers;
+    if (fh && typeof fh.activeFilterSetMatchesFactionId === 'function') {
+        return fh.activeFilterSetMatchesFactionId(activeFilters, factionId);
+    }
+    return false;
+}
+
+/**
  * True if this entity's hero/faction ids intersect active globe filters.
  * @param {Object|null|undefined} entity - Event root or variant object
  * @param {Set} activeFilters - Set of active filter IDs
@@ -97,8 +124,8 @@ export function entityMatchesActiveFilters(entity, activeFilters) {
     }
     const heroFilters = entity.filters || [];
     const factionFilters = entity.factions || [];
-    return heroFilters.some((id) => activeFilters.has(id))
-        || factionFilters.some((id) => activeFilters.has(id));
+    return heroFilters.some((id) => id != null && activeFilters.has(String(id).trim()))
+        || factionFilters.some((id) => factionIdMatchesActiveFilters(id, activeFilters));
 }
 
 /**
@@ -124,6 +151,26 @@ export function getPreferredVariantIndexForActiveFilters(event, activeFilters) {
         return 0;
     }
     return 0;
+}
+
+/**
+ * How many of an event's root + variants individually match active filters.
+ * Used to show variant switching under filtering only when at least two are reachable (same chip UX as unfiltered).
+ */
+export function countFilterMatchingEntitiesInEvent(event, activeFilters) {
+    if (!event || !activeFilters || activeFilters.size === 0) {
+        return 0;
+    }
+    const variants = event.variants;
+    if (!variants || variants.length === 0) {
+        return entityMatchesActiveFilters(event, activeFilters) ? 1 : 0;
+    }
+    let n = 0;
+    if (entityMatchesActiveFilters(event, activeFilters)) n++;
+    for (let i = 0; i < variants.length; i++) {
+        if (entityMatchesActiveFilters(variants[i], activeFilters)) n++;
+    }
+    return n;
 }
 
 /**

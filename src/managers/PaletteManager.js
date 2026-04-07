@@ -14,15 +14,8 @@ const MAP_TEXTURE_GRAY = 'assets/images/maps/MAP Black.png';
 const MAP_TEXTURE_CRIMSON = 'assets/images/maps/MAP Crimson.png';
 const MAP_TEXTURE_NULLED = 'assets/images/maps/MAP Nulled.png';
 
-const MOON_TEXTURE_GRAY = 'assets/images/misc/Moon_Dark.png';
-const MOON_TEXTURE_CRIMSON = 'assets/images/misc/Moon_Crimson.png';
-const MOON_TEXTURE_NULLED = 'assets/images/misc/Moon_Nulled.png';
-const MOON_TEXTURE_BLUE = 'assets/images/misc/Moon.png';
-
-const MARS_TEXTURE_GRAY = 'assets/images/misc/Mars_Dark.png';
-const MARS_TEXTURE_CRIMSON = 'assets/images/misc/Mars_Crimson.png';
-const MARS_TEXTURE_NULLED = 'assets/images/misc/Mars_Nulled.png';
-const MARS_TEXTURE_BLUE = 'assets/images/misc/Mars.png';
+const MOON_TEXTURE = 'assets/images/misc/Moon.png';
+const MARS_TEXTURE = 'assets/images/misc/Mars.png';
 
 const WEBSITE_LOGO_DEFAULT = 'assets/images/misc/Website.png';
 const WEBSITE_LOGO_CRIMSON = 'assets/images/misc/Website Crimson.png';
@@ -52,16 +45,12 @@ function updateHeaderWebsiteLogo(palette) {
 }
 
 function texturePathForPalette(mapKind, normalized) {
-    if (normalized === 'gray') {
-        return mapKind === 'map' ? MAP_TEXTURE_GRAY : (mapKind === 'moon' ? MOON_TEXTURE_GRAY : MARS_TEXTURE_GRAY);
-    }
-    if (normalized === 'crimson') {
-        return mapKind === 'map' ? MAP_TEXTURE_CRIMSON : (mapKind === 'moon' ? MOON_TEXTURE_CRIMSON : MARS_TEXTURE_CRIMSON);
-    }
-    if (normalized === 'nulled') {
-        return mapKind === 'map' ? MAP_TEXTURE_NULLED : (mapKind === 'moon' ? MOON_TEXTURE_NULLED : MARS_TEXTURE_NULLED);
-    }
-    return mapKind === 'map' ? MAP_TEXTURE_BLUE : (mapKind === 'moon' ? MOON_TEXTURE_BLUE : MARS_TEXTURE_BLUE);
+    if (mapKind === 'moon') return MOON_TEXTURE;
+    if (mapKind === 'mars') return MARS_TEXTURE;
+    if (normalized === 'gray') return MAP_TEXTURE_GRAY;
+    if (normalized === 'crimson') return MAP_TEXTURE_CRIMSON;
+    if (normalized === 'nulled') return MAP_TEXTURE_NULLED;
+    return MAP_TEXTURE_BLUE;
 }
 
 /**
@@ -256,8 +245,9 @@ export function setupPaletteToggle() {
         // Change globe texture (only on pages with globe)
         if (window.globeController && window.globeController.globeView) {
             window.globeController.globeView.changeGlobeTexture(texturePathForPalette('map', normalized));
-            window.globeController.globeView.changeMoonTexture(texturePathForPalette('moon', normalized));
-            window.globeController.globeView.changeMarsTexture(texturePathForPalette('mars', normalized));
+            if (typeof window.globeController.globeView.applyCelestialPaletteTint === 'function') {
+                window.globeController.globeView.applyCelestialPaletteTint(normalized);
+            }
 
             // Update rim glow to match palette (blue → light blue, gray → white, crimson → warm red, nulled → soft violet)
             if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {

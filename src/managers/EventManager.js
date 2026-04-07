@@ -64,7 +64,9 @@ class EventManager {
         this.showAllEventsInManager = false; // If true, show all events in one long page
         this.searchQuery = ''; // Event manager search: filter by title
         this.searchHeroFilters = []; // Hero names (event.filters)
-        this.searchFactionFilters = []; // Faction filenames (event.factions, e.g. "04Talon")
+        this.searchFactionFilters = []; // Resolved manifest faction filenames from search tokens (chips use filenames)
+        /** Tokens from hero/faction search field that did not match manifest (matched against event/variant name). */
+        this.searchUnmatchedFilterTokens = [];
         this.searchCountryFilters = []; // Flag PNG filenames (FLAG_FILE_BY_COMMON values, e.g. "France.png")
         this.variantData = []; // Store variant data in memory for tab system
         this.activeVariantIndex = 0; // Currently active variant tab
@@ -89,21 +91,30 @@ class EventManager {
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
         const countryFilters = this.searchCountryFilters || [];
+        const rawUnmatched = this.searchUnmatchedFilterTokens || [];
+        const unmatchedLower = rawUnmatched.map((t) => String(t || '').trim().toLowerCase()).filter(Boolean);
+        const hasU = unmatchedLower.length > 0;
         const itemHeroes = item?.filters || [];
         const itemFactions = item?.factions || [];
         const hasH = heroFilters.length > 0;
         const hasF = factionFilters.length > 0;
         const heroHit = hasH && heroFilters.some(h => itemHeroes.includes(h));
-        const factionHit = hasF && factionFilters.some(f => itemFactions.includes(f));
+        const fh = typeof window !== 'undefined' && window.FactionMatchHelpers;
+        const factionHit = hasF && factionFilters.some((f) =>
+            itemFactions.some((itemF) => (fh && typeof fh.factionIdsMatch === 'function')
+                ? fh.factionIdsMatch(itemF, f)
+                : itemF === f));
+        const nameLower = (item?.name || '').toLowerCase();
+        const unmatchedHit = hasU && unmatchedLower.every((t) => nameLower.includes(t));
         let matchHeroFaction;
-        if (!hasH && !hasF) {
+        if (!hasH && !hasF && !hasU) {
             matchHeroFaction = true;
-        } else if (hasH && hasF) {
-            matchHeroFaction = heroHit || factionHit;
-        } else if (hasH) {
-            matchHeroFaction = heroHit;
         } else {
-            matchHeroFaction = factionHit;
+            const hOrFHit = (hasH && heroHit) || (hasF && factionHit);
+            const parts = [];
+            if (hasH || hasF) parts.push(hOrFHit);
+            if (hasU) parts.push(unmatchedHit);
+            matchHeroFaction = parts.some(Boolean);
         }
 
         const flagFn = typeof window !== 'undefined' && window.LocationFlagHelpers && typeof window.LocationFlagHelpers.getResolvedFlagFilename === 'function'
@@ -132,7 +143,8 @@ class EventManager {
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
         const countryFilters = this.searchCountryFilters || [];
-        const filterActive = heroFilters.length > 0 || factionFilters.length > 0;
+        const hasUnmatched = (this.searchUnmatchedFilterTokens || []).some((t) => String(t || '').trim());
+        const filterActive = heroFilters.length > 0 || factionFilters.length > 0 || hasUnmatched;
         const countryActive = countryFilters.length > 0;
         if (!filterActive && !countryActive) {
             return { filterActive: false, countryActive: false, filterHit: false, countryHit: false };
@@ -156,10 +168,11 @@ class EventManager {
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
         const countryFilters = this.searchCountryFilters || [];
-        if (!q && heroFilters.length === 0 && factionFilters.length === 0 && countryFilters.length === 0) {
+        const unmatchedTokens = (this.searchUnmatchedFilterTokens || []).map((t) => String(t || '').trim()).filter(Boolean);
+        if (!q && heroFilters.length === 0 && factionFilters.length === 0 && countryFilters.length === 0 && unmatchedTokens.length === 0) {
             return all;
         }
-        const filterGroupActive = heroFilters.length > 0 || factionFilters.length > 0;
+        const filterGroupActive = heroFilters.length > 0 || factionFilters.length > 0 || unmatchedTokens.length > 0;
         const countryGroupActive = countryFilters.length > 0;
 
         const matchesItem = (item) => {
@@ -544,7 +557,7 @@ class EventManager {
                         this.formService.setupAutocomplete(filtersInput, this.heroes, 'heroes');
                     }
                     if (factionsInput && this.factions.length > 0) {
-                        this.formService.setupAutocomplete(factionsInput, this.factions.map(f => f.displayName), 'factions');
+                        this.formService.setupAutocomplete(factionsInput, this.factions, 'factions');
                     }
                     if (secondaryCountriesInput && countryOptions.length > 0) {
                         this.formService.setupAutocomplete(secondaryCountriesInput, countryOptions, 'countries');

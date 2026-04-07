@@ -125,13 +125,13 @@ export function handlePrevPageClick(dataModel, wrappedUpdatePaginationUI, onPage
     const newPage = resolveWrappedPageSkippingEmptyFilterPages(dataModel, currentPage, totalPages, -1);
 
     if (newPage === currentPage) {
-        wrappedUpdatePaginationUI();
+        wrappedUpdatePaginationUI(false);
         return;
     }
 
     playNavigationSound('page');
     dataModel.setCurrentEventPage(newPage);
-    wrappedUpdatePaginationUI();
+    wrappedUpdatePaginationUI(true); // Animate on page change
     updateNewsTickerFromGlobe();
 
     if (onPageChange) {
@@ -152,13 +152,13 @@ export function handleNextPageClick(dataModel, wrappedUpdatePaginationUI, onPage
     const newPage = resolveWrappedPageSkippingEmptyFilterPages(dataModel, currentPage, totalPages, 1);
 
     if (newPage === currentPage) {
-        wrappedUpdatePaginationUI();
+        wrappedUpdatePaginationUI(false);
         return;
     }
 
     playNavigationSound('page');
     dataModel.setCurrentEventPage(newPage);
-    wrappedUpdatePaginationUI();
+    wrappedUpdatePaginationUI(true); // Animate on page change
     updateNewsTickerFromGlobe();
 
     if (onPageChange) {
@@ -183,13 +183,14 @@ export function handlePageInputChange(inputValue, dataModel, wrappedUpdatePagina
             clearEventPageSliderSuppressFromGlobe();
         }
         const oldPage = dataModel.getCurrentEventPage();
+        const pageChanged = oldPage !== inputValue;
         dataModel.setCurrentEventPage(inputValue);
-        wrappedUpdatePaginationUI();
+        wrappedUpdatePaginationUI(pageChanged); // Animate on page change
 
         // Update news ticker with headlines from new page
         updateNewsTickerFromGlobe();
 
-        if (playPageSound && oldPage !== inputValue) {
+        if (playPageSound && pageChanged) {
             playNavigationSound('page');
         }
         if (onPageChange) {
@@ -197,7 +198,7 @@ export function handlePageInputChange(inputValue, dataModel, wrappedUpdatePagina
         }
     } else {
         clearEventPageSliderSuppressFromGlobe();
-        wrappedUpdatePaginationUI();
+        wrappedUpdatePaginationUI(false);
     }
 }
 

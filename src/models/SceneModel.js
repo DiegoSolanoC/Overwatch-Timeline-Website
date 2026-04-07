@@ -276,6 +276,9 @@ export class SceneModel {
      */
     setDragging(isDragging) {
         this.isDragging = isDragging;
+        if (typeof document !== 'undefined' && document.body) {
+            document.body.classList.toggle('globe-grabbing', !!isDragging);
+        }
     }
 
     /**

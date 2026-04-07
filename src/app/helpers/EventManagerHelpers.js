@@ -4,6 +4,7 @@
  */
 
 import { updateStatus } from '../../managers/StatusManager.js';
+import '../../managers/helpers/EventManagerModalHelpers.js';
 
 /**
  * Initializes EventManager, handling both script tag loading and ES6 module scenarios

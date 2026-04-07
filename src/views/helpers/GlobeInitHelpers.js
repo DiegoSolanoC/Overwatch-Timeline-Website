@@ -102,6 +102,166 @@ export function createGlobeMesh(textureLoader, renderer, initialTexturePath, nor
     return new THREE.Mesh(geometry, material);
 }
 
+/**
+ * Vertex shader for pattern wave effect
+ */
+const PATTERN_WAVE_VERTEX_SHADER = `
+varying vec2 vUv;
+void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+/**
+ * Fragment shader for pattern wave effect - horizontal wave that sweeps across
+ * with glow effect at the center
+ */
+const PATTERN_WAVE_FRAGMENT_SHADER = `
+uniform sampler2D uPatternMap;
+uniform vec3 uTintColor;
+uniform float uTime;
+uniform float uBaseOpacity;
+
+varying vec2 vUv;
+
+void main() {
+    vec4 texColor = texture2D(uPatternMap, vUv);
+    
+    // Create a horizontal wave that sweeps from left to right
+    // Wave position moves based on time (0 to 1 range, looping)
+    float wavePos = fract(uTime * 0.08); // Slower wave sweep
+    
+    // Calculate distance from wave center (horizontal)
+    float dist = abs(vUv.x - wavePos);
+    // Handle wrap-around for seamless loop
+    dist = min(dist, 1.0 - dist);
+    
+    // Create smooth wave falloff - wider wave band
+    float waveWidth = 0.28;
+    float waveRaw = 1.0 - smoothstep(0.0, waveWidth, dist);
+    
+    // Minimum 10% visibility so pattern is never truly gone
+    float wave = 0.1 + waveRaw * 0.9;
+    
+    // Intensity boost at the center of the wave (glow effect)
+    float centerIntensity = pow(waveRaw, 0.6); // Sharper peak at center
+    float glowBoost = 1.0 + centerIntensity * 2.5; // Up to 3.5x brighter at center
+    
+    // Apply wave to opacity with glow
+    float finalOpacity = texColor.a * uBaseOpacity * wave;
+    
+    // Glow color - brighten the tint at the wave center
+    vec3 glowColor = uTintColor * glowBoost;
+    
+    gl_FragColor = vec4(glowColor * texColor.rgb, finalOpacity);
+}
+`;
+
+/**
+ * Creates a pattern wave shader material
+ * @param {THREE.Texture} patternTexture - Pattern texture
+ * @param {number} tintColor - Tint color hex
+ * @param {number} opacity - Base opacity
+ * @param {boolean} doubleSided - Whether material is double-sided
+ * @returns {THREE.ShaderMaterial}
+ */
+function createPatternWaveMaterial(patternTexture, tintColor, opacity, doubleSided = false) {
+    const color = new THREE.Color(tintColor);
+    
+    return new THREE.ShaderMaterial({
+        uniforms: {
+            uPatternMap: { value: patternTexture },
+            uTintColor: { value: new THREE.Vector3(color.r, color.g, color.b) },
+            uTime: { value: 0.0 },
+            uBaseOpacity: { value: opacity }
+        },
+        vertexShader: PATTERN_WAVE_VERTEX_SHADER,
+        fragmentShader: PATTERN_WAVE_FRAGMENT_SHADER,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: doubleSided ? THREE.DoubleSide : THREE.FrontSide
+    });
+}
+
+/**
+ * Creates a pattern overlay sphere that wraps slightly outside the globe
+ * @param {THREE.TextureLoader} textureLoader - Texture loader
+ * @param {THREE.WebGLRenderer} renderer - Renderer
+ * @param {number} [tintColor=0x2196F3] - Tint color (hex)
+ * @param {number} [opacity=0.12] - Overlay opacity
+ * @returns {THREE.Mesh}
+ */
+export function createGlobePatternOverlay(textureLoader, renderer, tintColor = 0x2196F3, opacity = 0.15) {
+    const geometry = new THREE.SphereGeometry(1.002, 64, 64); // Slightly larger than globe
+    
+    const patternTexture = loadTexture(
+        textureLoader,
+        'assets/images/maps/Pattern.png',
+        renderer,
+        null,
+        null
+    );
+    
+    const material = createPatternWaveMaterial(patternTexture, tintColor, opacity, false);
+    
+    return new THREE.Mesh(geometry, material);
+}
+
+/**
+ * Creates a pattern overlay plane for the flat map
+ * @param {THREE.TextureLoader} textureLoader - Texture loader
+ * @param {THREE.WebGLRenderer} renderer - Renderer
+ * @param {number} [tintColor=0x2196F3] - Tint color (hex)
+ * @param {number} [opacity=0.12] - Overlay opacity
+ * @returns {THREE.Mesh}
+ */
+export function createMapPatternOverlay(textureLoader, renderer, tintColor = 0x2196F3, opacity = 0.15) {
+    const planeWidth = 2.0;
+    const planeHeight = 1.0;
+    const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+    
+    const patternTexture = loadTexture(
+        textureLoader,
+        'assets/images/maps/Pattern.png',
+        renderer,
+        null,
+        null
+    );
+    
+    const material = createPatternWaveMaterial(patternTexture, tintColor, opacity, true);
+    
+    const plane = new THREE.Mesh(geometry, material);
+    plane.position.set(0, 0, 0.01); // Slightly in front of map
+    return plane;
+}
+
+/**
+ * Update pattern wave animation - call this in your render loop
+ * @param {THREE.Mesh} patternMesh - The pattern overlay mesh
+ * @param {number} deltaTime - Time since last frame in seconds
+ */
+export function updatePatternWave(patternMesh, deltaTime) {
+    if (patternMesh && patternMesh.material && patternMesh.material.uniforms) {
+        patternMesh.material.uniforms.uTime.value += deltaTime;
+    }
+}
+
+/**
+ * Get palette accent color as hex
+ * @param {string} palette - Palette name
+ * @returns {number} Hex color
+ */
+export function getPaletteAccentHex(palette) {
+    switch (palette) {
+        case 'gray': return 0xffffff; // White
+        case 'crimson': return 0xef5350; // Red
+        case 'nulled': return 0xb388ff; // Purple
+        default: return 0x2196F3; // Blue
+    }
+}
+
 /** World-space sun anchor (directional light copies this). */
 const SUN_BACKGROUND_BASE_POSITION = new THREE.Vector3(-35, 20, -90);
 /** Matches `--breakpoint-mobile` / project mobile layout. */
@@ -801,6 +961,7 @@ export function setupCelestialPlanes({ scene, textureLoader, renderer, palette, 
     const moonTexturePath = getMoonTexturePath(paletteKey);
     const moonPlane = createCelestialPlane({
         texturePath: moonTexturePath,
+        paletteKey,
         textureLoader,
         renderer,
         size: 0.4,
@@ -819,6 +980,7 @@ export function setupCelestialPlanes({ scene, textureLoader, renderer, palette, 
     const marsTexturePath = getMarsTexturePath(paletteKey);
     const marsPlane = createCelestialPlane({
         texturePath: marsTexturePath,
+        paletteKey,
         textureLoader,
         renderer,
         size: 0.4,
@@ -856,4 +1018,8 @@ if (typeof window !== 'undefined') {
     window.GlobeInitHelpers.applyGlobeCloudPaletteTint = applyGlobeCloudPaletteTint;
     window.GlobeInitHelpers.rerandomizeGlobeCloudAtlas = rerandomizeGlobeCloudAtlas;
     window.GlobeInitHelpers.rerandomizeFlatMapCloudAtlas = rerandomizeFlatMapCloudAtlas;
+    window.GlobeInitHelpers.createGlobePatternOverlay = createGlobePatternOverlay;
+    window.GlobeInitHelpers.createMapPatternOverlay = createMapPatternOverlay;
+    window.GlobeInitHelpers.getPaletteAccentHex = getPaletteAccentHex;
+    window.GlobeInitHelpers.updatePatternWave = updatePatternWave;
 }

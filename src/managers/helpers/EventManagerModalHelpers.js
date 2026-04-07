@@ -55,8 +55,7 @@ export function openEditModal({ index, events, formService, setEditingIndex, cle
         }
         
         if (factionsInput && factions.length > 0 && formService) {
-            const factionDisplayNames = factions.map(f => f.displayName);
-            formService.setupAutocomplete(factionsInput, factionDisplayNames, 'factions');
+            formService.setupAutocomplete(factionsInput, factions, 'factions');
         }
 
         if (secondaryCountriesInput && countryOptions.length > 0 && formService) {

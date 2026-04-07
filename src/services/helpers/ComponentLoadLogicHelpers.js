@@ -96,7 +96,7 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
     createGlobeControlButton({
         id: 'weatherEffectsToggle',
         className: 'weather-effects-btn active',
-        title: 'Toggle weather (aurora, clouds, shooting stars)',
+        title: 'Toggle weather',
         iconPath: 'assets/images/icons/Weather Icon.png',
         iconAlt: 'Weather',
         iconSpanId: 'weatherEffectsIcon'

@@ -4,10 +4,15 @@
 import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition, latLonToMapPlanePosition } from '../utils/GeometryUtils.js?v=3';
 import { EventMarkerManager } from '../managers/EventMarkerManager.js';
 import { configureTexture, loadTexture, changePlaneTexture } from './helpers/GlobeTextureHelpers.js';
-import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './helpers/GlobePlaneHelpers.js';
+import {
+    createCelestialPlane,
+    getMoonTexturePath,
+    getMarsTexturePath,
+    applyCelestialMaterialTint
+} from './helpers/GlobePlaneHelpers.js';
 import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
 import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
-import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite, createGlobeAuroraShell, createFlatMapAuroraShell, createGlobeCloudLayer, createFlatMapCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint, rerandomizeGlobeCloudAtlas, rerandomizeFlatMapCloudAtlas } from './helpers/GlobeInitHelpers.js';
+import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite, createGlobeAuroraShell, createFlatMapAuroraShell, createGlobeCloudLayer, createFlatMapCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint, rerandomizeGlobeCloudAtlas, rerandomizeFlatMapCloudAtlas, createGlobePatternOverlay, createMapPatternOverlay, getPaletteAccentHex, updatePatternWave } from './helpers/GlobeInitHelpers.js';
 
 // THREE is loaded globally via script tag in index.html
 
@@ -15,8 +20,8 @@ const MISC_STAR_PNG = 'assets/images/misc/Star.png';
 
 /** Globe cloud / map weather baseline opacity */
 const GLOBE_CLOUD_BASE_OPACITY = 0.5;
-/** Flat map clouds + aurora: 30% more transparent than globe (multiply strength/opacity by this). */
-const MAP_WEATHER_ALPHA_VS_GLOBE = 0.7;
+/** Flat map clouds + aurora vs globe: lower = subtler so the 2D map stays readable (was 0.7; reduced for less intrusion). */
+const MAP_WEATHER_ALPHA_VS_GLOBE = 0.44;
 
 export class GlobeView {
     constructor(sceneModel, dataModel) {
@@ -115,6 +120,14 @@ export class GlobeView {
         this.sceneModel.setGlobe(globe);
         scene.add(globe);
 
+        // Pattern overlay on globe - tinted by palette
+        const patternTint = getPaletteAccentHex(paletteKey);
+        const globePattern = createGlobePatternOverlay(textureLoader, renderer, patternTint, 0.15);
+        if (globePattern) {
+            this._globePatternOverlay = globePattern;
+            globe.add(globePattern);
+        }
+
         // Cloud albedo: random `Cloud Map #` atlas per load, ~50% opacity, palette-tinted like rim
         const cloudTintHex = isGray ? 0xffffff : (isCrimson ? 0xff8a80 : (isNulled ? 0xd1b3ff : 0x6fd3ff));
         const cloudLayer = createGlobeCloudLayer({
@@ -175,6 +188,13 @@ export class GlobeView {
             this.sceneModel.earthMapPlane = earthMapPlane;
         }
         scene.add(earthMapPlane);
+
+        // Pattern overlay on map - tinted by palette
+        const mapPattern = createMapPatternOverlay(textureLoader, renderer, patternTint, 0.15);
+        if (mapPattern) {
+            this._mapPatternOverlay = mapPattern;
+            earthMapPlane.add(mapPattern);
+        }
 
         const auroraIntensity = isGray ? 0.34 : (isCrimson ? 0.38 : (isNulled ? 0.36 : 0.42));
         const mapCloudOpacity = GLOBE_CLOUD_BASE_OPACITY * MAP_WEATHER_ALPHA_VS_GLOBE;
@@ -254,6 +274,15 @@ export class GlobeView {
         const mapA = this._mapAuroraMesh;
         if (mapA && mapA.material && mapA.material.uniforms && mapA.material.uniforms.uIntensity) {
             mapA.material.uniforms.uIntensity.value = ai * MAP_WEATHER_ALPHA_VS_GLOBE;
+        }
+        // Update pattern overlay tint (shader material uses uTintColor uniform)
+        const patternTint = getPaletteAccentHex(p);
+        const tintColor = new THREE.Color(patternTint);
+        if (this._globePatternOverlay && this._globePatternOverlay.material && this._globePatternOverlay.material.uniforms) {
+            this._globePatternOverlay.material.uniforms.uTintColor.value.set(tintColor.r, tintColor.g, tintColor.b);
+        }
+        if (this._mapPatternOverlay && this._mapPatternOverlay.material && this._mapPatternOverlay.material.uniforms) {
+            this._mapPatternOverlay.material.uniforms.uTintColor.value.set(tintColor.r, tintColor.g, tintColor.b);
         }
     }
 
@@ -461,6 +490,16 @@ export class GlobeView {
     }
 
     /**
+     * Update pattern wave animation for both globe and map overlays
+     * @param {number} deltaSeconds - Time since last frame
+     */
+    updatePatternWave(deltaSeconds) {
+        const dt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
+        updatePatternWave(this._globePatternOverlay, dt);
+        updatePatternWave(this._mapPatternOverlay, dt);
+    }
+
+    /**
      * Change globe texture
      * @param {string} texturePath - Path to the texture file
      * @param {Function} onTextureLoaded - Optional callback when texture loads
@@ -528,6 +567,25 @@ export class GlobeView {
         const renderer = this.sceneModel.getRenderer();
         const textureLoader = new THREE.TextureLoader();
         changePlaneTexture(marsPlane, texturePath, textureLoader, renderer, true);
+    }
+
+    /**
+     * Moon/Mars use one texture each; palette is a material tint (no per-palette PNG swap).
+     * @param {'blue'|'gray'|'crimson'|'nulled'} paletteName
+     */
+    applyCelestialPaletteTint(paletteName) {
+        const moonPlane = this.sceneModel.getMoonPlane?.() ?? this.sceneModel.moonPlane;
+        const marsPlane = this.sceneModel.getMarsPlane?.() ?? this.sceneModel.marsPlane;
+        const p =
+            paletteName === 'gray'
+                ? 'gray'
+                : paletteName === 'crimson'
+                  ? 'crimson'
+                  : paletteName === 'nulled'
+                    ? 'nulled'
+                    : 'blue';
+        if (moonPlane?.material) applyCelestialMaterialTint(moonPlane.material, p);
+        if (marsPlane?.material) applyCelestialMaterialTint(marsPlane.material, p);
     }
 
     /**
@@ -1082,6 +1140,7 @@ export class GlobeView {
         // Create Moon plane
         const moonPlane = createCelestialPlane({
             texturePath: getMoonTexturePath(paletteKey),
+            paletteKey,
             textureLoader,
             renderer,
             size: 1.5,
@@ -1094,6 +1153,7 @@ export class GlobeView {
         // Create Mars plane
         const marsPlane = createCelestialPlane({
             texturePath: getMarsTexturePath(paletteKey),
+            paletteKey,
             textureLoader,
             renderer,
             size: 1.5,

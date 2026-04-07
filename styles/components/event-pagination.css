@@ -176,6 +176,71 @@ body.color-palette-gray .events-pagination-input:focus {
    EVENT PAGINATION CONTROLS (Globe View)
    ======================================== */
 
+/* ----------------------------------------
+   PAGINATION DOCK (Desktop only)
+   A dedicated section below the globe/map
+   ---------------------------------------- */
+.pagination-dock {
+    display: none; /* Hidden on mobile */
+}
+
+@media (min-width: 769px) {
+    .pagination-dock {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        width: 100%;
+        height: var(--pagination-dock-height, 240px);
+        min-height: var(--pagination-dock-height, 240px);
+        max-height: var(--pagination-dock-height, 240px);
+        background: var(--bg-main, #0a1929);
+        border-top: 1px solid rgba(var(--accent-primary-rgb, 33, 150, 243), 0.25);
+        box-sizing: border-box;
+        position: relative;
+        z-index: 10;
+        flex: 0 0 var(--pagination-dock-height, 240px);
+    }
+    
+    /* 
+     * Body is scaled to 0.67 with width/height at 149.25% to fill viewport.
+     * We need the content to exactly fill 100vh visually (which is 149.25vh in body coordinates).
+     * Setting max-height prevents flex from distributing extra space.
+     */
+    body {
+        max-height: var(--desktop-scale-inverse, 149.25%) !important;
+        overflow: hidden !important;
+    }
+    
+    /* Layout-container fills remaining space */
+    .layout-container {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Main content area fills layout-container */
+    .layout-container main,
+    .layout-container #content {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+    }
+    
+    /* Globe container must respect parent bounds */
+    #globe-container {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+    }
+    
+    /* Footer stays fixed height */
+    footer {
+        flex: 0 0 var(--footer-height, 65px) !important;
+    }
+}
+
 /* Event Pagination Controls */
 .event-pagination {
     position: fixed;
@@ -191,6 +256,128 @@ body.color-palette-gray .events-pagination-input:focus {
     max-width: calc(100vw - 12px);
     box-sizing: border-box;
     padding: 0 8px;
+    transition: opacity 0.18s ease;
+}
+
+body.globe-grabbing .event-pagination {
+    opacity: 0.5;
+}
+
+/*
+ * Desktop: pagination lives inside the dock, not fixed positioned
+ */
+@media (min-width: 769px) {
+    .event-pagination {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        right: auto;
+        top: auto;
+        transform: none;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding-left: calc(env(safe-area-inset-left, 0px) + clamp(28px, 5vw, 88px));
+        padding-right: calc(env(safe-area-inset-right, 0px) + clamp(28px, 5vw, 88px));
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    /* Was align-self: center on .event-number-buttons — that shrink-wraps the row and squishes cards */
+    .event-number-buttons.event-number-buttons--thumbs-desktop {
+        align-self: stretch;
+    }
+
+    .page-controls-row {
+        align-self: stretch;
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+    }
+
+    .page-controls-row--page-only {
+        justify-content: center;
+    }
+
+    /* Prev / next bracket the thumbnail title cards; same vertical metrics as cards */
+    .event-pagination-thumb-row {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        align-self: stretch;
+        width: 100%;
+        max-width: 100%;
+        gap: 12px;
+        box-sizing: border-box;
+        overflow: visible;
+    }
+
+    .event-pagination-thumb-row .event-number-buttons.event-number-buttons--thumbs-desktop {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto;
+        max-width: none;
+    }
+
+    .page-btn.page-btn--thumb-rail {
+        flex: 0 0 auto;
+        width: clamp(44px, 4.2vw, 56px);
+        min-width: 44px;
+        align-self: center;
+        min-height: 120px;
+        max-height: 140px;
+        height: 70%;
+        padding: 0;
+        box-sizing: border-box;
+        --thumb-skew: -11deg;
+        transform: skewX(var(--thumb-skew));
+        border-radius: 14px;
+    }
+
+    .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
+        transform: skewX(var(--thumb-skew)) scale(1.06);
+    }
+
+    .page-btn.page-btn--thumb-rail:active:not(:disabled) {
+        transform: skewX(var(--thumb-skew)) scale(0.97);
+    }
+
+    .page-btn.page-btn--thumb-rail:disabled {
+        transform: skewX(var(--thumb-skew));
+    }
+
+    .event-page-slider-row {
+        width: 100%;
+        max-width: 100%;
+        align-self: stretch;
+        padding: 0 0 8px 0;
+        box-sizing: border-box;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        min-height: 48px;
+    }
+
+    .event-page-slider-row.event-page-slider-row--desktop-only {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Hide page input on desktop - slider replaces it */
+    .page-controls-row--mobile-only {
+        display: none !important;
+    }
+
+    .event-page-slider-wrap {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .event-page-slider-ticks {
+        left: clamp(14px, 2.5vw, 26px);
+        right: clamp(14px, 2.5vw, 26px);
+    }
 }
 
 .event-page-slider-row {
@@ -222,6 +409,24 @@ body.color-palette-gray .events-pagination-input:focus {
     height: 18px;
     pointer-events: none;
     z-index: 0;
+}
+
+/* Page number labels above the slider */
+.event-page-slider-label {
+    position: absolute;
+    top: -22px;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* First label aligns to left edge */
+.event-page-slider-label:first-of-type {
+    transform: translateX(0);
 }
 
 .event-page-slider-tick {
@@ -470,7 +675,391 @@ button.event-number-btn.locked,
     transform: none !important;
     filter: brightness(0.5) !important; /* Darken the button */
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
-    pointer-events: none !important;
+}
+
+/* Variant badge must remain clickable even on locked buttons */
+.event-number-btn:disabled .event-number-btn__variant-badge,
+.event-number-btn.locked .event-number-btn__variant-badge {
+    pointer-events: auto !important;
+    filter: brightness(2) !important; /* Counteract parent dimming */
+    opacity: 1 !important;
+}
+
+/* ---------- Desktop: event thumbnails — rounded parallelogram (slope right), image fill, title overlay ---------- */
+@media (min-width: 769px) {
+    .event-number-buttons.event-number-buttons--thumbs-desktop {
+        width: 100%;
+        max-width: 100%;
+        --thumb-row-gap: 14px;
+        /* Frame: equal top/bottom; left & right 0 (parallelogram sides unstroked) */
+        --thumb-outline-y: 8px;
+        gap: var(--thumb-row-gap);
+        align-items: stretch;
+        align-self: stretch;
+        overflow: visible;
+        padding-top: calc(var(--thumb-outline-y) + 4px);
+        padding-bottom: calc(var(--thumb-outline-y) + 4px);
+        box-sizing: border-box;
+        /* Match slot width as if all 10 were visible; center partial rows */
+        justify-content: center;
+        flex-wrap: nowrap;
+    }
+
+    /* Skewed shell: slope toward the right; inner content counter-skewed so photo + text stay upright */
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
+        --thumb-skew: -11deg;
+        flex: 0 0 calc((100% - 9 * var(--thumb-row-gap)) / 10);
+        max-width: calc((100% - 9 * var(--thumb-row-gap)) / 10);
+        min-width: 0;
+        width: auto;
+        height: auto;
+        min-height: calc(168px + 2 * var(--thumb-outline-y));
+        max-height: calc(204px + 2 * var(--thumb-outline-y));
+        padding: 0;
+        box-sizing: border-box;
+        border-style: solid !important;
+        border-width: var(--thumb-outline-y) 0 var(--thumb-outline-y) 0 !important;
+        border-color: rgba(255, 255, 255, 0.93) !important;
+        background: transparent !important;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: stretch;
+        /* Clip counter-skewed bleed so the card reads as a parallelogram */
+        overflow: hidden;
+        border-radius: 16px;
+        transform: skewX(var(--thumb-skew));
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.42);
+        transition:
+            transform var(--panel-transition, 0.25s ease),
+            box-shadow var(--panel-transition, 0.25s ease),
+            border-color var(--panel-transition, 0.25s ease);
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual {
+        position: relative;
+        display: block;
+        flex: 1 1 auto;
+        min-height: 168px;
+        width: 124%;
+        height: 100%;
+        margin-left: -12%;
+        overflow: hidden;
+        transform: skewX(11deg) scale(1.06);
+        transform-origin: center center;
+    }
+
+    /* Bottom scrim under title for readability over busy art */
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 58%;
+        pointer-events: none;
+        z-index: 1;
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.88) 0%,
+            rgba(0, 0, 0, 0.55) 38%,
+            rgba(0, 0, 0, 0.18) 72%,
+            transparent 100%
+        );
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__img-wrap {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 0;
+        border: none !important;
+        background: transparent;
+        border-radius: 0;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__img-wrap--empty {
+        background: linear-gradient(160deg, rgba(40, 50, 70, 0.55) 0%, rgba(12, 14, 22, 0.92) 100%);
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__img {
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        display: block;
+        border: none;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:focus-visible {
+        outline: 2px solid rgba(255, 210, 120, 0.95);
+        outline-offset: 4px;
+    }
+
+    /*
+     * Page slot (1–10): same overlay pattern as .event-number-btn__name — full-bleed strip,
+     * mirrored to the top; title is bottom-left weighted padding, slot is top-right.
+     */
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__key {
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        z-index: 4;
+        margin: 0;
+        box-sizing: border-box;
+        /* Inset from skewed parallelogram edges; extra side padding pulls numeral inward */
+        padding: 14px 58px 34px 38px;
+        font-size: clamp(1.3rem, 3.75vmin, 1.6rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.98);
+        text-align: right;
+        text-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.85),
+            0 2px 12px rgba(0, 0, 0, 0.45);
+        background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.28) 0%,
+            transparent 75%
+        );
+        pointer-events: none;
+    }
+
+    /*
+     * .multi-event-badge sets display:flex — without this, [hidden] does not hide the chip.
+     */
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge[hidden] {
+        display: none !important;
+    }
+
+    /*
+     * Multi-variant: same green trapezoid as Events list (.multi-event-badge), scaled to
+     * sit beside the slot numeral — top flush with card; inset further from skewed left edge.
+     */
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge {
+        position: absolute;
+        /* Negative margin + matching padding: extend trapezoid left; keep label in same spot */
+        left: clamp(46px, 15.5%, 90px);
+        margin-left: clamp(-14px, -2vw, -22px);
+        top: 0;
+        right: auto;
+        width: auto;
+        max-width: min(44%, 10rem);
+        min-width: 3em;
+        z-index: 6;
+        margin-right: 0;
+        margin-bottom: 0;
+        margin-top: 0;
+        box-sizing: border-box;
+        /* Equal sides so flex centers the label in the trapezoid; clip-path trims bottom-right only */
+        padding: 10px clamp(16px, 2.4vw, 22px);
+        font-family: inherit;
+        font-size: clamp(1.15rem, 3.35vmin, 1.5rem);
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.03em;
+        text-transform: none;
+        color: #fff;
+        text-align: center;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+        /* Idle: darker; hover brightens (inverse of Events list chips) */
+        background: rgba(46, 125, 50, 0.88);
+        /* Wider bottom / steeper cut toward the right so the shape reads longer on the left */
+        clip-path: polygon(0% 0%, 100% 0%, 72% 100%, 0% 100%);
+        border: none;
+        border-radius: 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.38);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        transition: background 0.2s ease;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge:hover {
+        background: rgba(76, 175, 80, 0.92);
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge:focus {
+        outline: none;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge:focus-visible {
+        outline: 2px solid rgba(255, 210, 120, 0.95);
+        outline-offset: 3px;
+        z-index: 7;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__name {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        max-width: 100%;
+        z-index: 3;
+        padding: 18px 18px 17px 36px;
+        margin: 0;
+        box-sizing: border-box;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.32;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.98);
+        text-align: left;
+        text-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.85),
+            0 2px 16px rgba(0, 0, 0, 0.45);
+        background: linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.28) 0%,
+            transparent 75%
+        );
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        word-break: break-word;
+        hyphens: auto;
+        pointer-events: none;
+    }
+
+    /* Olivia / Colomar glitch spans: readable on title strip; children can receive taps */
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__name .glitchy-text-container {
+        display: inline;
+        vertical-align: baseline;
+        pointer-events: auto;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__name .glitchy-text-toggle-target {
+        pointer-events: auto;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__name .glitchy-text-base {
+        opacity: 0.92;
+        color: inherit;
+        white-space: normal;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__name .glitchy-text-overlay {
+        white-space: normal;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
+        display: none !important;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
+    .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+        transform: skewX(var(--thumb-skew)) scale(1.045);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+        border-color: rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) !important;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:active:not(:disabled) {
+        transform: skewX(var(--thumb-skew)) scale(0.98);
+    }
+
+    /* Keep parallelogram when filtered/locked (global rule uses transform: none) */
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:disabled,
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn.locked {
+        transform: skewX(var(--thumb-skew)) !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35) !important;
+        border-color: rgba(255, 255, 255, 0.55) !important;
+    }
+
+    /* Palette buttons use solid fills — thumbnails stay image-only */
+    body.color-palette-gray .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn,
+    body.color-palette-crimson .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn,
+    body.color-palette-nulled .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
+        background: transparent !important;
+    }
+
+    body.color-palette-gray .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
+    body.color-palette-gray
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked),
+    body.color-palette-crimson .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
+    body.color-palette-crimson
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked),
+    body.color-palette-nulled .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
+    body.color-palette-nulled
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+        background: transparent !important;
+        transform: skewX(var(--thumb-skew)) scale(1.045);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55) !important;
+        border-color: rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .event-pagination-thumb-row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .event-pagination-thumb-row .event-number-buttons.event-number-buttons--thumbs-desktop {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .page-btn.page-btn--thumb-rail {
+        transform: none;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+    }
+
+    .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
+        transform: scale(1.08);
+    }
+
+    .page-btn.page-btn--thumb-rail:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+    .page-btn.page-btn--thumb-rail:disabled {
+        transform: none;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__key {
+        display: none !important;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge {
+        display: none !important;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual {
+        display: none !important;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
 }
 
 /* Gray palette: gray number buttons */
@@ -489,4 +1078,33 @@ body.color-palette-gray .event-number-btn.number-btn-marker-hover:not(:disabled)
 body.color-palette-gray .event-number-btn:disabled,
 body.color-palette-gray .event-number-btn.locked {
     filter: brightness(0.5) !important; /* Darken the button */
+}
+
+/* ========================================
+   Staggered entrance animation for thumbnails
+   ======================================== */
+
+@media (min-width: 769px) {
+    .event-number-btn.event-number-btn--enter {
+        opacity: 0;
+        transform: skewX(var(--thumb-skew, -11deg)) translateY(15px) scale(0.92);
+        will-change: transform, opacity;
+        transition-property: transform, opacity;
+        transition-duration: 380ms;
+        transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+    }
+
+    .event-number-btn.event-number-btn--enter.event-number-btn--enter-active {
+        opacity: 1;
+        transform: skewX(var(--thumb-skew, -11deg)) translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .event-number-btn.event-number-btn--enter,
+    .event-number-btn.event-number-btn--enter.event-number-btn--enter-active {
+        transition: none !important;
+        opacity: 1 !important;
+        transform: skewX(var(--thumb-skew, -11deg)) !important;
+    }
 }

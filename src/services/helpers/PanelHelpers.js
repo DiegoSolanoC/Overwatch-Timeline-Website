@@ -3,6 +3,8 @@
  * Service-compatible versions of panel creation helpers
  */
 
+import { getEventThumbNumberButtonsHtml } from '../../managers/helpers/PaginationThumbMarkup.js';
+
 /**
  * Creates the music panel HTML structure (service-compatible)
  * @param {Object} statusService - Status service for updates
@@ -157,32 +159,23 @@ export function createEventPagination(statusService) {
     pagination.id = 'eventPagination';
     pagination.className = 'event-pagination';
     pagination.innerHTML = `
-        <div class="page-controls-row">
-            <button id="prevPageBtn" class="page-btn" title="Previous Page">‹</button>
-            <div class="page-input-container">
-                <span class="page-label">Page</span>
-                <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
-                <span class="page-total" id="pageTotal">/ 1</span>
-            </div>
-            <button id="nextPageBtn" class="page-btn" title="Next Page">›</button>
-        </div>
-        <div class="event-number-buttons" id="eventNumberButtons">
-            <button class="event-number-btn" data-position="1" title="Event 1">1</button>
-            <button class="event-number-btn" data-position="2" title="Event 2">2</button>
-            <button class="event-number-btn" data-position="3" title="Event 3">3</button>
-            <button class="event-number-btn" data-position="4" title="Event 4">4</button>
-            <button class="event-number-btn" data-position="5" title="Event 5">5</button>
-            <button class="event-number-btn" data-position="6" title="Event 6">6</button>
-            <button class="event-number-btn" data-position="7" title="Event 7">7</button>
-            <button class="event-number-btn" data-position="8" title="Event 8">8</button>
-            <button class="event-number-btn" data-position="9" title="Event 9">9</button>
-            <button class="event-number-btn" data-position="10" title="Event 10">10</button>
-        </div>
         <div class="event-page-slider-row event-page-slider-row--desktop-only">
             <div class="event-page-slider-wrap">
                 <div class="event-page-slider-ticks" id="eventPageSliderTicks" aria-hidden="true"></div>
                 <input type="range" id="eventPageSlider" class="event-page-slider" min="0" max="10000" value="0" step="1"
                     title="Scrub pages" aria-label="Pages along timeline" aria-valuemin="0" aria-valuemax="10000" aria-valuenow="0" />
+            </div>
+        </div>
+        <div class="event-pagination-thumb-row">
+            <button type="button" id="prevPageBtn" class="page-btn page-btn--thumb-rail" title="Previous Page" aria-label="Previous page">‹</button>
+            <div class="event-number-buttons event-number-buttons--thumbs-desktop" id="eventNumberButtons">${getEventThumbNumberButtonsHtml()}</div>
+            <button type="button" id="nextPageBtn" class="page-btn page-btn--thumb-rail" title="Next Page" aria-label="Next page">›</button>
+        </div>
+        <div class="page-controls-row page-controls-row--page-only page-controls-row--mobile-only">
+            <div class="page-input-container">
+                <span class="page-label">Page</span>
+                <input type="number" id="pageInput" class="page-input" min="1" value="1" title="Enter page number">
+                <span class="page-total" id="pageTotal">/ 1</span>
             </div>
         </div>
     `;

@@ -232,7 +232,7 @@ async function loadTransport() {
         createGlobeControlButton({
             id: 'weatherEffectsToggle',
             className: 'active',
-            title: 'Toggle weather (aurora, clouds, shooting stars)',
+            title: 'Toggle weather',
             label: 'Weather',
             iconPath: 'assets/images/icons/Weather Icon.png',
             iconAlt: 'Weather',

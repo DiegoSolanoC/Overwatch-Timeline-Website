@@ -2977,7 +2977,7 @@
         "Zenyatta"
       ],
       "factions": [
-        "25Shambali"
+        "26Shambali"
       ],
       "lat": 28.3949,
       "lon": 84.124,
@@ -3862,7 +3862,7 @@
         "Lifeweaver"
       ],
       "factions": [
-        "07Lucheng"
+        "05Vishkar"
       ],
       "lat": 23.2599,
       "lon": 77.4126,
@@ -6559,6 +6559,23 @@
       "eraName": "The Null Sector Invasion"
     },
     {
+      "name": "Free the Phreaks",
+      "locationType": "earth",
+      "cityDisplayName": "Aatlis, Morocco",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Hazard"
+      ],
+      "factions": [
+        "30Phreaks",
+        "32Helix Securities"
+      ],
+      "lat": 34.0209,
+      "lon": -6.8416,
+      "eraName": "The Null Sector Invasion"
+    },
+    {
       "name": "Curse Breaker",
       "locationType": "earth",
       "cityDisplayName": "Tokyo, Japan",
@@ -6620,20 +6637,22 @@
       "eraName": "The Null Sector Invasion"
     },
     {
-      "name": "Free the Phreaks",
+      "name": "The Upper Hand",
       "locationType": "earth",
-      "cityDisplayName": "Aatlis, Morocco",
+      "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
       "filters": [
-        "Hazard"
+        "Vendetta",
+        "Domina"
       ],
       "factions": [
-        "30Phreaks",
-        "32Helix Securities"
+        "17Colloseo Gladiatori",
+        "03Talon",
+        "05Vishkar"
       ],
-      "lat": 34.0209,
-      "lon": -6.8416,
+      "lat": 41.8909421,
+      "lon": 12.491903,
       "eraName": "The Null Sector Invasion"
     },
     {
@@ -6652,25 +6671,6 @@
       ],
       "lat": 29.5918,
       "lon": 52.5836,
-      "eraName": "The Null Sector Invasion"
-    },
-    {
-      "name": "The Upper Hand",
-      "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Vendetta",
-        "Domina"
-      ],
-      "factions": [
-        "17Colloseo Gladiatori",
-        "03Talon",
-        "05Vishkar"
-      ],
-      "lat": 41.8909421,
-      "lon": 12.491903,
       "eraName": "The Null Sector Invasion"
     },
     {
@@ -6874,7 +6874,7 @@
           "locationType": "earth",
           "lat": 41.8933203,
           "lon": 12.4829321,
-          "cityDisplayName": "Rome,, Italy"
+          "cityDisplayName": "Rome, Italy"
         },
         {
           "name": "Vengance Comes",

@@ -21,14 +21,29 @@ import {
     pageFromSliderProgress,
     sliderValueForPageCenter
 } from './helpers/NavigationPaginationHelpers.js';
-import { shouldEventBeLocked } from './helpers/MarkerCreationHelpers.js';
+import {
+    shouldEventBeLocked,
+    getPreferredVariantIndexForActiveFilters,
+    countFilterMatchingEntitiesInEvent
+} from './helpers/MarkerCreationHelpers.js';
 import { getGlobalEventNumber1Based } from './helpers/EventSlideShowHelpers.js';
 import {
     showEventsHoverPreview,
     hideEventsHoverPreview,
-    getHoverPreviewLines
+    getHoverPreviewLines,
+    getPlainEventTitleForHover
 } from '../utils/EventsHoverPreviewBadge.js';
 import { dismissFiltersAndMusicPanels } from '../utils/PanelDismissHelpers.js';
+import { findVariantMarker } from './helpers/VariantHelpers.js';
+
+/** First variant or root — aligns with default slide / marker label for multi-events */
+function getDisplayEventForPaginationThumb(rootEvent) {
+    if (!rootEvent) return null;
+    if (Array.isArray(rootEvent.variants) && rootEvent.variants.length > 0) {
+        return rootEvent.variants[0] || rootEvent;
+    }
+    return rootEvent;
+}
 
 /**
  * Coordinate matching utilities
@@ -115,6 +130,65 @@ const CoordinateMatcher = {
         }) || null;
     }
 };
+
+/**
+ * Variant index reflected on globe pagination thumbnails.
+ * Priority:
+ *   - If filters active and only 1 variant matches: force that variant (no switching allowed)
+ *   - If filters active and 2+ match: respect user's manual selection, else filter-preferred
+ *   - No filters: respect user's manual selection, else 0
+ */
+function getPaginationThumbVariantIndex(targetEvent, globalEventIndex) {
+    if (!targetEvent || !Array.isArray(targetEvent.variants) || targetEvent.variants.length <= 1) {
+        return 0;
+    }
+    try {
+        const activeFilters = window.globeController?.sceneModel?.activeFilters;
+        const filtersOn = activeFilters && activeFilters.size > 0;
+        
+        if (filtersOn) {
+            const matchingCount = countFilterMatchingEntitiesInEvent(targetEvent, activeFilters);
+            
+            // Only 1 variant matches: force it, ignore manual selection
+            if (matchingCount === 1) {
+                let v = getPreferredVariantIndexForActiveFilters(targetEvent, activeFilters);
+                return Math.max(0, Math.min(targetEvent.variants.length - 1, v));
+            }
+            
+            // 2+ variants match: allow manual selection
+            const itemKey = `event-${globalEventIndex}`;
+            const manualSelection = window.eventManager?.eventItemVariantIndices?.get(itemKey);
+            if (manualSelection !== undefined && manualSelection !== null) {
+                return Math.max(0, Math.min(targetEvent.variants.length - 1, manualSelection));
+            }
+            
+            // No manual selection, use filter-preferred
+            let v = getPreferredVariantIndexForActiveFilters(targetEvent, activeFilters);
+            return Math.max(0, Math.min(targetEvent.variants.length - 1, v));
+        }
+        
+        // No filters: respect manual selection or default to 0
+        const itemKey = `event-${globalEventIndex}`;
+        const manualSelection = window.eventManager?.eventItemVariantIndices?.get(itemKey);
+        if (manualSelection !== undefined && manualSelection !== null) {
+            return Math.max(0, Math.min(targetEvent.variants.length - 1, manualSelection));
+        }
+        
+        return 0;
+    } catch (_) {
+        return 0;
+    }
+}
+
+function findMarkerForPaginationThumb(sceneModel, markers, targetEvent, globalEventIndex) {
+    if (!targetEvent || !markers) return null;
+    if (Array.isArray(targetEvent.variants) && targetEvent.variants.length > 1 && sceneModel) {
+        const vi = getPaginationThumbVariantIndex(targetEvent, globalEventIndex);
+        const vm = findVariantMarker(sceneModel, targetEvent, vi);
+        if (vm) return vm;
+    }
+    return CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
+}
 
 /**
  * Mobile helper constants
@@ -470,6 +544,17 @@ export class EventNavigationManager {
                 const tpTicks = Math.max(1, totalPages);
                 const eventsPerPage = this.dataModel.eventsPerPage || 10;
                 const totalEvents = Array.isArray(this.dataModel.events) ? this.dataModel.events.length : 0;
+                
+                // Add page number labels at the start of each page segment
+                for (let i = 0; i < tpTicks; i++) {
+                    const label = document.createElement('span');
+                    label.className = 'event-page-slider-label';
+                    label.style.left = `${(i / tpTicks) * 100}%`;
+                    label.textContent = String(i + 1);
+                    ticksEl.appendChild(label);
+                }
+                
+                // Add major tick marks between pages
                 if (tpTicks > 1) {
                     for (let i = 1; i < tpTicks; i++) {
                         const tick = document.createElement('span');
@@ -588,10 +673,10 @@ export class EventNavigationManager {
 
         // Wrap updatePaginationUI to also update number buttons and ticker
         const originalUpdatePaginationUI = updatePaginationUI;
-        const wrappedUpdatePaginationUI = () => {
+        const wrappedUpdatePaginationUI = (animate = false) => {
             originalUpdatePaginationUI();
             if (updateNumberButtons) {
-                updateNumberButtons();
+                updateNumberButtons(animate);
             }
             // Update news ticker with headlines from current page
             if (window.NavigationPaginationHelpers && window.NavigationPaginationHelpers.updateNewsTickerFromGlobe) {
@@ -599,8 +684,8 @@ export class EventNavigationManager {
             }
         };
 
-        // Initial update
-        wrappedUpdatePaginationUI();
+        // Initial update (no animation)
+        wrappedUpdatePaginationUI(false);
 
         // Previous page button - go to previous page or wrap to last
         newPrevBtn.addEventListener('click', (e) => {
@@ -723,6 +808,67 @@ export class EventNavigationManager {
         // Store update function for external calls (wrapped version that also updates number buttons)
         this.uiView.updatePaginationUI = wrappedUpdatePaginationUI;
         this.uiView._paginationOnPageChange = onPageChange;
+
+        if (typeof window.EventSlideGlitchHelpers?.bindGlitchTextClickDelegationGlobePagination === 'function') {
+            window.EventSlideGlitchHelpers.bindGlitchTextClickDelegationGlobePagination(this.uiView);
+        }
+    }
+
+    /**
+     * Re-apply camera + pulse for a globe pagination slot (1–10), e.g. after variant cycle while hovered.
+     */
+    applyGlobePaginationThumbHover(position) {
+        if (!this.dataModel || position == null) return;
+        const p = Number(position);
+        if (!Number.isFinite(p) || p < 1 || p > 10) return;
+
+        const container = document.getElementById('eventNumberButtons');
+        if (!container) return;
+        const btn = container.querySelector(`.event-number-btn[data-position="${p}"]`);
+        if (!btn || btn.disabled) return;
+
+        const currentPageEvents = this.dataModel.getEventsForCurrentPage();
+        const eventIndex = p - 1;
+        if (eventIndex >= currentPageEvents.length) return;
+
+        const targetEvent = currentPageEvents[eventIndex];
+        const sceneModel = window.globeController?.sceneModel;
+        const ic = window.globeController?.interactionController;
+        if (!sceneModel || !ic || !window.globeController?.globeView) return;
+
+        const markers = sceneModel.getMarkers();
+        const currentPageNum = this.dataModel.getCurrentEventPage();
+        const eps = this.dataModel.eventsPerPage || 10;
+        const globalIx = (currentPageNum - 1) * eps + eventIndex;
+        const marker = findMarkerForPaginationThumb(sceneModel, markers, targetEvent, globalIx);
+
+        const lockedOnMap = marker && marker.userData && marker.userData.isLocked;
+        if (targetEvent && !lockedOnMap) {
+            const n = getGlobalEventNumber1Based(targetEvent, this.dataModel);
+            const { primary, otherVariants, era } = getHoverPreviewLines(targetEvent);
+            showEventsHoverPreview(n, primary, otherVariants, era);
+        }
+
+        if (!marker || (marker.userData && marker.userData.isLocked)) return;
+
+        if (
+            targetEvent &&
+            Array.isArray(targetEvent.variants) &&
+            targetEvent.variants.length > 1
+        ) {
+            this.uiView.showVariantMarkers(targetEvent);
+        }
+
+        const camera = sceneModel.getCamera?.();
+        const globe = sceneModel.getGlobe?.();
+        if (!this.uiView.currentEventMarker && camera && !this.uiView.originalCameraPosition) {
+            this.uiView.originalCameraPosition = camera.position.clone();
+            this.uiView.originalGlobeRotation = globe
+                ? { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z }
+                : { x: 0, y: 0, z: 0 };
+        }
+
+        handleNumberButtonMouseEnter(marker, sceneModel, ic);
     }
 
     /**
@@ -733,11 +879,31 @@ export class EventNavigationManager {
         const numberButtonsContainer = document.getElementById('eventNumberButtons');
         if (!numberButtonsContainer || !this.dataModel) return;
 
+        this.uiView._globePaginationHover = this.uiView._globePaginationHover || { position: null };
+        this.uiView.refreshGlobePaginationThumbHover = (cycledGlobalEventIndex) => {
+            const pos = this.uiView._globePaginationHover?.position;
+            if (pos == null) return;
+            const eps = this.dataModel.eventsPerPage || 10;
+            const pageNum = this.dataModel.getCurrentEventPage();
+            const slotGlobalIx = (pageNum - 1) * eps + (pos - 1);
+            if (
+                cycledGlobalEventIndex !== undefined &&
+                cycledGlobalEventIndex !== null &&
+                cycledGlobalEventIndex !== slotGlobalIx
+            ) {
+                return;
+            }
+            this.applyGlobePaginationThumbHover(pos);
+        };
+
         // Get all number buttons
         const numberButtons = numberButtonsContainer.querySelectorAll('.event-number-btn');
+        
+        // Track for entrance animation
+        let entranceAnimToken = 0;
 
         // Update button states based on current page - only show buttons for events that exist
-        const updateNumberButtons = () => {
+        const updateNumberButtons = (animate = false) => {
             // Re-query buttons from DOM to get the actual current buttons (they may have been cloned)
             const currentButtons = numberButtonsContainer.querySelectorAll('.event-number-btn');
 
@@ -748,27 +914,142 @@ export class EventNavigationManager {
             // First, reset all buttons to be visible (in case they were hidden from previous page)
             currentButtons.forEach((btn) => {
                 resetButtonStyles(btn);
+                // Clear any previous animation classes
+                btn.classList.remove('event-number-btn--enter', 'event-number-btn--enter-active');
+                btn.style.transitionDelay = '';
             });
+
+            const sceneModel = window.globeController?.sceneModel;
+            const activeFilters = sceneModel?.activeFilters;
+            const filtersOn = !!(activeFilters && activeFilters.size > 0);
 
             // Then hide buttons that don't have events, and disable buttons for locked events
             currentButtons.forEach((btn, index) => {
                 const position = index + 1; // 1-10
                 const eventIndex = position - 1; // 0-9
 
+                const imgEl = btn.querySelector('.event-number-btn__img');
+                const nameEl = btn.querySelector('.event-number-btn__name');
+                const imgWrap = btn.querySelector('.event-number-btn__img-wrap');
+                let keyEl = btn.querySelector('.event-number-btn__key');
+                if (!keyEl) {
+                    const visual = btn.querySelector('.event-number-btn__visual');
+                    if (visual) {
+                        keyEl = document.createElement('span');
+                        keyEl.className = 'event-number-btn__key';
+                        keyEl.setAttribute('aria-hidden', 'true');
+                        visual.appendChild(keyEl);
+                    }
+                }
+                if (keyEl) keyEl.setAttribute('aria-hidden', 'true');
+
+                let variantBadge = btn.querySelector('.event-number-btn__variant-badge');
+                if (!variantBadge) {
+                    const visualForBadge = btn.querySelector('.event-number-btn__visual');
+                    if (visualForBadge) {
+                        variantBadge = document.createElement('div');
+                        variantBadge.className = 'multi-event-badge event-number-btn__variant-badge';
+                        variantBadge.setAttribute('role', 'button');
+                        variantBadge.setAttribute('title', 'Switch variant');
+                        variantBadge.setAttribute('aria-label', 'Cycle event variant');
+                        variantBadge.tabIndex = -1;
+                        variantBadge.hidden = true;
+                        visualForBadge.appendChild(variantBadge);
+                    }
+                }
+
                 // Hide button if no event at this position
                 if (eventIndex >= numEventsOnPage) {
                     btn.style.display = 'none'; // Hide instead of disable
+                    if (imgEl) {
+                        imgEl.removeAttribute('src');
+                        imgEl.alt = '';
+                        imgEl.style.display = '';
+                    }
+                    if (nameEl) nameEl.textContent = '';
+                    if (keyEl) keyEl.textContent = '';
+                    if (variantBadge) {
+                        variantBadge.hidden = true;
+                        variantBadge.tabIndex = -1;
+                        variantBadge.removeAttribute('data-event-index');
+                        variantBadge.textContent = '';
+                    }
+                    if (imgWrap) imgWrap.classList.remove('event-number-btn__img-wrap--empty');
                 } else {
-                    // Check if the event marker is locked (filtered out)
                     const targetEvent = currentPageEvents[eventIndex];
-                    let isLocked = false;
+                    const currentPageNum = this.dataModel.getCurrentEventPage();
+                    const eventsPerPage = this.dataModel.eventsPerPage || 10;
+                    const globalEventIndex = (currentPageNum - 1) * eventsPerPage + eventIndex;
 
-                    if (window.globeController && window.globeController.globeView) {
-                        const markers = window.globeController.sceneModel.getMarkers();
+                    let displayEv = getDisplayEventForPaginationThumb(targetEvent);
+                    let variantIndexShown = 0;
+                    if (Array.isArray(targetEvent?.variants) && targetEvent.variants.length > 0) {
+                        variantIndexShown = getPaginationThumbVariantIndex(targetEvent, globalEventIndex);
+                        displayEv = targetEvent.variants[variantIndexShown] || displayEv;
+                    }
+
+                    const plainName =
+                        getPlainEventTitleForHover(displayEv)
+                        || getPlainEventTitleForHover(targetEvent)
+                        || `Event ${position}`;
+                    btn.title = plainName;
+                    if (nameEl) {
+                        if (window.GlitchTextService) {
+                            nameEl.innerHTML = window.GlitchTextService.getDisplayEventName(plainName);
+                        } else {
+                            nameEl.textContent = plainName;
+                        }
+                    }
+                    if (keyEl) keyEl.textContent = String(position);
+                    if (imgEl && imgWrap) {
+                        const path = getEventImagePath(displayEv, plainName);
+                        imgWrap.classList.toggle('event-number-btn__img-wrap--empty', !path);
+                        if (path) {
+                            imgEl.style.display = '';
+                            imgEl.src = path;
+                            imgEl.alt = plainName;
+                            imgEl.onerror = () => {
+                                imgEl.style.display = 'none';
+                                imgWrap.classList.add('event-number-btn__img-wrap--empty');
+                            };
+                        } else {
+                            imgEl.removeAttribute('src');
+                            imgEl.alt = plainName;
+                            imgEl.style.display = 'none';
+                        }
+                    }
+
+                    let isLocked = false;
+                    /* Filter lock from event data (immediate). Marker userData lags until refreshEventMarkers. */
+                    if (filtersOn && activeFilters) {
+                        isLocked = shouldEventBeLocked(targetEvent, activeFilters);
+                    } else if (window.globeController && window.globeController.globeView && sceneModel) {
+                        const markers = sceneModel.getMarkers();
                         isLocked = isEventMarkerLocked(targetEvent, markers, CoordinateMatcher);
                     }
 
-                    // Apply visual changes - use CSS classes only, no inline styles
+                    if (variantBadge) {
+                        const multi = Array.isArray(targetEvent.variants) && targetEvent.variants.length > 1;
+                        const matchingCount = (filtersOn && activeFilters)
+                            ? countFilterMatchingEntitiesInEvent(targetEvent, activeFilters)
+                            : targetEvent.variants?.length || 1;
+                        
+                        // Show badge only if multi-variant AND (no filters OR 2+ variants match filters)
+                        const showBadge = multi && matchingCount >= 2;
+                        
+                        if (showBadge) {
+                            variantBadge.hidden = false;
+                            variantBadge.tabIndex = 0;
+                            variantBadge.dataset.eventIndex = String(globalEventIndex);
+                            variantBadge.textContent = `${variantIndexShown + 1}/${targetEvent.variants.length}`;
+                        } else {
+                            variantBadge.hidden = true;
+                            variantBadge.tabIndex = -1;
+                            variantBadge.removeAttribute('data-event-index');
+                            variantBadge.textContent = '';
+                        }
+                    }
+
                     if (isLocked) {
                         btn.disabled = true;
                         btn.classList.add('locked');
@@ -778,6 +1059,45 @@ export class EventNavigationManager {
                     }
                 }
             });
+            if (window.GlitchTextService?.isEnabled()) {
+                window.GlitchTextService.startAnimation();
+            }
+            
+            // Run staggered entrance animation if requested
+            if (animate) {
+                const token = ++entranceAnimToken;
+                const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                
+                if (!prefersReducedMotion) {
+                    const visibleButtons = Array.from(currentButtons).filter(btn => btn.style.display !== 'none');
+                    const staggerMs = 50;
+                    const maxDelayMs = 400;
+                    
+                    visibleButtons.forEach((btn, i) => {
+                        btn.classList.add('event-number-btn--enter');
+                        const delay = Math.min(i * staggerMs, maxDelayMs);
+                        btn.style.transitionDelay = `${delay}ms`;
+                    });
+                    
+                    requestAnimationFrame(() => {
+                        if (token !== entranceAnimToken) return;
+                        requestAnimationFrame(() => {
+                            if (token !== entranceAnimToken) return;
+                            visibleButtons.forEach(btn => btn.classList.add('event-number-btn--enter-active'));
+                        });
+                    });
+                    
+                    // Cleanup after animation
+                    const totalMs = 500 + Math.min((visibleButtons.length - 1) * staggerMs, maxDelayMs);
+                    setTimeout(() => {
+                        if (token !== entranceAnimToken) return;
+                        visibleButtons.forEach(btn => {
+                            btn.classList.remove('event-number-btn--enter', 'event-number-btn--enter-active');
+                            btn.style.transitionDelay = '';
+                        });
+                    }, totalMs);
+                }
+            }
         };
 
         // Initial update
@@ -801,49 +1121,23 @@ export class EventNavigationManager {
 
                 if (window.globeController && window.globeController.globeView) {
                     const markers = window.globeController.sceneModel.getMarkers();
-                    return CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
+                    const currentPageNum = this.dataModel.getCurrentEventPage();
+                    const eps = this.dataModel.eventsPerPage || 10;
+                    const globalIx = (currentPageNum - 1) * eps + eventIndex;
+                    return findMarkerForPaginationThumb(
+                        window.globeController.sceneModel,
+                        markers,
+                        targetEvent,
+                        globalIx
+                    );
                 }
                 return null;
             };
 
             const onNumberBtnHoverStart = () => {
                 if (newBtn.disabled) return;
-
-                const currentPageEvents = this.dataModel.getEventsForCurrentPage();
-                const eventIndex = position - 1;
-                const targetEvent =
-                    eventIndex < currentPageEvents.length ? currentPageEvents[eventIndex] : null;
-
-                const marker = getMarkerForPosition();
-                const lockedOnMap = marker && marker.userData && marker.userData.isLocked;
-
-                if (targetEvent && !lockedOnMap) {
-                    const n = getGlobalEventNumber1Based(targetEvent, this.dataModel);
-                    const { primary, otherVariants, era } = getHoverPreviewLines(targetEvent);
-                    showEventsHoverPreview(n, primary, otherVariants, era);
-                }
-
-                if (!marker) return;
-                if (marker.userData && marker.userData.isLocked) return;
-
-                if (window.globeController && window.globeController.sceneModel && window.globeController.interactionController) {
-                    // For hover previews (especially Moon/Mars which call resetCameraToDefault),
-                    // capture the current camera state so mouseleave restores to the true prior view
-                    // instead of falling back to a generic default.
-                    const camera = window.globeController.sceneModel.getCamera?.();
-                    const globe = window.globeController.sceneModel.getGlobe?.();
-                    if (!this.uiView.currentEventMarker && camera && !this.uiView.originalCameraPosition) {
-                        this.uiView.originalCameraPosition = camera.position.clone();
-                        this.uiView.originalGlobeRotation = globe
-                            ? { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z }
-                            : { x: 0, y: 0, z: 0 };
-                    }
-                    handleNumberButtonMouseEnter(
-                        marker,
-                        window.globeController.sceneModel,
-                        window.globeController.interactionController
-                    );
-                }
+                this.uiView._globePaginationHover.position = position;
+                this.applyGlobePaginationThumbHover(position);
             };
 
             // Pointer events only: also subscribing to mouseenter would run this twice per hover
@@ -852,10 +1146,33 @@ export class EventNavigationManager {
 
             // Mouse leave: stop pulse, restore camera, resume auto rotation if enabled
             const onNumberBtnHoverEnd = () => {
+                this.uiView._globePaginationHover.position = null;
+
                 hideEventsHoverPreview();
 
+                const currentPageEventsLeave = this.dataModel.getEventsForCurrentPage();
+                const eventIndexLeave = position - 1;
+                const targetEventLeave =
+                    eventIndexLeave < currentPageEventsLeave.length
+                        ? currentPageEventsLeave[eventIndexLeave]
+                        : null;
+
                 const marker = getMarkerForPosition();
-                
+
+                if (
+                    targetEventLeave &&
+                    Array.isArray(targetEventLeave.variants) &&
+                    targetEventLeave.variants.length > 1
+                ) {
+                    const slideEl = document.getElementById('eventSlide');
+                    const panelOpen = slideEl?.classList.contains('open');
+                    const keepVariantPinsVisible =
+                        panelOpen && this.uiView.currentEventData === targetEventLeave;
+                    if (!keepVariantPinsVisible) {
+                        this.uiView.hideVariantMarkers(targetEventLeave);
+                    }
+                }
+
                 // Use helper for mouse leave behavior
                 if (window.globeController && window.globeController.sceneModel) {
                     handleNumberButtonMouseLeave(
@@ -867,6 +1184,37 @@ export class EventNavigationManager {
             };
 
             newBtn.addEventListener('pointerleave', onNumberBtnHoverEnd);
+
+            const variantBadgeEl = newBtn.querySelector('.event-number-btn__variant-badge');
+            if (variantBadgeEl) {
+                variantBadgeEl.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (variantBadgeEl.hidden) return;
+                    const idx = Number.parseInt(variantBadgeEl.getAttribute('data-event-index') || '', 10);
+                    if (!Number.isFinite(idx)) return;
+                    const evs = this.dataModel.getEventsForCurrentPage();
+                    const slot = position - 1;
+                    if (slot < 0 || slot >= evs.length) return;
+                    const rootEvent = evs[slot];
+                    if (!rootEvent?.variants || rootEvent.variants.length <= 1) return;
+                    const em = window.eventManager;
+                    if (!em?.interactionService?.cycleEventVariant) return;
+                    const listBadge = document.querySelector(
+                        `.event-item .multi-event-badge[data-event-index="${idx}"]`
+                    );
+                    const listItem = listBadge?.closest?.('.event-item') ?? null;
+                    em.interactionService.cycleEventVariant(idx, rootEvent, listItem);
+                });
+                variantBadgeEl.addEventListener('mousedown', (e) => e.stopPropagation());
+                variantBadgeEl.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (variantBadgeEl.hidden) return;
+                    variantBadgeEl.click();
+                });
+            }
 
             newBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -887,7 +1235,16 @@ export class EventNavigationManager {
                     // Find the marker for this event
                     if (window.globeController && window.globeController.globeView) {
                         const markers = window.globeController.sceneModel.getMarkers();
-                        const eventMarker = CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
+                        const currentPageNum = this.dataModel.getCurrentEventPage();
+                        const eps = this.dataModel.eventsPerPage || 10;
+                        const globalIx = (currentPageNum - 1) * eps + eventIndex;
+                        const eventMarker = findMarkerForPaginationThumb(
+                            window.globeController.sceneModel,
+                            markers,
+                            targetEvent,
+                            globalIx
+                        );
+                        const variantIndexForSlide = getPaginationThumbVariantIndex(targetEvent, globalIx);
 
                         // Don't allow clicking locked events
                         if (eventMarker && eventMarker.userData && eventMarker.userData.isLocked) {
@@ -895,12 +1252,12 @@ export class EventNavigationManager {
                         }
 
                         if (eventMarker && window.globeController.interactionController) {
-                            // Use helper for click handling
                             handleNumberButtonClick({
                                 targetEvent,
                                 eventMarker,
                                 eventSlideManager: this.eventSlideManager,
-                                interactionController: window.globeController.interactionController
+                                interactionController: window.globeController.interactionController,
+                                variantIndex: variantIndexForSlide
                             });
                         }
                     }

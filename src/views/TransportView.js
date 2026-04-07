@@ -1,10 +1,15 @@
 /**
  * TransportView - Handles transport rendering (trains, planes, boats) and trails
  */
+import { latLonToVector3, latLonToMapPlanePosition } from '../utils/GeometryUtils.js';
+
 export class TransportView {
     constructor(sceneModel, transportModel) {
         this.sceneModel = sceneModel;
         this.transportModel = transportModel;
+        this.airportMarkers = [];
+        this.trainStationMarkers = [];
+        this.seaportMarkers = [];
     }
 
     /**
@@ -313,6 +318,9 @@ export class TransportView {
         boatTrails.forEach(trail => {
             trail.visible = hyperloopVisible;
         });
+        
+        // Update all transport markers visibility (airports, train stations, seaports)
+        this.updateAllTransportMarkersVisibility();
     }
 
     /**
@@ -362,6 +370,271 @@ export class TransportView {
         if (parent) parent.add(dot);
         this.transportModel.addPlaneTrail(dot); // Use plane trail system
     }
+
+    /**
+     * Create airport markers for all airports
+     * @param {Array} airports - Array of airport objects with lat/lon
+     */
+    createAirportMarkers(airports) {
+        if (!airports || airports.length === 0) return;
+        
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        
+        // Remove existing airport markers first
+        this.removeAirportMarkers();
+        
+        airports.forEach(airport => {
+            // Create marker for globe view
+            const globePosition = latLonToVector3(airport.lat, airport.lon, 1.008);
+            const globeMarkerGeometry = new THREE.SphereGeometry(0.015, 16, 16);
+            const globeMarkerMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00bfff, // Light blue for airports
+                transparent: true,
+                opacity: 0.9
+            });
+            const globeMarker = new THREE.Mesh(globeMarkerGeometry, globeMarkerMaterial);
+            globeMarker.position.copy(globePosition);
+            globeMarker.userData = { type: 'airport', name: airport.name };
+            globeMarker.visible = hyperloopVisible && !isMapView;
+            if (globe) globe.add(globeMarker);
+            
+            // Create marker for map view
+            const mapPosition = latLonToMapPlanePosition(airport.lat, airport.lon, 2.0, 1.0, 0.008);
+            const mapMarkerGeometry = new THREE.SphereGeometry(0.012, 16, 16);
+            const mapMarkerMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00bfff, // Light blue for airports
+                transparent: true,
+                opacity: 0.9
+            });
+            const mapMarker = new THREE.Mesh(mapMarkerGeometry, mapMarkerMaterial);
+            mapMarker.position.copy(mapPosition);
+            mapMarker.userData = { type: 'airport', name: airport.name, isMapMarker: true };
+            mapMarker.visible = hyperloopVisible && isMapView;
+            if (earthMapPlane) earthMapPlane.add(mapMarker);
+            
+            this.airportMarkers.push({ globe: globeMarker, map: mapMarker, airport });
+        });
+        
+        console.log(`✈️ Created ${this.airportMarkers.length} airport markers`);
+    }
+
+    /**
+     * Remove all airport markers
+     */
+    removeAirportMarkers() {
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        
+        this.airportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
+            if (globeMarker) {
+                if (globeMarker.geometry) globeMarker.geometry.dispose();
+                if (globeMarker.material) globeMarker.material.dispose();
+                if (globe) globe.remove(globeMarker);
+            }
+            if (mapMarker) {
+                if (mapMarker.geometry) mapMarker.geometry.dispose();
+                if (mapMarker.material) mapMarker.material.dispose();
+                if (earthMapPlane) earthMapPlane.remove(mapMarker);
+            }
+        });
+        
+        this.airportMarkers = [];
+    }
+
+    /**
+     * Update airport marker visibility based on view mode and transport toggle
+     */
+    updateAirportMarkersVisibility() {
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        
+        this.airportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
+            if (globeMarker) globeMarker.visible = hyperloopVisible && !isMapView;
+            if (mapMarker) mapMarker.visible = hyperloopVisible && isMapView;
+        });
+    }
+
+    /**
+     * Create train station markers for all cities (train stations)
+     * @param {Array} cities - Array of city objects with lat/lon
+     */
+    createTrainStationMarkers(cities) {
+        if (!cities || cities.length === 0) return;
+        
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        
+        // Remove existing train station markers first
+        this.removeTrainStationMarkers();
+        
+        cities.forEach(city => {
+            // Create marker for globe view
+            const globePosition = latLonToVector3(city.lat, city.lon, 1.008);
+            const globeMarkerGeometry = new THREE.SphereGeometry(0.012, 16, 16);
+            const globeMarkerMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff6600, // Orange for train stations
+                transparent: true,
+                opacity: 0.9
+            });
+            const globeMarker = new THREE.Mesh(globeMarkerGeometry, globeMarkerMaterial);
+            globeMarker.position.copy(globePosition);
+            globeMarker.userData = { type: 'trainStation', name: city.name };
+            globeMarker.visible = hyperloopVisible && !isMapView;
+            if (globe) globe.add(globeMarker);
+            
+            // Create marker for map view
+            const mapPosition = latLonToMapPlanePosition(city.lat, city.lon, 2.0, 1.0, 0.008);
+            const mapMarkerGeometry = new THREE.SphereGeometry(0.010, 16, 16);
+            const mapMarkerMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff6600, // Orange for train stations
+                transparent: true,
+                opacity: 0.9
+            });
+            const mapMarker = new THREE.Mesh(mapMarkerGeometry, mapMarkerMaterial);
+            mapMarker.position.copy(mapPosition);
+            mapMarker.userData = { type: 'trainStation', name: city.name, isMapMarker: true };
+            mapMarker.visible = hyperloopVisible && isMapView;
+            if (earthMapPlane) earthMapPlane.add(mapMarker);
+            
+            this.trainStationMarkers.push({ globe: globeMarker, map: mapMarker, city });
+        });
+        
+        console.log(`🚂 Created ${this.trainStationMarkers.length} train station markers`);
+    }
+
+    /**
+     * Remove all train station markers
+     */
+    removeTrainStationMarkers() {
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        
+        this.trainStationMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
+            if (globeMarker) {
+                if (globeMarker.geometry) globeMarker.geometry.dispose();
+                if (globeMarker.material) globeMarker.material.dispose();
+                if (globe) globe.remove(globeMarker);
+            }
+            if (mapMarker) {
+                if (mapMarker.geometry) mapMarker.geometry.dispose();
+                if (mapMarker.material) mapMarker.material.dispose();
+                if (earthMapPlane) earthMapPlane.remove(mapMarker);
+            }
+        });
+        
+        this.trainStationMarkers = [];
+    }
+
+    /**
+     * Update train station marker visibility based on view mode and transport toggle
+     */
+    updateTrainStationMarkersVisibility() {
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        
+        this.trainStationMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
+            if (globeMarker) globeMarker.visible = hyperloopVisible && !isMapView;
+            if (mapMarker) mapMarker.visible = hyperloopVisible && isMapView;
+        });
+    }
+
+    /**
+     * Create seaport markers for all seaports
+     * @param {Array} seaports - Array of seaport objects with lat/lon
+     */
+    createSeaportMarkers(seaports) {
+        if (!seaports || seaports.length === 0) return;
+        
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        
+        // Remove existing seaport markers first
+        this.removeSeaportMarkers();
+        
+        seaports.forEach(seaport => {
+            // Create marker for globe view
+            const globePosition = latLonToVector3(seaport.lat, seaport.lon, 1.008);
+            const globeMarkerGeometry = new THREE.SphereGeometry(0.012, 16, 16);
+            const globeMarkerMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff88, // Teal/green for seaports
+                transparent: true,
+                opacity: 0.9
+            });
+            const globeMarker = new THREE.Mesh(globeMarkerGeometry, globeMarkerMaterial);
+            globeMarker.position.copy(globePosition);
+            globeMarker.userData = { type: 'seaport', name: seaport.name };
+            globeMarker.visible = hyperloopVisible && !isMapView;
+            if (globe) globe.add(globeMarker);
+            
+            // Create marker for map view
+            const mapPosition = latLonToMapPlanePosition(seaport.lat, seaport.lon, 2.0, 1.0, 0.008);
+            const mapMarkerGeometry = new THREE.SphereGeometry(0.010, 16, 16);
+            const mapMarkerMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff88, // Teal/green for seaports
+                transparent: true,
+                opacity: 0.9
+            });
+            const mapMarker = new THREE.Mesh(mapMarkerGeometry, mapMarkerMaterial);
+            mapMarker.position.copy(mapPosition);
+            mapMarker.userData = { type: 'seaport', name: seaport.name, isMapMarker: true };
+            mapMarker.visible = hyperloopVisible && isMapView;
+            if (earthMapPlane) earthMapPlane.add(mapMarker);
+            
+            this.seaportMarkers.push({ globe: globeMarker, map: mapMarker, seaport });
+        });
+        
+        console.log(`⚓ Created ${this.seaportMarkers.length} seaport markers`);
+    }
+
+    /**
+     * Remove all seaport markers
+     */
+    removeSeaportMarkers() {
+        const globe = this.sceneModel.getGlobe();
+        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        
+        this.seaportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
+            if (globeMarker) {
+                if (globeMarker.geometry) globeMarker.geometry.dispose();
+                if (globeMarker.material) globeMarker.material.dispose();
+                if (globe) globe.remove(globeMarker);
+            }
+            if (mapMarker) {
+                if (mapMarker.geometry) mapMarker.geometry.dispose();
+                if (mapMarker.material) mapMarker.material.dispose();
+                if (earthMapPlane) earthMapPlane.remove(mapMarker);
+            }
+        });
+        
+        this.seaportMarkers = [];
+    }
+
+    /**
+     * Update seaport marker visibility based on view mode and transport toggle
+     */
+    updateSeaportMarkersVisibility() {
+        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const hyperloopVisible = this.sceneModel.getHyperloopVisible();
+        
+        this.seaportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
+            if (globeMarker) globeMarker.visible = hyperloopVisible && !isMapView;
+            if (mapMarker) mapMarker.visible = hyperloopVisible && isMapView;
+        });
+    }
+
+    /**
+     * Update all transport marker visibility (airports, train stations, seaports)
+     */
+    updateAllTransportMarkersVisibility() {
+        this.updateAirportMarkersVisibility();
+        this.updateTrainStationMarkersVisibility();
+        this.updateSeaportMarkersVisibility();
+    }
 }
-
-

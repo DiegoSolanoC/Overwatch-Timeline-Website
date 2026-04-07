@@ -162,8 +162,16 @@ class EventInteractionService {
             window.SoundEffectsManager.play('switchEvent');
         }
         
-        // Update the preview
-        this.updateEventItemPreview(eventIndex, event, itemElement, currentIndex);
+        // Update the preview (list card) when present; globe thumbnails refresh below
+        if (itemElement) {
+            this.updateEventItemPreview(eventIndex, event, itemElement, currentIndex);
+        }
+        if (typeof window !== 'undefined' && window.globeController?.uiView?.updateNumberButtons) {
+            window.globeController.uiView.updateNumberButtons();
+        }
+        if (typeof window !== 'undefined' && window.globeController?.uiView?.refreshGlobePaginationThumbHover) {
+            window.globeController.uiView.refreshGlobePaginationThumbHover(eventIndex);
+        }
     }
     
     /**
@@ -178,6 +186,9 @@ class EventInteractionService {
         // Re-render events to show first variant in all previews
         if (this.eventManager.renderEvents) {
             this.eventManager.renderEvents();
+        }
+        if (typeof window !== 'undefined' && window.globeController?.uiView?.updateNumberButtons) {
+            window.globeController.uiView.updateNumberButtons();
         }
     }
     

@@ -178,6 +178,9 @@ export class UIView {
             toggleButton: glitchToggleBtn,
             onToggle: (enabled, wasEnabled) => {
                 this.refreshEventSlideTitleNumberPrefix();
+                if (typeof this.updateNumberButtons === 'function') {
+                    this.updateNumberButtons();
+                }
                 // Show hacked image overlay if enabled
                 if (enabled) {
                     setTimeout(() => {

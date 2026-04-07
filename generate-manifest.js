@@ -1,5 +1,5 @@
-// Script to generate manifest.json from Heroes and Factions folders
-// Run with: node generate-manifest.js
+// Regenerate manifest.json from assets (heroes / factions PNGs, music audio).
+// Run: node generate-manifest.js
 
 const fs = require('fs');
 const path = require('path');
@@ -8,38 +8,44 @@ const heroesFolder = './assets/images/heroes';
 const factionsFolder = './assets/images/factions';
 const musicFolder = './assets/audio/music';
 
-function getFilesInFolder(folderPath) {
+/** Locale-aware sort so "51" orders like a number among hero names */
+function sortHeroBasenames(names) {
+    return [...names].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+}
+
+function getHeroesFromFolder(folderPath) {
     try {
         const files = fs.readdirSync(folderPath);
-        return files
-            .filter(file => file.toLowerCase().endsWith('.png'))
-            .map(file => file.replace('.png', ''))
-            .sort();
+        return sortHeroBasenames(
+            files
+                .filter((file) => file.toLowerCase().endsWith('.png'))
+                .map((file) => file.replace(/\.png$/i, ''))
+        );
     } catch (error) {
         console.error(`Error reading folder ${folderPath}:`, error);
         return [];
     }
 }
 
-function getFactionsWithNumbers(folderPath) {
+function getFactionsFromFolder(folderPath) {
     try {
         const files = fs.readdirSync(folderPath);
         const factions = files
-            .filter(file => file.toLowerCase().endsWith('.png'))
-            .map(file => {
-                // Extract number and name
-                const match = file.match(/^(\d+)(.+)$/);
+            .filter((file) => file.toLowerCase().endsWith('.png'))
+            .map((file) => {
+                const base = file.replace(/\.png$/i, '');
+                const match = base.match(/^(\d+)(.+)$/);
                 if (match) {
                     return {
-                        filename: file.replace('.png', ''),
+                        filename: base,
                         number: parseInt(match[1], 10),
-                        displayName: match[2].trim().replace('.png', '')
+                        displayName: match[2].trim()
                     };
                 }
                 return {
-                    filename: file.replace('.png', ''),
+                    filename: base,
                     number: 999,
-                    displayName: file.replace('.png', '')
+                    displayName: base
                 };
             })
             .sort((a, b) => a.number - b.number);
@@ -54,40 +60,36 @@ function getMusicFiles(folderPath) {
     try {
         const files = fs.readdirSync(folderPath);
         const musicFiles = files
-            .filter(file => {
+            .filter((file) => {
                 const lower = file.toLowerCase();
                 return lower.endsWith('.mp3') || lower.endsWith('.wav') || lower.endsWith('.ogg');
             })
-            .map(file => ({
+            .map((file) => ({
                 filename: file,
                 name: file.replace(/\.(mp3|wav|ogg)$/i, '')
             }));
-        
-        // Alphabetical; default track per palette is resolved at runtime (MusicPaletteDefaultHelpers).
-        const sorted = musicFiles.sort((a, b) => a.name.localeCompare(b.name));
-        
-        return sorted;
+
+        return musicFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
     } catch (error) {
         console.error(`Error reading folder ${folderPath}:`, error);
         return [];
     }
 }
 
-const heroes = getFilesInFolder(heroesFolder);
-const factions = getFactionsWithNumbers(factionsFolder);
+const heroes = getHeroesFromFolder(heroesFolder);
+const factions = getFactionsFromFolder(factionsFolder);
 const music = getMusicFiles(musicFolder);
 
 const manifest = {
-    heroes: heroes,
-    factions: factions.map(f => ({
+    heroes,
+    factions: factions.map((f) => ({
         filename: f.filename,
         number: f.number,
         displayName: f.displayName
     })),
-    music: music
+    music
 };
 
 fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2));
-console.log('Manifest generated successfully!');
-console.log(`Found ${heroes.length} heroes, ${factions.length} factions, and ${music.length} music files.`);
-
+console.log('manifest.json written from disk assets.');
+console.log(`  heroes: ${heroes.length}, factions: ${factions.length}, music: ${music.length}`);

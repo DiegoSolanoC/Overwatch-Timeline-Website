@@ -10,14 +10,32 @@ import { handleLocationTypeCamera, getLocationType } from './NavigationLocationH
  * Handles clicking a number button to navigate to an event
  * @param {Object} params - Parameters
  * @param {Object} params.targetEvent - Target event to navigate to
- * @param {Object} params.eventMarker - Marker for the event
+ * @param {Object} params.eventMarker - Marker for the event (variant marker when multi-event)
  * @param {Object} params.eventSlideManager - EventSlideManager instance
  * @param {Object} params.interactionController - InteractionController instance
+ * @param {number} [params.variantIndex] - Active variant index for multi-events (pagination thumb / filters)
  */
-export function handleNumberButtonClick({ targetEvent, eventMarker, eventSlideManager, interactionController }) {
-    // Check if this is a multi-event
-    const isMultiEvent = targetEvent.variants && targetEvent.variants.length > 0;
-    const displayEvent = isMultiEvent ? targetEvent.variants[0] : targetEvent;
+export function handleNumberButtonClick({
+    targetEvent,
+    eventMarker,
+    eventSlideManager,
+    interactionController,
+    variantIndex
+}) {
+    const hasVariants = Array.isArray(targetEvent?.variants) && targetEvent.variants.length > 0;
+    const isMultiEvent = !!(hasVariants && targetEvent.variants.length > 1);
+    let vi = 0;
+    if (isMultiEvent && variantIndex !== undefined && variantIndex !== null) {
+        vi = Math.max(0, Math.min(targetEvent.variants.length - 1, Number(variantIndex)));
+    } else if (isMultiEvent && eventMarker?.userData?.variantIndex !== undefined) {
+        vi = Math.max(0, Math.min(targetEvent.variants.length - 1, eventMarker.userData.variantIndex));
+    }
+    let displayEvent = targetEvent;
+    if (isMultiEvent) {
+        displayEvent = targetEvent.variants[vi] || targetEvent.variants[0];
+    } else if (hasVariants) {
+        displayEvent = targetEvent.variants[0];
+    }
 
     const eventName = displayEvent.name || eventMarker.userData.eventName;
     const eventDescription = displayEvent.description;

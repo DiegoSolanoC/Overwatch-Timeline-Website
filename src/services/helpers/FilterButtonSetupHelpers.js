@@ -62,10 +62,16 @@ export function setupCloseButton(filtersPanelClose, soundManager, resetToConfirm
     });
 }
 
+function resolveFilterType(getCurrentFilterType) {
+    if (typeof getCurrentFilterType === 'function') return getCurrentFilterType();
+    return getCurrentFilterType;
+}
+
 /**
  * Setup clear button handler
+ * @param {() => string} getCurrentFilterType - live tab (`heroes` | `factions`); not a snapshot at init
  */
-export function setupClearButton(clearFiltersBtn, soundManager, stateManager, updateButtonStates, getSceneModel, currentFilterType, heroes, factions, createFilterButtons) {
+export function setupClearButton(clearFiltersBtn, soundManager, stateManager, updateButtonStates, getSceneModel, getCurrentFilterType, heroes, factions, createFilterButtons) {
     if (!clearFiltersBtn) return;
     
     clearFiltersBtn.addEventListener('click', () => {
@@ -83,7 +89,8 @@ export function setupClearButton(clearFiltersBtn, soundManager, stateManager, up
             globeController.globeView.applyFilters(); /* runs unlockAllEvents + updateNumberButtons */
         }
         
-        // Refresh current view
+        // Rebuild the grid for whichever tab is active now (avoid stale type from setup time)
+        const currentFilterType = resolveFilterType(getCurrentFilterType);
         if (currentFilterType === 'heroes' && heroes.length > 0) {
             createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
         } else if (currentFilterType === 'factions' && factions.length > 0) {
@@ -119,10 +126,10 @@ export function setupConfirmButton(confirmFiltersBtn, soundManager, stateManager
 /**
  * Setup all button handlers
  */
-export function setupButtons(filtersButton, filtersPanelClose, clearFiltersBtn, confirmFiltersBtn, soundManager, togglePanel, resetToConfirmedFilters, closePanel, stateManager, updateButtonStates, getSceneModel, currentFilterType, heroes, factions, createFilterButtons) {
+export function setupButtons(filtersButton, filtersPanelClose, clearFiltersBtn, confirmFiltersBtn, soundManager, togglePanel, resetToConfirmedFilters, closePanel, stateManager, updateButtonStates, getSceneModel, getCurrentFilterType, heroes, factions, createFilterButtons) {
     setupFiltersButton(filtersButton, soundManager, togglePanel);
     setupCloseButton(filtersPanelClose, soundManager, resetToConfirmedFilters, closePanel);
-    setupClearButton(clearFiltersBtn, soundManager, stateManager, updateButtonStates, getSceneModel, currentFilterType, heroes, factions, createFilterButtons);
+    setupClearButton(clearFiltersBtn, soundManager, stateManager, updateButtonStates, getSceneModel, getCurrentFilterType, heroes, factions, createFilterButtons);
     setupConfirmButton(confirmFiltersBtn, soundManager, stateManager, getSceneModel, closePanel);
 }
 

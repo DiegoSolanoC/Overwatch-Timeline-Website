@@ -309,14 +309,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : (isNulled ? 'assets/images/maps/MAP Nulled.png' : 'assets/images/maps/MAP.png'));
             window.globeController.globeView.changeGlobeTexture(texturePath);
             
-            const moonTexturePath = isGray
-                ? 'assets/images/misc/Moon_Dark.png'
-                : (isCrimson ? 'assets/images/misc/Moon_Crimson.png' : (isNulled ? 'assets/images/misc/Moon_Nulled.png' : 'assets/images/misc/Moon.png'));
-            const marsTexturePath = isGray
-                ? 'assets/images/misc/Mars_Dark.png'
-                : (isCrimson ? 'assets/images/misc/Mars_Crimson.png' : (isNulled ? 'assets/images/misc/Mars_Nulled.png' : 'assets/images/misc/Mars.png'));
-            window.globeController.globeView.changeMoonTexture(moonTexturePath);
-            window.globeController.globeView.changeMarsTexture(marsTexturePath);
+            if (typeof window.globeController.globeView.applyCelestialPaletteTint === 'function') {
+                window.globeController.globeView.applyCelestialPaletteTint(
+                    isGray ? 'gray' : isCrimson ? 'crimson' : isNulled ? 'nulled' : 'blue'
+                );
+            }
 
             if (typeof window.globeController.globeView.updateRimGlowPalette === 'function') {
                 window.globeController.globeView.updateRimGlowPalette(normalized);

@@ -138,13 +138,19 @@ class EventEditService {
         const processFiltersAndFactions = (filtersStr, factionsStr, availableFactions) => {
             const filters = filtersStr ? filtersStr.split(',').map(f => f.trim()).filter(f => f) : [];
             const factionDisplayNames = factionsStr ? factionsStr.split(',').map(f => f.trim()).filter(f => f) : [];
-            const factionFilenames = factionDisplayNames.map(displayName => {
-                const found = availableFactions.find(f => 
-                    f.displayName.toLowerCase() === displayName.toLowerCase()
+            const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+            const factionsResolved = factionDisplayNames.map((displayName) => {
+                const dn = displayName.trim();
+                const found = availableFactions.find((f) =>
+                    f.displayName.toLowerCase() === dn.toLowerCase()
+                    || f.filename.toLowerCase() === dn.toLowerCase()
+                    || (fh && typeof fh.factionIdsMatch === 'function' && (
+                        fh.factionIdsMatch(f.filename, dn) || fh.factionIdsMatch(f.displayName, dn)
+                    ))
                 );
-                return found ? found.filename : displayName;
+                return found ? found.displayName : dn;
             });
-            return { filters, factions: factionFilenames };
+            return { filters, factions: factionsResolved };
         };
 
         const mainData = processFiltersAndFactions(mainFiltersStr, mainFactionsStr, factions);
@@ -154,11 +160,18 @@ class EventEditService {
         if (isMultiEvent) {
             // Collect variants from variantData
             const variants = variantData.map((variant, variantIndex) => {
+                const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
                 const variantData = processFiltersAndFactions(
                     (variant.filters || []).join(', '),
-                    (variant.factions || []).map(f => {
-                        const faction = factions.find(fac => fac.filename === f);
-                        return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
+                    (variant.factions || []).map((f) => {
+                        const faction = factions.find((fac) =>
+                            fac.filename === f
+                            || fac.displayName === f
+                            || (fh && typeof fh.factionIdsMatch === 'function' && (
+                                fh.factionIdsMatch(fac.filename, f) || fh.factionIdsMatch(fac.displayName, f)
+                            ))
+                        );
+                        return faction ? faction.displayName : String(f).replace(/^\d+/, '').trim();
                     }).join(', '),
                     factions
                 );

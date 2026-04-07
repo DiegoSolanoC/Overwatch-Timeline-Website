@@ -34,8 +34,12 @@ class FilterService {
             has(f) { return this.selectedFilters.has(f); }
             toArray() { return Array.from(this.selectedFilters); }
             getCounts() {
+                const SM = window.FilterStateManager;
+                if (SM && SM.prototype && typeof SM.prototype.getCounts === 'function') {
+                    return SM.prototype.getCounts.call(this);
+                }
                 let heroCount = 0, factionCount = 0;
-                this.selectedFilters.forEach(f => /^\d+/.test(f) ? factionCount++ : heroCount++);
+                this.selectedFilters.forEach((f) => (/^\d+/.test(f) ? factionCount++ : heroCount++));
                 return { heroCount, factionCount };
             }
             applyToScene(sceneModel) {
@@ -171,6 +175,10 @@ class FilterService {
     
     // Load manifest - delegates to helper
     async loadManifest() {
+        // Rebuild filter chips from manifest; cached nodes keep stale dataset.filterKey after manifest edits
+        this.buttonCache.heroes = null;
+        this.buttonCache.factions = null;
+
         const helper = window.FilterManifestHelpers?.loadManifest;
         if (helper) {
             const result = await helper(
@@ -479,7 +487,7 @@ class FilterService {
                 this.soundManager, () => this.togglePanel(),
                 () => this.resetToConfirmedFilters(), () => this.closePanel(),
                 this.stateManager, () => this.updateButtonStates(),
-                () => this.getSceneModel(), this.currentFilterType,
+                () => this.getSceneModel(), () => this.currentFilterType,
                 this.heroes, this.factions,
                 (items, type, folder) => this.createFilterButtons(items, type, folder)
             );

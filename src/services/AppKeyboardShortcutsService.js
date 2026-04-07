@@ -14,14 +14,29 @@
         e.stopImmediatePropagation();
     }
 
+    function inputType(el) {
+        if (!el || (el.tagName || '').toUpperCase() !== 'INPUT') return '';
+        return String(el.type || '').toLowerCase();
+    }
+
     function isTypingContext(target) {
         if (!target || !target.closest) return false;
         var el = target;
         if (el.isContentEditable) return true;
         var tag = (el.tagName || '').toUpperCase();
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+        if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+        if (tag === 'INPUT') {
+            var it = inputType(el);
+            /* Range is not text entry — allow A/D and arrows to change pages + sync slider */
+            if (it === 'range' || it === 'checkbox' || it === 'radio' || it === 'button' || it === 'submit' || it === 'reset' || it === 'file') return false;
+            return true;
+        }
         if (el.closest && el.closest('[contenteditable="true"]')) return true;
         return false;
+    }
+
+    function isEventPageRangeSlider(target) {
+        return inputType(target) === 'range' && target && target.id === 'eventPageSlider';
     }
 
     /**
@@ -448,10 +463,12 @@
         var scrollEl = getScrollContainer();
 
         if (key === 'ArrowUp' || lower === 'w') {
+            if (isEventPageRangeSlider(target)) return;
             applyVerticalNavigation(scrollEl, e, true);
             return;
         }
         if (key === 'ArrowDown' || lower === 's') {
+            if (isEventPageRangeSlider(target)) return;
             applyVerticalNavigation(scrollEl, e, false);
             return;
         }
@@ -495,7 +512,7 @@
 
         if (digit && isPaletteMenuOpen()) {
             var idx = digit === '10' ? 0 : parseInt(digit, 10);
-            if (idx >= 1 && idx <= 3) {
+            if (idx >= 1 && idx <= 4) {
                 applyPaletteByName(PALETTE_ORDER[idx - 1]);
                 consumeEvent(e);
             } else {

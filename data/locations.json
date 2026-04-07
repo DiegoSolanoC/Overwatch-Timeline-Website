@@ -503,6 +503,16 @@
       "name": "Apia Samoa",
       "lat": -13.83,
       "lon": -171.9993
+    },
+    {
+      "name": "North Pole Station",
+      "lat": 90,
+      "lon": 0
+    },
+    {
+      "name": "South Pole Station",
+      "lat": -90,
+      "lon": 0
     }
   ],
   "seaports": [

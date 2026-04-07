@@ -403,7 +403,7 @@ export class ToggleManager {
             }
 
             // Title can clarify that it's a toggle.
-            toggleBtn.title = enabled ? 'Currently: Map (click to switch to Globe)' : 'Currently: Globe (click to switch to Map)';
+            toggleBtn.title = enabled ? 'Click to switch to Globe' : 'Click to switch to Map';
 
             // Rotate is only relevant on globe mode.
             // Don't toggle `display` here; we want the subbar to animate smoothly

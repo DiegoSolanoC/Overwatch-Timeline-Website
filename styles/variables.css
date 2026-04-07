@@ -88,6 +88,7 @@
     --desktop-scale-inverse: 149.25%; /* 100% / 0.67 */
     --header-height: 60px;
     --footer-height: 65px; /* Increased for more space for news ticker */
+    --pagination-dock-height: 290px; /* Desktop pagination thumbnails dock */
     --panel-transition: 0.3s ease;
     
     /* Breakpoints */
@@ -123,14 +124,14 @@ body.color-palette-gray {
     
     /* Override accent colors to orange */
     --accent-primary: var(--accent-gray-primary);
-    --accent-primary-rgb: var(--accent-gray-primary-rgb);
+    --accent-primary-rgb: 255, 102, 0;
     --accent-primary-hover: var(--accent-gray-primary-hover);
     --accent-primary-active: var(--accent-gray-primary-active);
     --accent-primary-active-hover: var(--accent-gray-primary-active-hover);
     
     /* Override backgrounds to gray */
     --bg-secondary: var(--bg-gray-primary);
-    --bg-main: var(--bg-gray-primary);
+    --bg-main: #1a1a1a;
     
     /* Override scrollbar colors */
     --scrollbar-thumb: var(--scrollbar-thumb-gray);
@@ -149,13 +150,13 @@ body.color-palette-crimson {
     --secondary-color: var(--secondary-crimson);
 
     --accent-primary: var(--accent-crimson-primary);
-    --accent-primary-rgb: var(--accent-crimson-primary-rgb);
+    --accent-primary-rgb: 239, 83, 80;
     --accent-primary-hover: var(--accent-crimson-primary-hover);
     --accent-primary-active: var(--accent-crimson-primary-active);
     --accent-primary-active-hover: var(--accent-crimson-primary-active-hover);
 
     --bg-secondary: var(--bg-crimson-primary);
-    --bg-main: var(--bg-crimson-primary);
+    --bg-main: #140608;
     /* Match header/footer; default --bg-primary is blue and can show as a hairline above the footer */
     --bg-primary: var(--primary-crimson);
 
@@ -174,13 +175,13 @@ body.color-palette-nulled {
     --secondary-color: var(--secondary-nulled);
 
     --accent-primary: var(--accent-nulled-primary);
-    --accent-primary-rgb: var(--accent-nulled-primary-rgb);
+    --accent-primary-rgb: 179, 136, 255;
     --accent-primary-hover: var(--accent-nulled-primary-hover);
     --accent-primary-active: var(--accent-nulled-primary-active);
     --accent-primary-active-hover: var(--accent-nulled-primary-active-hover);
 
     --bg-secondary: var(--bg-nulled-primary);
-    --bg-main: var(--bg-nulled-primary);
+    --bg-main: #0f081a;
     --bg-primary: var(--primary-nulled);
 
     --scrollbar-thumb: var(--scrollbar-thumb-nulled);

@@ -383,13 +383,15 @@ export class EventSlideManager {
             const auto = window.eventManager?.formService?.autocompleteService || window.EventFormService?.autocompleteService;
             if (auto && typeof auto.setupAutocomplete === 'function') {
                 const heroes = window.eventManager?.heroes || window.globeController?.dataModel?.heroes || [];
-                const factionDisplayNames = (window.eventManager?.factions || []).map(f => f.displayName).filter(Boolean);
+                const factionList = window.eventManager?.factions?.length
+                    ? window.eventManager.factions
+                    : (window.globeController?.dataModel?.factions || []);
                 const countryOptions = window.LocationFlagHelpers
                     && typeof window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete === 'function'
                     ? window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete()
                     : [];
                 if (filtersInput) auto.setupAutocomplete(filtersInput, heroes, 'heroes');
-                if (factionsInput) auto.setupAutocomplete(factionsInput, factionDisplayNames, 'factions');
+                if (factionsInput) auto.setupAutocomplete(factionsInput, factionList, 'factions');
                 if (secondaryCountriesInputEl && countryOptions.length > 0) {
                     auto.setupAutocomplete(secondaryCountriesInputEl, countryOptions, 'countries');
                 }
@@ -437,11 +439,17 @@ export class EventSlideManager {
                 .map(s => s.trim())
                 .filter(Boolean);
 
-            // Map faction display names back to filenames when possible
             const availableFactions = window.eventManager?.factions || [];
-            const newFactions = factionTokens.map(token => {
-                const found = availableFactions.find(f => (f?.displayName || '').toLowerCase() === token.toLowerCase());
-                return found?.filename || token;
+            const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+            const newFactions = factionTokens.map((token) => {
+                const found = availableFactions.find((f) =>
+                    (f?.displayName || '').toLowerCase() === token.toLowerCase()
+                    || (f?.filename || '').toLowerCase() === token.toLowerCase()
+                    || (fh && typeof fh.factionIdsMatch === 'function' && (
+                        fh.factionIdsMatch(f.filename, token) || fh.factionIdsMatch(f.displayName, token)
+                    ))
+                );
+                return found ? found.displayName : token;
             });
 
             const headlinesLines = (headlinesInput?.value || '')

@@ -45,6 +45,13 @@ main#content {
     height: 100%;
 }
 
+/* Lift canvas above bottom pagination strip once timeline is active (entry.css loads after styles.css) */
+@media (min-width: 769px) {
+    body:has(footer.timeline-loaded) #globe-container {
+        bottom: 108px;
+    }
+}
+
 /* Loading Overlay */
 .loading-overlay {
     position: fixed;

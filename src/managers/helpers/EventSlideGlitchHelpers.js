@@ -116,6 +116,41 @@ export function bindGlitchTextClickDelegation(eventSlideEl, uiView) {
 }
 
 /**
+ * Same glitch toggle behavior as the event slide, for Olivia/Colomar spans in globe pagination thumbnails (#eventPagination).
+ * @param {{ toggleGlitchEffect: Function }} uiView
+ */
+export function bindGlitchTextClickDelegationGlobePagination(uiView) {
+    const root = document.getElementById('eventPagination');
+    if (!root || !uiView || typeof uiView.toggleGlitchEffect !== 'function') return;
+    if (root.dataset.globePaginationGlitchBound === 'true') return;
+    root.dataset.globePaginationGlitchBound = 'true';
+
+    root.addEventListener('click', (e) => {
+        const t = e.target;
+        if (!t || !t.closest) return;
+        if (t.closest('button.page-btn, #prevPageBtn, #nextPageBtn, input.page-input, #pageInput, #eventPageSlider')) return;
+        const inThumbName = t.closest('.event-number-btn__name');
+        if (!inThumbName) return;
+        if (t.closest('a[href], button, input, textarea, select')) return;
+        const glitchBox = t.closest('.glitchy-text-container');
+        const toggleTarget = t.closest('.glitchy-text-toggle-target');
+        if (!glitchBox && !toggleTarget) return;
+        e.preventDefault();
+        e.stopPropagation();
+        uiView.toggleGlitchEffect();
+    });
+
+    root.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const el = document.activeElement;
+        if (!el || !root.contains(el)) return;
+        if (!el.classList.contains('glitchy-text-toggle-target') && !el.classList.contains('glitchy-text-container')) return;
+        e.preventDefault();
+        uiView.toggleGlitchEffect();
+    });
+}
+
+/**
  * Start or stop glitch animation based on enabled state
  */
 export function manageGlitchAnimation(shouldStart, uiView) {
@@ -140,6 +175,8 @@ if (typeof window !== 'undefined') {
     window.EventSlideGlitchHelpers.setupGlitchToggleButton = setupGlitchToggleButton;
     window.EventSlideGlitchHelpers.manageGlitchAnimation = manageGlitchAnimation;
     window.EventSlideGlitchHelpers.bindGlitchTextClickDelegation = bindGlitchTextClickDelegation;
+    window.EventSlideGlitchHelpers.bindGlitchTextClickDelegationGlobePagination =
+        bindGlitchTextClickDelegationGlobePagination;
     window.EventSlideGlitchHelpers.applyGlitchToggleButtonState = applyGlitchToggleButtonState;
     window.EventSlideGlitchHelpers.GLITCH_TOGGLE_ICON_HTML = GLITCH_TOGGLE_ICON_HTML;
 }

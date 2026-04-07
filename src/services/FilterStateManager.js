@@ -67,21 +67,53 @@ class FilterStateManager {
     }
     
     /**
-     * Count filters by type (heroes vs factions)
-     * Heroes don't have number prefix, factions do
+     * Count filters by type (heroes vs factions).
+     * Globe chips use manifest faction filenames (e.g. 26Shambali); faction tab may use display names after data migration.
      */
     getCounts() {
         let heroCount = 0;
         let factionCount = 0;
-        
-        this.selectedFilters.forEach(filter => {
-            if (/^\d+/.test(filter)) {
+
+        const fs = typeof window !== 'undefined' ? window.FilterService : null;
+        const heroes = Array.isArray(fs?.heroes) ? fs.heroes : [];
+        const manifestFactions = Array.isArray(fs?.factions) ? fs.factions : [];
+        const heroSet = new Set(heroes.map((h) => String(h)));
+        const factionFilenameSet = new Set(manifestFactions.map((f) => f?.filename).filter(Boolean));
+        const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+        const factionNormSet = new Set();
+        if (fh && typeof fh.normalizeFactionMatchKey === 'function') {
+            manifestFactions.forEach((f) => {
+                const nk = fh.normalizeFactionMatchKey(f?.filename);
+                if (nk) factionNormSet.add(nk);
+                const dk = fh.normalizeFactionMatchKey(f?.displayName);
+                if (dk) factionNormSet.add(dk);
+            });
+        }
+
+        this.selectedFilters.forEach((filter) => {
+            const f = String(filter ?? '');
+            if (heroSet.has(f)) {
+                heroCount++;
+                return;
+            }
+            if (factionFilenameSet.has(f)) {
+                factionCount++;
+                return;
+            }
+            if (fh && typeof fh.normalizeFactionMatchKey === 'function') {
+                const nk = fh.normalizeFactionMatchKey(f);
+                if (nk && factionNormSet.has(nk)) {
+                    factionCount++;
+                    return;
+                }
+            }
+            if (/^\d+/.test(f)) {
                 factionCount++;
             } else {
                 heroCount++;
             }
         });
-        
+
         return { heroCount, factionCount };
     }
     

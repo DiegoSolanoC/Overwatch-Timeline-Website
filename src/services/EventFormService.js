@@ -177,9 +177,17 @@ class EventFormService {
         variant.filters = filtersStr ? filtersStr.split(',').map(f => f.trim()).filter(f => f) : [];
         const factionsStr = document.getElementById('eventEditFactions').value.trim();
         const factionDisplayNames = factionsStr ? factionsStr.split(',').map(f => f.trim()).filter(f => f) : [];
-        variant.factions = factionDisplayNames.map(displayName => {
-            const found = this.eventManager.factions.find(f => f.displayName.toLowerCase() === displayName.toLowerCase());
-            return found ? found.filename : displayName;
+        const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+        variant.factions = factionDisplayNames.map((displayName) => {
+            const dn = displayName.trim();
+            const found = this.eventManager.factions.find((f) =>
+                f.displayName.toLowerCase() === dn.toLowerCase()
+                || f.filename.toLowerCase() === dn.toLowerCase()
+                || (fh && typeof fh.factionIdsMatch === 'function' && (
+                    fh.factionIdsMatch(f.filename, dn) || fh.factionIdsMatch(f.displayName, dn)
+                ))
+            );
+            return found ? found.displayName : dn;
         });
 
         const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
@@ -310,9 +318,16 @@ class EventFormService {
         document.getElementById('eventEditName').value = variant.name || '';
         document.getElementById('eventEditDescription').value = variant.description || '';
         document.getElementById('eventEditFilters').value = (variant.filters || []).join(', ');
-        const displayFactions = (variant.factions || []).map(f => {
-            const faction = this.eventManager.factions.find(fac => fac.filename === f);
-            return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
+        const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+        const displayFactions = (variant.factions || []).map((f) => {
+            const faction = this.eventManager.factions.find((fac) =>
+                fac.filename === f
+                || fac.displayName === f
+                || (fh && typeof fh.factionIdsMatch === 'function' && (
+                    fh.factionIdsMatch(fac.filename, f) || fh.factionIdsMatch(fac.displayName, f)
+                ))
+            );
+            return faction ? faction.displayName : String(f).replace(/^\d+/, '').trim();
         }).join(', ');
         document.getElementById('eventEditFactions').value = displayFactions;
         const secondaryCountriesField = document.getElementById('eventEditSecondaryCountries');
@@ -621,9 +636,16 @@ class EventFormService {
             document.getElementById('eventEditName').value = variant.name || '';
             document.getElementById('eventEditDescription').value = variant.description || '';
             document.getElementById('eventEditFilters').value = (variant.filters || []).join(', ');
-            const displayFactions = (variant.factions || []).map(f => {
-                const faction = this.eventManager.factions.find(fac => fac.filename === f);
-                return faction ? faction.displayName : f.replace(/^\d+/, '').trim();
+            const fhPop = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+            const displayFactions = (variant.factions || []).map((f) => {
+                const faction = this.eventManager.factions.find((fac) =>
+                    fac.filename === f
+                    || fac.displayName === f
+                    || (fhPop && typeof fhPop.factionIdsMatch === 'function' && (
+                        fhPop.factionIdsMatch(fac.filename, f) || fhPop.factionIdsMatch(fac.displayName, f)
+                    ))
+                );
+                return faction ? faction.displayName : String(f).replace(/^\d+/, '').trim();
             }).join(', ');
             document.getElementById('eventEditFactions').value = displayFactions;
             const secondaryPop = document.getElementById('eventEditSecondaryCountries');
