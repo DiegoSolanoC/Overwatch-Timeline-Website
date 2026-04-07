@@ -231,15 +231,13 @@ export class GlobeController {
         this.transportController.spawnPlanesRandomly();
         this.transportController.spawnBoatsRandomly();
         
-        // Create transport location markers (airports, train stations, seaports)
-        const airports = this.dataModel.getAllAirports();
-        this.transportView.createAirportMarkers(airports);
-        
-        const cities = this.dataModel.getAllCities();
-        this.transportView.createTrainStationMarkers(cities);
-        
-        const seaports = this.dataModel.getAllSeaports();
-        this.transportView.createSeaportMarkers(seaports);
+        // Transport location markers (airports, train stations, seaports) - currently disabled
+        // const airports = this.dataModel.getAllAirports();
+        // this.transportView.createAirportMarkers(airports);
+        // const cities = this.dataModel.getAllCities();
+        // this.transportView.createTrainStationMarkers(cities);
+        // const seaports = this.dataModel.getAllSeaports();
+        // this.transportView.createSeaportMarkers(seaports);
         
         // Initialize satellites
         this.transportController.initializeSatellites();
