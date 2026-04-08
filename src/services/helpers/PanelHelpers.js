@@ -4,6 +4,7 @@
  */
 
 import { getEventThumbNumberButtonsHtml } from '../../managers/helpers/PaginationThumbMarkup.js';
+import { initPaginationDockCollapse } from '../../utils/PaginationDockCollapse.js';
 
 /**
  * Creates the music panel HTML structure (service-compatible)
@@ -180,10 +181,83 @@ export function createEventPagination(statusService) {
         </div>
     `;
     
-    // Apply mobile positioning (centered, same as desktop)
-    const applyMobilePaginationPosition = () => {
+    const DOCK_COLLAPSE_STRIP_HTML = `
+        <div class="pagination-dock-collapse-bar" id="paginationDockCollapseBar">
+            <button type="button" id="paginationDockCollapseBtn" class="pagination-dock-collapse-handle"
+                aria-expanded="true" aria-controls="eventNumberButtons"
+                title="Collapse thumbnail strip" aria-label="Collapse thumbnail strip">
+                <span class="pagination-dock-collapse-pill" aria-hidden="true">
+                    <span class="pagination-dock-collapse-pill__icon" aria-hidden="true">↔</span>
+                </span>
+            </button>
+        </div>`;
+
+    // Desktop: create dock and move pagination into it
+    // Mobile: keep pagination in #content with fixed positioning
+    const setupPaginationPlacement = () => {
         const paginationEl = document.getElementById('eventPagination');
-        if (paginationEl && window.innerWidth <= 768) {
+        if (!paginationEl) return;
+        
+        const isDesktop = window.innerWidth > 768 && window.innerHeight >= 500;
+        let dock = document.getElementById('paginationDock');
+        
+        if (isDesktop) {
+            // Create dock if it doesn't exist
+            if (!dock) {
+                dock = document.createElement('div');
+                dock.id = 'paginationDock';
+                dock.className = 'pagination-dock';
+                
+                // Create pattern overlay element
+                const patternOverlay = document.createElement('div');
+                patternOverlay.className = 'pagination-dock-pattern';
+                dock.appendChild(patternOverlay);
+                
+                // Insert after .layout-container, before footer
+                const layoutContainer = document.querySelector('.layout-container');
+                const footer = document.querySelector('footer');
+                if (layoutContainer && layoutContainer.parentNode) {
+                    if (footer) {
+                        layoutContainer.parentNode.insertBefore(dock, footer);
+                    } else {
+                        layoutContainer.parentNode.insertBefore(dock, layoutContainer.nextSibling);
+                    }
+                }
+            }
+
+            const layoutContainer = document.querySelector('.layout-container');
+            let strip = document.getElementById('paginationDockCollapseStrip');
+            if (layoutContainer && layoutContainer.parentNode && dock.parentNode === layoutContainer.parentNode) {
+                if (!strip) {
+                    strip = document.createElement('div');
+                    strip.id = 'paginationDockCollapseStrip';
+                    strip.className = 'pagination-dock-collapse-strip';
+                    strip.innerHTML = DOCK_COLLAPSE_STRIP_HTML;
+                    layoutContainer.parentNode.insertBefore(strip, dock);
+                } else if (strip.nextSibling !== dock) {
+                    layoutContainer.parentNode.insertBefore(strip, dock);
+                }
+            }
+
+            // Move pagination into dock
+            if (paginationEl.parentNode !== dock) {
+                dock.appendChild(paginationEl);
+            }
+            // Clear mobile inline styles
+            paginationEl.style.removeProperty('position');
+            paginationEl.style.removeProperty('bottom');
+            paginationEl.style.removeProperty('left');
+            paginationEl.style.removeProperty('right');
+            paginationEl.style.removeProperty('transform');
+            paginationEl.style.removeProperty('top');
+        } else {
+            document.body.classList.remove('pagination-dock-collapsed');
+            // Mobile: move pagination back into #content
+            const content = document.getElementById('content');
+            if (content && paginationEl.parentNode !== content) {
+                content.appendChild(paginationEl);
+            }
+            // Apply mobile fixed positioning
             paginationEl.style.setProperty('position', 'fixed', 'important');
             paginationEl.style.setProperty('bottom', '120px', 'important');
             paginationEl.style.setProperty('left', '50%', 'important');
@@ -191,12 +265,22 @@ export function createEventPagination(statusService) {
             paginationEl.style.setProperty('transform', 'translateX(-50%)', 'important');
             paginationEl.style.setProperty('top', 'auto', 'important');
         }
+
+        if (isDesktop) {
+            initPaginationDockCollapse();
+        }
     };
     
-    applyMobilePaginationPosition();
-    window.addEventListener('resize', applyMobilePaginationPosition);
-    
     document.getElementById('content').appendChild(pagination);
+    
+    // Setup placement after appending
+    setTimeout(() => {
+        setupPaginationPlacement();
+        initPaginationDockCollapse();
+        window.dispatchEvent(new Event('resize'));
+    }, 50);
+    
+    window.addEventListener('resize', setupPaginationPlacement);
     
     if (statusService) {
         statusService.update('✓ Event pagination added', 'success');

@@ -845,8 +845,8 @@ export class EventNavigationManager {
         const lockedOnMap = marker && marker.userData && marker.userData.isLocked;
         if (targetEvent && !lockedOnMap) {
             const n = getGlobalEventNumber1Based(targetEvent, this.dataModel);
-            const { primary, otherVariants, era } = getHoverPreviewLines(targetEvent);
-            showEventsHoverPreview(n, primary, otherVariants, era);
+            const { primary, otherVariants, era, primaryCountry } = getHoverPreviewLines(targetEvent);
+            showEventsHoverPreview(n, primary, otherVariants, era, primaryCountry);
         }
 
         if (!marker || (marker.userData && marker.userData.isLocked)) return;
@@ -961,6 +961,7 @@ export class EventNavigationManager {
                 // Hide button if no event at this position
                 if (eventIndex >= numEventsOnPage) {
                     btn.style.display = 'none'; // Hide instead of disable
+                    btn.classList.remove('event-number-btn--unfinished');
                     if (imgEl) {
                         imgEl.removeAttribute('src');
                         imgEl.alt = '';
@@ -992,7 +993,10 @@ export class EventNavigationManager {
                         getPlainEventTitleForHover(displayEv)
                         || getPlainEventTitleForHover(targetEvent)
                         || `Event ${position}`;
-                    btn.title = plainName;
+                    const hasDescription =
+                        displayEv.description && String(displayEv.description).trim().length > 0;
+                    btn.classList.toggle('event-number-btn--unfinished', !hasDescription);
+                    btn.title = hasDescription ? plainName : `${plainName} — Unfinished: missing description`;
                     if (nameEl) {
                         if (window.GlitchTextService) {
                             nameEl.innerHTML = window.GlitchTextService.getDisplayEventName(plainName);

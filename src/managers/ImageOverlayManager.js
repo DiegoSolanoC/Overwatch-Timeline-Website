@@ -201,35 +201,23 @@ export class ImageOverlayManager {
             }
         }
 
-        const pageSlider = document.getElementById('eventPageSlider');
-        if (pageSlider) {
-            if (disable && !pageSlider.hasAttribute('data-original-disabled')) {
-                pageSlider.setAttribute('data-original-disabled', pageSlider.disabled ? 'true' : 'false');
-                pageSlider.disabled = true;
-                pageSlider.style.opacity = '0.4';
-                pageSlider.style.cursor = 'not-allowed';
-            } else if (!disable && pageSlider.hasAttribute('data-original-disabled')) {
+        // Page slider: keep usable while event info is open (same as thumbnails).
+
+        // Thumbnails + page slider: clear any stale lock from older builds or same-tab edge cases.
+        if (!disable) {
+            const pageSlider = document.getElementById('eventPageSlider');
+            if (pageSlider && pageSlider.hasAttribute('data-original-disabled')) {
                 const wasOriginallyDisabled = pageSlider.getAttribute('data-original-disabled') === 'true';
                 pageSlider.disabled = wasOriginallyDisabled;
                 pageSlider.removeAttribute('data-original-disabled');
                 pageSlider.style.opacity = '';
                 pageSlider.style.cursor = '';
             }
-        }
-        
-        // Event number buttons (1-10)
-        const numberButtonsContainer = document.getElementById('eventNumberButtons');
-        if (numberButtonsContainer) {
-            const numberButtons = numberButtonsContainer.querySelectorAll('.event-number-btn');
-            numberButtons.forEach(btn => {
-                if (disable && !btn.hasAttribute('data-original-disabled')) {
-                    const wasDisabled = btn.disabled;
-                    btn.setAttribute('data-original-disabled', wasDisabled ? 'true' : 'false');
-                    btn.disabled = true;
-                    btn.style.opacity = '0.4';
-                    btn.style.cursor = 'not-allowed';
-                    btn.style.pointerEvents = 'none';
-                } else if (!disable && btn.hasAttribute('data-original-disabled')) {
+
+            const numberButtonsContainer = document.getElementById('eventNumberButtons');
+            if (numberButtonsContainer) {
+                numberButtonsContainer.querySelectorAll('.event-number-btn').forEach((btn) => {
+                    if (!btn.hasAttribute('data-original-disabled')) return;
                     const wasOriginallyDisabled = btn.getAttribute('data-original-disabled') === 'true';
                     btn.disabled = wasOriginallyDisabled;
                     btn.removeAttribute('data-original-disabled');
@@ -238,10 +226,10 @@ export class ImageOverlayManager {
                         btn.style.cursor = '';
                         btn.style.pointerEvents = '';
                     }
-                }
-            });
+                });
+            }
         }
-        
+
         // Globe control buttons
         const musicToggle = document.getElementById('musicToggle');
         const colorPaletteToggle = document.getElementById('colorPaletteToggle');

@@ -53,6 +53,20 @@
     left: 0;
 }
 
+/*
+ * Desktop pagination dock sits between main content and footer.
+ * Keep the info panel above it so thumbnail buttons stay clickable (z-index alone still blocked hits).
+ */
+@media (min-width: 769px) and (min-height: 500px) {
+    .event-slide {
+        bottom: calc(var(--footer-height) + var(--pagination-dock-height, 290px));
+        transition:
+            left var(--panel-transition),
+            bottom var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
+    }
+}
+
 .event-slide-close {
     position: absolute;
     top: 10px;
@@ -297,6 +311,7 @@
     display: none;
     margin: 0 0 12px 0;
     padding: 0;
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     font-size: 2.45rem;
     font-weight: 800;
     line-height: 1.12;
@@ -322,10 +337,11 @@
 
 .event-slide-top h2,
 .event-slide-content h2 {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: var(--accent-primary);
     margin-bottom: 10px;
     margin-top: 0;
-    font-size: 1.8rem;
+    font-size: 2.2rem;
 }
 
 .event-slide-top .event-slide-location,

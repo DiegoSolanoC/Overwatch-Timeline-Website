@@ -5,6 +5,7 @@
 
 import { updateStatus } from '../../managers/StatusManager.js';
 import { getEventThumbNumberButtonsHtml } from '../../managers/helpers/PaginationThumbMarkup.js';
+import { initPaginationDockCollapse } from '../../utils/PaginationDockCollapse.js';
 
 /**
  * Creates or returns existing element by ID
@@ -166,8 +167,20 @@ export function createEventPagination() {
     
     // Desktop: create a dock container below the layout, move pagination into it
     // Mobile: keep pagination inside #content with fixed positioning
+    const DOCK_COLLAPSE_STRIP_HTML = `
+        <div class="pagination-dock-collapse-bar" id="paginationDockCollapseBar">
+            <button type="button" id="paginationDockCollapseBtn" class="pagination-dock-collapse-handle"
+                aria-expanded="true" aria-controls="eventNumberButtons"
+                title="Collapse thumbnail strip" aria-label="Collapse thumbnail strip">
+                <span class="pagination-dock-collapse-pill" aria-hidden="true">
+                    <span class="pagination-dock-collapse-pill__icon" aria-hidden="true">↔</span>
+                </span>
+            </button>
+        </div>`;
+
+    // Note: landscape phones have width > 768 but low height, so require both dimensions
     const setupPaginationPlacement = () => {
-        const isDesktop = window.innerWidth > 768;
+        const isDesktop = window.innerWidth > 768 && window.innerHeight >= 500;
         let dock = document.getElementById('paginationDock');
         
         if (isDesktop) {
@@ -176,6 +189,7 @@ export function createEventPagination() {
                 dock = document.createElement('div');
                 dock.id = 'paginationDock';
                 dock.className = 'pagination-dock';
+                
                 // Insert after .layout-container, before footer
                 const layoutContainer = document.querySelector('.layout-container');
                 const footer = document.querySelector('footer');
@@ -187,6 +201,29 @@ export function createEventPagination() {
                     }
                 }
             }
+
+            // Horizontal collapse control: strip between main layout and dock (not inside the dock)
+            const layoutContainer = document.querySelector('.layout-container');
+            let strip = document.getElementById('paginationDockCollapseStrip');
+            if (layoutContainer && layoutContainer.parentNode && dock.parentNode === layoutContainer.parentNode) {
+                if (!strip) {
+                    strip = document.createElement('div');
+                    strip.id = 'paginationDockCollapseStrip';
+                    strip.className = 'pagination-dock-collapse-strip';
+                    strip.innerHTML = DOCK_COLLAPSE_STRIP_HTML;
+                    layoutContainer.parentNode.insertBefore(strip, dock);
+                } else if (strip.nextSibling !== dock) {
+                    layoutContainer.parentNode.insertBefore(strip, dock);
+                }
+            }
+            
+            // Ensure pattern overlay element exists
+            if (!dock.querySelector('.pagination-dock-pattern')) {
+                const patternOverlay = document.createElement('div');
+                patternOverlay.className = 'pagination-dock-pattern';
+                dock.insertBefore(patternOverlay, dock.firstChild);
+            }
+            
             // Move pagination into dock
             if (pagination.parentNode !== dock) {
                 dock.appendChild(pagination);
@@ -199,6 +236,7 @@ export function createEventPagination() {
             pagination.style.removeProperty('transform');
             pagination.style.removeProperty('top');
         } else {
+            document.body.classList.remove('pagination-dock-collapsed');
             // Mobile: move pagination back into #content
             const content = document.getElementById('content');
             if (content && pagination.parentNode !== content) {
@@ -212,6 +250,10 @@ export function createEventPagination() {
             pagination.style.setProperty('transform', 'translateX(-50%)', 'important');
             pagination.style.setProperty('top', 'auto', 'important');
         }
+
+        if (isDesktop) {
+            initPaginationDockCollapse();
+        }
     };
     
     // Initial placement
@@ -219,6 +261,7 @@ export function createEventPagination() {
     // Defer dock setup to ensure layout-container exists
     requestAnimationFrame(() => {
         setupPaginationPlacement();
+        initPaginationDockCollapse();
         // Trigger resize so globe/map adjusts to new container size
         // Use setTimeout to ensure CSS has been applied
         setTimeout(() => {

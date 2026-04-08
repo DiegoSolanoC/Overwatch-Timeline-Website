@@ -54,6 +54,10 @@ export class GlobeController {
         this.trainSpawnInterval = null;
         this.lastFrameTime = performance.now();
         this.isTabVisible = true;
+        /** @type {ResizeObserver|null} */
+        this._globeResizeObserver = null;
+        /** Layout changed (#globe-container / dock); resize WebGL in animate() so setSize and render share one rAF. */
+        this._globeLayoutDirty = false;
     }
 
     /**
@@ -217,10 +221,18 @@ export class GlobeController {
             this.globeView.refreshEventMarkers();
         });
 
-        // Handle window resize
+        // Defer WebGL resize to animate() (same rAF as render) so the compositor never shows a cleared buffer.
         window.addEventListener('resize', () => {
-            this.interactionController.onWindowResize();
+            this._globeLayoutDirty = true;
         });
+
+        if (typeof ResizeObserver !== 'undefined') {
+            this._globeResizeObserver = new ResizeObserver(() => {
+                if (this.isCleanedUp) return;
+                this._globeLayoutDirty = true;
+            });
+            this._globeResizeObserver.observe(container);
+        }
 
         // Setup page visibility tracking
         this.setupPageVisibilityTracking();
@@ -339,6 +351,11 @@ export class GlobeController {
         }
         
         this.lastFrameTime = currentTime;
+
+        if (this._globeLayoutDirty && this.interactionController) {
+            this._globeLayoutDirty = false;
+            this.interactionController.onWindowResize();
+        }
 
         // Update Moon/Mars plane positions to stay on camera's right side
         this.planeManager.updatePlanePositions(camera);
@@ -524,6 +541,11 @@ export class GlobeController {
     destroy() {
         // Mark as cleaned up to stop animation loop
         this.isCleanedUp = true;
+
+        if (this._globeResizeObserver) {
+            this._globeResizeObserver.disconnect();
+            this._globeResizeObserver = null;
+        }
         
         // Cancel animation frame
         if (this.animationId) {

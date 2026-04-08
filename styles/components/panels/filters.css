@@ -77,8 +77,10 @@ body.color-palette-gray .filters-panel-close:hover {
 }
 
 .filters-title {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: var(--accent-primary);
     margin: 0;
+    font-size: 2.2rem;
     line-height: 1.2;
 }
 
@@ -165,7 +167,8 @@ body.color-palette-gray .filter-tab.active .filter-count {
 }
 
 .filter-tab-label {
-    font-size: 12px;
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: 14px;
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: 0.85px;
@@ -300,7 +303,8 @@ body.color-palette-gray .filter-tab.active .filter-count {
     width: 100%;
     background: #1D4A77; /* Blue for default blue palette */
     color: white; /* White text for contrast */
-    font-size: 14px; /* Larger font for better visibility */
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: 20px; /* Larger font for better visibility */
     font-weight: 600; /* Bolder font */
     padding: 6px 4px;
     /* Overlap icon tile by 1px to hide scale/transform hairline between regions */
