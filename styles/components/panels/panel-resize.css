@@ -122,12 +122,14 @@
     border-radius: 0 6px 6px 0;
 }
 
-/* ↔ resize affordance */
-.panel-resize-handle__icon {
+/* Same arrow asset as pagination; mirror on inner-right so it points into the drag direction */
+.panel-resize-handle .panel-resize-handle__arrow {
     display: block;
-    font-size: 1.55rem;
-    font-weight: 700;
-    line-height: 1;
+    width: 20px;
+    height: auto;
+    max-height: 26px;
+    object-fit: contain;
+    pointer-events: none;
     user-select: none;
 }
 

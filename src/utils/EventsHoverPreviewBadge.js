@@ -32,7 +32,27 @@ function getBodyScale() {
     }
 }
 
-let textFlagEl = null;
+let textPrimaryFlagSlot = null;
+let textEraNameEl = null;
+let textEraYearsEl = null;
+
+function fillLineFlagSlot(slotEl, entry) {
+    if (!slotEl) return;
+    slotEl.innerHTML = '';
+    const lh = typeof window !== 'undefined' ? window.LocationFlagHelpers : null;
+    if (entry && entry.filename && lh && typeof lh.flagSrc === 'function') {
+        const img = document.createElement('img');
+        img.className = 'events-hover-preview-flag';
+        img.src = lh.flagSrc(String(entry.filename).trim());
+        img.alt = entry.alt != null ? String(entry.alt).trim() : '';
+        img.decoding = 'async';
+        img.setAttribute('aria-hidden', 'true');
+        slotEl.appendChild(img);
+        slotEl.style.display = '';
+    } else {
+        slotEl.style.display = 'none';
+    }
+}
 
 function ensureBadge() {
     if (badgeEl) return;
@@ -43,22 +63,29 @@ function ensureBadge() {
     badgeEl.setAttribute('aria-hidden', 'true');
     badgeEl.innerHTML = `
         <div class="events-hover-preview-stack">
-            <div class="events-hover-preview-era" aria-hidden="true"></div>
+            <div class="events-hover-preview-era" aria-hidden="true">
+                <span class="events-hover-preview-era__name"></span>
+                <span class="events-hover-preview-era__years"></span>
+            </div>
             <div class="events-hover-preview-mainline">
-                <img class="events-hover-preview-flag" aria-hidden="true" alt="" />
                 <span class="events-hover-preview-number" aria-hidden="true"></span>
                 <div class="events-hover-preview-title-column">
-                    <span class="events-hover-preview-title"></span>
+                    <div class="events-hover-preview-title-row">
+                        <div class="events-hover-preview-line-flag events-hover-preview-line-flag--primary" aria-hidden="true"></div>
+                        <span class="events-hover-preview-title"></span>
+                    </div>
                     <div class="events-hover-preview-variants" aria-hidden="true"></div>
                 </div>
             </div>
         </div>
     `;
     document.body.appendChild(badgeEl);
-    textFlagEl = badgeEl.querySelector('.events-hover-preview-flag');
+    textPrimaryFlagSlot = badgeEl.querySelector('.events-hover-preview-line-flag--primary');
     textNumberEl = badgeEl.querySelector('.events-hover-preview-number');
     textTitleEl = badgeEl.querySelector('.events-hover-preview-title');
     textEraEl = badgeEl.querySelector('.events-hover-preview-era');
+    textEraNameEl = badgeEl.querySelector('.events-hover-preview-era__name');
+    textEraYearsEl = badgeEl.querySelector('.events-hover-preview-era__years');
     textVariantsEl = badgeEl.querySelector('.events-hover-preview-variants');
 }
 
@@ -109,33 +136,69 @@ function extractCountryFromCityDisplayName(cityDisplayName) {
     return '';
 }
 
+function buildRowFlagEntry(eventObj, variantIndex, getLN, lh) {
+    if (!eventObj || !lh || typeof lh.getFlagLocationContext !== 'function' || typeof lh.getResolvedFlagFilename !== 'function') {
+        return null;
+    }
+    const ctx = lh.getFlagLocationContext(eventObj, variantIndex, getLN);
+    const fn = lh.getResolvedFlagFilename(ctx.locationDisplayText, ctx.displayLocationType);
+    if (!fn) return null;
+    return { filename: fn, alt: extractCountryFromCityDisplayName(ctx.locationDisplayText) || '' };
+}
+
 /**
- * Multi-variant roots often have no `name`; use first variant as primary title and list the rest.
- * @param {Object|null} eventObj - Root timeline event (may include `variants[]`)
- * @returns {{ primary: string, otherVariants: string[], era: string, primaryCountry: string }}
+ * Same flag rules as event list / slide: LocationFlagHelpers.getFlagLocationContext + getResolvedFlagFilename.
+ * Multi-variant: one flag per row (parallel to each variant title), not deduped.
+ * @param {Object|null} eventObj
+ * @param {{ variantIndex?: number }} [options] - Globe markers pass marker.userData.variantIndex (for single-event / root only).
+ * @returns {{ primary: string, otherVariants: string[], era: string, primaryRowFlag: object|null, otherRowFlags: (object|null)[], yearLine: string }}
  */
-export function getHoverPreviewLines(eventObj) {
-    if (!eventObj) return { primary: '', otherVariants: [], era: '', primaryCountry: '' };
+export function getHoverPreviewLines(eventObj, options) {
+    if (!eventObj) {
+        return {
+            primary: '',
+            otherVariants: [],
+            era: '',
+            primaryRowFlag: null,
+            otherRowFlags: [],
+            yearLine: 'Year Unknown',
+        };
+    }
     const era =
         typeof window !== 'undefined'
         && window.EventTimelineHelpers
         && typeof window.EventTimelineHelpers.getEraNameTrimmed === 'function'
             ? window.EventTimelineHelpers.getEraNameTrimmed(eventObj)
             : '';
-    
-    // Get primary country from first variant's cityDisplayName or root event's cityDisplayName
-    let primaryCountry = '';
+    const yearLine =
+        typeof window !== 'undefined'
+        && window.EventTimelineHelpers
+        && typeof window.EventTimelineHelpers.formatPanelYearRangeLine === 'function'
+            ? window.EventTimelineHelpers.formatPanelYearRangeLine(eventObj)
+            : 'Year Unknown';
+
+    const getLN =
+        typeof window !== 'undefined'
+        && window.eventManager
+        && typeof window.eventManager.getLocationName === 'function'
+            ? (lat, lon) => window.eventManager.getLocationName(lat, lon)
+            : null;
+    const lh = typeof window !== 'undefined' ? window.LocationFlagHelpers : null;
+
     const variants = Array.isArray(eventObj.variants) ? eventObj.variants : [];
-    if (variants.length > 0 && variants[0] && variants[0].cityDisplayName) {
-        primaryCountry = extractCountryFromCityDisplayName(variants[0].cityDisplayName);
-    }
-    if (!primaryCountry && eventObj.cityDisplayName) {
-        primaryCountry = extractCountryFromCityDisplayName(eventObj.cityDisplayName);
-    }
-    
+
     if (variants.length === 0) {
         const single = getPlainEventTitleForHover(eventObj);
-        return { primary: single || '', otherVariants: [], era, primaryCountry };
+        const vi = options && options.variantIndex !== undefined ? options.variantIndex : undefined;
+        const primaryRowFlag = buildRowFlagEntry(eventObj, vi, getLN, lh);
+        return {
+            primary: single || '',
+            otherVariants: [],
+            era,
+            primaryRowFlag,
+            otherRowFlags: [],
+            yearLine,
+        };
     }
     const variantTitles = variants.map((v, i) => {
         const t = v ? getPlainEventTitleForHover(v) : '';
@@ -144,7 +207,9 @@ export function getHoverPreviewLines(eventObj) {
     const parentName = getPlainEventTitleForHover(eventObj);
     const primary = variantTitles[0] || parentName || 'Event';
     const otherVariants = variantTitles.slice(1);
-    return { primary, otherVariants, era, primaryCountry };
+    const primaryRowFlag = buildRowFlagEntry(eventObj, 0, getLN, lh);
+    const otherRowFlags = otherVariants.map((_, j) => buildRowFlagEntry(eventObj, j + 1, getLN, lh));
+    return { primary, otherVariants, era, primaryRowFlag, otherRowFlags, yearLine };
 }
 
 /**
@@ -152,9 +217,11 @@ export function getHoverPreviewLines(eventObj) {
  * @param {string} titlePlain - Primary line (e.g. first variant or single event name)
  * @param {string[]} [otherVariantTitles] - Additional variant names (smaller text)
  * @param {string} [eraPlain] - Optional era name (root event field); shown under title on hover only
- * @param {string} [primaryCountry] - Optional primary country for flag display
+ * @param {object|null} [primaryRowFlag] - Flag before primary title
+ * @param {(object|null)[]} [otherRowFlags] - One optional flag per extra variant row (same order as otherVariantTitles)
+ * @param {string} [yearLinePlain] - Years after era (smaller); default "Year Unknown"
  */
-export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles, eraPlain, primaryCountry) {
+export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles, eraPlain, primaryRowFlag, otherRowFlags, yearLinePlain) {
     try {
         if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
             return;
@@ -173,19 +240,7 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
     // Remove hiding state if present
     badgeEl.classList.remove('events-hover-preview-badge--hiding');
     
-    // Set flag if primary country provided
-    if (textFlagEl) {
-        const countryTrim = primaryCountry != null ? String(primaryCountry).trim() : '';
-        if (countryTrim) {
-            textFlagEl.src = `assets/images/flags/${countryTrim}.png`;
-            textFlagEl.alt = countryTrim;
-            textFlagEl.style.display = 'inline-block';
-        } else {
-            textFlagEl.src = '';
-            textFlagEl.alt = '';
-            textFlagEl.style.display = 'none';
-        }
-    }
+    fillLineFlagSlot(textPrimaryFlagSlot, primaryRowFlag);
     
     if (textNumberEl) {
         textNumberEl.textContent =
@@ -196,27 +251,50 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
     if (textTitleEl) textTitleEl.textContent = titlePlain || '';
 
     const eraTrim = eraPlain != null ? String(eraPlain).trim() : '';
+    const yearTrim =
+        yearLinePlain != null && String(yearLinePlain).trim() !== ''
+            ? String(yearLinePlain).trim()
+            : 'Year Unknown';
+
+    if (textEraNameEl) {
+        textEraNameEl.textContent = eraTrim;
+    }
+    if (textEraYearsEl) {
+        textEraYearsEl.textContent = yearTrim;
+    }
     if (textEraEl) {
-        textEraEl.textContent = eraTrim;
-        textEraEl.style.display = eraTrim ? 'block' : 'none';
+        textEraEl.style.display = '';
+        textEraEl.classList.toggle('events-hover-preview-era--nameless', !eraTrim);
     }
     if (badgeEl) {
         badgeEl.classList.toggle('events-hover-preview-badge--no-era', !eraTrim);
     }
 
-    const extras = Array.isArray(otherVariantTitles) ? otherVariantTitles.filter((t) => t && String(t).trim()) : [];
+    const titlesRaw = Array.isArray(otherVariantTitles) ? otherVariantTitles : [];
+    const flagsParallel = Array.isArray(otherRowFlags) ? otherRowFlags : [];
+    let variantRowCount = 0;
     if (textVariantsEl) {
         textVariantsEl.innerHTML = '';
-        extras.forEach((t) => {
+        titlesRaw.forEach((tRaw, idx) => {
+            const t = tRaw != null ? String(tRaw).trim() : '';
+            if (!t) return;
+            variantRowCount++;
             const row = document.createElement('div');
             row.className = 'events-hover-preview-variant-line';
-            row.textContent = String(t).trim();
+            const flagSlot = document.createElement('div');
+            flagSlot.className = 'events-hover-preview-line-flag events-hover-preview-line-flag--secondary';
+            fillLineFlagSlot(flagSlot, flagsParallel[idx] || null);
+            const span = document.createElement('span');
+            span.className = 'events-hover-preview-variant-text';
+            span.textContent = t;
+            row.appendChild(flagSlot);
+            row.appendChild(span);
             textVariantsEl.appendChild(row);
         });
-        textVariantsEl.style.display = extras.length ? 'block' : 'none';
+        textVariantsEl.style.display = variantRowCount ? 'block' : 'none';
     }
     if (badgeEl) {
-        badgeEl.classList.toggle('events-hover-preview-badge--multiline', extras.length > 0);
+        badgeEl.classList.toggle('events-hover-preview-badge--multiline', variantRowCount > 0);
     }
 
     badgeEl.classList.add('music-now-playing-badge--visible');
@@ -282,14 +360,15 @@ export function hideEventsHoverPreview() {
         if (!badgeEl) return;
         // Only clean up if still in hiding state (not re-shown)
         if (!badgeEl.classList.contains('music-now-playing-badge--visible')) {
-            if (textFlagEl) {
-                textFlagEl.src = '';
-                textFlagEl.alt = '';
-                textFlagEl.style.display = 'none';
+            if (textPrimaryFlagSlot) {
+                textPrimaryFlagSlot.innerHTML = '';
+                textPrimaryFlagSlot.style.display = 'none';
             }
+            if (textEraNameEl) textEraNameEl.textContent = '';
+            if (textEraYearsEl) textEraYearsEl.textContent = '';
             if (textEraEl) {
-                textEraEl.textContent = '';
-                textEraEl.style.display = 'none';
+                textEraEl.style.display = '';
+                textEraEl.classList.remove('events-hover-preview-era--nameless');
             }
             if (textVariantsEl) {
                 textVariantsEl.innerHTML = '';

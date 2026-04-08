@@ -89,7 +89,9 @@ export function syncEventsWithGlobe(globeController, eventManager, statusService
     if (globeController.uiView) {
         globeController.uiView.setupEventPagination(() => {
             if (globeController.globeView) {
-                globeController.globeView.refreshEventMarkers();
+                globeController.globeView.refreshEventMarkers(true, {
+                    preservePaginationThumbEntrance: true
+                });
             }
         });
         globeController.uiView.setupEventNumberButtons(() => {

@@ -198,9 +198,10 @@ export class EventMarkerManager {
     /**
      * Refresh event markers (remove and re-add)
      * @param {boolean} [animate=true] - Grow/shrink animation; use false when opening from event manager for snappier UX
+     * @param {{ preservePaginationThumbEntrance?: boolean }} [options] - If true (page-turn callback), delayed filter sync will not cancel thumb entrance animation
      * @returns {Promise<void>|undefined}
      */
-    refreshEventMarkers(animate = true) {
+    refreshEventMarkers(animate = true, options = {}) {
         // Check if globe is initialized before proceeding
         const globe = this.sceneModel.getGlobe();
         if (!globe) {
@@ -233,7 +234,7 @@ export class EventMarkerManager {
         return this.removeEventMarkers(animate).then(() => {
             return this.addEventMarkers(animate);
         }).then(() => {
-            this.applyFilters();
+            this.applyFilters(options);
             if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
                 window.globeController.updatePlaneVisibility();
             }
@@ -243,8 +244,9 @@ export class EventMarkerManager {
     /**
      * Apply active filters to event markers
      * Locks events that don't match any selected filter
+     * @param {{ preservePaginationThumbEntrance?: boolean }} [options]
      */
-    applyFilters() {
+    applyFilters(options = {}) {
         const activeFilters = this.sceneModel.activeFilters;
         const globe = this.sceneModel.getGlobe();
         
@@ -254,13 +256,7 @@ export class EventMarkerManager {
         if (activeFilters.size === 0) {
             this.unlockAllEvents();
             setTimeout(() => {
-                const ui = window.globeController?.uiView;
-                if (ui?.updateNumberButtons && typeof ui.updateNumberButtons === 'function') {
-                    ui.updateNumberButtons();
-                }
-                if (ui?.updatePaginationUI && typeof ui.updatePaginationUI === 'function') {
-                    ui.updatePaginationUI();
-                }
+                this._syncPaginationUiAfterFilters(options);
             }, 50);
             return;
         }
@@ -283,18 +279,31 @@ export class EventMarkerManager {
         // Update number buttons after filters are applied
         // Use a small delay to ensure markers are locked before checking
         setTimeout(() => {
-            const ui = window.globeController?.uiView;
-            if (ui) {
-                if (ui.updateNumberButtons && typeof ui.updateNumberButtons === 'function') {
-                    ui.updateNumberButtons();
-                } else {
-                    console.warn('[EventMarkerManager] updateNumberButtons function not found!');
-                }
-                if (ui.updatePaginationUI && typeof ui.updatePaginationUI === 'function') {
-                    ui.updatePaginationUI();
-                }
-            }
+            this._syncPaginationUiAfterFilters(options);
         }, 50); // Small delay to ensure markers are processed
+    }
+
+    /**
+     * After marker lock state changes, refresh pagination thumbs. When {@link refreshEventMarkers}
+     * was triggered by a page turn, preserve the staggered thumb entrance (do not strip --enter).
+     */
+    _syncPaginationUiAfterFilters(options = {}) {
+        const ui = window.globeController?.uiView;
+        if (!ui) return;
+        if (options.preservePaginationThumbEntrance) {
+            if (typeof ui.updateNumberButtons === 'function') {
+                ui.updateNumberButtons(false, { preserveThumbEntrance: true });
+            }
+            return;
+        }
+        if (typeof ui.updateNumberButtons === 'function') {
+            ui.updateNumberButtons();
+        } else {
+            console.warn('[EventMarkerManager] updateNumberButtons function not found!');
+        }
+        if (typeof ui.updatePaginationUI === 'function') {
+            ui.updatePaginationUI();
+        }
     }
 
     /**

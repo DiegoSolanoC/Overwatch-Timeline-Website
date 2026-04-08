@@ -19,7 +19,8 @@ import {
     EVENT_PAGE_SLIDER_RESOLUTION,
     normalizedProgressFromSliderValue,
     pageFromSliderProgress,
-    sliderValueForPageCenter
+    sliderValueForPageCenter,
+    clearEventPageSliderSuppressFromGlobe,
 } from './helpers/NavigationPaginationHelpers.js';
 import {
     shouldEventBeLocked,
@@ -190,6 +191,44 @@ function findMarkerForPaginationThumb(sceneModel, markers, targetEvent, globalEv
     return CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
 }
 
+/** WAAPI keyframes: outgoing shrink (per-slot wave, overlaps following slot) */
+function thumbPageTurnShrinkKeyframes(isThumbsDesktop, locked) {
+    if (isThumbsDesktop) {
+        const from = locked
+            ? { opacity: 0.5, transform: 'skewX(-11deg)' }
+            : { opacity: 1, transform: 'skewX(-11deg) translateY(0) scale(1)' };
+        const to = locked
+            ? { opacity: 0, transform: 'skewX(-11deg) scale(0.68)' }
+            : { opacity: 0, transform: 'skewX(-11deg) translateY(18px) scale(0.7)' };
+        return [from, to];
+    }
+    const from = locked
+        ? { opacity: 0.5, transform: 'none' }
+        : { opacity: 1, transform: 'translateY(0) scale(1)' };
+    const to = locked
+        ? { opacity: 0, transform: 'scale(0.65)' }
+        : { opacity: 0, transform: 'translateY(16px) scale(0.72)' };
+    return [from, to];
+}
+
+function thumbPageTurnGrowKeyframes(isThumbsDesktop, locked) {
+    if (isThumbsDesktop) {
+        const from = {
+            opacity: 0,
+            transform: 'skewX(-11deg) translateY(16px) scale(0.8)'
+        };
+        const to = locked
+            ? { opacity: 0.5, transform: 'skewX(-11deg)' }
+            : { opacity: 1, transform: 'skewX(-11deg) translateY(0) scale(1)' };
+        return [from, to];
+    }
+    const from = { opacity: 0, transform: 'translateY(14px) scale(0.82)' };
+    const to = locked
+        ? { opacity: 0.5, transform: 'none' }
+        : { opacity: 1, transform: 'translateY(0) scale(1)' };
+    return [from, to];
+}
+
 /**
  * Mobile helper constants
  */
@@ -343,6 +382,7 @@ export class EventNavigationManager {
             if (targetPage !== currentPage) {
                 // Page change needed - wait for markers to refresh
                 this.dataModel.setCurrentEventPage(targetPage);
+                clearEventPageSliderSuppressFromGlobe();
 
                 // Refresh markers and pagination, then find and show event
                 // Note: refreshEventMarkers() doesn't return a promise, so we need to wait
@@ -352,7 +392,9 @@ export class EventNavigationManager {
                 if (window.globeController.uiView) {
                     window.globeController.uiView.setupEventPagination(() => {
                         if (window.globeController.globeView) {
-                            window.globeController.globeView.refreshEventMarkers();
+                            window.globeController.globeView.refreshEventMarkers(true, {
+                                preservePaginationThumbEntrance: true
+                            });
                         }
                     });
                 }
@@ -624,35 +666,25 @@ export class EventNavigationManager {
                 );
             }
 
-            // Enable wrap buttons - change icon and behavior at boundaries
+            // Enable wrap buttons (icons are <img> in markup; only titles + disabled change)
             if (totalPages > 1) {
-                // Previous button: wrap to last page if on first page
                 if (currentPage === 1) {
                     newPrevBtn.disabled = false;
-                    newPrevBtn.textContent = '↻'; // Wrap icon
                     newPrevBtn.title = 'Go to Last Page';
                 } else {
                     newPrevBtn.disabled = false;
-                    newPrevBtn.textContent = '‹'; // Normal left arrow
                     newPrevBtn.title = 'Previous Page';
                 }
-
-                // Next button: wrap to first page if on last page
                 if (currentPage === totalPages) {
                     newNextBtn.disabled = false;
-                    newNextBtn.textContent = '↻'; // Wrap icon
                     newNextBtn.title = 'Go to First Page';
                 } else {
                     newNextBtn.disabled = false;
-                    newNextBtn.textContent = '›'; // Normal right arrow
                     newNextBtn.title = 'Next Page';
                 }
             } else {
-                // Only one page or no events - disable both
                 newPrevBtn.disabled = true;
                 newNextBtn.disabled = true;
-                newPrevBtn.textContent = '‹';
-                newNextBtn.textContent = '›';
             }
 
             // Hide pagination if only one page or no events
@@ -673,10 +705,10 @@ export class EventNavigationManager {
 
         // Wrap updatePaginationUI to also update number buttons and ticker
         const originalUpdatePaginationUI = updatePaginationUI;
-        const wrappedUpdatePaginationUI = (animate = false) => {
+        const wrappedUpdatePaginationUI = (animate = false, opts = {}) => {
             originalUpdatePaginationUI();
             if (updateNumberButtons) {
-                updateNumberButtons(animate);
+                updateNumberButtons(animate, opts);
             }
             // Update news ticker with headlines from current page
             if (window.NavigationPaginationHelpers && window.NavigationPaginationHelpers.updateNewsTickerFromGlobe) {
@@ -845,8 +877,9 @@ export class EventNavigationManager {
         const lockedOnMap = marker && marker.userData && marker.userData.isLocked;
         if (targetEvent && !lockedOnMap) {
             const n = getGlobalEventNumber1Based(targetEvent, this.dataModel);
-            const { primary, otherVariants, era, primaryCountry } = getHoverPreviewLines(targetEvent);
-            showEventsHoverPreview(n, primary, otherVariants, era, primaryCountry);
+            const { primary, otherVariants, era, primaryRowFlag, otherRowFlags, yearLine } =
+                getHoverPreviewLines(targetEvent);
+            showEventsHoverPreview(n, primary, otherVariants, era, primaryRowFlag, otherRowFlags, yearLine);
         }
 
         if (!marker || (marker.userData && marker.userData.isLocked)) return;
@@ -899,35 +932,75 @@ export class EventNavigationManager {
         // Get all number buttons
         const numberButtons = numberButtonsContainer.querySelectorAll('.event-number-btn');
         
-        // Track for entrance animation
-        let entranceAnimToken = 0;
+        /** Web Animations id — dock collapse uses pure CSS; page-turn uses WAAPI to bypass transform/transition wars */
+        const THUMB_PAGE_TURN_ANIM_ID = 'pagination-thumb-page-turn';
+        let thumbPageTurnAnimToken = 0;
+        let thumbPageTurnTimeoutIds = [];
 
         // Update button states based on current page - only show buttons for events that exist
-        const updateNumberButtons = (animate = false) => {
-            // Re-query buttons from DOM to get the actual current buttons (they may have been cloned)
+        const updateNumberButtons = (animate = false, opts = {}) => {
+            const preserveThumbEntrance = opts.preserveThumbEntrance === true;
             const currentButtons = numberButtonsContainer.querySelectorAll('.event-number-btn');
+            const btnArray = Array.from(currentButtons);
 
             const currentPageEvents = this.dataModel.getEventsForCurrentPage();
             const eventsPerPage = this.dataModel.eventsPerPage || 10;
             const numEventsOnPage = currentPageEvents.length;
 
-            // First, reset all buttons to be visible (in case they were hidden from previous page)
-            currentButtons.forEach((btn) => {
-                resetButtonStyles(btn);
-                // Clear any previous animation classes
-                btn.classList.remove('event-number-btn--enter', 'event-number-btn--enter-active');
-                btn.style.transitionDelay = '';
+            const prefersReducedMotion =
+                window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const doPageTurnWave =
+                animate === true &&
+                !preserveThumbEntrance &&
+                !prefersReducedMotion &&
+                typeof Element.prototype.animate === 'function';
+
+            const wasVisibleByIndex = doPageTurnWave
+                ? btnArray.map((b) => b.style.display !== 'none')
+                : null;
+
+            const hasThumbPageTurnEffect = (btn) => {
+                if (typeof btn.getAnimations !== 'function') return false;
+                return btn.getAnimations().some((a) => a.id === THUMB_PAGE_TURN_ANIM_ID);
+            };
+
+            let waveToken = thumbPageTurnAnimToken;
+            if (!preserveThumbEntrance) {
+                thumbPageTurnTimeoutIds.forEach((tid) => window.clearTimeout(tid));
+                thumbPageTurnTimeoutIds = [];
+                btnArray.forEach((btn) => {
+                    if (typeof btn.getAnimations === 'function') {
+                        btn.getAnimations().forEach((a) => {
+                            if (a.id === THUMB_PAGE_TURN_ANIM_ID) a.cancel();
+                        });
+                    }
+                });
+                thumbPageTurnAnimToken += 1;
+                waveToken = thumbPageTurnAnimToken;
+            }
+
+            btnArray.forEach((btn) => {
+                resetButtonStyles(btn, {
+                    skipOpacityTransform: preserveThumbEntrance && hasThumbPageTurnEffect(btn)
+                });
+                if (!preserveThumbEntrance) {
+                    btn.classList.remove('event-number-btn--enter', 'event-number-btn--enter-active');
+                    btn.style.transitionDelay = '';
+                }
             });
+
+            if (doPageTurnWave && wasVisibleByIndex) {
+                btnArray.forEach((btn, i) => {
+                    if (!wasVisibleByIndex[i]) btn.style.display = 'none';
+                });
+            }
 
             const sceneModel = window.globeController?.sceneModel;
             const activeFilters = sceneModel?.activeFilters;
             const filtersOn = !!(activeFilters && activeFilters.size > 0);
 
-            // Then hide buttons that don't have events, and disable buttons for locked events
-            currentButtons.forEach((btn, index) => {
-                const position = index + 1; // 1-10
-                const eventIndex = position - 1; // 0-9
-
+            const applyPaginationThumbSlot = (btn, eventIndex) => {
+                const position = eventIndex + 1;
                 const imgEl = btn.querySelector('.event-number-btn__img');
                 const nameEl = btn.querySelector('.event-number-btn__name');
                 const imgWrap = btn.querySelector('.event-number-btn__img-wrap');
@@ -958,9 +1031,8 @@ export class EventNavigationManager {
                     }
                 }
 
-                // Hide button if no event at this position
                 if (eventIndex >= numEventsOnPage) {
-                    btn.style.display = 'none'; // Hide instead of disable
+                    btn.style.display = 'none';
                     btn.classList.remove('event-number-btn--unfinished');
                     if (imgEl) {
                         imgEl.removeAttribute('src');
@@ -977,10 +1049,11 @@ export class EventNavigationManager {
                     }
                     if (imgWrap) imgWrap.classList.remove('event-number-btn__img-wrap--empty');
                 } else {
+                    btn.style.display = 'flex';
                     const targetEvent = currentPageEvents[eventIndex];
                     const currentPageNum = this.dataModel.getCurrentEventPage();
-                    const eventsPerPage = this.dataModel.eventsPerPage || 10;
-                    const globalEventIndex = (currentPageNum - 1) * eventsPerPage + eventIndex;
+                    const eps = this.dataModel.eventsPerPage || 10;
+                    const globalEventIndex = (currentPageNum - 1) * eps + eventIndex;
 
                     let displayEv = getDisplayEventForPaginationThumb(targetEvent);
                     let variantIndexShown = 0;
@@ -1024,7 +1097,6 @@ export class EventNavigationManager {
                     }
 
                     let isLocked = false;
-                    /* Filter lock from event data (immediate). Marker userData lags until refreshEventMarkers. */
                     if (filtersOn && activeFilters) {
                         isLocked = shouldEventBeLocked(targetEvent, activeFilters);
                     } else if (window.globeController && window.globeController.globeView && sceneModel) {
@@ -1037,10 +1109,7 @@ export class EventNavigationManager {
                         const matchingCount = (filtersOn && activeFilters)
                             ? countFilterMatchingEntitiesInEvent(targetEvent, activeFilters)
                             : targetEvent.variants?.length || 1;
-                        
-                        // Show badge only if multi-variant AND (no filters OR 2+ variants match filters)
                         const showBadge = multi && matchingCount >= 2;
-                        
                         if (showBadge) {
                             variantBadge.hidden = false;
                             variantBadge.tabIndex = 0;
@@ -1062,45 +1131,123 @@ export class EventNavigationManager {
                         btn.classList.remove('locked');
                     }
                 }
-            });
+            };
+
+            if (!doPageTurnWave) {
+                btnArray.forEach((btn, index) => applyPaginationThumbSlot(btn, index));
+            }
+
             if (window.GlitchTextService?.isEnabled()) {
                 window.GlitchTextService.startAnimation();
             }
-            
-            // Run staggered entrance animation if requested
-            if (animate) {
-                const token = ++entranceAnimToken;
-                const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                
-                if (!prefersReducedMotion) {
-                    const visibleButtons = Array.from(currentButtons).filter(btn => btn.style.display !== 'none');
-                    const staggerMs = 50;
-                    const maxDelayMs = 400;
-                    
-                    visibleButtons.forEach((btn, i) => {
-                        btn.classList.add('event-number-btn--enter');
-                        const delay = Math.min(i * staggerMs, maxDelayMs);
-                        btn.style.transitionDelay = `${delay}ms`;
-                    });
-                    
-                    requestAnimationFrame(() => {
-                        if (token !== entranceAnimToken) return;
-                        requestAnimationFrame(() => {
-                            if (token !== entranceAnimToken) return;
-                            visibleButtons.forEach(btn => btn.classList.add('event-number-btn--enter-active'));
-                        });
-                    });
-                    
-                    // Cleanup after animation
-                    const totalMs = 500 + Math.min((visibleButtons.length - 1) * staggerMs, maxDelayMs);
-                    setTimeout(() => {
-                        if (token !== entranceAnimToken) return;
-                        visibleButtons.forEach(btn => {
-                            btn.classList.remove('event-number-btn--enter', 'event-number-btn--enter-active');
-                            btn.style.transitionDelay = '';
-                        });
-                    }, totalMs);
+
+            if (doPageTurnWave && wasVisibleByIndex) {
+                const isThumbsDesktop = numberButtonsContainer.classList.contains(
+                    'event-number-buttons--thumbs-desktop'
+                );
+                const staggerMs = 58;
+                const shrinkMs = 290;
+                const growMs = 515;
+                const easing = 'cubic-bezier(0.22, 0.88, 0.18, 1)';
+                const nSlots = btnArray.length;
+                const willShow = (i) => i < numEventsOnPage;
+
+                const pushT = (fn, ms) => {
+                    const tid = window.setTimeout(fn, ms);
+                    thumbPageTurnTimeoutIds.push(tid);
+                };
+
+                for (let i = 0; i < nSlots; i += 1) {
+                    const slotIndex = i;
+                    const wasVis = wasVisibleByIndex[i];
+                    const willVis = willShow(slotIndex);
+                    const startAt = slotIndex * staggerMs;
+
+                    pushT(() => {
+                        if (waveToken !== thumbPageTurnAnimToken) return;
+                        const btn = btnArray[slotIndex];
+                        if (!btn) return;
+
+                        const runGrow = () => {
+                            if (waveToken !== thumbPageTurnAnimToken) return;
+                            if (!willVis) return;
+                            const lockedAfter = btn.disabled || btn.classList.contains('locked');
+                            const [g0, g1] = thumbPageTurnGrowKeyframes(isThumbsDesktop, lockedAfter);
+                            btn.animate([g0, g1], {
+                                id: THUMB_PAGE_TURN_ANIM_ID,
+                                duration: growMs,
+                                easing,
+                                fill: 'forwards'
+                            });
+                        };
+
+                        if (wasVis && willVis) {
+                            const lockedBefore = btn.disabled || btn.classList.contains('locked');
+                            const [s0, s1] = thumbPageTurnShrinkKeyframes(isThumbsDesktop, lockedBefore);
+                            const shrink = btn.animate([s0, s1], {
+                                id: THUMB_PAGE_TURN_ANIM_ID,
+                                duration: shrinkMs,
+                                easing,
+                                fill: 'forwards'
+                            });
+                            shrink.finished
+                                .then(() => {
+                                    if (waveToken !== thumbPageTurnAnimToken) return;
+                                    try {
+                                        shrink.cancel();
+                                    } catch (_) {}
+                                    applyPaginationThumbSlot(btn, slotIndex);
+                                    runGrow();
+                                })
+                                .catch(() => {});
+                            return;
+                        }
+
+                        if (wasVis && !willVis) {
+                            const lockedBefore = btn.disabled || btn.classList.contains('locked');
+                            const [s0, s1] = thumbPageTurnShrinkKeyframes(isThumbsDesktop, lockedBefore);
+                            const shrink = btn.animate([s0, s1], {
+                                id: THUMB_PAGE_TURN_ANIM_ID,
+                                duration: shrinkMs,
+                                easing,
+                                fill: 'forwards'
+                            });
+                            shrink.finished
+                                .then(() => {
+                                    if (waveToken !== thumbPageTurnAnimToken) return;
+                                    try {
+                                        shrink.cancel();
+                                    } catch (_) {}
+                                    applyPaginationThumbSlot(btn, slotIndex);
+                                })
+                                .catch(() => {});
+                            return;
+                        }
+
+                        if (!wasVis && willVis) {
+                            applyPaginationThumbSlot(btn, slotIndex);
+                            runGrow();
+                            return;
+                        }
+
+                        applyPaginationThumbSlot(btn, slotIndex);
+                    }, startAt);
                 }
+
+                const maxMs = (nSlots - 1) * staggerMs + shrinkMs + growMs + 80;
+                pushT(() => {
+                    if (waveToken !== thumbPageTurnAnimToken) return;
+                    btnArray.forEach((btn) => {
+                        if (typeof btn.getAnimations !== 'function') return;
+                        btn.getAnimations().forEach((a) => {
+                            if (a.id === THUMB_PAGE_TURN_ANIM_ID) {
+                                try {
+                                    a.cancel();
+                                } catch (_) {}
+                            }
+                        });
+                    });
+                }, maxMs);
             }
         };
 

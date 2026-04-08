@@ -33,7 +33,8 @@ export function sliderValueForPageCenter(page1Based, totalPages) {
     return Math.round(segT * EVENT_PAGE_SLIDER_RESOLUTION);
 }
 
-function clearEventPageSliderSuppressFromGlobe() {
+/** Allow the dock page slider to sync after scrubbing ends or when page changes elsewhere (e.g. event slide prev/next). */
+export function clearEventPageSliderSuppressFromGlobe() {
     try {
         const ui = window.globeController?.uiView;
         if (ui) {
@@ -219,35 +220,25 @@ export function updatePaginationButtonStates(prevBtn, nextBtn, pageInput, pageTo
     pageInput.max = totalPages;
     pageTotal.textContent = `/ ${totalPages}`;
     
-    // Enable wrap buttons - change icon and behavior at boundaries
+    /* Icons are images in markup; only titles + disabled update here */
     if (totalPages > 1) {
-        // Previous button: wrap to last page if on first page
         if (currentPage === 1) {
             prevBtn.disabled = false;
-            prevBtn.textContent = '↻'; // Wrap icon
             prevBtn.title = 'Go to Last Page';
         } else {
             prevBtn.disabled = false;
-            prevBtn.textContent = '‹'; // Normal left arrow
             prevBtn.title = 'Previous Page';
         }
-        
-        // Next button: wrap to first page if on last page
         if (currentPage === totalPages) {
             nextBtn.disabled = false;
-            nextBtn.textContent = '↻'; // Wrap icon
             nextBtn.title = 'Go to First Page';
         } else {
             nextBtn.disabled = false;
-            nextBtn.textContent = '›'; // Normal right arrow
             nextBtn.title = 'Next Page';
         }
     } else {
-        // Only one page or no events - disable both
         prevBtn.disabled = true;
         nextBtn.disabled = true;
-        prevBtn.textContent = '‹';
-        nextBtn.textContent = '›';
     }
     
     // Hide pagination if only one page or no events

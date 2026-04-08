@@ -151,7 +151,9 @@ class EventNavigationService {
                     if (window.globeController.uiView && window.globeController.uiView.setupEventPagination) {
                         window.globeController.uiView.setupEventPagination(() => {
                             if (window.globeController.globeView) {
-                                window.globeController.globeView.refreshEventMarkers();
+                                window.globeController.globeView.refreshEventMarkers(true, {
+                                    preservePaginationThumbEntrance: true
+                                });
                             }
                         });
                     }

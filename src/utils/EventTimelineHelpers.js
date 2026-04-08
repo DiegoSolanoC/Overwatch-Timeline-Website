@@ -56,6 +56,29 @@
     }
 
     /**
+     * Panel / hover copy: always a non-empty string. Single year or "lo - hi" with ASCII hyphen;
+     * missing start year → "Year Unknown".
+     * @param {Object|null|undefined} eventData
+     * @returns {string}
+     */
+    function formatPanelYearRangeLine(eventData) {
+        if (!eventData) return 'Year Unknown';
+        const ys = eventData.yearStart;
+        if (ys == null || ys === '' || Number.isNaN(Number(ys))) return 'Year Unknown';
+        const ysn = Math.trunc(Number(ys));
+        const ye = eventData.yearEnd;
+        if (ye != null && ye !== '' && !Number.isNaN(Number(ye))) {
+            const yen = Math.trunc(Number(ye));
+            if (yen !== ysn) {
+                const lo = Math.min(ysn, yen);
+                const hi = Math.max(ysn, yen);
+                return `${lo} - ${hi}`;
+            }
+        }
+        return String(ysn);
+    }
+
+    /**
      * @param {Object} eventData
      * @returns {string}
      */
@@ -85,6 +108,7 @@
             getEstimatedDecimalYear,
             formatTimelineMetaLine,
             formatTimelineYearRangeOnly,
+            formatPanelYearRangeLine,
             getEraNameTrimmed,
         };
     }
@@ -94,6 +118,7 @@
             getEstimatedDecimalYear,
             formatTimelineMetaLine,
             formatTimelineYearRangeOnly,
+            formatPanelYearRangeLine,
             getEraNameTrimmed,
         };
     }

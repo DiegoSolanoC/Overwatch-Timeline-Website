@@ -280,6 +280,16 @@ class EventInteractionService {
                 : `<img class="event-location-pin" src="assets/images/icons/Location Icon.png" alt="" width="28" height="28" decoding="async" /> ${locText}`;
             locationElement.innerHTML = rowInner;
         }
+        const yearElement = itemElement.querySelector('.event-item-year');
+        if (yearElement) {
+            const timelineHelpers = (typeof window !== 'undefined') ? window.EventTimelineHelpers : null;
+            const yearSource = (
+                variant && (variant.yearStart != null || variant.yearEnd != null)
+            ) ? variant : event;
+            yearElement.textContent = timelineHelpers && typeof timelineHelpers.formatPanelYearRangeLine === 'function'
+                ? timelineHelpers.formatPanelYearRangeLine(yearSource)
+                : 'Year Unknown';
+        }
         
         // Update badge text
         const badge = itemElement.querySelector('.multi-event-badge');

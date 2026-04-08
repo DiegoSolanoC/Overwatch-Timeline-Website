@@ -528,10 +528,3 @@ body.color-palette-gray .palette-option-btn.active {
     border-color: #4CAF50; /* Green highlight for active palette (always green) */
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
 }
-
-/* Pagination dock pattern tint - white/gray for gray palette */
-@media (min-width: 769px) and (min-height: 500px) {
-    body.color-palette-gray .pagination-dock-pattern {
-        filter: grayscale(1) brightness(1.5);
-    }
-}

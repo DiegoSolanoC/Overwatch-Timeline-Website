@@ -6,21 +6,25 @@
 /**
  * Resets button styles to default state
  * @param {HTMLElement} btn - Button element to reset
+ * @param {{ skipOpacityTransform?: boolean }} [opts] - When true, keep inline opacity/transform (in-flight WAAPI page-turn)
  */
-export function resetButtonStyles(btn) {
+export function resetButtonStyles(btn, opts = {}) {
+    const skipOpacityTransform = opts.skipOpacityTransform === true;
     btn.style.display = 'flex';
     btn.disabled = false;
     btn.removeAttribute('disabled');  // ensure attribute is gone (can persist after .disabled=true)
     btn.classList.remove('locked');
     btn.style.pointerEvents = 'auto'; // re-enable events after .locked/:disabled (CSS uses pointer-events: none)
     // Only remove specific style properties we might have set, keep display
-    btn.style.opacity = '';
+    if (!skipOpacityTransform) {
+        btn.style.opacity = '';
+        btn.style.transform = '';
+    }
     btn.style.filter = '';
     btn.style.background = '';
     btn.style.borderColor = '';
     btn.style.color = '';
     btn.style.cursor = '';
-    btn.style.transform = '';
     btn.style.boxShadow = '';
 }
 

@@ -426,7 +426,7 @@ class EventRenderService {
         let paginationHTML = '<div class="events-pagination-controls">';
         
         // Previous button (wraps to last page when on first page)
-        paginationHTML += `<button class="events-pagination-btn" id="eventsPrevPage" title="Previous (wrap to last)">‹ Prev</button>`;
+        paginationHTML += `<button type="button" class="events-pagination-btn" id="eventsPrevPage" title="Previous (wrap to last)"><span class="events-pagination-btn__arrow" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="20" height="20" decoding="async" /></span><span class="events-pagination-btn__label">Prev</span></button>`;
         
         // Page selector with text input (no spinner - use type="text" with pattern or keep number and hide spinner via CSS)
         paginationHTML += `<span class="events-pagination-page-selector">`;
@@ -436,7 +436,7 @@ class EventRenderService {
         paginationHTML += `</span>`;
         
         // Next button (wraps to first page when on last page)
-        paginationHTML += `<button class="events-pagination-btn" id="eventsNextPage" title="Next (wrap to first)">Next ›</button>`;
+        paginationHTML += `<button type="button" class="events-pagination-btn" id="eventsNextPage" title="Next (wrap to first)"><span class="events-pagination-btn__label">Next</span><span class="events-pagination-btn__arrow" aria-hidden="true"><img class="ui-pagination-arrow ui-pagination-arrow--flip-h" src="assets/images/icons/Arrow Icon.png" alt="" width="20" height="20" decoding="async" /></span></button>`;
         
         paginationHTML += '</div>';
         paginationContainer.innerHTML = paginationHTML;
@@ -720,6 +720,14 @@ class EventRenderService {
         const locationRowInner = (window.LocationFlagHelpers && typeof window.LocationFlagHelpers.createLocationRowInnerHtml === 'function')
             ? window.LocationFlagHelpers.createLocationRowInnerHtml(locationDisplayText, displayLocationType)
             : `<img class="event-location-pin" src="assets/images/icons/Location Icon.png" alt="" width="28" height="28" decoding="async" /> ${locationDisplayText}`;
+        const timelineHelpers = (typeof window !== 'undefined') ? window.EventTimelineHelpers : null;
+        const yearSource = (
+            displayEvent
+            && (displayEvent.yearStart != null || displayEvent.yearEnd != null)
+        ) ? displayEvent : event;
+        const yearLine = timelineHelpers && typeof timelineHelpers.formatPanelYearRangeLine === 'function'
+            ? timelineHelpers.formatPanelYearRangeLine(yearSource)
+            : 'Year Unknown';
 
         let searchPillsRow = '';
         if (this.eventManager.getSearchMatchAxesForItem) {
@@ -751,6 +759,7 @@ class EventRenderService {
                 <h3 class="event-item-title">${window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(displayEvent.name) : displayEvent.name}</h3>
                 ${searchPillsRow}
                 <p class="event-item-location">${locationRowInner}</p>
+                <p class="event-item-year">${yearLine}</p>
             </div>
             ${actionButtons}
         `;

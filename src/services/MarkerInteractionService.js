@@ -80,16 +80,31 @@ class MarkerInteractionService {
             window.EventSlideShowHelpers && typeof window.EventSlideShowHelpers.getGlobalEventNumber1Based === 'function'
                 ? window.EventSlideShowHelpers.getGlobalEventNumber1Based(eventObj, dataModel)
                 : null;
+        const variantIndex =
+            marker.userData && marker.userData.variantIndex !== undefined
+                ? marker.userData.variantIndex
+                : undefined;
         const lines =
             typeof badge.getHoverPreviewLines === 'function'
-                ? badge.getHoverPreviewLines(eventObj)
+                ? badge.getHoverPreviewLines(eventObj, { variantIndex })
                 : {
                     primary: String(eventObj.name || '').replace(/<[^>]+>/g, ''),
                     otherVariants: [],
-                    era: ''
+                    era: '',
+                    primaryRowFlag: null,
+                    otherRowFlags: [],
+                    yearLine: 'Year Unknown',
                 };
         if (typeof badge.show === 'function') {
-            badge.show(n, lines.primary, lines.otherVariants, lines.era);
+            badge.show(
+                n,
+                lines.primary,
+                lines.otherVariants,
+                lines.era,
+                lines.primaryRowFlag,
+                lines.otherRowFlags,
+                lines.yearLine,
+            );
         }
     }
 

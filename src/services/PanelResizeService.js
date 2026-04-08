@@ -184,11 +184,18 @@
         var pill = document.createElement('span');
         pill.className = 'panel-resize-handle__pill';
         pill.setAttribute('aria-hidden', 'true');
-        var icon = document.createElement('span');
-        icon.className = 'panel-resize-handle__icon';
-        /* Bidirectional horizontal stretch (wider / narrower) */
-        icon.textContent = '\u2194';
+        var icon = document.createElement('img');
+        icon.className = 'ui-pagination-arrow panel-resize-handle__arrow';
+        icon.src = 'assets/images/icons/Arrow Icon.png';
+        icon.alt = '';
+        icon.decoding = 'async';
+        icon.width = 22;
+        icon.height = 22;
         icon.setAttribute('aria-hidden', 'true');
+        /* inner-right: point right; inner-left: point left (default asset) */
+        if (cfg.edge === 'inner-right') {
+            icon.classList.add('ui-pagination-arrow--flip-h');
+        }
         pill.appendChild(icon);
         btn.appendChild(pill);
 

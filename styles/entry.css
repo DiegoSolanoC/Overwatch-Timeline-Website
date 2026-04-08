@@ -55,7 +55,7 @@ main#content {
      * Desktop pagination dock sits below .layout-container; the map already clears the dock via flex layout.
      * Do not reserve an extra bottom inset — it wastes space and breaks resize/raycast after dock collapse.
      */
-    @media (min-height: 500px) {
+    @media (min-height: 600px) {
         body:has(footer.timeline-loaded):has(#paginationDock) #globe-container {
             bottom: 0;
         }

@@ -168,9 +168,9 @@ export function createEventPagination(statusService) {
             </div>
         </div>
         <div class="event-pagination-thumb-row">
-            <button type="button" id="prevPageBtn" class="page-btn page-btn--thumb-rail" title="Previous Page" aria-label="Previous page">‹</button>
+            <button type="button" id="prevPageBtn" class="page-btn page-btn--thumb-rail page-btn--pagination-arrow" title="Previous Page" aria-label="Previous page"><span class="page-btn__arrow-inner" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="28" height="28" decoding="async" /></span></button>
             <div class="event-number-buttons event-number-buttons--thumbs-desktop" id="eventNumberButtons">${getEventThumbNumberButtonsHtml()}</div>
-            <button type="button" id="nextPageBtn" class="page-btn page-btn--thumb-rail" title="Next Page" aria-label="Next page">›</button>
+            <button type="button" id="nextPageBtn" class="page-btn page-btn--thumb-rail page-btn--pagination-arrow" title="Next Page" aria-label="Next page"><span class="page-btn__arrow-inner page-btn__arrow-inner--next" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="28" height="28" decoding="async" /></span></button>
         </div>
         <div class="page-controls-row page-controls-row--page-only page-controls-row--mobile-only">
             <div class="page-input-container">
@@ -187,7 +187,7 @@ export function createEventPagination(statusService) {
                 aria-expanded="true" aria-controls="eventNumberButtons"
                 title="Collapse thumbnail strip" aria-label="Collapse thumbnail strip">
                 <span class="pagination-dock-collapse-pill" aria-hidden="true">
-                    <span class="pagination-dock-collapse-pill__icon" aria-hidden="true">↔</span>
+                    <img class="ui-pagination-arrow ui-pagination-arrow--dock-collapse" src="assets/images/icons/Arrow Icon.png" alt="" width="22" height="22" decoding="async" />
                 </span>
             </button>
         </div>`;
@@ -197,8 +197,10 @@ export function createEventPagination(statusService) {
     const setupPaginationPlacement = () => {
         const paginationEl = document.getElementById('eventPagination');
         if (!paginationEl) return;
-        
-        const isDesktop = window.innerWidth > 768 && window.innerHeight >= 500;
+
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const isDesktop = w > 768 && Math.min(w, h) >= 600;
         let dock = document.getElementById('paginationDock');
         
         if (isDesktop) {
@@ -252,6 +254,13 @@ export function createEventPagination(statusService) {
             paginationEl.style.removeProperty('top');
         } else {
             document.body.classList.remove('pagination-dock-collapsed');
+            const stripEl = document.getElementById('paginationDockCollapseStrip');
+            if (stripEl?.parentNode) {
+                stripEl.parentNode.removeChild(stripEl);
+            }
+            if (dock?.parentNode) {
+                dock.parentNode.removeChild(dock);
+            }
             // Mobile: move pagination back into #content
             const content = document.getElementById('content');
             if (content && paginationEl.parentNode !== content) {

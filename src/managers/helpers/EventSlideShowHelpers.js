@@ -138,14 +138,15 @@ export function handleVariantMarkers(uiView, currentEventData, eventData) {
  * Update event sources and filters
  */
 /**
- * Year range under the slide title only (era is shown on map/list hover preview, not in this panel).
+ * Year line under location: "FirstYear - SecondYear", single year, or "Year Unknown".
  * @param {Object|null} eventData
  */
 export function updateEventSlideTimelineMeta(eventData) {
     const helpers = typeof window !== 'undefined' ? window.EventTimelineHelpers : null;
-    const yearOnly = helpers && typeof helpers.formatTimelineYearRangeOnly === 'function'
-        ? helpers.formatTimelineYearRangeOnly(eventData)
-        : '';
+    const line =
+        helpers && typeof helpers.formatPanelYearRangeLine === 'function'
+            ? helpers.formatPanelYearRangeLine(eventData)
+            : 'Year Unknown';
 
     const eraEl = document.getElementById('eventSlideEra');
     if (eraEl) {
@@ -157,15 +158,8 @@ export function updateEventSlideTimelineMeta(eventData) {
     const timelineMeta = document.getElementById('eventSlideTimelineMeta');
     if (!timelineMeta) return;
 
-    const line = yearOnly || '';
-
-    if (line) {
-        timelineMeta.textContent = line;
-        timelineMeta.style.display = '';
-    } else {
-        timelineMeta.textContent = '';
-        timelineMeta.style.display = 'none';
-    }
+    timelineMeta.textContent = line;
+    timelineMeta.style.display = '';
 }
 
 export function updateEventSourcesAndFilters(uiView, currentEvent) {

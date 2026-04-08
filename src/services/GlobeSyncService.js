@@ -73,7 +73,9 @@ class GlobeSyncService {
                 // Re-setup pagination to update UI
                 window.globeController.uiView.setupEventPagination(() => {
                     if (window.globeController.globeView) {
-                        window.globeController.globeView.refreshEventMarkers();
+                        window.globeController.globeView.refreshEventMarkers(true, {
+                            preservePaginationThumbEntrance: true
+                        });
                     }
                 });
             }

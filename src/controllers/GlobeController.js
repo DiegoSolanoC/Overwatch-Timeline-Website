@@ -217,8 +217,8 @@ export class GlobeController {
         
         // Setup event pagination
         this.uiView.setupEventPagination(() => {
-            // Refresh event markers when page changes
-            this.globeView.refreshEventMarkers();
+            // Refresh event markers when page changes; preserve dock thumb stagger (applyFilters runs ~50ms later)
+            this.globeView.refreshEventMarkers(true, { preservePaginationThumbEntrance: true });
         });
 
         // Defer WebGL resize to animate() (same rAF as render) so the compositor never shows a cleared buffer.

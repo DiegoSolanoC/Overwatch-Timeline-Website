@@ -88,7 +88,7 @@
 }
 
 /* Desktop: keep image area over globe/map only — not over pagination dock */
-@media (min-width: 769px) and (min-height: 500px) {
+@media (min-width: 769px) and (min-height: 600px) {
     .event-image-overlay {
         bottom: calc(var(--footer-height) + var(--pagination-dock-height, 290px));
     }

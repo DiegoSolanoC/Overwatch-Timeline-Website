@@ -1,6 +1,6 @@
 /**
  * Global keyboard shortcuts (timeline mode, panels, pagination).
- * Loaded as a classic script; uses capture phase so we can preempt duplicate handlers where needed.
+ * Z: pagination dock collapse/expand (desktop dock). Loaded as a classic script; capture phase.
  */
 (function initAppKeyboardShortcuts() {
     if (window.__appKeyboardShortcutsInstalled) return;
@@ -449,6 +449,13 @@
         }
         if (lower === 'r') {
             if (clickIfEnabled('autoRotateToggle')) consumeEvent(e);
+            return;
+        }
+        if (lower === 'z') {
+            var pdc = window.PaginationDockCollapse;
+            if (pdc && typeof pdc.toggle === 'function' && pdc.toggle()) {
+                consumeEvent(e);
+            }
             return;
         }
         if (key === 'Enter') {

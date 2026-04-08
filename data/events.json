@@ -18,7 +18,8 @@
       ],
       "lat": 52.0799838,
       "lon": 4.3113461,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2015
     },
     {
       "name": "Reinhardt Wilhelm is Born",
@@ -44,7 +45,8 @@
       ],
       "lat": 48.7758,
       "lon": 9.1829,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2015
     },
     {
       "name": "Ana Amari is Born",
@@ -68,7 +70,8 @@
       ],
       "lat": 30.0444,
       "lon": 31.2357,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2017
     },
     {
       "name": "Gabriel Reyes is Born",
@@ -92,7 +95,8 @@
       ],
       "lat": 34.0522,
       "lon": -119.2,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2018
     },
     {
       "name": "Torbjörn Lindholm is Born",
@@ -118,7 +122,8 @@
       ],
       "lat": 57.7072326,
       "lon": 11.9670171,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2019
     },
     {
       "name": "Medical Miracles",
@@ -131,7 +136,7 @@
         "Doomfist"
       ],
       "factions": [
-        "05Omnica"
+        "Omnica"
       ],
       "sources": [
         {
@@ -147,6 +152,8 @@
       ],
       "lat": 43.6534817,
       "lon": -79.3839347,
+      "yearStart": 2020,
+      "yearEnd": 2040,
       "eraName": "The Age of Progress"
     },
     {
@@ -158,7 +165,7 @@
           "description": "Dr. Leonel Namuaca was working on a revolutionary device which, thanks to nano-filtration systems, managed to greatly improve the cleansing of water from polluted and non-potable sources. Inspired by his life of struggle as climate change forced his family away from home, his purifiers quickly took over the world, helping to stop waterborne illness, and improving water efficiency in regions where it was scarce.",
           "filters": [],
           "factions": [
-            "09Lucheng"
+            "Lucheng"
           ],
           "sources": [
             {
@@ -201,6 +208,8 @@
       ],
       "lat": -14.966969,
       "lon": 39.2707752,
+      "yearStart": 2020,
+      "yearEnd": 2040,
       "eraName": "The Age of Progress"
     },
     {
@@ -225,7 +234,8 @@
       ],
       "lat": 39.1670396,
       "lon": -86.5342881,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2021
     },
     {
       "name": "Greener Energy",
@@ -235,7 +245,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "09Lucheng"
+        "Lucheng"
       ],
       "sources": [
         {
@@ -250,6 +260,8 @@
       ],
       "lat": 4.7831994,
       "lon": -73.6731282,
+      "yearStart": 2020,
+      "yearEnd": 2040,
       "eraName": "The Age of Progress"
     },
     {
@@ -263,7 +275,7 @@
             "Mauga"
           ],
           "factions": [
-            "02Ecopoints"
+            "Ecopoints"
           ],
           "sources": [
             {
@@ -313,6 +325,8 @@
       ],
       "lat": 21.304547,
       "lon": -157.855676,
+      "yearStart": 2020,
+      "yearEnd": 2040,
       "eraName": "The Age of Progress"
     },
     {
@@ -345,7 +359,8 @@
       ],
       "lat": 43.6534817,
       "lon": -79.3839347,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2028
     },
     {
       "name": "The Nuclear Solution",
@@ -355,7 +370,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "05Omnica"
+        "Omnica"
       ],
       "sources": [
         {
@@ -369,6 +384,8 @@
       ],
       "lat": 42.3315509,
       "lon": -83.0466403,
+      "yearStart": 2020,
+      "yearEnd": 2040,
       "eraName": "The Age of Progress"
     },
     {
@@ -392,7 +409,8 @@
       ],
       "lat": -25,
       "lon": 135,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2028
     },
     {
       "name": "Rising Tides",
@@ -402,7 +420,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "02Ecopoints"
+        "Ecopoints"
       ],
       "sources": [
         {
@@ -420,6 +438,8 @@
       "secondaryCountryFlags": [
         "Venezuela.png"
       ],
+      "yearStart": 2020,
+      "yearEnd": 2040,
       "eraName": "The Age of Progress"
     },
     {
@@ -432,7 +452,7 @@
         "Illari"
       ],
       "factions": [
-        "06Inti Warriors"
+        "Inti Warriors"
       ],
       "sources": [
         {
@@ -445,6 +465,8 @@
       ],
       "lat": -13.1631,
       "lon": -72.545,
+      "yearStart": 2020,
+      "yearEnd": 2040,
       "eraName": "The Age of Progress"
     },
     {
@@ -468,7 +490,8 @@
       ],
       "lat": 53.3493795,
       "lon": -6.2605593,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2029
     },
     {
       "name": "Akande Ogundimu is Born",
@@ -492,7 +515,8 @@
       ],
       "lat": 8.2151249,
       "lon": 3.5642897,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2031
     },
     {
       "name": "Emre Sarioglu is Born",
@@ -512,7 +536,8 @@
       ],
       "lat": 41.006381,
       "lon": 28.9758715,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2034
     },
     {
       "name": "Mei-Ling Zhou is Born",
@@ -535,7 +560,8 @@
       ],
       "lat": 34.261004,
       "lon": 108.9423363,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2036
     },
     {
       "name": "Wuxing University",
@@ -543,12 +569,9 @@
       "cityDisplayName": "Chengdu, China",
       "description": "With all the new technologies that were arising, academic institutions were constantly growing, as more people wanted to get into the many new technological fields that were opening, and one of the schools that quickly took the lead in the world would be Wuxing University. According to the academy's teachings, centuries ago, a wise family had dedicated themselves to the understanding and application of the traditional Wuxing philosophy, and the study of the building blocks of the world. With the years of accumulated knowledge, they founded what later became the University, where traditional wisdom was to pioneer new science, for students to have all the knowledge of the past available to guide their future.\n\nThe University, true to its name, splits its fields of study into five categories, relating to the phases of the Wuxing teachings.\nThe Fire College, for the study of martial arts and defensive strategies.\nThe Metal College, for robotics and technological engineering.\nThe Water College, for traditional medicine and applications into new medical advancements.\nThe Earth College, for agricultural and sustainability studies.\nAnd Wood College, for civil and environmental engineering.\nEach of these faculties played major roles in China's major advancements during the following decades, quickly increasing the College's prestige across the world.",
       "image": "",
-      "filters": [
-        "Wuyang",
-        "Anran"
-      ],
+      "filters": [],
       "factions": [
-        "10Wuxing University"
+        "Wuxing University"
       ],
       "sources": [
         {
@@ -562,6 +585,8 @@
       ],
       "lat": 30.659867,
       "lon": 104.063315,
+      "yearStart": 2030,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -572,8 +597,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "05Omnica",
-        "06Crisis"
+        "Omnica",
+        "Crisis"
       ],
       "sources": [
         {
@@ -587,6 +612,8 @@
       ],
       "lat": 42.3315509,
       "lon": -83.0466403,
+      "yearStart": 2030,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -610,7 +637,8 @@
       ],
       "lat": 29.7057858,
       "lon": -95.4588299,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2037
     },
     {
       "name": "Hanzo Shimada is Born",
@@ -635,7 +663,8 @@
       ],
       "lat": 35.6768601,
       "lon": 139.7638947,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2038
     },
     {
       "name": "Nourishing the World",
@@ -659,6 +688,8 @@
       ],
       "lat": 40.7579554,
       "lon": -73.9855319,
+      "yearStart": 2030,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -688,6 +719,8 @@
         "Morocco.png",
         "Iraq.png"
       ],
+      "yearStart": 2030,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -711,7 +744,8 @@
       ],
       "lat": 47.3744489,
       "lon": 8.5410422,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2039
     },
     {
       "name": "Cole Cassidy is Born",
@@ -734,7 +768,8 @@
       ],
       "lat": 30.2711286,
       "lon": -97.7436995,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2039
     },
     {
       "name": "Hardlight for the World",
@@ -744,7 +779,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "12Vishkar"
+        "Vishkar"
       ],
       "sources": [
         {
@@ -758,6 +793,8 @@
       ],
       "lat": 12.9767936,
       "lon": 77.590082,
+      "yearStart": 2030,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -768,8 +805,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "04Omnica",
-        "12Crisis"
+        "Omnica",
+        "Crisis"
       ],
       "sources": [
         {
@@ -790,6 +827,8 @@
         "Mexico.png",
         "Finland.png"
       ],
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -813,7 +852,8 @@
       ],
       "lat": 20.0410035,
       "lon": -72.785587,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2041
     },
     {
       "name": "Maugaloa Malosi is Born",
@@ -836,7 +876,8 @@
       ],
       "lat": -13.8345235,
       "lon": -171.7630955,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2041
     },
     {
       "name": "Voslkaya Industries",
@@ -846,7 +887,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "19Volskaya"
+        "Volskaya"
       ],
       "sources": [
         {
@@ -860,6 +901,8 @@
       ],
       "lat": 59.938732,
       "lon": 30.316229,
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -885,7 +928,8 @@
       ],
       "lat": 35.6768601,
       "lon": 139.7638947,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2041
     },
     {
       "name": "Amélie Lacroix is Born",
@@ -905,7 +949,8 @@
       ],
       "lat": 45.8992348,
       "lon": 6.1288847,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2043
     },
     {
       "name": "Upgrades",
@@ -932,6 +977,7 @@
       ],
       "lat": 43.6534817,
       "lon": -79.3839347,
+      "yearStart": 2044,
       "eraName": "The Age of Progress"
     },
     {
@@ -955,7 +1001,8 @@
       ],
       "lat": 55.6867243,
       "lon": 12.5700724,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2044
     },
     {
       "locationType": "earth",
@@ -966,7 +1013,7 @@
           "description": "Like many other fields of science, astronomy had taken massive leaps over the years, with the monitoring of near-earth objects becoming so advanced, that it allowed humanity to avoid and divert the course of extinction-level asteroids and telescopes were becoming so accurate that many mysteries of old had been solved, and with those new ones arrived.\n\nAt the center of all of these developments was Lucheng Interstellar, a chinese corporation that had envisioned humanity's future in the stars, developing plans for long-range space travel over the years. But before this was possible, they needed to pursue further research into the long-term effects of low gravity on living organisms. In order to do this, they partnered with many scientists across the world, including the Indian Space Research Organization, which had been developing massive mag lev satellite launchers for years. Thanks to IRSO's launching tracks, Lucheng would be able to speed up the construction of their first major milestone in the stars, the Horizon Lunar Colony.",
           "filters": [],
           "factions": [
-            "07Lucheng"
+            "Lucheng"
           ],
           "sources": [
             {
@@ -1015,6 +1062,8 @@
       ],
       "lat": 23.2599,
       "lon": 77.4126,
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1046,7 +1095,8 @@
       "secondaryCountryFlags": [
         "Canada.png"
       ],
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2045
     },
     {
       "name": "Tekhartha Zenyatta is Made",
@@ -1070,7 +1120,8 @@
       ],
       "lat": 42.3315509,
       "lon": -83.0466403,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2025
     },
     {
       "name": "SST Laboratories Siege Automaton E54 is Made",
@@ -1095,7 +1146,8 @@
       ],
       "lat": 57.7072326,
       "lon": 11.9670171,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2046
     },
     {
       "name": "Vaira Singhania is Born",
@@ -1120,7 +1172,8 @@
       "secondaryCountryFlags": [
         "India.png"
       ],
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2046
     },
     {
       "name": "Olivia Colomar is Born",
@@ -1143,7 +1196,8 @@
       ],
       "lat": 18,
       "lon": -95,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2046
     },
     {
       "name": "Specimen 28 is Born",
@@ -1171,7 +1225,8 @@
       "secondaryCountryFlags": [
         "Horizon Lunar Colony.png"
       ],
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2047
     },
     {
       "name": "The Ironclad Guild",
@@ -1184,7 +1239,7 @@
         "Bastion"
       ],
       "factions": [
-        "10Ironclad"
+        "Ironclad"
       ],
       "sources": [
         {
@@ -1197,6 +1252,8 @@
       ],
       "lat": 57.7072326,
       "lon": 11.9670171,
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1217,7 +1274,8 @@
       ],
       "lat": -25,
       "lon": 135,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2047
     },
     {
       "name": "Genesis",
@@ -1229,8 +1287,8 @@
         "Echo"
       ],
       "factions": [
-        "04Omnica",
-        "26Shambali"
+        "Omnica",
+        "Shambali"
       ],
       "sources": [
         {
@@ -1247,6 +1305,8 @@
       "secondaryCountryFlags": [
         "Singapore.png"
       ],
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1260,7 +1320,7 @@
         "Sigma"
       ],
       "factions": [
-        "07Lucheng"
+        "Lucheng"
       ],
       "sources": [
         {
@@ -1277,6 +1337,8 @@
       "secondaryCountryFlags": [
         "Moon.png"
       ],
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1288,7 +1350,7 @@
           "description": "After gaining personhood, Aurora was let go into the world. She was a curious soul who wondered from place to place, learning about humanity, their history and the way people across the planet behave. But deep down, Aurora always had questions about her own existence.\n\nBeing born alone, unlike anybody else in the world, was a heavy thought in her mind, and that existentialism led her to a path of meditation. She traveled through the Himalayan mountains and found the ancient monk temple of Shambali, where she hoped to find peace with herself.",
           "filters": [],
           "factions": [
-            "13Shambali"
+            "Shambali"
           ],
           "sources": [
             {
@@ -1330,6 +1392,8 @@
       ],
       "lat": 28.3949,
       "lon": 84.124,
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1342,7 +1406,7 @@
         "Vendetta"
       ],
       "factions": [
-        "04Talon"
+        "Talon"
       ],
       "sources": [
         {
@@ -1356,6 +1420,8 @@
       ],
       "lat": 45.4371908,
       "lon": 12.3345898,
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1376,7 +1442,8 @@
       ],
       "lat": 18.7882778,
       "lon": 98.9858802,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2048
     },
     {
       "name": "Knights in Shining Armor",
@@ -1388,7 +1455,7 @@
         "Reinhardt"
       ],
       "factions": [
-        "09Crusaders"
+        "Crusaders"
       ],
       "sources": [
         {
@@ -1402,6 +1469,8 @@
       ],
       "lat": 52.5173885,
       "lon": 13.3951309,
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1422,7 +1491,8 @@
       ],
       "lat": 17.360589,
       "lon": 78.4740613,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2048
     },
     {
       "name": "To Build a Better Soldier",
@@ -1449,6 +1519,8 @@
       "secondaryCountryFlags": [
         "Australia.png"
       ],
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1459,7 +1531,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "12Crisis"
+        "Crisis"
       ],
       "sources": [
         {
@@ -1476,6 +1548,8 @@
       "secondaryCountryFlags": [
         "Nigeria.png"
       ],
+      "yearStart": 2040,
+      "yearEnd": 2050,
       "eraName": "The Age of Progress"
     },
     {
@@ -1496,7 +1570,8 @@
       ],
       "lat": 60,
       "lon": 100,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2048
     },
     {
       "name": "Lena Oxton is Born",
@@ -1516,7 +1591,8 @@
       ],
       "lat": 51.5074456,
       "lon": -0.1277653,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2049
     },
     {
       "name": "Marzia Bartalotti is Born",
@@ -1539,7 +1615,8 @@
       ],
       "lat": 41.8933203,
       "lon": 12.4829321,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "yearStart": 2050
     },
     {
       "name": "Lúcio Correia Dos Santos",
@@ -1559,6 +1636,7 @@
       ],
       "lat": -22.9110137,
       "lon": -43.2093727,
+      "yearStart": 2051,
       "eraName": "The Age of Progress"
     },
     {
@@ -1569,8 +1647,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "12Crisis",
-        "04Omnica"
+        "Crisis",
+        "Omnica"
       ],
       "sources": [
         {
@@ -1592,6 +1670,7 @@
       "secondaryCountryFlags": [
         "Egypt.png"
       ],
+      "yearStart": 2051,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1621,7 +1700,8 @@
       "secondaryCountryFlags": [
         "Egypt.png"
       ],
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "yearStart": 2051
     },
     {
       "name": "The Caribbean Coalition",
@@ -1633,8 +1713,8 @@
         "Baptiste"
       ],
       "factions": [
-        "12Crisis",
-        "15Caribbean Coalition"
+        "Crisis",
+        "Caribbean Coalition"
       ],
       "sources": [
         {
@@ -1687,6 +1767,8 @@
         "Turks And Caicos Islands.png",
         "United States Virgin Islands.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1697,8 +1779,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "19Volskaya",
-        "06Crisis"
+        "Volskaya",
+        "Crisis"
       ],
       "sources": [
         {
@@ -1712,6 +1794,8 @@
       ],
       "lat": 55.625578,
       "lon": 37.6063916,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1724,8 +1808,8 @@
         "Torbjörn"
       ],
       "factions": [
-        "06Crisis",
-        "10Ironclad"
+        "Crisis",
+        "Ironclad"
       ],
       "sources": [
         {
@@ -1739,6 +1823,8 @@
       ],
       "lat": 57.7072326,
       "lon": 11.9670171,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1749,7 +1835,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "12Crisis"
+        "Crisis"
       ],
       "sources": [
         {
@@ -1767,6 +1853,8 @@
         "Spain.png",
         "Gibraltar.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1779,7 +1867,7 @@
         "Torbjörn"
       ],
       "factions": [
-        "06Crisis"
+        "Crisis"
       ],
       "sources": [
         {
@@ -1793,6 +1881,8 @@
       ],
       "lat": 40.7579554,
       "lon": -73.9855319,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1805,7 +1895,7 @@
         "Sojourn"
       ],
       "factions": [
-        "06Crisis"
+        "Crisis"
       ],
       "sources": [
         {
@@ -1819,6 +1909,8 @@
       ],
       "lat": 43.6532,
       "lon": -79.3832,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1831,8 +1923,8 @@
         "Sigma"
       ],
       "factions": [
-        "12Crisis",
-        "07Lucheng"
+        "Crisis",
+        "Lucheng"
       ],
       "sources": [
         {
@@ -1850,6 +1942,8 @@
       "secondaryCountryFlags": [
         "China.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1863,8 +1957,8 @@
         "Anran"
       ],
       "factions": [
-        "12Crisis",
-        "10Wuxing University"
+        "Crisis",
+        "Wuxing University"
       ],
       "sources": [
         {
@@ -1878,6 +1972,8 @@
       ],
       "lat": 30.659867,
       "lon": 104.063315,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1890,8 +1986,8 @@
         "Illari"
       ],
       "factions": [
-        "12Crisis",
-        "06Inti Warriors"
+        "Crisis",
+        "Inti Warriors"
       ],
       "sources": [
         {
@@ -1905,6 +2001,8 @@
       ],
       "lat": -13.1631,
       "lon": -72.545,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1917,8 +2015,8 @@
         "Doomfist"
       ],
       "factions": [
-        "25Numbani",
-        "06Crisis"
+        "Numbani",
+        "Crisis"
       ],
       "sources": [
         {
@@ -1932,6 +2030,8 @@
       ],
       "lat": 6.4550575,
       "lon": 3.3941795,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1942,8 +2042,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "19Volskaya",
-        "06Crisis"
+        "Volskaya",
+        "Crisis"
       ],
       "sources": [
         {
@@ -1957,6 +2057,8 @@
       ],
       "lat": 55.625578,
       "lon": 37.6063916,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1967,8 +2069,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "00Overwatch",
-        "12Crisis"
+        "Overwatch",
+        "Crisis"
       ],
       "sources": [
         {
@@ -1985,6 +2087,8 @@
       "secondaryCountryFlags": [
         "Nigeria.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -1997,7 +2101,7 @@
         "Ana"
       ],
       "factions": [
-        "12Crisis"
+        "Crisis"
       ],
       "sources": [
         {
@@ -2013,6 +2117,8 @@
       "secondaryCountryFlags": [
         "Canada.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2025,8 +2131,8 @@
         "Torbjörn"
       ],
       "factions": [
-        "08Ironclad",
-        "12Crisis"
+        "Ironclad",
+        "Crisis"
       ],
       "sources": [
         {
@@ -2044,6 +2150,8 @@
         "Germany.png",
         "Syria.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2056,8 +2164,8 @@
         "Reinhardt"
       ],
       "factions": [
-        "12Crisis",
-        "09Crusaders"
+        "Crisis",
+        "Crusaders"
       ],
       "sources": [
         {
@@ -2071,6 +2179,8 @@
       ],
       "lat": 52.5173885,
       "lon": 13.3951309,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2084,7 +2194,7 @@
         "Reaper"
       ],
       "factions": [
-        "06Crisis"
+        "Crisis"
       ],
       "sources": [
         {
@@ -2098,6 +2208,8 @@
       ],
       "lat": 35.3921902,
       "lon": -100.2632764,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2110,8 +2222,8 @@
         "Reinhardt"
       ],
       "factions": [
-        "12Crisis",
-        "09Crusaders"
+        "Crisis",
+        "Crusaders"
       ],
       "sources": [
         {
@@ -2129,6 +2241,8 @@
       ],
       "lat": 50,
       "lon": 8,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2142,7 +2256,7 @@
             "Torbjörn"
           ],
           "factions": [
-            "12Crisis"
+            "Crisis"
           ],
           "sources": [
             {
@@ -2196,6 +2310,8 @@
       ],
       "lat": 40.7579554,
       "lon": -73.9855319,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2213,8 +2329,8 @@
             "Torbjörn"
           ],
           "factions": [
-            "00Overwatch",
-            "06Crisis"
+            "Overwatch",
+            "Crisis"
           ],
           "sources": [
             {
@@ -2270,6 +2386,8 @@
       ],
       "lat": 47.3744489,
       "lon": 8.5410422,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2280,8 +2398,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "19Volskaya",
-        "06Crisis"
+        "Volskaya",
+        "Crisis"
       ],
       "lat": 63.4629473,
       "lon": 142.7869693,
@@ -2295,6 +2413,8 @@
         "War Hero dies defending Siberian town",
         "Radiation Zone declared in Oymyakon, evacuation mandatory"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2311,9 +2431,9 @@
         "Torbjörn"
       ],
       "factions": [
-        "05Omnica",
-        "06Crisis",
-        "00Overwatch"
+        "Omnica",
+        "Crisis",
+        "Overwatch"
       ],
       "lat": 41.8755616,
       "lon": -87.6244212,
@@ -2326,6 +2446,8 @@
       "headlines": [
         "Mina Liao Joins Overwatch Initiaitve"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2343,8 +2465,8 @@
         "Torbjörn"
       ],
       "factions": [
-        "00Overwatch",
-        "12Crisis"
+        "Overwatch",
+        "Crisis"
       ],
       "sources": [
         {
@@ -2360,6 +2482,8 @@
       "secondaryCountryFlags": [
         "Canada.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2373,9 +2497,9 @@
             "Torbjörn"
           ],
           "factions": [
-            "05Omnica",
-            "06Crisis",
-            "26Conspiracy"
+            "Omnica",
+            "Crisis",
+            "Conspiracy"
           ],
           "image": "",
           "locationType": "earth",
@@ -2419,6 +2543,8 @@
       ],
       "lat": 60.1666204,
       "lon": 24.9435408,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2430,7 +2556,7 @@
           "description": "The New Yorker survivors turned the city into a stronghold, setting up explosions in the tunnels leading outside of Manhattan and destroying all but 3 bridges, Washington, Queensboro and Willamsburg, left only in case a rethreat was needed. Anubis had caught on to their tactics, and began amassing warbots at the end of the bridges. After a long silence, they began their attack. Anubis attacked all the bridges at once with endless waves of Omnics, and while they did, many other machines attempted to reach the city through the tunnels and even crossing the river by foot. The event was a massacre, and as the defenders got pushed back, one by one each of the bridges was taken. On the subways, the battle was slightly better, as warbots were stopped by collapsing tunnels and runaway cars, but on the other hand, as Omnics set off the land mines in the river, their bodies made for a safe bridge that other units could walk over.\n\nHaving lost the shores to the Omnics, humanity had no option but to retreat, as the Ravagers led their troops through the fallen buildings. Once the island was breached, the next objects were Central Farm and the Sky Cannons, leading to endless guerrilla warfare and hundreds of casualties.",
           "filters": [],
           "factions": [
-            "06Crisis"
+            "Crisis"
           ],
           "image": "",
           "locationType": "earth",
@@ -2474,6 +2600,8 @@
       ],
       "lat": 40.7579554,
       "lon": -73.9855319,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2499,7 +2627,8 @@
       ],
       "lat": -25,
       "lon": 135,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "yearStart": 2052
     },
     {
       "name": "Bombardment",
@@ -2511,8 +2640,8 @@
         "Torbjörn"
       ],
       "factions": [
-        "10Ironclad",
-        "06Crisis"
+        "Ironclad",
+        "Crisis"
       ],
       "lat": 57.7072326,
       "lon": 11.9670171,
@@ -2526,6 +2655,8 @@
         "The Swedish \"Heroic Five\" die during bombardment",
         "Millions saved by Swedish portable bunker system"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2538,7 +2669,7 @@
         "Doomfist"
       ],
       "factions": [
-        "06Crisis"
+        "Crisis"
       ],
       "sources": [
         {
@@ -2551,6 +2682,8 @@
       ],
       "lat": 7.3786064,
       "lon": 3.8969928,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2561,10 +2694,10 @@
       "image": "",
       "filters": [],
       "factions": [
-        "05Omnica",
-        "13Shambali",
-        "06Crisis",
-        "00Overwatch"
+        "Omnica",
+        "Shambali",
+        "Crisis",
+        "Overwatch"
       ],
       "lat": 28.3949,
       "lon": 84.124,
@@ -2582,6 +2715,8 @@
         "Omnic troops stop fighting world wide",
         "Warbot drops gun and helps human troops"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2614,7 +2749,8 @@
         "Mexico.png",
         "Singapore.png"
       ],
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "yearStart": 2052
     },
     {
       "locationType": "earth",
@@ -2631,8 +2767,8 @@
             "Torbjörn"
           ],
           "factions": [
-            "06Crisis",
-            "00Overwatch"
+            "Crisis",
+            "Overwatch"
           ],
           "image": "",
           "locationType": "earth",
@@ -2687,6 +2823,8 @@
       ],
       "lat": 30.0443879,
       "lon": 31.2357257,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2697,8 +2835,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "00Overwatch",
-        "12Crisis"
+        "Overwatch",
+        "Crisis"
       ],
       "lat": -6.1754049,
       "lon": 106.827168,
@@ -2716,6 +2854,8 @@
         "New Zealand.png",
         "Spain.png"
       ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
     },
     {
@@ -2744,6 +2884,8 @@
       ],
       "lat": 40.7579554,
       "lon": -73.9855319,
+      "yearStart": 2051,
+      "yearEnd": 2053,
       "eraName": "The Golden Age"
     },
     {
@@ -2754,8 +2896,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "13Lumerico",
-        "21Los Muertos"
+        "Lumerico",
+        "Los Muertos"
       ],
       "lat": 19.3207722,
       "lon": -99.1514678,
@@ -2770,6 +2912,8 @@
         "Giant power grid plants to be build across Mexico",
         "Mexican gang violence on the rise even after blackouts seize"
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -2794,6 +2938,8 @@
         "Omnics and Humans come together over the winter",
         "Disputes over Omnic rights continue to grow"
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -2804,8 +2950,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "19Numbani",
-        "00Overwatch"
+        "Numbani",
+        "Overwatch"
       ],
       "lat": 12.0022,
       "lon": 8.5919,
@@ -2823,6 +2969,8 @@
         "Nigeria.png",
         "Switzerland.png"
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -2847,6 +2995,8 @@
         "Omnics worldwide begin to come back to their old homes",
         "Machines refuse to return to unpaid labor"
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -2861,8 +3011,8 @@
         "Reaper"
       ],
       "factions": [
-        "00Overwatch",
-        "01Blackwatch"
+        "Overwatch",
+        "Blackwatch"
       ],
       "lat": 47.3744489,
       "lon": 8.5410422,
@@ -2879,6 +3029,8 @@
       "secondaryCountryFlags": [
         "Turkey.png"
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -2894,7 +3046,7 @@
         "Emre"
       ],
       "factions": [
-        "00Overwatch"
+        "Overwatch"
       ],
       "lat": 41.006381,
       "lon": 28.9758715,
@@ -2908,6 +3060,7 @@
         "Anubis allied Omnics attack Istanbul",
         "Overwatch agent severely wounded"
       ],
+      "yearStart": 2053,
       "eraName": "The Golden Age"
     },
     {
@@ -2932,7 +3085,8 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/brigitte/"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2053
     },
     {
       "name": "Watching the Globe",
@@ -2942,7 +3096,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "00Overwatch"
+        "Overwatch"
       ],
       "lat": 36.1408,
       "lon": -5.3536,
@@ -2964,20 +3118,22 @@
         "Iceland.png",
         "Switzerland.png"
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
       "name": "One with the Iris",
       "locationType": "earth",
       "cityDisplayName": "Shambali Monastery, Nepal",
-      "description": "",
+      "description": "The newly awakened Omnics found themselves in a cold, hostage world. Many were persecuted if not outright hunted and killed, yet on top of it all, most ended up questioning the reason for their existance. How did they cope with being brought to life in such dire conditions? These Omnics traveled the world looking for answers, just like Aurora once did, and it wouldn't be long before they began following her path.\n\n\n\nA cult of travelers led by Tekhartha Mondatta, who dedicated his life to studying Aurora's life, trying to gather a complete picture to truly understand her choice, and his place in the world. His journey took the Omnics to Suravasa, where they would choose to abandon the secular world, and begin Aurora's pilgrimage into the Nepalese Himalayas, to honor her memory. Their journey would take the monks to the ruins of a monastery, Aurora's resting place, where she had finally found enlightenment. In there laid the Iris, a metaphysical anomaly formed as a result of the Awakening pulse. The Monks would mark the start of the Shambali religion, studying the Iris, harnessing its energy in hand-crafted orbs to use for meditation, and living under the ideal that unity and coexistence between Humans and Omnics was achievable, as the way they saw it, they are all one within the Iris.\n\n\n\nIt would be here where two Omnics, Ramattra and Zenyatta, would become as close as brothers. Ramattra had chosen to follow Mondatta, lost in grief by the suffering of his people. He later invited Zenyatta to join him, as he hoped together they could find a sense of purpose and harmony amidst conflict. The Shambali faith would quickly grow across the Omnic communities of the world and be a key factor in the Omnic rights movement. Dr. Mina Liao herself would often visit the Monastery, both for study of the Iris, and to organize meetings amongst leaders, like Mondatta, as she had grown to be quite the prominent Omnic right activist following the Awakening. The monks naturally welcomed her warmly, and shared her cause.",
       "image": "",
       "filters": [
         "Ramattra",
         "Zenyatta"
       ],
       "factions": [
-        "26Shambali"
+        "Shambali"
       ],
       "lat": 28.3949,
       "lon": 84.124,
@@ -2987,6 +3143,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -3011,7 +3169,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2053,
+      "yearEnd": 2060
     },
     {
       "locationType": "earth",
@@ -3024,7 +3184,7 @@
             "Roadhog"
           ],
           "factions": [
-            "16Junkers"
+            "Junkers"
           ],
           "image": "",
           "locationType": "earth",
@@ -3056,23 +3216,8 @@
       ],
       "lat": -25,
       "lon": 135,
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Deadlock Rebels",
-      "locationType": "earth",
-      "cityDisplayName": "Bellaire, United States",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Cassidy",
-        "Ashe"
-      ],
-      "factions": [
-        "14Deadlock"
-      ],
-      "lat": 29.7057858,
-      "lon": -95.4588299,
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -3089,7 +3234,9 @@
       ],
       "lat": 35.6762,
       "lon": 139.6503,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2053,
+      "yearEnd": 2060
     },
     {
       "name": "Miracle Worker",
@@ -3112,7 +3259,9 @@
       ],
       "lat": 47.3744489,
       "lon": 8.5410422,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2053,
+      "yearEnd": 2060
     },
     {
       "name": "Findlay Docherty is Born",
@@ -3132,7 +3281,42 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/hazard/"
         }
       ],
+      "eraName": "The Golden Age",
+      "yearStart": 2054
+    },
+    {
+      "name": "Deadlock Rebels",
+      "locationType": "earth",
+      "cityDisplayName": "Bellaire, United States",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Cassidy",
+        "Ashe"
+      ],
+      "factions": [
+        "Deadlock"
+      ],
+      "lat": 29.7057858,
+      "lon": -95.4588299,
+      "yearStart": 2055,
       "eraName": "The Golden Age"
+    },
+    {
+      "name": "Rebuilding the Past",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "17Colloseo Gladiatori"
+      ],
+      "lat": 41.8909421,
+      "lon": 12.491903,
+      "eraName": "The Golden Age",
+      "yearStart": 2053,
+      "yearEnd": 2060
     },
     {
       "name": "Ye Anran is Born",
@@ -3152,7 +3336,8 @@
       ],
       "lat": 30.659867,
       "lon": 104.063315,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056
     },
     {
       "name": "The New West",
@@ -3167,9 +3352,9 @@
         "Ana"
       ],
       "factions": [
-        "00Overwatch",
-        "01Blackwatch",
-        "14Deadlock"
+        "Overwatch",
+        "Blackwatch",
+        "Deadlock"
       ],
       "lat": 40.0170005,
       "lon": -105.2664724,
@@ -3179,6 +3364,7 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2056,
       "eraName": "The Golden Age"
     },
     {
@@ -3199,21 +3385,8 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/dva/"
         }
       ],
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Rebuilding the Past",
-      "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "17Colloseo Gladiatori"
-      ],
-      "lat": 41.8909421,
-      "lon": 12.491903,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2057
     },
     {
       "name": "Mizuki Kawano is Born",
@@ -3233,7 +3406,8 @@
       ],
       "lat": 33.6251241,
       "lon": 130.6180016,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2057
     },
     {
       "name": "Vancouver Floods",
@@ -3259,7 +3433,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056,
+      "yearEnd": 2060
     },
     {
       "name": "Building Coalitions",
@@ -3282,7 +3458,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056,
+      "yearEnd": 2060
     },
     {
       "name": "Kiriko Kamori is Born",
@@ -3302,7 +3480,8 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/kiriko/"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2057
     },
     {
       "name": "The Architech Academy",
@@ -3315,7 +3494,7 @@
         "Lifeweaver"
       ],
       "factions": [
-        "05Vishkar"
+        "Vishkar"
       ],
       "lat": 23.2599,
       "lon": 77.4126,
@@ -3325,6 +3504,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2056,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -3347,7 +3528,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056,
+      "yearEnd": 2060
     },
     {
       "name": "Ecological Initiative",
@@ -3368,7 +3551,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056,
+      "yearEnd": 2060
     },
     {
       "name": "The Scourge of Numbani",
@@ -3390,7 +3575,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056,
+      "yearEnd": 2060
     },
     {
       "name": "Gwishin",
@@ -3411,7 +3598,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056,
+      "yearEnd": 2060
     },
     {
       "name": "Black Ops",
@@ -3435,7 +3624,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2056,
+      "yearEnd": 2060
     },
     {
       "name": "Growing with the Clan",
@@ -3449,10 +3640,12 @@
         "Kiriko"
       ],
       "factions": [
-        "21Shimada"
+        "Shimada"
       ],
       "lat": 35.3606,
       "lon": 138.7274,
+      "yearStart": 2057,
+      "yearEnd": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -3463,7 +3656,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "18Max's Vault"
+        "Max's Vault"
       ],
       "lat": 43.7402961,
       "lon": 7.426559,
@@ -3472,6 +3665,8 @@
           "text": "Pocket King"
         }
       ],
+      "yearStart": 2063,
+      "yearEnd": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -3484,7 +3679,7 @@
         "Juno"
       ],
       "factions": [
-        "07Lucheng"
+        "Lucheng"
       ],
       "lat": 26.8595868,
       "lon": 100.2249797,
@@ -3493,6 +3688,8 @@
           "text": "Red Promise"
         }
       ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
       "eraName": "The Golden Age"
     },
     {
@@ -3513,7 +3710,8 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/juno/"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2060
     },
     {
       "name": "Valkirie",
@@ -3526,7 +3724,7 @@
         "Soldier 76"
       ],
       "factions": [
-        "00Overwatch"
+        "Overwatch"
       ],
       "lat": 47.3744489,
       "lon": 8.5410422,
@@ -3536,6 +3734,7 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2063,
       "eraName": "The Golden Age"
     },
     {
@@ -3556,7 +3755,8 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/wuyang/"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2060
     },
     {
       "name": "Radiation Poisoning",
@@ -3571,8 +3771,8 @@
         "Sojourn"
       ],
       "factions": [
-        "00Overwatch",
-        "16Junkers"
+        "Overwatch",
+        "Junkers"
       ],
       "lat": -37.8142454,
       "lon": 144.9631732,
@@ -3582,6 +3782,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2063,
+      "yearEnd": 2065,
       "eraName": "The Golden Age"
     },
     {
@@ -3593,7 +3795,7 @@
           "description": "",
           "filters": [],
           "factions": [
-            "25Shambali"
+            "Shambali"
           ],
           "image": "",
           "locationType": "earth",
@@ -3625,28 +3827,8 @@
       ],
       "lat": 51.5074456,
       "lon": -0.1277653,
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Cursed",
-      "locationType": "earth",
-      "cityDisplayName": "Tokyo, Japan",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Mitzuki"
-      ],
-      "factions": [
-        "23Hashimoto"
-      ],
-      "sources": [
-        {
-          "text": "CurseBreaker",
-          "url": "https://blz-contentstack-assets.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt5c9c4967bc1ece6a/699e363630b74e847e396ff3/Yokai_Micro_EN_Final.pdf"
-        }
-      ],
-      "lat": 35.6768601,
-      "lon": 139.7638947,
+      "yearStart": 2065,
+      "yearEnd": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -3668,25 +3850,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Harnessing te Harness",
-      "locationType": "station",
-      "cityDisplayName": "Interstellar Journey Space Station",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Sigma"
-      ],
-      "factions": [],
-      "sources": [
-        {
-          "text": "Sigma Origin Story",
-          "url": "https://www.youtube.com/watch?v=onplsJSdp4A"
-        }
-      ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
     },
     {
       "name": "Illari Quispe Ruiz is Born",
@@ -3708,7 +3874,45 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/illari/"
         }
       ],
+      "eraName": "The Golden Age",
+      "yearStart": 2060
+    },
+    {
+      "name": "Harnessing te Harness",
+      "locationType": "station",
+      "cityDisplayName": "Interstellar Journey Space Station",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Sigma"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Sigma Origin Story",
+          "url": "https://www.youtube.com/watch?v=onplsJSdp4A"
+        }
+      ],
+      "yearStart": 2053,
+      "yearEnd": 2068,
       "eraName": "The Golden Age"
+    },
+    {
+      "name": "Specimen 8 is Born",
+      "locationType": "moon",
+      "cityDisplayName": "Horizon Lunar Colony",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Wrecking Ball"
+      ],
+      "factions": [
+        "07Lucheng"
+      ],
+      "x": 60,
+      "y": 70,
+      "eraName": "The Golden Age",
+      "yearStart": 2062
     },
     {
       "name": "The Atlantic Arcology",
@@ -3729,7 +3933,47 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
+    },
+    {
+      "name": "Taking the Throne",
+      "locationType": "earth",
+      "cityDisplayName": "Junkertown, Australia",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Junker Queen"
+      ],
+      "factions": [
+        "Junkers"
+      ],
+      "lat": -25,
+      "lon": 135,
+      "sources": [
+        {
+          "text": "The Wastelander",
+          "url": "https://www.youtube.com/watch?v=8-nXN9ZMl8o&t=3s"
+        }
+      ],
+      "yearStart": 2064,
       "eraName": "The Golden Age"
+    },
+    {
+      "name": "Project Echo Goes Online",
+      "locationType": "earth",
+      "cityDisplayName": "Oslo, Norway",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Echo"
+      ],
+      "factions": [],
+      "lat": 59.9133301,
+      "lon": 10.7389701,
+      "eraName": "The Golden Age",
+      "yearStart": 2065
     },
     {
       "name": "Fell Dragons",
@@ -3745,8 +3989,8 @@
         "Hanzo"
       ],
       "factions": [
-        "00Overwatch",
-        "21Shimada"
+        "Overwatch",
+        "Shimada"
       ],
       "lat": 35.6762,
       "lon": 139.6503,
@@ -3756,23 +4000,26 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2066,
       "eraName": "The Golden Age"
     },
     {
-      "name": "Specimen 8 is Born",
-      "locationType": "moon",
-      "cityDisplayName": "Horizon Lunar Colony",
+      "name": "Biolight",
+      "locationType": "earth",
+      "cityDisplayName": "Roshani, India",
       "description": "",
       "image": "",
       "filters": [
-        "Wrecking Ball"
+        "Lifeweaver"
       ],
       "factions": [
-        "07Lucheng"
+        "Vishkar"
       ],
-      "x": 60,
-      "y": 70,
-      "eraName": "The Golden Age"
+      "lat": 23.2599,
+      "lon": 77.4126,
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
     },
     {
       "name": "Search and Rescue",
@@ -3792,20 +4039,31 @@
           "url": "https://overwatch.blizzard.com/en-us/media/comic/freja-comic/"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
     },
     {
-      "name": "Project Echo Goes Online",
+      "name": "Cursed",
       "locationType": "earth",
-      "cityDisplayName": "Oslo, Norway",
+      "cityDisplayName": "Tokyo, Japan",
       "description": "",
       "image": "",
       "filters": [
-        "Echo"
+        "Mitzuki"
       ],
-      "factions": [],
-      "lat": 59.9133301,
-      "lon": 10.7389701,
+      "factions": [
+        "Hashimoto"
+      ],
+      "sources": [
+        {
+          "text": "CurseBreaker",
+          "url": "https://blz-contentstack-assets.akamaized.net/v3/assets/blt2477dcaf4ebd440c/blt5c9c4967bc1ece6a/699e363630b74e847e396ff3/Yokai_Micro_EN_Final.pdf"
+        }
+      ],
+      "lat": 35.6768601,
+      "lon": 139.7638947,
+      "yearStart": 2066,
       "eraName": "The Golden Age"
     },
     {
@@ -3818,7 +4076,7 @@
         "Tracer"
       ],
       "factions": [
-        "00Overwatch"
+        "Overwatch"
       ],
       "lat": 51.5074456,
       "lon": -0.1277653,
@@ -3828,44 +4086,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Taking the Throne",
-      "locationType": "earth",
-      "cityDisplayName": "Junkertown, Australia",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Junker Queen"
-      ],
-      "factions": [
-        "16Junkers"
-      ],
-      "lat": -25,
-      "lon": 135,
-      "sources": [
-        {
-          "text": "The Wastelander",
-          "url": "https://www.youtube.com/watch?v=8-nXN9ZMl8o&t=3s"
-        }
-      ],
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Biolight",
-      "locationType": "earth",
-      "cityDisplayName": "Roshani, India",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Lifeweaver"
-      ],
-      "factions": [
-        "05Vishkar"
-      ],
-      "lat": 23.2599,
-      "lon": 77.4126,
+      "yearStart": 2066,
+      "yearEnd": 2067,
       "eraName": "The Golden Age"
     },
     {
@@ -3889,7 +4111,9 @@
           "url": "https://www.youtube.com/watch?v=8-nXN9ZMl8o&t=3s"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
     },
     {
       "name": "Pressure Makes a DIamond",
@@ -3905,7 +4129,59 @@
       ],
       "lat": 51.5074456,
       "lon": -0.1277653,
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
+    },
+    {
+      "name": "Lunar Revolt",
+      "locationType": "moon",
+      "cityDisplayName": "Horizon Lunar Colony",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Winston",
+        "Wrecking Ball"
+      ],
+      "factions": [
+        "Lucheng"
+      ],
+      "x": 60,
+      "y": 70,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "yearStart": 2062,
+      "yearEnd": 2069,
       "eraName": "The Golden Age"
+    },
+    {
+      "name": "Uneasy Alliance",
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Doomfist"
+      ],
+      "factions": [
+        "03Talon",
+        "18Max's Vault"
+      ],
+      "lat": 43.7402961,
+      "lon": 7.426559,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
     },
     {
       "locationType": "earth",
@@ -3920,8 +4196,8 @@
             "Cassidy"
           ],
           "factions": [
-            "03Talon",
-            "21Shimada"
+            "Talon",
+            "Shimada"
           ],
           "image": "",
           "locationType": "earth",
@@ -3953,52 +4229,7 @@
       ],
       "lat": 35.6762,
       "lon": 139.6503,
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Lunar Revolt",
-      "locationType": "moon",
-      "cityDisplayName": "Horizon Lunar Colony",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Winston",
-        "Wrecking Ball"
-      ],
-      "factions": [
-        "07Lucheng"
-      ],
-      "x": 60,
-      "y": 70,
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Uneasy Alliance",
-      "locationType": "earth",
-      "cityDisplayName": "Monte-Carlo, Monaco",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Doomfist"
-      ],
-      "factions": [
-        "03Talon",
-        "18Max's Vault"
-      ],
-      "lat": 43.7402961,
-      "lon": 7.426559,
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
+      "yearStart": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -4011,10 +4242,11 @@
         "Venture"
       ],
       "factions": [
-        "20Wayfinders"
+        "Wayfinders"
       ],
       "lat": 45.1960403,
       "lon": -63.1653789,
+      "yearStart": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -4038,7 +4270,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
     },
     {
       "name": "Cold Snap",
@@ -4061,7 +4295,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
     },
     {
       "name": "Chronal Dissociation",
@@ -4082,6 +4318,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
+      "yearEnd": 2069,
       "eraName": "The Golden Age"
     },
     {
@@ -5252,10 +5490,11 @@
         "D.va"
       ],
       "factions": [
-        "32Helix Securities"
+        "Helix Securities"
       ],
       "lat": 35.1799528,
       "lon": 129.0752365,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5270,6 +5509,7 @@
       "factions": [],
       "lat": 48.2634439,
       "lon": 8.1647488,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5302,10 +5542,28 @@
         "Lúcio"
       ],
       "factions": [
-        "05Vishkar"
+        "Vishkar"
       ],
       "lat": -22.9110137,
       "lon": -43.2093727,
+      "yearStart": 2077,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Return of the Maiden",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Kiriko"
+      ],
+      "factions": [
+        "Hashimoto"
+      ],
+      "lat": 35.3606,
+      "lon": 138.7274,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5316,7 +5574,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "02Ecopoints"
+        "Ecopoints"
       ],
       "lat": 36.6537668,
       "lon": -124,
@@ -5326,6 +5584,7 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5339,11 +5598,12 @@
         "Winston"
       ],
       "factions": [
-        "03Talon",
-        "00Overwatch"
+        "Talon",
+        "Overwatch"
       ],
       "lat": 36.1285933,
       "lon": -5.3474761,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5358,8 +5618,8 @@
             "Tracer"
           ],
           "factions": [
-            "03Talon",
-            "26Shambali"
+            "Talon",
+            "Shambali"
           ],
           "image": "",
           "locationType": "earth",
@@ -5387,6 +5647,7 @@
       ],
       "lat": 51.5074456,
       "lon": -0.1277653,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5399,11 +5660,30 @@
         "Mei"
       ],
       "factions": [
-        "02Ecopoints",
-        "00Overwatch"
+        "Ecopoints",
+        "Overwatch"
       ],
       "lat": -67.107616,
       "lon": -68099824,
+      "yearStart": 2077,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Protector",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Kiriko"
+      ],
+      "factions": [
+        "Hashimoto",
+        "Yokai"
+      ],
+      "lat": 35.3606,
+      "lon": 138.7274,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5418,26 +5698,11 @@
         "Sombra"
       ],
       "factions": [
-        "03Talon"
+        "Talon"
       ],
       "lat": 20.0410035,
       "lon": -72.785587,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Return of the Maiden",
-      "locationType": "earth",
-      "cityDisplayName": "Kanezaka, Japan",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Kiriko"
-      ],
-      "factions": [
-        "23Hashimoto"
-      ],
-      "lat": 35.3606,
-      "lon": 138.7274,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5450,11 +5715,12 @@
         "Mei"
       ],
       "factions": [
-        "00Overwatch",
-        "02Ecopoints"
+        "Overwatch",
+        "Ecopoints"
       ],
       "lat": 60.5678461,
       "lon": -140.4056911,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5470,11 +5736,12 @@
         "Zarya"
       ],
       "factions": [
-        "03Talon",
-        "11Volskaya"
+        "Talon",
+        "Volskaya"
       ],
       "lat": 59.938732,
       "lon": 30.316229,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5488,11 +5755,65 @@
         "Genji"
       ],
       "factions": [
-        "22Shimada",
-        "23Hashimoto"
+        "Shimada",
+        "Hashimoto"
       ],
       "lat": 35.6762,
       "lon": 139.6503,
+      "yearStart": 2077,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Answering the Call",
+      "locationType": "earth",
+      "cityDisplayName": "Eichenwalde Castle, Germany",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Reinhardt",
+        "Brigitte"
+      ],
+      "factions": [
+        "Crusaders"
+      ],
+      "lat": 50,
+      "lon": 8,
+      "yearStart": 2077,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Genius Grant",
+      "locationType": "earth",
+      "cityDisplayName": "City State of Numbani",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Orisa"
+      ],
+      "factions": [
+        "Numbani"
+      ],
+      "lat": 12.0022,
+      "lon": 8.5919,
+      "yearStart": 2077,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "A New Empire",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "Colloseo Gladiatori",
+        "Talon"
+      ],
+      "lat": 41.8909421,
+      "lon": 12.491903,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5508,7 +5829,7 @@
             "Reaper"
           ],
           "factions": [
-            "03Talon"
+            "Talon"
           ],
           "image": "",
           "locationType": "earth",
@@ -5524,7 +5845,7 @@
             "Soldier 76"
           ],
           "factions": [
-            "03Talon"
+            "Talon"
           ],
           "image": "",
           "locationType": "earth",
@@ -5535,56 +5856,7 @@
       ],
       "lat": 29,
       "lon": 31,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Answering the Call",
-      "locationType": "earth",
-      "cityDisplayName": "Eichenwalde Castle, Germany",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Reinhardt",
-        "Brigitte"
-      ],
-      "factions": [
-        "09Crusaders"
-      ],
-      "lat": 50,
-      "lon": 8,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Genius Grant",
-      "locationType": "earth",
-      "cityDisplayName": "City State of Numbani",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Orisa"
-      ],
-      "factions": [
-        "19Numbani"
-      ],
-      "lat": 12.0022,
-      "lon": 8.5919,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "A New Empire",
-      "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Vendetta"
-      ],
-      "factions": [
-        "17Colloseo Gladiatori",
-        "03Talon"
-      ],
-      "lat": 41.8909421,
-      "lon": 12.491903,
+      "yearStart": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5595,27 +5867,11 @@
       "image": "",
       "filters": [],
       "factions": [
-        "07Lucheng"
+        "Lucheng"
       ],
       "x": 60,
       "y": 70,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Protector",
-      "locationType": "earth",
-      "cityDisplayName": "Kanezaka, Japan",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Kiriko"
-      ],
-      "factions": [
-        "23Hashimoto",
-        "33Yokai"
-      ],
-      "lat": 35.3606,
-      "lon": 138.7274,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5630,11 +5886,12 @@
         "Ana"
       ],
       "factions": [
-        "32Helix Securities",
-        "03Talon"
+        "Helix Securities",
+        "Talon"
       ],
       "lat": 30.0443879,
       "lon": 31.2357257,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5650,11 +5907,12 @@
         "Winston"
       ],
       "factions": [
-        "00Overwatch",
-        "03Talon"
+        "Overwatch",
+        "Talon"
       ],
       "lat": 40.7127281,
       "lon": -74.0060152,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5669,7 +5927,7 @@
             "Reaper"
           ],
           "factions": [
-            "03Talon"
+            "Talon"
           ],
           "image": "",
           "locationType": "earth",
@@ -5697,6 +5955,7 @@
       ],
       "lat": 64.3984222,
       "lon": -17.3178863,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5713,8 +5972,8 @@
             "Reaper"
           ],
           "factions": [
-            "18Max's Vault",
-            "03Talon"
+            "Max's Vault",
+            "Talon"
           ],
           "image": "",
           "locationType": "earth",
@@ -5732,8 +5991,8 @@
             "Domina"
           ],
           "factions": [
-            "03Talon",
-            "18Max's Vault"
+            "Talon",
+            "Max's Vault"
           ],
           "image": "",
           "locationType": "earth",
@@ -5744,6 +6003,7 @@
       ],
       "lat": 43.7402961,
       "lon": 7.426559,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5760,7 +6020,8 @@
       ],
       "lat": 12.0022,
       "lon": 8.5919,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "yearStart": 2078
     },
     {
       "locationType": "earth",
@@ -5774,7 +6035,7 @@
             "Bastion"
           ],
           "factions": [
-            "08Ironclad"
+            "Ironclad"
           ],
           "image": "",
           "locationType": "earth",
@@ -5801,77 +6062,7 @@
       ],
       "lat": 59.3385984,
       "lon": 17.9828394,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Stone by Stone",
-      "locationType": "earth",
-      "cityDisplayName": "Suravasa, India",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Symmetra",
-        "Zenyatta"
-      ],
-      "factions": [
-        "05Vishkar",
-        "26Shambali"
-      ],
-      "lat": 23.2599,
-      "lon": 77.4126,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Venture's Adventures",
-      "locationType": "earth",
-      "cityDisplayName": "Shambali Monastery, Nepal",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Venture"
-      ],
-      "factions": [
-        "20Wayfinders",
-        "03Talon",
-        "26Shambali"
-      ],
-      "lat": 28.3949,
-      "lon": 84.124,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Failed Exams",
-      "locationType": "earth",
-      "cityDisplayName": "Chengdu, China",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Wuyang",
-        "Anran"
-      ],
-      "factions": [
-        "10Wuxing University"
-      ],
-      "lat": 30.659867,
-      "lon": 104.063315,
-      "eraName": "The Age of Conflict"
-    },
-    {
-      "name": "Sending a Message",
-      "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Vendetta",
-        "Doomfist"
-      ],
-      "factions": [
-        "03Talon",
-        "17Colloseo Gladiatori"
-      ],
-      "lat": 41.8909421,
-      "lon": 12.491903,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5885,12 +6076,88 @@
         "Sombra"
       ],
       "factions": [
-        "21Los Muertos",
-        "11Volskaya",
-        "19Numbani"
+        "Los Muertos",
+        "Volskaya",
+        "Numbani"
       ],
       "lat": 19.1738,
       "lon": -96.1342,
+      "yearStart": 2078,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Stone by Stone",
+      "locationType": "earth",
+      "cityDisplayName": "Suravasa, India",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Symmetra",
+        "Zenyatta"
+      ],
+      "factions": [
+        "Vishkar",
+        "Shambali"
+      ],
+      "lat": 23.2599,
+      "lon": 77.4126,
+      "yearStart": 2078,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Venture's Adventures",
+      "locationType": "earth",
+      "cityDisplayName": "Shambali Monastery, Nepal",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Venture"
+      ],
+      "factions": [
+        "Wayfinders",
+        "Talon",
+        "Shambali"
+      ],
+      "lat": 28.3949,
+      "lon": 84.124,
+      "yearStart": 2078,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Failed Exams",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Wuyang",
+        "Anran"
+      ],
+      "factions": [
+        "Wuxing University"
+      ],
+      "lat": 30.659867,
+      "lon": 104.063315,
+      "yearStart": 2078,
+      "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "Sending a Message",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Vendetta",
+        "Doomfist"
+      ],
+      "factions": [
+        "Talon",
+        "Colloseo Gladiatori"
+      ],
+      "lat": 41.8909421,
+      "lon": 12.491903,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5903,10 +6170,11 @@
         "Kiriko"
       ],
       "factions": [
-        "33Yokai"
+        "Yokai"
       ],
       "lat": 35.3606,
       "lon": 138.7274,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5922,11 +6190,12 @@
         "Doomfist"
       ],
       "factions": [
-        "20Wayfinders",
-        "03Talon"
+        "Wayfinders",
+        "Talon"
       ],
       "lat": 36.1725297,
       "lon": 27.9194016,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5942,11 +6211,12 @@
         "Sojourn"
       ],
       "factions": [
-        "19Numbani",
-        "03Talon"
+        "Numbani",
+        "Talon"
       ],
       "lat": 12.0022,
       "lon": 8.5919,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5959,11 +6229,12 @@
         "Illari"
       ],
       "factions": [
-        "06Inti Warriors",
-        "24Conspiracy"
+        "Inti Warriors",
+        "Conspiracy"
       ],
       "lat": -13.1631,
       "lon": -72.545,
+      "yearStart": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5983,7 +6254,8 @@
       ],
       "lat": 40.0170005,
       "lon": -105.2664724,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "yearStart": 2079
     },
     {
       "name": "Worsening Atmosphere",
@@ -5999,7 +6271,8 @@
       ],
       "x": 45,
       "y": 35,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "yearStart": 2079
     },
     {
       "locationType": "earth",
@@ -6043,7 +6316,8 @@
       ],
       "lat": 30.0443879,
       "lon": 31.2357257,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "yearStart": 2079
     },
     {
       "locationType": "earth",
@@ -6086,7 +6360,8 @@
       ],
       "lat": -25,
       "lon": 135,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "yearStart": 2079
     },
     {
       "name": "Stalker",
@@ -6104,7 +6379,8 @@
       ],
       "lat": 44.4361414,
       "lon": 26.102684,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "yearStart": 2079
     },
     {
       "name": "Surprise attack",
@@ -6121,7 +6397,8 @@
       ],
       "lat": 60,
       "lon": 100,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "yearStart": 2079
     },
     {
       "locationType": "earth",
@@ -6160,7 +6437,8 @@
       ],
       "lat": 43.6534817,
       "lon": -79.3839347,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Zero Hour",
@@ -6184,7 +6462,8 @@
       ],
       "lat": 48.8534951,
       "lon": 2.3483915,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Luck of the Draw",
@@ -6201,7 +6480,8 @@
       ],
       "lat": 36.1674263,
       "lon": -115.1484131,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Busan Defense",
@@ -6223,7 +6503,8 @@
       ],
       "lat": 35.1799528,
       "lon": 129.0752365,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Thoughtless Gods",
@@ -6240,7 +6521,8 @@
       ],
       "lat": 26.8595868,
       "lon": 100.2249797,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Where Honor Lives",
@@ -6258,7 +6540,8 @@
       ],
       "lat": 35.6768601,
       "lon": 139.7638947,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Resistance",
@@ -6283,7 +6566,8 @@
       ],
       "lat": -22.9110137,
       "lon": -43.2093727,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Unity",
@@ -6300,7 +6584,8 @@
       ],
       "lat": 12.0022,
       "lon": 8.5919,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Rebuilding Ruins",
@@ -6319,7 +6604,8 @@
       ],
       "lat": 37.7412,
       "lon": -25.6756,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Liberation",
@@ -6349,7 +6635,8 @@
       ],
       "lat": 43.6534817,
       "lon": -79.3839347,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "locationType": "earth",
@@ -6392,7 +6679,8 @@
       ],
       "lat": 47.3744489,
       "lon": 8.5410422,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Ironclad Help",
@@ -6413,7 +6701,8 @@
       ],
       "lat": 57.7072326,
       "lon": 11.9670171,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "A Great Day",
@@ -6433,7 +6722,8 @@
       ],
       "lat": 56,
       "lon": 18,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Water Fighter",
@@ -6449,7 +6739,8 @@
       ],
       "lat": 30.659867,
       "lon": 104.063315,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "locationType": "marsShip",
@@ -6489,25 +6780,8 @@
           "cityDisplayName": "Dorado, Mexico"
         }
       ],
-      "eraName": "The Null Sector Invasion"
-    },
-    {
-      "name": "Vested Interests",
-      "locationType": "earth",
-      "cityDisplayName": "Monte-Carlo, Monaco",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Vendetta"
-      ],
-      "factions": [
-        "03Talon",
-        "17Colloseo Gladiatori",
-        "18Max's Vault"
-      ],
-      "lat": 43.7402961,
-      "lon": 7.426559,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Warm Welcome",
@@ -6539,24 +6813,8 @@
       ],
       "lat": 36.1285933,
       "lon": -5.3474761,
-      "eraName": "The Null Sector Invasion"
-    },
-    {
-      "name": "The Hunt Begins",
-      "locationType": "earth",
-      "cityDisplayName": "Copenhagen,, Denmark",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Freja"
-      ],
-      "factions": [
-        "18Max's Vault",
-        "16Junkers"
-      ],
-      "lat": 55.6867243,
-      "lon": 12.5700724,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Free the Phreaks",
@@ -6573,7 +6831,8 @@
       ],
       "lat": 34.0209,
       "lon": -6.8416,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Curse Breaker",
@@ -6590,7 +6849,8 @@
       ],
       "lat": 35.6768601,
       "lon": 139.7638947,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "locationType": "earth",
@@ -6634,26 +6894,8 @@
       ],
       "lat": 37.7412,
       "lon": -25.6756,
-      "eraName": "The Null Sector Invasion"
-    },
-    {
-      "name": "The Upper Hand",
-      "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Vendetta",
-        "Domina"
-      ],
-      "factions": [
-        "17Colloseo Gladiatori",
-        "03Talon",
-        "05Vishkar"
-      ],
-      "lat": 41.8909421,
-      "lon": 12.491903,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Hazardous Tactics",
@@ -6671,7 +6913,8 @@
       ],
       "lat": 29.5918,
       "lon": 52.5836,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Futures Past",
@@ -6691,23 +6934,44 @@
       ],
       "lat": -13.1631,
       "lon": -72.545,
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
+    },
+    {
+      "name": "Vested Interests",
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "Talon",
+        "Colloseo Gladiatori",
+        "Max's Vault"
+      ],
+      "lat": 43.7402961,
+      "lon": 7.426559,
+      "yearStart": 2080,
       "eraName": "The Null Sector Invasion"
     },
     {
-      "name": "Old Friend",
+      "name": "The Hunt Begins",
       "locationType": "earth",
-      "cityDisplayName": "Monte-Carlo, Monaco",
+      "cityDisplayName": "Copenhagen,, Denmark",
       "description": "",
       "image": "",
       "filters": [
         "Freja"
       ],
       "factions": [
-        "18Max's Vault",
-        "03Talon"
+        "Max's Vault",
+        "Junkers"
       ],
-      "lat": 43.7402961,
-      "lon": 7.426559,
+      "lat": 55.6867243,
+      "lon": 12.5700724,
+      "yearStart": 2080,
       "eraName": "The Null Sector Invasion"
     },
     {
@@ -6726,47 +6990,27 @@
       ],
       "lat": 30.659867,
       "lon": 104.063315,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2080
     },
     {
-      "name": "The Invitation",
+      "name": "The Upper Hand",
       "locationType": "earth",
-      "cityDisplayName": "Watchpoint Gibraltar",
+      "cityDisplayName": "Colosseo, Italy",
       "description": "",
       "image": "",
       "filters": [
-        "Winston",
-        "Sojourn",
-        "Wuyang",
-        "Anran"
+        "Vendetta",
+        "Domina"
       ],
       "factions": [
-        "10Wuxing University",
-        "27Null Sector"
+        "Colloseo Gladiatori",
+        "Talon",
+        "Vishkar"
       ],
-      "lat": 36.1285933,
-      "lon": -5.3474761,
-      "eraName": "The Null Sector Invasion"
-    },
-    {
-      "name": "Reconciliation",
-      "locationType": "earth",
-      "cityDisplayName": "London, United Kingdom",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Ramattra",
-        "Zenyatta",
-        "Widowmaker",
-        "Sombra"
-      ],
-      "factions": [
-        "26Shambali",
-        "03Talon",
-        "27Null Sector"
-      ],
-      "lat": 51.5074456,
-      "lon": -0.1277653,
+      "lat": 41.8909421,
+      "lon": 12.491903,
+      "yearStart": 2080,
       "eraName": "The Null Sector Invasion"
     },
     {
@@ -6787,7 +7031,69 @@
       ],
       "lat": -34.8222,
       "lon": -58.5358,
-      "eraName": "The Null Sector Invasion"
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2080
+    },
+    {
+      "name": "The Invitation",
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Winston",
+        "Sojourn",
+        "Wuyang",
+        "Anran"
+      ],
+      "factions": [
+        "10Wuxing University",
+        "27Null Sector"
+      ],
+      "lat": 36.1285933,
+      "lon": -5.3474761,
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2080
+    },
+    {
+      "name": "Reconciliation",
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Ramattra",
+        "Zenyatta",
+        "Widowmaker",
+        "Sombra"
+      ],
+      "factions": [
+        "26Shambali",
+        "03Talon",
+        "27Null Sector"
+      ],
+      "lat": 51.5074456,
+      "lon": -0.1277653,
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2080
+    },
+    {
+      "name": "Old Friend",
+      "locationType": "earth",
+      "cityDisplayName": "Monte-Carlo, Monaco",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Freja"
+      ],
+      "factions": [
+        "18Max's Vault",
+        "03Talon"
+      ],
+      "lat": 43.7402961,
+      "lon": 7.426559,
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2080
     },
     {
       "locationType": "earth",
@@ -6795,14 +7101,14 @@
       "variants": [
         {
           "name": "Signs of Life",
-          "description": "AER",
+          "description": "",
           "filters": [
             "Juno",
             "Mei"
           ],
           "factions": [
-            "07Lucheng",
-            "00Overwatch"
+            "Lucheng",
+            "Overwatch"
           ],
           "image": "",
           "locationType": "earth",
@@ -6829,7 +7135,8 @@
       ],
       "lat": 26.8595868,
       "lon": 100.2249797,
-      "eraName": "The Reign of Talon"
+      "eraName": "The Reign of Talon",
+      "yearStart": 2080
     },
     {
       "name": "Search and Destroy",
@@ -6847,7 +7154,8 @@
       ],
       "lat": 23.333333,
       "lon": 45.333333,
-      "eraName": "The Reign of Talon"
+      "eraName": "The Reign of Talon",
+      "yearStart": 2080
     },
     {
       "locationType": "earth",
@@ -6907,7 +7215,8 @@
       ],
       "lat": 41.8933203,
       "lon": 12.4829321,
-      "eraName": "The Reign of Talon"
+      "eraName": "The Reign of Talon",
+      "yearStart": 2080
     },
     {
       "name": "From the Ashes",
@@ -6944,7 +7253,8 @@
       ],
       "lat": 36.1408,
       "lon": -5.3536,
-      "eraName": "The Reign of Talon"
+      "eraName": "The Reign of Talon",
+      "yearStart": 2080
     }
   ]
 }

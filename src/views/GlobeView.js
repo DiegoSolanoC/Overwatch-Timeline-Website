@@ -1242,8 +1242,8 @@ export class GlobeView {
      * @param {boolean} [animate=true]
      * @returns {Promise<void>|undefined}
      */
-    refreshEventMarkers(animate = true) {
-        return this.eventMarkerManager.refreshEventMarkers(animate);
+    refreshEventMarkers(animate = true, options = {}) {
+        return this.eventMarkerManager.refreshEventMarkers(animate, options);
     }
     
     /**

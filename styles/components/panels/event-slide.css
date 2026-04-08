@@ -57,7 +57,7 @@
  * Desktop pagination dock sits between main content and footer.
  * Keep the info panel above it so thumbnail buttons stay clickable (z-index alone still blocked hits).
  */
-@media (min-width: 769px) and (min-height: 500px) {
+@media (min-width: 769px) and (min-height: 600px) {
     .event-slide {
         bottom: calc(var(--footer-height) + var(--pagination-dock-height, 290px));
         transition:
@@ -378,12 +378,12 @@
 }
 
 .event-slide-timeline-meta {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.72);
-    margin: 6px 0 0 0;
-    line-height: 1.4;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.82);
+    margin: 8px 0 0 0;
+    line-height: 1.45;
+    font-weight: 600;
+    letter-spacing: 0.03em;
 }
 
 .event-slide-scrollable p#eventSlideText,

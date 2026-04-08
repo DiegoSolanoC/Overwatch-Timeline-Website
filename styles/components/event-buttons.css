@@ -92,6 +92,15 @@ body.color-palette-gray .event-full-text-toggle-btn:hover {
     line-height: 1;
 }
 
+.event-nav-btn--pagination-arrow {
+    font-size: 0;
+}
+
+.event-nav-btn--pagination-arrow .ui-pagination-arrow {
+    width: 26px;
+    max-height: 26px;
+}
+
 .event-nav-btn:hover:not(:disabled) {
     background: rgba(13, 71, 161, 1);
     border-color: rgba(255, 255, 255, 0.6);
