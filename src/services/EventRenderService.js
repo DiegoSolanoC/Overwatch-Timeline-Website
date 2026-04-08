@@ -301,7 +301,7 @@ class EventRenderService {
             );
             const msg = hasSearch
                 ? 'No matching events. Try changing search or filters.'
-                : 'No events yet. Click "Add Event" to create one.';
+                : 'No events yet. Click "Add Event" to add a blank event at 0°,0° and open it—then use Edit on the info panel.';
             eventsList.innerHTML = `<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">${msg}</div>`;
             console.log('EventRenderService: No events to render');
             this.renderPaginationControls(events, validPage, eventsPerPage);

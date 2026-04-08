@@ -50,26 +50,29 @@ class GlobeSyncService {
 
     /**
      * Refresh globe events (update markers and pagination)
+     * @returns {Promise<void>} Resolves when the initial marker refresh finishes (if any)
      */
     refreshGlobeEvents() {
-        if (!this.eventManager) return;
-        
+        if (!this.eventManager) return Promise.resolve();
+
         // Update DataModel if available
         if (window.globeController && window.globeController.dataModel) {
             // Update events in DataModel
             window.globeController.dataModel.events = [...this.eventManager.events];
-            
+
+            let markerPromise = Promise.resolve();
             // Refresh event markers
             if (window.globeController.globeView) {
-                window.globeController.globeView.refreshEventMarkers();
+                const r = window.globeController.globeView.refreshEventMarkers();
+                markerPromise = r && typeof r.then === 'function' ? r : Promise.resolve();
             }
-            
+
             // Refresh pagination UI
             if (window.globeController.uiView && window.globeController.uiView.dataModel) {
                 // Trigger pagination update
                 const currentPage = window.globeController.dataModel.getCurrentEventPage();
                 window.globeController.dataModel.setCurrentEventPage(currentPage);
-                
+
                 // Re-setup pagination to update UI
                 window.globeController.uiView.setupEventPagination(() => {
                     if (window.globeController.globeView) {
@@ -79,10 +82,12 @@ class GlobeSyncService {
                     }
                 });
             }
-            
+
             // Update news ticker with headlines from current page
             this.updateNewsTicker();
+            return markerPromise;
         }
+        return Promise.resolve();
     }
 }
 

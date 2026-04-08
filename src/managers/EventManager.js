@@ -313,11 +313,13 @@ class EventManager {
      */
     /**
      * Refresh globe events (delegates to GlobeSyncService)
+     * @returns {Promise<void>}
      */
     refreshGlobeEvents() {
         if (this.globeSyncService) {
-            this.globeSyncService.refreshGlobeEvents();
+            return this.globeSyncService.refreshGlobeEvents();
         }
+        return Promise.resolve();
     }
 
     exportEvents() {
@@ -521,6 +523,70 @@ class EventManager {
             console.error('EventManager: EventEditService not available!');
         }
         return false;
+    }
+
+    /**
+     * Create an empty Earth event at 0°, 0°, append it to the end of the list, refresh the globe,
+     * jump the manager to the page that shows it, then open it like a list click (info panel; use Edit for inline form).
+     */
+    addBlankEventAndOpen() {
+        if (this.isGitHubPages()) return;
+        if (!this.editService) {
+            console.error('EventManager: EventEditService not available');
+            return;
+        }
+
+        this.searchQuery = '';
+        this.searchHeroFilters = [];
+        this.searchFactionFilters = [];
+        this.searchUnmatchedFilterTokens = [];
+        this.searchCountryFilters = [];
+
+        const blank = {
+            name: '',
+            description: '',
+            locationType: 'earth',
+            lat: 0,
+            lon: 0,
+            filters: [],
+            factions: [],
+            image: ''
+        };
+
+        const result = this.editService.addEvent(blank, null);
+        if (!result.success) return;
+
+        const newIndex = result.newIndex;
+        const event = this.events[newIndex];
+
+        const displayed = this.getFilteredEvents();
+        const pos = displayed.indexOf(event);
+        const perPage = this.showAllEventsInManager
+            ? Math.max(1, displayed.length)
+            : Math.max(1, parseInt(this.eventsPerPageSetting || 50, 10) || 50);
+        this.eventsPerPage = perPage;
+        if (this.showAllEventsInManager) {
+            this.currentPage = 1;
+        } else if (pos >= 0) {
+            this.currentPage = Math.max(1, Math.ceil((pos + 1) / perPage));
+        } else {
+            this.currentPage = result.newCurrentPage;
+        }
+
+        this.renderEvents();
+
+        const open = () => {
+            if (this.openEventFromList) {
+                this.openEventFromList(event, newIndex);
+            }
+        };
+
+        const p = this.refreshGlobeEvents();
+        if (p && typeof p.then === 'function') {
+            p.then(open).catch(open);
+        } else {
+            requestAnimationFrame(open);
+        }
     }
 
     openEditModal(index) {

@@ -177,8 +177,8 @@ class EventListenerService {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('EventListenerService: Add Event button clicked');
-                    if (this.eventManager.openEditModal) {
-                        this.eventManager.openEditModal(null);
+                    if (this.eventManager.addBlankEventAndOpen) {
+                        this.eventManager.addBlankEventAndOpen();
                     }
                 });
                 console.log('EventListenerService: Add Event button listener attached');
