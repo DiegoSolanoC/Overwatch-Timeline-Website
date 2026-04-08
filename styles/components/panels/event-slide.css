@@ -152,6 +152,13 @@
     pointer-events: none !important;
 }
 
+/* Header variant tabs call switchEventVariant (exits edit); use inline bar instead while editing */
+.event-slide--inline-editing #eventVariantToggles {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
 .event-slide-inline-editor {
     margin: 14px 0 14px 0;
     padding: 12px;
@@ -196,6 +203,70 @@
 .event-slide-inline-editor__textarea:focus {
     outline: none;
     border-color: rgba(var(--accent-primary-rgb), 0.55);
+}
+
+.event-slide-inline-editor__placement {
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.event-slide-inline-editor__lookup-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.event-slide-inline-editor__input--grow {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+.event-slide-inline-editor__inline-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+.event-slide-inline-editor__inline-check input {
+    margin: 0;
+    cursor: pointer;
+}
+
+.event-slide-inline-editor__loc-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.event-slide-loc-type-btn {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.event-slide-loc-type-btn:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.event-slide-loc-type-btn.active {
+    border-color: rgba(var(--accent-primary-rgb), 0.65);
+    background: rgba(var(--accent-primary-rgb), 0.22);
+    color: #fff;
 }
 
 .event-slide-inline-editor__sources {
@@ -247,6 +318,81 @@
     background: var(--btn-primary-bg-hover);
     border-color: rgba(255, 255, 255, 0.45);
     transform: scale(1.04);
+}
+
+.event-slide-inline-variant-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.event-slide-inline-variant-tab {
+    min-width: 36px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.event-slide-inline-variant-tab:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.event-slide-inline-variant-tab.active {
+    border-color: rgba(var(--accent-primary-rgb), 0.65);
+    background: rgba(var(--accent-primary-rgb), 0.22);
+}
+
+.event-slide-inline-variant-action {
+    flex-shrink: 0;
+}
+
+.event-slide-inline-editor__hint {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.event-slide-inline-editor__row--delete {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 80, 80, 0.22);
+    margin-bottom: 0;
+}
+
+.event-slide-inline-editor__delete-btn {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 40px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 120, 120, 0.45);
+    background: rgba(180, 40, 40, 0.25);
+    color: rgba(255, 220, 220, 0.95);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.event-slide-inline-editor__delete-btn:hover {
+    background: rgba(200, 50, 50, 0.4);
+    border-color: rgba(255, 160, 160, 0.65);
+}
+
+.event-slide-inline-editor__delete-btn:active {
+    transform: scale(0.99);
 }
 
 .event-slide-close:hover {

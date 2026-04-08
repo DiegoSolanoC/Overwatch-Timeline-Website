@@ -90,13 +90,46 @@ export function createMarkerUserData({
  * Legacy faction strings in events.json that don't match manifest `filename` (filter chip keys).
  * Values must match {@link manifest.json} `factions[].filename` exactly.
  */
+/** Old ids in event data or bookmarks → current manifest `filename` (must match globe filter keys). */
 const LEGACY_FACTION_ID_TO_CANONICAL = {
-    '09Lucheng': '07Lucheng',
-    '13Shambali': '26Shambali',
-    '25Shambali': '26Shambali',
-    '26Null Sector': '27Null Sector',
-    '05Omnica': '04Omnica',
-    '10Ironclad': '08Ironclad'
+    Shambali: '25Shambali Order',
+    '13Shambali': '25Shambali Order',
+    '25Shambali': '25Shambali Order',
+    '26Shambali': '25Shambali Order',
+    '09Lucheng': '07Lucheng Interstellar',
+    /** Wrong legacy numbering; slot 27 is The Martins Collective in current manifest. */
+    '27Null Sector': '26Null Sector',
+    '04Omnica': '04Omnica Corporation',
+    '05Omnica': '04Omnica Corporation',
+    '05Vishkar': '05Vishkar Corporation',
+    '08Ironclad': '08Ironclad Guild',
+    '10Ironclad': '08Ironclad Guild',
+    '09Crusaders': '09Crusader Initiative',
+    '11Volskaya': '11Volskaya Industries',
+    '06Crisis': '12The Anubis Omnic Crisis',
+    '12Crisis': '12The Anubis Omnic Crisis',
+    '13Lumerico': '13Lumérico Incorporated',
+    '14Deadlock': '14Deadlock Rebels',
+    '08Junkers': '16Junker Monarchy',
+    '16Junkers': '16Junker Monarchy',
+    '19Wayfinders': '19Wayfinder Society',
+    '20Wayfinders': '19Wayfinder Society',
+    '21Shimada': '21Shimada Clan',
+    '22Shimada': '21Shimada Clan',
+    '22Hashimoto': '22Hashimoto Clan',
+    '23Hashimoto': '22Hashimoto Clan',
+    '23Conspiracy': '23The Chernobog Conspiracy',
+    '24Conspiracy': '23The Chernobog Conspiracy',
+    '24Oasis': '24Oasis Ministries',
+    '25Oasis': '24Oasis Ministries',
+    '27Collective': '27The Martins Collective',
+    '28Collective': '27The Martins Collective',
+    '29Phreaks': '29The Phreaks',
+    '30Phreaks': '29The Phreaks',
+    '30MEKA': '30M.E.K.A Squad',
+    '31MEKA': '30M.E.K.A Squad',
+    '32Yokai': '32Yokai Gang',
+    '33Yokai': '32Yokai Gang'
 };
 
 function factionIdMatchesActiveFilters(factionId, activeFilters) {

@@ -1,6 +1,5 @@
 {
   "heroes": [
-    "51",
     "Ana",
     "Anran",
     "Ashe",
@@ -36,6 +35,7 @@
     "Reaper",
     "Reinhardt",
     "Roadhog",
+    "Sierra",
     "Sigma",
     "Sojourn",
     "Soldier 76",
@@ -74,14 +74,14 @@
       "displayName": "Talon"
     },
     {
-      "filename": "04Omnica",
+      "filename": "04Omnica Corporation",
       "number": 4,
-      "displayName": "Omnica"
+      "displayName": "Omnica Corporation"
     },
     {
-      "filename": "05Vishkar",
+      "filename": "05Vishkar Corporation",
       "number": 5,
-      "displayName": "Vishkar"
+      "displayName": "Vishkar Corporation"
     },
     {
       "filename": "06Inti Warriors",
@@ -89,19 +89,19 @@
       "displayName": "Inti Warriors"
     },
     {
-      "filename": "07Lucheng",
+      "filename": "07Lucheng Interstellar",
       "number": 7,
-      "displayName": "Lucheng"
+      "displayName": "Lucheng Interstellar"
     },
     {
-      "filename": "08Ironclad",
+      "filename": "08Ironclad Guild",
       "number": 8,
-      "displayName": "Ironclad"
+      "displayName": "Ironclad Guild"
     },
     {
-      "filename": "09Crusaders",
+      "filename": "09Crusader Initiative",
       "number": 9,
-      "displayName": "Crusaders"
+      "displayName": "Crusader Initiative"
     },
     {
       "filename": "10Wuxing University",
@@ -109,24 +109,24 @@
       "displayName": "Wuxing University"
     },
     {
-      "filename": "11Volskaya",
+      "filename": "11Volskaya Industries",
       "number": 11,
-      "displayName": "Volskaya"
+      "displayName": "Volskaya Industries"
     },
     {
-      "filename": "12Crisis",
+      "filename": "12The Anubis Omnic Crisis",
       "number": 12,
-      "displayName": "Crisis"
+      "displayName": "The Anubis Omnic Crisis"
     },
     {
-      "filename": "13Lumerico",
+      "filename": "13Lumérico Incorporated",
       "number": 13,
-      "displayName": "Lumerico"
+      "displayName": "Lumérico Incorporated"
     },
     {
-      "filename": "14Deadlock",
+      "filename": "14Deadlock Rebels",
       "number": 14,
-      "displayName": "Deadlock"
+      "displayName": "Deadlock Rebels"
     },
     {
       "filename": "15Caribbean Coalition",
@@ -134,9 +134,9 @@
       "displayName": "Caribbean Coalition"
     },
     {
-      "filename": "16Junkers",
+      "filename": "16Junker Monarchy",
       "number": 16,
-      "displayName": "Junkers"
+      "displayName": "Junker Monarchy"
     },
     {
       "filename": "17Colloseo Gladiatori",
@@ -149,83 +149,78 @@
       "displayName": "Max's Vault"
     },
     {
-      "filename": "19Numbani",
+      "filename": "19Wayfinder Society",
       "number": 19,
-      "displayName": "Numbani"
+      "displayName": "Wayfinder Society"
     },
     {
-      "filename": "20Wayfinders",
+      "filename": "20Los Muertos",
       "number": 20,
-      "displayName": "Wayfinders"
-    },
-    {
-      "filename": "21Los Muertos",
-      "number": 21,
       "displayName": "Los Muertos"
     },
     {
-      "filename": "22Shimada",
+      "filename": "21Shimada Clan",
+      "number": 21,
+      "displayName": "Shimada Clan"
+    },
+    {
+      "filename": "22Hashimoto Clan",
       "number": 22,
-      "displayName": "Shimada"
+      "displayName": "Hashimoto Clan"
     },
     {
-      "filename": "23Hashimoto",
+      "filename": "23The Chernobog Conspiracy",
       "number": 23,
-      "displayName": "Hashimoto"
+      "displayName": "The Chernobog Conspiracy"
     },
     {
-      "filename": "24Conspiracy",
+      "filename": "24Oasis Ministries",
       "number": 24,
-      "displayName": "Conspiracy"
+      "displayName": "Oasis Ministries"
     },
     {
-      "filename": "25Oasis",
+      "filename": "25Shambali Order",
       "number": 25,
-      "displayName": "Oasis"
+      "displayName": "Shambali Order"
     },
     {
-      "filename": "26Shambali",
+      "filename": "26Null Sector",
       "number": 26,
-      "displayName": "Shambali"
-    },
-    {
-      "filename": "27Null Sector",
-      "number": 27,
       "displayName": "Null Sector"
     },
     {
-      "filename": "28Collective",
-      "number": 28,
-      "displayName": "Collective"
+      "filename": "27The Martins Collective",
+      "number": 27,
+      "displayName": "The Martins Collective"
     },
     {
-      "filename": "29Deep Sea Raiders",
-      "number": 29,
+      "filename": "28Deep Sea Raiders",
+      "number": 28,
       "displayName": "Deep Sea Raiders"
     },
     {
-      "filename": "30Phreaks",
+      "filename": "29The Phreaks",
+      "number": 29,
+      "displayName": "The Phreaks"
+    },
+    {
+      "filename": "30M.E.K.A Squad",
       "number": 30,
-      "displayName": "Phreaks"
+      "displayName": "M.E.K.A Squad"
     },
     {
-      "filename": "31MEKA",
+      "filename": "31Helix Securities",
       "number": 31,
-      "displayName": "MEKA"
-    },
-    {
-      "filename": "32Helix Securities",
-      "number": 32,
       "displayName": "Helix Securities"
     },
     {
-      "filename": "33Yokai",
-      "number": 33,
-      "displayName": "Yokai"
+      "filename": "32Yokai Gang",
+      "number": 32,
+      "displayName": "Yokai Gang"
     },
     {
-      "filename": "34Talon Empire",
-      "number": 34,
+      "filename": "33Talon Empire",
+      "number": 33,
       "displayName": "Talon Empire"
     }
   ],

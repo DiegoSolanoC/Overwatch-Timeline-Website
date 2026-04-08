@@ -106,6 +106,68 @@ export class EventContentManager {
             return this._factionLookupCache;
         };
 
+        /** Prior labels / ids after faction renames — keys must match normalizeKey(). Values: manifest filename. */
+        /** Keys: normalizeKey(). Values: manifest filename (same as MarkerCreationHelpers legacy targets). */
+        const LEGACY_FACTION_STRING_TO_FILENAME = {
+            shambali: '25Shambali Order',
+            '25shambali': '25Shambali Order',
+            '26shambali': '25Shambali Order',
+            '13shambali': '25Shambali Order',
+            omnica: '04Omnica Corporation',
+            '04omnica': '04Omnica Corporation',
+            '05omnica': '04Omnica Corporation',
+            vishkar: '05Vishkar Corporation',
+            '05vishkar': '05Vishkar Corporation',
+            lucheng: '07Lucheng Interstellar',
+            '07lucheng': '07Lucheng Interstellar',
+            '09lucheng': '07Lucheng Interstellar',
+            ironclad: '08Ironclad Guild',
+            '08ironclad': '08Ironclad Guild',
+            '10ironclad': '08Ironclad Guild',
+            crusaders: '09Crusader Initiative',
+            '09crusaders': '09Crusader Initiative',
+            volskaya: '11Volskaya Industries',
+            '11volskaya': '11Volskaya Industries',
+            crisis: '12The Anubis Omnic Crisis',
+            '06crisis': '12The Anubis Omnic Crisis',
+            '12crisis': '12The Anubis Omnic Crisis',
+            lumerico: '13Lumérico Incorporated',
+            '13lumerico': '13Lumérico Incorporated',
+            deadlock: '14Deadlock Rebels',
+            '14deadlock': '14Deadlock Rebels',
+            junkers: '16Junker Monarchy',
+            '08junkers': '16Junker Monarchy',
+            '16junkers': '16Junker Monarchy',
+            wayfinders: '19Wayfinder Society',
+            '19wayfinders': '19Wayfinder Society',
+            '20wayfinders': '19Wayfinder Society',
+            shimada: '21Shimada Clan',
+            '21shimada': '21Shimada Clan',
+            '22shimada': '21Shimada Clan',
+            hashimoto: '22Hashimoto Clan',
+            '22hashimoto': '22Hashimoto Clan',
+            '23hashimoto': '22Hashimoto Clan',
+            conspiracy: '23The Chernobog Conspiracy',
+            '23conspiracy': '23The Chernobog Conspiracy',
+            '24conspiracy': '23The Chernobog Conspiracy',
+            oasis: '24Oasis Ministries',
+            '24oasis': '24Oasis Ministries',
+            '25oasis': '24Oasis Ministries',
+            collective: '27The Martins Collective',
+            '27collective': '27The Martins Collective',
+            '28collective': '27The Martins Collective',
+            phreaks: '29The Phreaks',
+            '29phreaks': '29The Phreaks',
+            '30phreaks': '29The Phreaks',
+            meka: '30M.E.K.A Squad',
+            '30meka': '30M.E.K.A Squad',
+            '31meka': '30M.E.K.A Squad',
+            yokai: '32Yokai Gang',
+            '32yokai': '32Yokai Gang',
+            '33yokai': '32Yokai Gang',
+            '27null sector': '26Null Sector'
+        };
+
         const resolveFactionFilename = (rawFaction) => {
             const raw = String(rawFaction || '').trim();
             if (!raw) return null;
@@ -129,8 +191,15 @@ export class EventContentManager {
             const nb = normalizeKey(bare);
             if (bare && lookups.byBareName.has(nb)) return lookups.byBareName.get(nb);
 
-            // Fallback: use provided key as filename.
-            return key;
+            const alias =
+                LEGACY_FACTION_STRING_TO_FILENAME[nk]
+                || (bare ? LEGACY_FACTION_STRING_TO_FILENAME[nb] : null);
+            if (alias && lookups.byFilename.has(normalizeKey(alias))) {
+                return lookups.byFilename.get(normalizeKey(alias));
+            }
+
+            // Unknown / removed faction (e.g. stale local data) — omit chip instead of a broken image.
+            return null;
         };
         
         const CATEGORY_ICON_HEROES = 'assets/images/icons/Heroes Icon.png';
@@ -286,6 +355,13 @@ export class EventContentManager {
             const heroFilters = event.filters || [];
             const factionFilters = event.factions || [];
             const countryFlagFiles = collectCountryFlagFilesForEvent(event);
+
+            const resolvedFactionRows = [];
+            factionFilters.forEach((faction) => {
+                const resolvedFilename = resolveFactionFilename(faction);
+                if (!resolvedFilename) return;
+                resolvedFactionRows.push({ faction, resolvedFilename });
+            });
             
             // Display heroes section
             if (heroFilters.length > 0) {
@@ -303,29 +379,50 @@ export class EventContentManager {
                 });
             }
             
-            // Display factions section
-            if (factionFilters.length > 0) {
+            // Display factions section (only entries that resolve to manifest — skips removed/unknown factions)
+            const getManifestFactions = () => (
+                (window.eventManager && Array.isArray(window.eventManager.factions) && window.eventManager.factions.length > 0)
+                    ? window.eventManager.factions
+                    : (window.globeController?.dataModel?.factions || [])
+            );
+
+            /** Same rules as {@link EventFormService.populateEditForm} so slide chips match the edit modal. */
+            const resolveFactionDisplayLabel = (rawFaction, manifestFilename) => {
+                const raw = String(rawFaction ?? '').trim();
+                const mf = getManifestFactions();
+                const manifest = Array.isArray(mf) ? mf : [];
+                const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+                const hit = manifest.find((fac) => {
+                    const fn = fac?.filename;
+                    const dn = fac?.displayName;
+                    return fn === raw
+                        || dn === raw
+                        || (manifestFilename && fn === manifestFilename)
+                        || (fh && typeof fh.factionIdsMatch === 'function' && (
+                            fh.factionIdsMatch(fn, raw) || fh.factionIdsMatch(dn, raw)
+                        ));
+                });
+                let label = (hit?.displayName || '').trim();
+                if (label) return label;
+                const em = typeof window !== 'undefined' ? window.eventManager : null;
+                if (em && manifestFilename && typeof em.getFactionDisplayTokenForSearch === 'function') {
+                    label = String(em.getFactionDisplayTokenForSearch(manifestFilename) || '').trim();
+                    if (label) return label;
+                }
+                const nk = normalizeKey(manifestFilename || '');
+                const byFn = manifest.find(x => normalizeKey(x?.filename || '') === nk);
+                label = (byFn?.displayName || '').trim();
+                if (label) return label;
+                return raw.replace(/^\d+/, '').trim();
+            };
+
+            if (resolvedFactionRows.length > 0) {
                 eventFiltersList.appendChild(
                     createCategoryFilterHeader('Relevant Factions:', CATEGORY_ICON_FACTIONS)
                 );
-                
-                factionFilters.forEach(faction => {
-                    const resolvedFilename = resolveFactionFilename(faction);
-                    if (!resolvedFilename) return;
-                    const lookup = getFactionLookup();
-                    const resolvedDisplayName =
-                        // Try to use canonical displayName if we have it
-                        (function () {
-                            const nk = normalizeKey(resolvedFilename);
-                            const factions =
-                                (window.eventManager && Array.isArray(window.eventManager.factions) && window.eventManager.factions.length > 0)
-                                    ? window.eventManager.factions
-                                    : (window.globeController?.dataModel?.factions || []);
-                            const f = (Array.isArray(factions) ? factions : []).find(x => normalizeKey(x?.filename || '') === nk);
-                            return (f?.displayName || '').trim();
-                        })();
 
-                    const displayName = resolvedDisplayName || String(faction || '').replace(/^\d+/, '').trim();
+                resolvedFactionRows.forEach(({ faction, resolvedFilename }) => {
+                    const displayName = resolveFactionDisplayLabel(faction, resolvedFilename);
                     const tag = createIconTag({
                         filterKey: resolvedFilename,
                         displayName,
@@ -350,7 +447,7 @@ export class EventContentManager {
                 });
             }
             
-            if (heroFilters.length > 0 || factionFilters.length > 0 || countryFlagFiles.length > 0) {
+            if (heroFilters.length > 0 || resolvedFactionRows.length > 0 || countryFlagFiles.length > 0) {
                 eventFiltersSection.style.display = 'block';
             } else {
                 eventFiltersSection.style.display = 'none';

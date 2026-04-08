@@ -1,11 +1,11 @@
 {
   "events": [
     {
-      "name": "Siebren De Kuiper is Born",
       "locationType": "earth",
       "cityDisplayName": "The Hague, Netherlands",
-      "description": "On March 15th of 2015, Siebren de Kuiper was born. Growing up in the Netherlands fascinated by the universe and its mysteries, oblivious to the impact he would leave on the world, and the price he would ultimately pay for his hubris.",
       "image": "",
+      "name": "Siebren De Kuiper is Born",
+      "description": "On March 15th of 2015, Siebren de Kuiper was born. Growing up in the Netherlands fascinated by the universe and its mysteries, oblivious to the impact he would leave on the world, and the price he would ultimately pay for his hubris.",
       "filters": [
         "Sigma"
       ],
@@ -16,10 +16,10 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/sigma/"
         }
       ],
-      "lat": 52.0799838,
-      "lon": 4.3113461,
+      "yearStart": 2015,
       "eraName": "The Age of Progress",
-      "yearStart": 2015
+      "lat": 52.0799838,
+      "lon": 4.3113461
     },
     {
       "name": "Reinhardt Wilhelm is Born",
@@ -3565,7 +3565,7 @@
         "Doomfist"
       ],
       "factions": [
-        "Numbani. Overwatch"
+        "Overwatch"
       ],
       "lat": 12.0022,
       "lon": 8.5919,
@@ -3575,9 +3575,9 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age",
       "yearStart": 2056,
-      "yearEnd": 2060
+      "yearEnd": 2060,
+      "eraName": "The Golden Age"
     },
     {
       "name": "Gwishin",
@@ -4155,7 +4155,7 @@
         }
       ],
       "yearStart": 2062,
-      "yearEnd": 2069,
+      "yearEnd": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -4332,10 +4332,12 @@
         "Wrecking Ball"
       ],
       "factions": [
-        "16Junkers"
+        "Junkers"
       ],
       "lat": -25,
       "lon": 135,
+      "yearStart": 2062,
+      "yearEnd": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -4349,9 +4351,9 @@
         "Cassidy"
       ],
       "factions": [
-        "00Overwatch",
-        "01Blackwatch",
-        "03Talon"
+        "Overwatch",
+        "Blackwatch",
+        "Talon"
       ],
       "lat": 59.9133301,
       "lon": 10.7389701,
@@ -4361,6 +4363,7 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
       "eraName": "The Golden Age"
     },
     {
@@ -4374,8 +4377,8 @@
         "Cassidy"
       ],
       "factions": [
-        "01Blackwatch",
-        "03Talon"
+        "Blackwatch",
+        "Talon"
       ],
       "lat": 41.8933203,
       "lon": 12.4829321,
@@ -4385,6 +4388,7 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4401,8 +4405,8 @@
             "Moira"
           ],
           "factions": [
-            "01Blackwatch",
-            "03Talon"
+            "Blackwatch",
+            "Talon"
           ],
           "image": "",
           "locationType": "earth",
@@ -4435,6 +4439,7 @@
       ],
       "lat": 45.4371908,
       "lon": 12.3345898,
+      "yearStart": 2068,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4447,10 +4452,12 @@
         "Illari"
       ],
       "factions": [
-        "06Inti Warriors"
+        "Inti Warriors"
       ],
       "lat": -13.1631,
       "lon": -72.545,
+      "yearStart": 2060,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4463,8 +4470,8 @@
         "Moira"
       ],
       "factions": [
-        "25Oasis",
-        "03Talon"
+        "Oasis",
+        "Talon"
       ],
       "lat": 29.5918,
       "lon": 52.5836,
@@ -4474,6 +4481,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4486,7 +4495,7 @@
         "Mauga"
       ],
       "factions": [
-        "29Deep Sea Raiders"
+        "Deep Sea Raiders"
       ],
       "lat": -20,
       "lon": 155,
@@ -4496,6 +4505,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4516,8 +4527,8 @@
         "Reaper"
       ],
       "factions": [
-        "27Null Sector",
-        "00Overwatch"
+        "Null Sector",
+        "Overwatch"
       ],
       "lat": 51.5074456,
       "lon": -0.1277653,
@@ -4527,22 +4538,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Fall of Overwatch"
-    },
-    {
-      "name": "La Lupa",
-      "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Vendetta"
-      ],
-      "factions": [
-        "17Colloseo Gladiatori"
-      ],
-      "lat": 41.8909421,
-      "lon": 12.491903,
+      "yearStart": 2068,
+      "yearEnd": 2069,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4556,8 +4553,8 @@
             "Widowmaker"
           ],
           "factions": [
-            "01Blackwatch",
-            "03Talon"
+            "Blackwatch",
+            "Talon"
           ],
           "sources": [
             {
@@ -4595,6 +4592,7 @@
       ],
       "lat": 48.8588897,
       "lon": 2.320041,
+      "yearStart": 2069,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4610,8 +4608,8 @@
         "Sojourn"
       ],
       "factions": [
-        "29Deep Sea Raiders",
-        "00Overwatch"
+        "Deep Sea Raiders",
+        "Overwatch"
       ],
       "lat": -13.8345235,
       "lon": -171.7630955,
@@ -4621,6 +4619,26 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
+      "yearEnd": 2069,
+      "eraName": "The Fall of Overwatch"
+    },
+    {
+      "name": "La Lupa",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "Colloseo Gladiatori"
+      ],
+      "lat": 41.8909421,
+      "lon": 12.491903,
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4634,7 +4652,7 @@
         "Soldier 76"
       ],
       "factions": [
-        "00Overwatch"
+        "Overwatch"
       ],
       "lat": -25.2800459,
       "lon": -57.6343814,
@@ -4644,6 +4662,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2069,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4656,10 +4676,12 @@
         "Ramattra"
       ],
       "factions": [
-        "27Null Sector"
+        "Null Sector"
       ],
       "lat": -75.1,
       "lon": 123.35,
+      "yearStart": 2069,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4674,8 +4696,8 @@
         "Widowmaker"
       ],
       "factions": [
-        "00Overwatch",
-        "03Talon"
+        "Overwatch",
+        "Talon"
       ],
       "lat": 52.2333742,
       "lon": 21.0711489,
@@ -4685,6 +4707,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2069,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4697,8 +4721,8 @@
         "Baptiste"
       ],
       "factions": [
-        "15Caribbean Coalition",
-        "03Talon"
+        "Caribbean Coalition",
+        "Talon"
       ],
       "lat": 20.0410035,
       "lon": -72.785587,
@@ -4708,6 +4732,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4721,11 +4747,13 @@
         "Doomfist"
       ],
       "factions": [
-        "29Deep Sea Raiders",
-        "03Talon"
+        "Deep Sea Raiders",
+        "Talon"
       ],
       "lat": 45.4371908,
       "lon": 12.3345898,
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4738,10 +4766,12 @@
         "Sombra"
       ],
       "factions": [
-        "21Los Muertos"
+        "Los Muertos"
       ],
       "lat": 19.1738,
       "lon": -96.1342,
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4752,7 +4782,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "31MEKA"
+        "MEKA"
       ],
       "lat": 35.1799528,
       "lon": 129.0752365,
@@ -4762,6 +4792,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4772,10 +4804,12 @@
       "image": "",
       "filters": [],
       "factions": [
-        "30Phreaks"
+        "Phreaks"
       ],
       "lat": 48.8588897,
       "lon": 2.320041,
+      "yearStart": 2068,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4788,10 +4822,12 @@
         "Emre"
       ],
       "factions": [
-        "26Conspiracy"
+        "Conspiracy"
       ],
       "lat": 60.1666204,
       "lon": 24.9435408,
+      "yearStart": 2069,
+      "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4804,12 +4840,14 @@
         "Sombra"
       ],
       "factions": [
-        "24Conspiracy",
-        "21Los Muertos",
-        "30Phreaks"
+        "Conspiracy",
+        "Los Muertos",
+        "Phreaks"
       ],
       "lat": 19.1738,
       "lon": -96.1342,
+      "yearStart": 2069,
+      "yearEnd": 2072,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4827,9 +4865,9 @@
             "Mercy"
           ],
           "factions": [
-            "18Max's Vault",
-            "03Talon",
-            "00Overwatch"
+            "Max's Vault",
+            "Talon",
+            "Overwatch"
           ],
           "image": "",
           "locationType": "earth",
@@ -4863,6 +4901,7 @@
       ],
       "lat": 23.135305,
       "lon": -82.3589631,
+      "yearStart": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4879,8 +4918,8 @@
             "Winston"
           ],
           "factions": [
-            "00Overwatch",
-            "03Talon"
+            "Overwatch",
+            "Talon"
           ],
           "image": "",
           "locationType": "earth",
@@ -4921,6 +4960,7 @@
       ],
       "lat": 1.357107,
       "lon": 103.8194992,
+      "yearStart": 2070,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4934,11 +4974,13 @@
         "Soldier 76"
       ],
       "factions": [
-        "00Overwatch",
-        "03Talon"
+        "Overwatch",
+        "Talon"
       ],
       "lat": 55.861155,
       "lon": -4.2501687,
+      "yearStart": 2070,
+      "yearEnd": 2071,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4951,10 +4993,12 @@
         "Vendetta"
       ],
       "factions": [
-        "03Talon"
+        "Talon"
       ],
       "lat": 45.4371908,
       "lon": 12.3345898,
+      "yearStart": 2068,
+      "yearEnd": 2077,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4969,8 +5013,8 @@
         "Genji"
       ],
       "factions": [
-        "24Conspiracy",
-        "00Overwatch"
+        "Conspiracy",
+        "Overwatch"
       ],
       "lat": 47.3744489,
       "lon": 8.5410422,
@@ -4980,6 +5024,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2070,
+      "yearEnd": 2071,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -4993,10 +5039,12 @@
         "Zenyatta"
       ],
       "factions": [
-        "26Shambali"
+        "Shambali"
       ],
       "lat": 28.3949,
       "lon": 84.124,
+      "yearStart": 2070,
+      "yearEnd": 2071,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -5009,9 +5057,9 @@
         "Sojourn"
       ],
       "factions": [
-        "00Overwatch",
-        "28Collective",
-        "32Helix Securities"
+        "Overwatch",
+        "Collective",
+        "Helix Securities"
       ],
       "sources": [
         {
@@ -5021,6 +5069,8 @@
       ],
       "lat": 30.3258363,
       "lon": 35.4745669,
+      "yearStart": 2070,
+      "yearEnd": 2071,
       "eraName": "The Fall of Overwatch"
     },
     {
@@ -5038,10 +5088,12 @@
         "Moira"
       ],
       "factions": [
-        "03Talon"
+        "Talon"
       ],
       "lat": 35.6876096,
       "lon": -105.938456,
+      "yearStart": 2070,
+      "yearEnd": 2072,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5054,11 +5106,13 @@
         "Ana"
       ],
       "factions": [
-        "03Talon",
-        "20Wayfinders"
+        "Talon",
+        "Wayfinders"
       ],
       "lat": 29,
       "lon": 31,
+      "yearStart": 2069,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5071,10 +5125,12 @@
         "Hazard"
       ],
       "factions": [
-        "30Phreaks"
+        "Phreaks"
       ],
       "lat": 55.861155,
       "lon": -4.2501687,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5087,10 +5143,12 @@
         "Ashe"
       ],
       "factions": [
-        "14Deadlock"
+        "Deadlock"
       ],
       "lat": 40.0170005,
       "lon": -105.2664724,
+      "yearStart": 2071,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5105,10 +5163,12 @@
         "Junker Queen"
       ],
       "factions": [
-        "16Junkers"
+        "Junkers"
       ],
       "lat": -25,
       "lon": 135,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5122,7 +5182,7 @@
             "Symmetra"
           ],
           "factions": [
-            "05Vishkar"
+            "Vishkar"
           ],
           "image": "",
           "locationType": "earth",
@@ -5149,6 +5209,8 @@
       ],
       "lat": -22.9110137,
       "lon": -43.2093727,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5162,10 +5224,12 @@
         "Baptiste"
       ],
       "factions": [
-        "03Talon"
+        "Talon"
       ],
       "lat": 19.7177718,
       "lon": -71.4448113,
+      "yearStart": 2070,
+      "yearEnd": 2079,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5178,10 +5242,12 @@
         "Pharah"
       ],
       "factions": [
-        "32Helix Securities"
+        "Helix Securities"
       ],
       "lat": 30.0443879,
       "lon": 31.2357257,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5194,10 +5260,12 @@
         "Zarya"
       ],
       "factions": [
-        "11Volskaya"
+        "Volskaya"
       ],
       "lat": 60,
       "lon": 100,
+      "yearStart": 2071,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5210,7 +5278,7 @@
         "D.va"
       ],
       "factions": [
-        "31MEKA"
+        "MEKA"
       ],
       "lat": 35.1799528,
       "lon": 129.0752365,
@@ -5220,6 +5288,7 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2075,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5232,11 +5301,13 @@
         "Moira"
       ],
       "factions": [
-        "20Wayfinders",
-        "25Oasis"
+        "Wayfinders",
+        "Oasis"
       ],
       "lat": 30.3258363,
       "lon": 35.4745669,
+      "yearStart": 2069,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5251,6 +5322,8 @@
       "factions": [],
       "lat": 55.6867243,
       "lon": 12.5700724,
+      "yearStart": 2070,
+      "yearEnd": 2079,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5263,10 +5336,12 @@
         "Junker Queen"
       ],
       "factions": [
-        "16Junkers"
+        "Junkers"
       ],
       "lat": -20.7274568,
       "lon": 139.49896,
+      "yearStart": 2064,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5279,10 +5354,12 @@
         "Anran"
       ],
       "factions": [
-        "10Wuxing University"
+        "Wuxing University"
       ],
       "lat": 30.659867,
       "lon": 104.063315,
+      "yearStart": 2074,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5295,10 +5372,12 @@
         "Orisa"
       ],
       "factions": [
-        "19Numbani"
+        "Numbani"
       ],
       "lat": 12.0022,
       "lon": 8.5919,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5311,10 +5390,12 @@
         "Cassidy"
       ],
       "factions": [
-        "03Talon"
+        "Talon"
       ],
       "lat": 29.7589382,
       "lon": -95.3676974,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5328,10 +5409,12 @@
         "Roadhog"
       ],
       "factions": [
-        "16Junkers"
+        "Junkers"
       ],
       "lat": -33.8698439,
       "lon": 151.2082848,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5344,7 +5427,7 @@
         "Lúcio"
       ],
       "factions": [
-        "05Vishkar"
+        "Vishkar"
       ],
       "lat": -22.9110137,
       "lon": -43.2093727,
@@ -5354,6 +5437,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5366,11 +5451,13 @@
         "Sombra"
       ],
       "factions": [
-        "13Lumerico",
-        "21Los Muertos"
+        "Lumerico",
+        "Los Muertos"
       ],
       "lat": 19.1738,
       "lon": -96.1342,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5384,10 +5471,12 @@
         "Brigitte"
       ],
       "factions": [
-        "09Crusaders"
+        "Crusaders"
       ],
       "lat": 44.4361414,
       "lon": 26.102684,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5401,7 +5490,7 @@
             "Soldier 76"
           ],
           "factions": [
-            "32Helix Securities"
+            "Helix Securities"
           ],
           "image": "",
           "locationType": "earth",
@@ -5427,6 +5516,8 @@
       ],
       "lat": 39.1131257,
       "lon": -108.0127646,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5441,10 +5532,12 @@
         "Baptiste"
       ],
       "factions": [
-        "03Talon"
+        "Talon"
       ],
       "lat": 30.0443879,
       "lon": 31.2357257,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5458,10 +5551,12 @@
         "Reinhardt"
       ],
       "factions": [
-        "08Ironclad"
+        "Ironclad"
       ],
       "lat": 57.7072326,
       "lon": 11.9670171,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5474,10 +5569,12 @@
         "Torbjörn"
       ],
       "factions": [
-        "08Ironclad"
+        "Ironclad"
       ],
       "lat": 41.5089324,
       "lon": 74.724091,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5494,7 +5591,8 @@
       ],
       "lat": 35.1799528,
       "lon": 129.0752365,
-      "yearStart": 2077,
+      "yearStart": 2075,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5509,7 +5607,8 @@
       "factions": [],
       "lat": 48.2634439,
       "lon": 8.1647488,
-      "yearStart": 2077,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5546,7 +5645,8 @@
       ],
       "lat": -22.9110137,
       "lon": -43.2093727,
-      "yearStart": 2077,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5584,7 +5684,8 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "yearStart": 2077,
+      "yearStart": 2070,
+      "yearEnd": 2077,
       "eraName": "The Age of Conflict"
     },
     {
@@ -5871,7 +5972,8 @@
       ],
       "x": 60,
       "y": 70,
-      "yearStart": 2078,
+      "yearStart": 2070,
+      "yearEnd": 2078,
       "eraName": "The Age of Conflict"
     },
     {
@@ -6211,7 +6313,6 @@
         "Sojourn"
       ],
       "factions": [
-        "Numbani",
         "Talon"
       ],
       "lat": 12.0022,
@@ -7135,8 +7236,8 @@
       ],
       "lat": 26.8595868,
       "lon": 100.2249797,
-      "eraName": "The Reign of Talon",
-      "yearStart": 2080
+      "yearStart": 2080,
+      "eraName": "The Null Sector Invasion"
     },
     {
       "name": "Search and Destroy",
@@ -7255,6 +7356,34 @@
       "lon": -5.3536,
       "eraName": "The Reign of Talon",
       "yearStart": 2080
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint: Grand Mesa, United States",
+      "image": "",
+      "name": "Summit Breach",
+      "description": "",
+      "filters": [
+        "Sierra",
+        "Sojourn",
+        "Freja",
+        "Emre"
+      ],
+      "factions": [
+        "Helix Securities",
+        "Overwatch",
+        "Talon Empire"
+      ],
+      "sources": [
+        {
+          "text": "Summit Breach",
+          "url": "https://www.youtube.com/watch?v=lxz-055QD6Q"
+        }
+      ],
+      "yearStart": 2080,
+      "eraName": "The Reign of Talon",
+      "lat": 39.1131257,
+      "lon": -108.0127646
     }
   ]
 }

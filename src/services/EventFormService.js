@@ -38,6 +38,30 @@ class EventFormService {
     }
 
     /**
+     * Event `factions[]` values → comma-separated text for edit fields (manifest displayName when matched).
+     * Same matching rules as populateEditForm / loadVariantToForm.
+     * @param {string[]} factionTokens
+     * @param {{ filename?: string, displayName?: string }[]} manifestFactions
+     */
+    factionsArrayToFormDisplayString(factionTokens, manifestFactions) {
+        const list = Array.isArray(manifestFactions) ? manifestFactions : [];
+        const raw = Array.isArray(factionTokens) ? factionTokens : [];
+        const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+        return raw.map((f) => {
+            const token = String(f ?? '').trim();
+            if (!token) return '';
+            const hit = list.find((fac) =>
+                fac.filename === token
+                || fac.displayName === token
+                || (fh && typeof fh.factionIdsMatch === 'function' && (
+                    fh.factionIdsMatch(fac.filename, token) || fh.factionIdsMatch(fac.displayName, token)
+                ))
+            );
+            return hit ? String(hit.displayName || '').trim() : String(f).replace(/^\d+/, '').trim();
+        }).filter(Boolean).join(', ');
+    }
+
+    /**
      * Setup location type change handler
      */
     setupLocationTypeHandler() {
@@ -318,17 +342,10 @@ class EventFormService {
         document.getElementById('eventEditName').value = variant.name || '';
         document.getElementById('eventEditDescription').value = variant.description || '';
         document.getElementById('eventEditFilters').value = (variant.filters || []).join(', ');
-        const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
-        const displayFactions = (variant.factions || []).map((f) => {
-            const faction = this.eventManager.factions.find((fac) =>
-                fac.filename === f
-                || fac.displayName === f
-                || (fh && typeof fh.factionIdsMatch === 'function' && (
-                    fh.factionIdsMatch(fac.filename, f) || fh.factionIdsMatch(fac.displayName, f)
-                ))
-            );
-            return faction ? faction.displayName : String(f).replace(/^\d+/, '').trim();
-        }).join(', ');
+        const displayFactions = this.factionsArrayToFormDisplayString(
+            variant.factions || [],
+            this.eventManager.factions || []
+        );
         document.getElementById('eventEditFactions').value = displayFactions;
         const secondaryCountriesField = document.getElementById('eventEditSecondaryCountries');
         if (secondaryCountriesField) {
@@ -636,17 +653,10 @@ class EventFormService {
             document.getElementById('eventEditName').value = variant.name || '';
             document.getElementById('eventEditDescription').value = variant.description || '';
             document.getElementById('eventEditFilters').value = (variant.filters || []).join(', ');
-            const fhPop = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
-            const displayFactions = (variant.factions || []).map((f) => {
-                const faction = this.eventManager.factions.find((fac) =>
-                    fac.filename === f
-                    || fac.displayName === f
-                    || (fhPop && typeof fhPop.factionIdsMatch === 'function' && (
-                        fhPop.factionIdsMatch(fac.filename, f) || fhPop.factionIdsMatch(fac.displayName, f)
-                    ))
-                );
-                return faction ? faction.displayName : String(f).replace(/^\d+/, '').trim();
-            }).join(', ');
+            const displayFactions = this.factionsArrayToFormDisplayString(
+                variant.factions || [],
+                this.eventManager.factions || []
+            );
             document.getElementById('eventEditFactions').value = displayFactions;
             const secondaryPop = document.getElementById('eventEditSecondaryCountries');
             if (secondaryPop) {

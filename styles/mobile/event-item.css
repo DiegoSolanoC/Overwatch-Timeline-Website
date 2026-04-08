@@ -4,51 +4,54 @@
  * overlapping rules; load order applies.
  */
 
-.event-item {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    cursor: move;
-    transition: all 0.3s ease;
-    position: relative;
-    height: 280px;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    box-sizing: border-box;
-}
+/* Rectangular cards: compact layouts / short viewports. Desktop uses parallelogram in components/event-item.css. */
+@media (max-width: 768px), (max-height: 599px) {
+    .event-item {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        cursor: move;
+        transition: all 0.3s ease;
+        position: relative;
+        height: 302px;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
 
-/* GitHub Pages: view-only — whole card opens the event */
-.event-item.event-item--view-only {
-    height: auto;
-    min-height: 200px;
-    cursor: pointer;
-}
+    /* GitHub Pages: view-only — whole card opens the event */
+    .event-item.event-item--view-only {
+        height: auto;
+        min-height: 200px;
+        cursor: pointer;
+    }
 
-.event-item.event-item--view-only:focus-visible {
-    outline: 2px solid rgba(33, 150, 243, 0.85);
-    outline-offset: 2px;
-}
+    .event-item.event-item--view-only:focus-visible {
+        outline: 2px solid rgba(33, 150, 243, 0.85);
+        outline-offset: 2px;
+    }
 
-body.color-palette-gray .event-item.event-item--view-only:focus-visible {
-    outline-color: rgba(255, 102, 0, 0.9);
-}
+    body.color-palette-gray .event-item.event-item--view-only:focus-visible {
+        outline-color: rgba(255, 102, 0, 0.9);
+    }
 
-.event-item.unsaved {
-    background: rgba(255, 235, 59, 0.2);
-    border-color: rgba(255, 235, 59, 0.5);
-}
+    .event-item.unsaved {
+        background: rgba(255, 235, 59, 0.2);
+        border-color: rgba(255, 235, 59, 0.5);
+    }
 
-.event-item.multi-event {
-    border-left: 4px solid #2196F3;
-}
+    .event-item.multi-event {
+        border-left: 4px solid #2196F3;
+    }
 
-body.color-palette-gray .event-item.multi-event {
-    border-left: 4px solid #ff6600;
+    body.color-palette-gray .event-item.multi-event {
+        border-left: 4px solid #ff6600;
+    }
 }
 
 .multi-event-badge {
@@ -211,11 +214,31 @@ body.color-palette-gray .event-item.drag-over {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
     min-width: 0;
     max-width: 100%;
-    overflow: hidden;
-    flex-shrink: 1;
+    overflow-x: hidden;
+    overflow-y: visible;
+    flex-shrink: 0;
+}
+
+.event-item-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.event-item-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    width: 100%;
+    flex-shrink: 0;
 }
 
 .event-item-title {
@@ -333,16 +356,6 @@ body.color-palette-gray .event-item-title {
 
 .event-item-btn:hover {
     background: rgba(255, 255, 255, 0.2);
-}
-
-.event-item-btn.view-btn {
-    background: rgba(76, 175, 80, 0.3);
-    border-color: rgba(76, 175, 80, 0.6);
-    width: 100%;
-}
-
-.event-item-btn.view-btn:hover {
-    background: rgba(76, 175, 80, 0.5);
 }
 
 .event-item-btn.edit-btn {

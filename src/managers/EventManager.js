@@ -496,27 +496,31 @@ class EventManager {
 
     /**
      * Delete event
+     * @returns {boolean} true if the user confirmed and the event was removed
      */
     deleteEvent(index) {
         // Prevent deletion on GitHub Pages
         if (this.isGitHubPages()) {
             console.log('Event deletion is disabled on GitHub Pages');
-            return;
+            return false;
         }
-        
+
         const eventName = this.events[index]?.name || (this.events[index]?.variants?.[0]?.name) || 'this event';
-        if (confirm(`Are you sure you want to delete "${eventName}"?`)) {
-            if (this.editService) {
-                const result = this.editService.deleteEvent(index);
-                if (result.success) {
-                    this.currentPage = result.newCurrentPage;
-                    this.renderEvents();
-                    this.refreshGlobeEvents();
-                }
-            } else {
-                console.error('EventManager: EventEditService not available!');
-            }
+        if (!confirm(`Are you sure you want to delete "${eventName}"?`)) {
+            return false;
         }
+        if (this.editService) {
+            const result = this.editService.deleteEvent(index);
+            if (result.success) {
+                this.currentPage = result.newCurrentPage;
+                this.renderEvents();
+                this.refreshGlobeEvents();
+                return true;
+            }
+        } else {
+            console.error('EventManager: EventEditService not available!');
+        }
+        return false;
     }
 
     openEditModal(index) {
@@ -604,6 +608,18 @@ class EventManager {
 
     // CityLookupService delegations
     async lookupCity() { return await this.cityLookupService?.lookupCity(); }
+
+    /** Info-panel inline editor: same lookup as modal, different field ids */
+    async lookupCitySlide() {
+        return await this.cityLookupService?.lookupCity({
+            cityId: 'eventSlideEditCityLookup',
+            latId: 'eventSlideEditLat',
+            lonId: 'eventSlideEditLon',
+            displayNameId: 'eventSlideEditCityDisplayName',
+            lookupBtnId: 'eventSlideLookupCityBtn',
+            useCodeLookupId: 'eventSlideUseCodeLookup',
+        });
+    }
     async geocodeCity(cityName) { return await this.cityLookupService?.geocodeCity(cityName) || null; }
 
     // ImagePathService delegation

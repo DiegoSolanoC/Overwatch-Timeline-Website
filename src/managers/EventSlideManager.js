@@ -63,8 +63,670 @@ export class EventSlideManager {
             originalFactions: [],
             originalSources: [],
             originalHeadlines: [],
-            originalSecondaryCountryFlags: []
+            originalSecondaryCountryFlags: [],
+            /** Index in eventManager.events when edit started (for reorder / event number) */
+            eventListIndex: -1,
         };
+    }
+
+    _resolveEventListIndex(rootEvent) {
+        const em = typeof window !== 'undefined' ? window.eventManager : null;
+        if (!em || !Array.isArray(em.events) || !rootEvent) return -1;
+        const i = em.events.indexOf(rootEvent);
+        return i >= 0 ? i : -1;
+    }
+
+    _ensureSlidePlacementBlock(editor) {
+        if (!editor) return;
+        if (!document.getElementById('eventSlideInlineVariantBar')) {
+            const numRow = document.getElementById('eventSlideEditEventNumber')?.closest('.event-slide-inline-editor__row');
+            if (numRow) {
+                numRow.insertAdjacentHTML('afterend', `
+                <div class="event-slide-inline-editor__row" id="eventSlideVariantEditRow">
+                    <div class="event-slide-inline-editor__label">Variants</div>
+                    <div class="event-slide-inline-variant-bar" id="eventSlideInlineVariantBar"></div>
+                    <p class="event-slide-inline-editor__hint">Switch tabs to edit another variant. + / − add or remove (saved when you click Save).</p>
+                </div>`);
+            }
+        }
+        if (document.getElementById('eventSlideEditEventNumber')) return;
+        const first = editor.querySelector('.event-slide-inline-editor__row');
+        const html = `
+                <div class="event-slide-inline-editor__placement" id="eventSlidePlacementBlock">
+                <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditEventNumber">Event number (order in list)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditEventNumber" type="number" min="1" step="1" autocomplete="off" />
+                </div>
+                <div class="event-slide-inline-editor__row" id="eventSlideVariantEditRow">
+                    <div class="event-slide-inline-editor__label">Variants</div>
+                    <div class="event-slide-inline-variant-bar" id="eventSlideInlineVariantBar"></div>
+                    <p class="event-slide-inline-editor__hint">Switch tabs to edit another variant. + / − add or remove (saved when you click Save).</p>
+                </div>
+                <div class="event-slide-inline-editor__row" id="eventSlideCityLookupRow">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditCityLookup">City name (for coordinate lookup)</label>
+                    <div class="event-slide-inline-editor__lookup-row">
+                        <input class="event-slide-inline-editor__input event-slide-inline-editor__input--grow" id="eventSlideEditCityLookup" type="text" spellcheck="true" autocomplete="on" />
+                        <label class="event-slide-inline-editor__inline-check"><input type="checkbox" id="eventSlideUseCodeLookup" checked /> Code lookup</label>
+                        <button type="button" class="event-slide-inline-editor__small-btn" id="eventSlideLookupCityBtn">Lookup</button>
+                    </div>
+                </div>
+                <div class="event-slide-inline-editor__row">
+                    <div class="event-slide-inline-editor__label">Location type</div>
+                    <div class="event-slide-inline-editor__loc-types" role="group" aria-label="Location type">
+                        <button type="button" class="event-slide-loc-type-btn active" data-location-type="earth">Earth</button>
+                        <button type="button" class="event-slide-loc-type-btn" data-location-type="moon">Moon</button>
+                        <button type="button" class="event-slide-loc-type-btn" data-location-type="mars">Mars</button>
+                        <button type="button" class="event-slide-loc-type-btn" data-location-type="station">Station</button>
+                        <button type="button" class="event-slide-loc-type-btn" data-location-type="marsShip">Ship</button>
+                    </div>
+                    <input type="hidden" id="eventSlideEditLocationType" value="earth" />
+                </div>
+                <div class="event-slide-inline-editor__row event-slide-inline-editor__year-row" id="eventSlideLatLonRow">
+                    <div class="event-slide-inline-editor__year-cell">
+                        <label class="event-slide-inline-editor__label" for="eventSlideEditLat">Latitude</label>
+                        <input class="event-slide-inline-editor__input" id="eventSlideEditLat" type="number" step="any" autocomplete="off" />
+                    </div>
+                    <div class="event-slide-inline-editor__year-cell">
+                        <label class="event-slide-inline-editor__label" for="eventSlideEditLon">Longitude</label>
+                        <input class="event-slide-inline-editor__input" id="eventSlideEditLon" type="number" step="any" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="event-slide-inline-editor__row event-slide-inline-editor__year-row" id="eventSlideXyRow" style="display: none;">
+                    <div class="event-slide-inline-editor__year-cell">
+                        <label class="event-slide-inline-editor__label" for="eventSlideEditX">X (0–100)</label>
+                        <input class="event-slide-inline-editor__input" id="eventSlideEditX" type="number" step="any" min="0" max="100" autocomplete="off" />
+                    </div>
+                    <div class="event-slide-inline-editor__year-cell">
+                        <label class="event-slide-inline-editor__label" for="eventSlideEditY">Y (0–100)</label>
+                        <input class="event-slide-inline-editor__input" id="eventSlideEditY" type="number" step="any" min="0" max="100" autocomplete="off" />
+                    </div>
+                </div>
+                </div>`;
+        if (first) {
+            first.insertAdjacentHTML('beforebegin', html);
+        } else {
+            editor.insertAdjacentHTML('afterbegin', html);
+        }
+    }
+
+    _ensureInlineDeleteRow(editor) {
+        if (!editor || document.getElementById('eventSlideInlineDeleteBtn')) return;
+        const row = document.createElement('div');
+        row.className = 'event-slide-inline-editor__row event-slide-inline-editor__row--delete';
+        row.innerHTML = '<button type="button" class="event-slide-inline-editor__delete-btn" id="eventSlideInlineDeleteBtn">Delete event</button>';
+        editor.appendChild(row);
+    }
+
+    _syncSlideLocationTypeUI() {
+        const hid = document.getElementById('eventSlideEditLocationType');
+        const type = hid ? hid.value : 'earth';
+        const latLonRow = document.getElementById('eventSlideLatLonRow');
+        const xyRow = document.getElementById('eventSlideXyRow');
+        const lookupRow = document.getElementById('eventSlideCityLookupRow');
+        if (type === 'earth') {
+            if (latLonRow) latLonRow.style.display = '';
+            if (xyRow) xyRow.style.display = 'none';
+            if (lookupRow) lookupRow.style.display = '';
+        } else if (type === 'station' || type === 'marsShip') {
+            if (latLonRow) latLonRow.style.display = 'none';
+            if (xyRow) xyRow.style.display = 'none';
+            if (lookupRow) lookupRow.style.display = 'none';
+        } else {
+            if (latLonRow) latLonRow.style.display = 'none';
+            if (xyRow) xyRow.style.display = '';
+            if (lookupRow) lookupRow.style.display = 'none';
+        }
+        document.querySelectorAll('.event-slide-loc-type-btn').forEach((btn) => {
+            btn.classList.toggle('active', btn.dataset.locationType === type);
+        });
+    }
+
+    _setSlideLocationTypeForEdit(locationType) {
+        const hid = document.getElementById('eventSlideEditLocationType');
+        if (hid) hid.value = locationType;
+        this._syncSlideLocationTypeUI();
+    }
+
+    /**
+     * @returns {boolean} false if validation failed (alert already shown)
+     */
+    _applySlidePlacementOnSave(target, rootEvent, variantIndex) {
+        const hid = document.getElementById('eventSlideEditLocationType');
+        const type = hid ? hid.value : 'earth';
+
+        let lat;
+        let lon;
+        let x;
+        let y;
+
+        if (type === 'earth') {
+            lat = parseFloat(document.getElementById('eventSlideEditLat')?.value ?? '');
+            lon = parseFloat(document.getElementById('eventSlideEditLon')?.value ?? '');
+            if (Number.isNaN(lat) || Number.isNaN(lon)) {
+                window.alert('Please fill in latitude and longitude for Earth locations.');
+                return false;
+            }
+        } else if (type !== 'station' && type !== 'marsShip') {
+            x = parseFloat(document.getElementById('eventSlideEditX')?.value ?? '');
+            y = parseFloat(document.getElementById('eventSlideEditY')?.value ?? '');
+            if (Number.isNaN(x) || Number.isNaN(y) || x < 0 || x > 100 || y < 0 || y > 100) {
+                window.alert('X and Y must be numbers from 0 to 100.');
+                return false;
+            }
+        }
+
+        target.locationType = type;
+        delete target.lat;
+        delete target.lon;
+        delete target.x;
+        delete target.y;
+
+        if (type === 'earth') {
+            target.lat = lat;
+            target.lon = lon;
+        } else if (type !== 'station' && type !== 'marsShip') {
+            target.x = x;
+            target.y = y;
+        }
+
+        const isMulti = Array.isArray(rootEvent.variants) && rootEvent.variants.length > 0;
+        if (isMulti && variantIndex === 0) {
+            rootEvent.locationType = type;
+            delete rootEvent.lat;
+            delete rootEvent.lon;
+            delete rootEvent.x;
+            delete rootEvent.y;
+            if (type === 'earth') {
+                rootEvent.lat = lat;
+                rootEvent.lon = lon;
+            } else if (type !== 'station' && type !== 'marsShip') {
+                rootEvent.x = x;
+                rootEvent.y = y;
+            }
+        }
+        if (!isMulti) {
+            rootEvent.locationType = type;
+        }
+
+        return true;
+    }
+
+    _wireSlidePlacementListeners(editor, markDirty) {
+        const lookupBtn = document.getElementById('eventSlideLookupCityBtn');
+        if (lookupBtn && !lookupBtn.dataset.bound) {
+            lookupBtn.dataset.bound = 'true';
+            lookupBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.eventManager?.lookupCitySlide) {
+                    window.eventManager.lookupCitySlide();
+                }
+                markDirty();
+            });
+        }
+
+        const locBtns = editor.querySelectorAll('.event-slide-loc-type-btn');
+        locBtns.forEach((btn) => {
+            if (btn.dataset.bound === 'true') return;
+            btn.dataset.bound = 'true';
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const hid = document.getElementById('eventSlideEditLocationType');
+                if (hid) hid.value = btn.dataset.locationType || 'earth';
+                this._syncSlideLocationTypeUI();
+                markDirty();
+            });
+        });
+
+        const placementInputs = [
+            'eventSlideEditEventNumber',
+            'eventSlideEditCityLookup',
+            'eventSlideUseCodeLookup',
+            'eventSlideEditLat',
+            'eventSlideEditLon',
+            'eventSlideEditX',
+            'eventSlideEditY',
+        ];
+        placementInputs.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el && !el.dataset.slidePlacementDirty) {
+                el.dataset.slidePlacementDirty = 'true';
+                el.addEventListener('change', markDirty, { passive: true });
+                el.addEventListener('input', markDirty, { passive: true });
+            }
+        });
+    }
+
+    _readSlideSourcesFromDom() {
+        const sourcesList = document.getElementById('eventSlideEditSources');
+        if (!sourcesList) return [];
+        const rows = [...sourcesList.querySelectorAll('.event-slide-inline-editor__source-row')];
+        const out = [];
+        for (const row of rows) {
+            const text = row.querySelector('[data-role="source-text"]')?.value?.trim() || '';
+            const url = row.querySelector('[data-role="source-url"]')?.value?.trim() || '';
+            if (!text) continue;
+            out.push({ text, url: url || undefined });
+        }
+        return out;
+    }
+
+    /**
+     * Writes timeline, placement, title/body, filters, sources, etc. to the current target (and root).
+     * @returns {boolean}
+     */
+    _applyAllInlineFieldsToTarget() {
+        const { target, eventData: rootEvent, variantIndex } = this._getCurrentDescriptionTarget();
+        if (!target || !rootEvent) return false;
+
+        const eventSlideTitle = document.getElementById('eventSlideTitle');
+        const eventSlideText = document.getElementById('eventSlideText');
+        if (!eventSlideTitle || !eventSlideText) return false;
+
+        if (window.EventEditService && window.EventEditService.constructor) {
+            const EC = window.EventEditService.constructor;
+            const y1 = document.getElementById('eventSlideEditYearStart')?.value ?? '';
+            const y2 = document.getElementById('eventSlideEditYearEnd')?.value ?? '';
+            const timeline = EC.parseTimelineFormStrings(y1, y2);
+            if (timeline.error) {
+                window.alert(timeline.error);
+                return false;
+            }
+            EC.applyTimelineToEvent(rootEvent, timeline);
+            EC.applyEraNameToEvent(rootEvent, (document.getElementById('eventSlideEditEraName')?.value ?? '').trim());
+        }
+
+        if (!this._applySlidePlacementOnSave(target, rootEvent, variantIndex)) {
+            return false;
+        }
+
+        const cityInput = document.getElementById('eventSlideEditCityDisplayName');
+        const filtersInput = document.getElementById('eventSlideEditFilters');
+        const factionsInput = document.getElementById('eventSlideEditFactions');
+        const headlinesInput = document.getElementById('eventSlideEditHeadlines');
+
+        const newName = (eventSlideTitle.innerText ?? eventSlideTitle.textContent ?? '').trim();
+        const newText = (eventSlideText.textContent ?? '').replace(/\r\n/g, '\n');
+        const newCity = (cityInput?.value || '').trim();
+        const newFilters = (filtersInput?.value || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        const factionTokens = (factionsInput?.value || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+        const availableFactions = window.eventManager?.factions || [];
+        const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
+        const newFactions = factionTokens.map((token) => {
+            const found = availableFactions.find((f) =>
+                (f?.displayName || '').toLowerCase() === token.toLowerCase()
+                || (f?.filename || '').toLowerCase() === token.toLowerCase()
+                || (fh && typeof fh.factionIdsMatch === 'function' && (
+                    fh.factionIdsMatch(f.filename, token) || fh.factionIdsMatch(f.displayName, token)
+                ))
+            );
+            return found ? found.displayName : token;
+        });
+
+        const headlinesLines = (headlinesInput?.value || '')
+            .split('\n')
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+        const newSources = this._readSlideSourcesFromDom();
+
+        const secondaryField = document.getElementById('eventSlideEditSecondaryCountries');
+        const locTypeForSecondary = target.locationType || 'earth';
+        const parseSecondary = window.LocationFlagHelpers?.parseSecondaryCountryList;
+        let secondaryParsed = [];
+        if (secondaryField && typeof parseSecondary === 'function') {
+            secondaryParsed = parseSecondary(secondaryField.value, locTypeForSecondary);
+        }
+
+        if (newName) target.name = newName;
+        target.description = newText;
+        target.cityDisplayName = newCity || undefined;
+        target.filters = newFilters;
+        target.factions = newFactions;
+        target.secondaryCountryFlags = secondaryParsed.length > 0 ? secondaryParsed : undefined;
+        target.sources = newSources.length > 0 ? newSources : undefined;
+        target.headlines = headlinesLines.length > 0 ? headlinesLines : undefined;
+
+        return true;
+    }
+
+    _convertRootEventToMulti(root) {
+        const v0 = {
+            name: root.name || '',
+            description: root.description || '',
+            filters: Array.isArray(root.filters) ? [...root.filters] : [],
+            factions: Array.isArray(root.factions) ? [...root.factions] : [],
+            sources: root.sources ? JSON.parse(JSON.stringify(root.sources)) : undefined,
+            headlines: Array.isArray(root.headlines) ? [...root.headlines] : undefined,
+            locationType: root.locationType || 'earth',
+            lat: root.lat,
+            lon: root.lon,
+            x: root.x,
+            y: root.y,
+            cityDisplayName: root.cityDisplayName,
+            secondaryCountryFlags: Array.isArray(root.secondaryCountryFlags) ? [...root.secondaryCountryFlags] : undefined,
+        };
+        const lt = v0.locationType || 'earth';
+        const v1 = {
+            name: '',
+            description: '',
+            filters: [],
+            factions: [],
+            sources: undefined,
+            headlines: undefined,
+            locationType: lt,
+        };
+        if (lt === 'earth') {
+            v1.lat = v0.lat;
+            v1.lon = v0.lon;
+        } else if (lt !== 'station' && lt !== 'marsShip') {
+            v1.x = v0.x;
+            v1.y = v0.y;
+        }
+        root.variants = [v0, v1];
+        delete root.name;
+        delete root.description;
+        delete root.filters;
+        delete root.factions;
+        delete root.sources;
+        delete root.headlines;
+        delete root.lat;
+        delete root.lon;
+        delete root.x;
+        delete root.y;
+        delete root.secondaryCountryFlags;
+        root.locationType = lt;
+        if (v0.cityDisplayName) {
+            root.cityDisplayName = v0.cityDisplayName;
+        }
+    }
+
+    _collapseMultiToSingleRoot(root, keepVariant) {
+        if (!keepVariant) return;
+        const v = keepVariant;
+        root.name = v.name || '';
+        root.description = v.description || '';
+        root.filters = Array.isArray(v.filters) ? [...v.filters] : [];
+        root.factions = Array.isArray(v.factions) ? [...v.factions] : [];
+        root.sources = v.sources ? JSON.parse(JSON.stringify(v.sources)) : undefined;
+        root.headlines = Array.isArray(v.headlines) ? [...v.headlines] : undefined;
+        root.locationType = v.locationType || root.locationType || 'earth';
+        root.cityDisplayName = v.cityDisplayName;
+        root.secondaryCountryFlags = Array.isArray(v.secondaryCountryFlags) && v.secondaryCountryFlags.length > 0
+            ? [...v.secondaryCountryFlags]
+            : undefined;
+        delete root.lat;
+        delete root.lon;
+        delete root.x;
+        delete root.y;
+        const lt = root.locationType;
+        if (lt === 'earth') {
+            if (v.lat !== undefined) root.lat = v.lat;
+            if (v.lon !== undefined) root.lon = v.lon;
+        } else if (lt !== 'station' && lt !== 'marsShip') {
+            if (v.x !== undefined) root.x = v.x;
+            if (v.y !== undefined) root.y = v.y;
+        }
+        delete root.variants;
+    }
+
+    _renderSlideInlineVariantBar() {
+        const bar = document.getElementById('eventSlideInlineVariantBar');
+        if (!bar || !this._inlineDescEdit.active) return;
+
+        const eventData = this.uiView?.currentEventData || this.currentEventData;
+        if (!eventData) return;
+
+        const variants = eventData.variants && eventData.variants.length > 0
+            ? eventData.variants
+            : null;
+        const n = variants ? variants.length : 1;
+        let cur = this.uiView?.currentVariantIndex ?? this.currentVariantIndex ?? 0;
+        if (cur >= n) cur = n - 1;
+        if (cur < 0) cur = 0;
+
+        bar.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'event-slide-inline-variant-tab';
+            if (i === cur) b.classList.add('active');
+            b.textContent = String(i + 1);
+            b.dataset.variantIndex = String(i);
+            b.dataset.role = 'variant-tab';
+            bar.appendChild(b);
+        }
+        const addB = document.createElement('button');
+        addB.type = 'button';
+        addB.className = 'event-slide-inline-editor__small-btn event-slide-inline-variant-action';
+        addB.textContent = '+';
+        addB.title = 'Add variant';
+        addB.dataset.role = 'add-variant';
+        bar.appendChild(addB);
+        if (variants && variants.length > 1) {
+            const remB = document.createElement('button');
+            remB.type = 'button';
+            remB.className = 'event-slide-inline-editor__small-btn event-slide-inline-variant-action event-slide-inline-variant-action--remove';
+            remB.textContent = '−';
+            remB.title = 'Remove current variant';
+            remB.dataset.role = 'remove-variant';
+            bar.appendChild(remB);
+        }
+
+        if (!bar.dataset.delegationBound) {
+            bar.dataset.delegationBound = 'true';
+            bar.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn || !this._inlineDescEdit.active) return;
+                if (btn.dataset.role === 'variant-tab') {
+                    const idx = parseInt(btn.dataset.variantIndex, 10);
+                    if (!Number.isNaN(idx)) this._onInlineVariantTabSelect(idx);
+                } else if (btn.dataset.role === 'add-variant') {
+                    this._onInlineVariantAdd();
+                } else if (btn.dataset.role === 'remove-variant') {
+                    this._onInlineVariantRemove();
+                }
+            });
+        }
+    }
+
+    _onInlineVariantTabSelect(index) {
+        const cur = this.uiView?.currentVariantIndex ?? this.currentVariantIndex ?? 0;
+        if (index === cur) return;
+        if (!this._applyAllInlineFieldsToTarget()) return;
+
+        this.currentVariantIndex = index;
+        if (this.uiView) this.uiView.currentVariantIndex = index;
+        const ed = this.uiView?.currentEventData || this.currentEventData;
+        this._inlineDescEdit.variantIndex = Array.isArray(ed?.variants) && ed.variants.length > 0 ? index : -1;
+
+        this._populateInlineEditorFieldsFromTarget();
+        this._renderSlideInlineVariantBar();
+        this._inlineDescEdit.dirty = true;
+    }
+
+    _onInlineVariantAdd() {
+        if (!this._applyAllInlineFieldsToTarget()) return;
+
+        const eventData = this.uiView?.currentEventData || this.currentEventData;
+        if (!eventData) return;
+
+        if (!eventData.variants || eventData.variants.length === 0) {
+            this._convertRootEventToMulti(eventData);
+            const newIdx = eventData.variants.length - 1;
+            this.currentVariantIndex = newIdx;
+            if (this.uiView) this.uiView.currentVariantIndex = newIdx;
+        } else {
+            const last = eventData.variants[eventData.variants.length - 1];
+            const lt = last?.locationType || eventData.locationType || 'earth';
+            const nv = {
+                name: '',
+                description: '',
+                filters: [],
+                factions: [],
+                sources: undefined,
+                headlines: undefined,
+                locationType: lt,
+            };
+            if (lt === 'earth') {
+                nv.lat = last?.lat;
+                nv.lon = last?.lon;
+            } else if (lt !== 'station' && lt !== 'marsShip') {
+                nv.x = last?.x;
+                nv.y = last?.y;
+            }
+            if (last?.cityDisplayName) nv.cityDisplayName = last.cityDisplayName;
+            eventData.variants.push(nv);
+            const newIdx = eventData.variants.length - 1;
+            this.currentVariantIndex = newIdx;
+            if (this.uiView) this.uiView.currentVariantIndex = newIdx;
+        }
+
+        this._populateInlineEditorFieldsFromTarget();
+        this._renderSlideInlineVariantBar();
+        this._inlineDescEdit.dirty = true;
+    }
+
+    _onInlineVariantRemove() {
+        const eventData = this.uiView?.currentEventData || this.currentEventData;
+        if (!eventData?.variants || eventData.variants.length <= 1) return;
+        if (!window.confirm('Remove this variant? This cannot be undone except by canceling edit without saving.')) {
+            return;
+        }
+        if (!this._applyAllInlineFieldsToTarget()) return;
+
+        const cur = this.uiView?.currentVariantIndex ?? this.currentVariantIndex ?? 0;
+        const vars = eventData.variants;
+
+        if (vars.length === 2) {
+            const keep = vars[1 - cur];
+            this._collapseMultiToSingleRoot(eventData, keep);
+            this.currentVariantIndex = 0;
+            if (this.uiView) this.uiView.currentVariantIndex = 0;
+        } else {
+            vars.splice(cur, 1);
+            const newIdx = Math.min(cur, vars.length - 1);
+            this.currentVariantIndex = newIdx;
+            if (this.uiView) this.uiView.currentVariantIndex = newIdx;
+        }
+
+        this._populateInlineEditorFieldsFromTarget();
+        this._renderSlideInlineVariantBar();
+        this._inlineDescEdit.dirty = true;
+    }
+
+    /**
+     * Fills inline inputs from currentEventData + currentVariantIndex (while staying in edit mode).
+     */
+    _populateInlineEditorFieldsFromTarget() {
+        const eventData = this.uiView?.currentEventData || this.currentEventData;
+        if (!eventData) return;
+
+        const eventSlideTitle = document.getElementById('eventSlideTitle');
+        const eventSlideText = document.getElementById('eventSlideText');
+        const cityInput = document.getElementById('eventSlideEditCityDisplayName');
+        const yearStartInput = document.getElementById('eventSlideEditYearStart');
+        const yearEndInput = document.getElementById('eventSlideEditYearEnd');
+        const eraNameInput = document.getElementById('eventSlideEditEraName');
+        const filtersInput = document.getElementById('eventSlideEditFilters');
+        const factionsInput = document.getElementById('eventSlideEditFactions');
+        const headlinesInput = document.getElementById('eventSlideEditHeadlines');
+        const sourcesList = document.getElementById('eventSlideEditSources');
+
+        const isMulti = Array.isArray(eventData.variants) && eventData.variants.length > 0;
+        const vIdx = isMulti ? (this.uiView?.currentVariantIndex ?? this.currentVariantIndex ?? 0) : -1;
+        const target = isMulti ? (eventData.variants[vIdx] || eventData.variants[0]) : eventData;
+
+        if (eventSlideTitle) eventSlideTitle.textContent = target.name || '';
+        if (eventSlideText) eventSlideText.textContent = target.description || '';
+
+        if (cityInput) cityInput.value = target.cityDisplayName || '';
+        if (yearStartInput) yearStartInput.value = eventData.yearStart != null && eventData.yearStart !== '' ? String(eventData.yearStart) : '';
+        if (yearEndInput) yearEndInput.value = eventData.yearEnd != null && eventData.yearEnd !== '' ? String(eventData.yearEnd) : '';
+        if (eraNameInput) eraNameInput.value = eventData.eraName != null ? String(eventData.eraName) : '';
+        if (filtersInput) filtersInput.value = (target.filters || []).join(', ');
+        if (factionsInput) {
+            const formSvc = window.eventManager?.formService;
+            const manifest = window.eventManager?.factions?.length
+                ? window.eventManager.factions
+                : (window.globeController?.dataModel?.factions || []);
+            factionsInput.value = formSvc && typeof formSvc.factionsArrayToFormDisplayString === 'function'
+                ? formSvc.factionsArrayToFormDisplayString(target.factions || [], manifest)
+                : (target.factions || []).map((f) => String(f).replace(/^\d+/, '').trim()).join(', ');
+        }
+        const secondaryEl = document.getElementById('eventSlideEditSecondaryCountries');
+        if (secondaryEl) {
+            const formSvc = window.eventManager?.formService || window.EventFormService;
+            secondaryEl.value = formSvc && typeof formSvc.secondaryFlagsToFormString === 'function'
+                ? formSvc.secondaryFlagsToFormString(target.secondaryCountryFlags)
+                : '';
+        }
+        if (headlinesInput) headlinesInput.value = (target.headlines || []).join('\n');
+
+        if (sourcesList) {
+            sourcesList.innerHTML = '';
+            const srcs = Array.isArray(target.sources) && target.sources.length > 0 ? target.sources : [{ text: '', url: '' }];
+            srcs.forEach((s) => {
+                const row = document.createElement('div');
+                row.className = 'event-slide-inline-editor__source-row';
+                row.innerHTML = `
+                    <input class="event-slide-inline-editor__input" data-role="source-text" type="text" placeholder="Source text" spellcheck="true" autocomplete="on" autocorrect="on" autocapitalize="sentences" />
+                    <input class="event-slide-inline-editor__input" data-role="source-url" type="text" placeholder="URL (optional)" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" inputmode="url" />
+                    <button type="button" class="event-slide-inline-editor__small-btn" data-role="source-remove" title="Remove">−</button>
+                `;
+                row.querySelector('[data-role="source-text"]').value = s?.text || '';
+                row.querySelector('[data-role="source-url"]').value = s?.url || '';
+                row.querySelector('[data-role="source-remove"]').addEventListener('click', () => {
+                    row.remove();
+                    this._inlineDescEdit.dirty = true;
+                });
+                row.querySelector('[data-role="source-text"]').addEventListener('input', () => {
+                    this._inlineDescEdit.dirty = true;
+                }, { passive: true });
+                row.querySelector('[data-role="source-url"]').addEventListener('input', () => {
+                    this._inlineDescEdit.dirty = true;
+                }, { passive: true });
+                sourcesList.appendChild(row);
+            });
+        }
+
+        const em = window.eventManager;
+        const numEl = document.getElementById('eventSlideEditEventNumber');
+        if (numEl && em?.events?.length && this._inlineDescEdit.eventListIndex >= 0) {
+            numEl.min = '1';
+            numEl.max = String(em.events.length);
+            numEl.value = String(this._inlineDescEdit.eventListIndex + 1);
+        }
+
+        const locType = target.locationType || eventData.locationType || 'earth';
+        this._setSlideLocationTypeForEdit(locType);
+        const latEl = document.getElementById('eventSlideEditLat');
+        const lonEl = document.getElementById('eventSlideEditLon');
+        const xEl = document.getElementById('eventSlideEditX');
+        const yEl = document.getElementById('eventSlideEditY');
+        const cityLookEl = document.getElementById('eventSlideEditCityLookup');
+        if (cityLookEl) {
+            cityLookEl.value = (target.cityDisplayName || eventData.cityDisplayName || '').trim();
+        }
+        if (latEl) latEl.value = '';
+        if (lonEl) lonEl.value = '';
+        if (xEl) xEl.value = '';
+        if (yEl) yEl.value = '';
+        if (locType === 'earth') {
+            if (latEl && target.lat != null) latEl.value = String(target.lat);
+            if (lonEl && target.lon != null) lonEl.value = String(target.lon);
+        } else if (locType !== 'station' && locType !== 'marsShip') {
+            if (xEl && target.x != null) xEl.value = String(target.x);
+            if (yEl && target.y != null) yEl.value = String(target.y);
+        }
     }
 
     _isInlineEditAllowed() {
@@ -170,6 +832,9 @@ export class EventSlideManager {
                         <button type="button" class="event-slide-inline-editor__small-btn" id="eventSlideAddSourceBtn">+ Source</button>
                     </div>
                 </div>
+                <div class="event-slide-inline-editor__row event-slide-inline-editor__row--delete">
+                    <button type="button" class="event-slide-inline-editor__delete-btn" id="eventSlideInlineDeleteBtn">Delete event</button>
+                </div>
             `;
 
             // Insert near the top of the scrollable content (right above sources/filters).
@@ -193,6 +858,30 @@ export class EventSlideManager {
                 `;
                 factionsRow.after(row);
             }
+        }
+
+        const slideEditorRoot = document.getElementById('eventSlideInlineEditor');
+        if (slideEditorRoot) {
+            this._ensureSlidePlacementBlock(slideEditorRoot);
+            this._ensureInlineDeleteRow(slideEditorRoot);
+        }
+
+        const inlineDeleteBtn = document.getElementById('eventSlideInlineDeleteBtn');
+        if (inlineDeleteBtn && !inlineDeleteBtn.dataset.inlineDeleteWired) {
+            inlineDeleteBtn.dataset.inlineDeleteWired = 'true';
+            inlineDeleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!this._isInlineEditAllowed() || !this._inlineDescEdit.active) return;
+                const root = this.uiView?.currentEventData || this.currentEventData;
+                const em = window.eventManager;
+                if (!root || !em?.events || typeof em.deleteEvent !== 'function') return;
+                const idx = em.events.indexOf(root);
+                if (idx < 0) return;
+                if (em.deleteEvent(idx)) {
+                    this.hideEventSlide();
+                }
+            });
         }
 
         const cityInput = document.getElementById('eventSlideEditCityDisplayName');
@@ -269,6 +958,11 @@ export class EventSlideManager {
         secondaryCountriesInput?.addEventListener('input', markDirty, { passive: true });
         headlinesInput?.addEventListener('input', markDirty, { passive: true });
 
+        if (slideEditorRoot && !slideEditorRoot.dataset.slidePlacementWired) {
+            slideEditorRoot.dataset.slidePlacementWired = 'true';
+            this._wireSlidePlacementListeners(slideEditorRoot, markDirty);
+        }
+
         // Make the description field behave like a plain-text editor.
         // This prevents browsers from inserting extra <div>/<br> nodes that can inflate blank lines.
         const insertPlainTextAtCursor = (text) => {
@@ -337,6 +1031,7 @@ export class EventSlideManager {
                 : [];
             this._inlineDescEdit.eventData = eventData;
             this._inlineDescEdit.variantIndex = variantIndex;
+            this._inlineDescEdit.eventListIndex = this._resolveEventListIndex(eventData);
 
             eventSlide.classList.add('event-slide--inline-editing');
             saveBtn.style.display = 'inline-flex';
@@ -353,26 +1048,9 @@ export class EventSlideManager {
             eventSlideText.setAttribute('contenteditable', 'true');
             eventSlideText.setAttribute('spellcheck', 'true');
 
-            // Show the structured editor block for the other fields
             if (editor) editor.style.display = 'block';
-            if (cityInput) cityInput.value = this._inlineDescEdit.originalCityDisplayName;
-            if (yearStartInput) yearStartInput.value = eventData.yearStart != null && eventData.yearStart !== '' ? String(eventData.yearStart) : '';
-            if (yearEndInput) yearEndInput.value = eventData.yearEnd != null && eventData.yearEnd !== '' ? String(eventData.yearEnd) : '';
-            if (eraNameInput) eraNameInput.value = eventData.eraName != null ? String(eventData.eraName) : '';
-            if (filtersInput) filtersInput.value = this._inlineDescEdit.originalFilters.join(', ');
-            if (factionsInput) {
-                // Display factions without numeric prefix for readability
-                factionsInput.value = this._inlineDescEdit.originalFactions.map(f => String(f).replace(/^\d+/, '').trim()).join(', ');
-            }
-            const secondaryEl = document.getElementById('eventSlideEditSecondaryCountries');
-            if (secondaryEl) {
-                const formSvc = window.eventManager?.formService || window.EventFormService;
-                secondaryEl.value = formSvc && typeof formSvc.secondaryFlagsToFormString === 'function'
-                    ? formSvc.secondaryFlagsToFormString(target.secondaryCountryFlags)
-                    : '';
-            }
-            if (headlinesInput) headlinesInput.value = (this._inlineDescEdit.originalHeadlines || []).join('\n');
-            renderSourcesEditor(this._inlineDescEdit.originalSources);
+            this._populateInlineEditorFieldsFromTarget();
+            this._renderSlideInlineVariantBar();
 
             // Enable predictive/autocomplete behavior (same service used in EventManager edit modal).
             // Reset setup flag each time we enter edit mode so options stay in sync.
@@ -411,74 +1089,28 @@ export class EventSlideManager {
             if (!this._isInlineEditAllowed()) return;
             if (!this._inlineDescEdit.active) return;
 
-            const { target, eventData: rootEvent } = this._getCurrentDescriptionTarget();
-            if (!target) return;
+            if (!this._applyAllInlineFieldsToTarget()) return;
 
-            if (rootEvent && window.EventEditService && window.EventEditService.constructor) {
-                const EC = window.EventEditService.constructor;
-                const y1 = document.getElementById('eventSlideEditYearStart')?.value ?? '';
-                const y2 = document.getElementById('eventSlideEditYearEnd')?.value ?? '';
-                const timeline = EC.parseTimelineFormStrings(y1, y2);
-                if (timeline.error) {
-                    alert(timeline.error);
-                    return;
+            const emReorder = window.eventManager;
+            const startIdx = this._inlineDescEdit.eventListIndex;
+            const numReorderEl = document.getElementById('eventSlideEditEventNumber');
+            if (emReorder && typeof emReorder.reorderEvents === 'function' && numReorderEl && startIdx >= 0 && Array.isArray(emReorder.events)) {
+                const n = parseInt(numReorderEl.value, 10);
+                if (!Number.isNaN(n) && n >= 1) {
+                    const newIdx = Math.min(n - 1, emReorder.events.length - 1);
+                    if (newIdx !== startIdx) {
+                        emReorder.reorderEvents(startIdx, newIdx);
+                    }
                 }
-                EC.applyTimelineToEvent(rootEvent, timeline);
-                EC.applyEraNameToEvent(rootEvent, (document.getElementById('eventSlideEditEraName')?.value ?? '').trim());
             }
-
-            const newName = (eventSlideTitle.innerText ?? eventSlideTitle.textContent ?? '').trim();
-            const newText = (eventSlideText.textContent ?? '').replace(/\r\n/g, '\n');
-            const newCity = (cityInput?.value || '').trim();
-            const newFilters = (filtersInput?.value || '')
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean);
-            const factionTokens = (factionsInput?.value || '')
-                .split(',')
-                .map(s => s.trim())
-                .filter(Boolean);
-
-            const availableFactions = window.eventManager?.factions || [];
-            const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
-            const newFactions = factionTokens.map((token) => {
-                const found = availableFactions.find((f) =>
-                    (f?.displayName || '').toLowerCase() === token.toLowerCase()
-                    || (f?.filename || '').toLowerCase() === token.toLowerCase()
-                    || (fh && typeof fh.factionIdsMatch === 'function' && (
-                        fh.factionIdsMatch(f.filename, token) || fh.factionIdsMatch(f.displayName, token)
-                    ))
-                );
-                return found ? found.displayName : token;
-            });
-
-            const headlinesLines = (headlinesInput?.value || '')
-                .split('\n')
-                .map(s => s.trim())
-                .filter(Boolean);
-
-            const newSources = readSourcesEditor();
-
-            const secondaryField = document.getElementById('eventSlideEditSecondaryCountries');
-            const locTypeForSecondary = target.locationType || 'earth';
-            const parseSecondary = window.LocationFlagHelpers?.parseSecondaryCountryList;
-            let secondaryParsed = [];
-            if (secondaryField && typeof parseSecondary === 'function') {
-                secondaryParsed = parseSecondary(secondaryField.value, locTypeForSecondary);
-            }
-
-            if (newName) target.name = newName;
-            target.description = newText;
-            target.cityDisplayName = newCity || undefined;
-            target.filters = newFilters;
-            target.factions = newFactions;
-            target.secondaryCountryFlags = secondaryParsed.length > 0 ? secondaryParsed : undefined;
-            target.sources = newSources.length > 0 ? newSources : undefined;
-            target.headlines = headlinesLines.length > 0 ? headlinesLines : undefined;
 
             // Persist the same way EventManager does: save to localStorage via EventDataService.
             if (window.eventManager?.dataService?.saveEvents) {
                 window.eventManager.dataService.saveEvents();
+            }
+
+            if (window.eventManager?.refreshGlobeEvents) {
+                window.eventManager.refreshGlobeEvents();
             }
 
             // Exit edit mode and render display text
@@ -527,6 +1159,22 @@ export class EventSlideManager {
         if (editBtn) editBtn.textContent = 'Edit';
         if (editor) editor.style.display = 'none';
 
+        const variantToggles = document.getElementById('eventVariantToggles');
+        const rootForToggles = this.uiView?.currentEventData || this.currentEventData;
+        if (variantToggles && rootForToggles) {
+            const setupVariantToggles = window.EventSlideContentHelpers?.setupVariantToggles;
+            if (setupVariantToggles) {
+                const isMulti = !!(rootForToggles.variants && rootForToggles.variants.length > 0);
+                const curIdx = this.uiView?.currentVariantIndex ?? this.currentVariantIndex ?? 0;
+                setupVariantToggles(
+                    variantToggles,
+                    isMulti ? rootForToggles.variants : null,
+                    curIdx,
+                    (idx) => this.switchEventVariant(idx, rootForToggles)
+                );
+            }
+        }
+
         // After exiting edit mode (either save or cancel), ensure sources/filters reflect current target
         if (keepEdits && target) {
             this.uiView.updateEventSources(target);
@@ -558,6 +1206,7 @@ export class EventSlideManager {
         this._inlineDescEdit.originalSources = [];
         this._inlineDescEdit.originalHeadlines = [];
         this._inlineDescEdit.originalSecondaryCountryFlags = [];
+        this._inlineDescEdit.eventListIndex = -1;
     }
 
     _cancelInlineDescriptionEdit() {

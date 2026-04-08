@@ -3,7 +3,7 @@
    ======================================== */
 
 /* Design Tokens & Variables */
-@import url('styles/variables.css?v=16');
+@import url('styles/variables.css?v=17');
 
 /* Base & Reset Styles */
 @import url('styles/base.css?v=9');
@@ -27,7 +27,7 @@
 @import url('styles/animations.css?v=9');
 
 /* Mobile Responsive Styles */
-@import url('styles/mobile.css?v=13');
+@import url('styles/mobile.css?v=15');
 
 /* Sidebar Navigation */
 @import url('styles/components/sidebar.css?v=8');
@@ -41,18 +41,18 @@
 
 /* Event Components */
 @import url('styles/components/variants.css?v=8');
-@import url('styles/components/event-filters.css?v=10');
+@import url('styles/components/event-filters.css?v=11');
 @import url('styles/components/event-sources.css?v=8');
 @import url('styles/components/event-buttons.css?v=12');
 @import url('styles/components/event-image-overlay.css?v=10');
-@import url('styles/components/event-item.css?v=10');
-@import url('styles/components/event-pagination.css?v=94');
+@import url('styles/components/event-item.css?v=26');
+@import url('styles/components/event-pagination.css?v=95');
 @import url('styles/components/event-edit-modal.css?v=8');
 @import url('styles/components/news-ticker.css?v=8');
 
 /* Panel Components */
-@import url('styles/components/panels/event-slide.css?v=12');
+@import url('styles/components/panels/event-slide.css?v=15');
 @import url('styles/components/panels/filters.css?v=9');
 @import url('styles/components/panels/music.css?v=16');
-@import url('styles/components/panels/events-manage.css?v=15');
+@import url('styles/components/panels/events-manage.css?v=16');
 @import url('styles/components/panels/panel-resize.css?v=12');

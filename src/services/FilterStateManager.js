@@ -68,7 +68,7 @@ class FilterStateManager {
     
     /**
      * Count filters by type (heroes vs factions).
-     * Globe chips use manifest faction filenames (e.g. 26Shambali); faction tab may use display names after data migration.
+     * Globe chips use manifest faction filenames (e.g. 25Shambali Order); faction tab may use display names after data migration.
      */
     getCounts() {
         let heroCount = 0;

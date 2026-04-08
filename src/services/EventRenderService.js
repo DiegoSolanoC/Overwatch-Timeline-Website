@@ -308,7 +308,7 @@ class EventRenderService {
             return;
         }
 
-        // Create event items for current page; use index in full list for edit/delete/open (events may be filtered)
+        // Create event items for current page; use index in full list for edit/open (events may be filtered)
         const fullList = this.eventManager && this.eventManager.events ? this.eventManager.events : events;
         const overlapIndexSet = this._computeOverlapIndexSet(eventsToRender, fullList);
         const renderStartTime = performance.now();
@@ -681,6 +681,7 @@ class EventRenderService {
         // Warning icon for unfinished event - check if event is missing important information
         const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
         const isUnfinished = !hasDescription;
+        item.classList.toggle('event-item--unfinished', isUnfinished);
         const unfinishedWarning = isUnfinished 
             ? `<div class="description-warning-badge" title="Unfinished event: Missing description">!</div>`
             : '';
@@ -700,17 +701,14 @@ class EventRenderService {
         const overlapTitle = options.hasOverlap
             ? `Overlap detected on globe page ${Math.floor(index / 10) + 1}`
             : `Event #${index + 1}`;
-        const eventNumberBadge = `<div class="event-number-badge${overlapClass}" title="${overlapTitle}">${index + 1}</div>`;
+        const eventNumberBadge = `<div class="event-number-badge event-item__thumb-key${overlapClass}" title="${overlapTitle}">${index + 1}</div>`;
 
         // On GitHub Pages, no action row — the whole card opens the event (read-only host).
+        // Preview opens the event; Edit opens the modal. Deleting is done from the info panel inline editor.
         const actionButtons = isGitHubPages ? '' : `
             <div class="event-item-actions">
                 <div class="event-item-actions-row">
-                    <button class="event-item-btn view-btn" data-index="${index}">View</button>
-                </div>
-                <div class="event-item-actions-row">
-                    <button class="event-item-btn edit-btn" data-index="${index}">Edit</button>
-                    <button class="event-item-btn delete-btn" data-index="${index}">Delete</button>
+                    <button type="button" class="event-item-btn edit-btn" data-index="${index}">Edit</button>
                 </div>
             </div>
         `;
@@ -749,39 +747,65 @@ class EventRenderService {
         }
 
         item.innerHTML = `
-            <div style="position: relative;">
-            ${imageHtml}
-            ${multiEventBadge}
-            ${unfinishedWarning}
-            ${eventNumberBadge}
+            <div class="event-item__thumb-block">
+                <div class="event-item__thumb-shell">
+                    <div class="event-item__thumb-visual">
+                        <div class="event-item__thumb-media">
+                            ${imageHtml}
+                        </div>
+                        ${multiEventBadge}
+                    </div>
+                </div>
+                <div class="event-item__thumb-chrome">
+                    ${unfinishedWarning}
+                    ${eventNumberBadge}
+                </div>
             </div>
-            <div class="event-item-info">
-                <h3 class="event-item-title">${window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(displayEvent.name) : displayEvent.name}</h3>
-                ${searchPillsRow}
-                <p class="event-item-location">${locationRowInner}</p>
-                <p class="event-item-year">${yearLine}</p>
+            <div class="event-item__body">
+                <div class="event-item-info">
+                    <div class="event-item-heading">
+                        <h3 class="event-item-title">${window.GlitchTextService ? window.GlitchTextService.getDisplayEventName(displayEvent.name) : displayEvent.name}</h3>
+                        ${searchPillsRow}
+                    </div>
+                    <div class="event-item-meta">
+                        <p class="event-item-location">${locationRowInner}</p>
+                        <p class="event-item-year">${yearLine}</p>
+                    </div>
+                </div>
+                ${actionButtons}
             </div>
-            ${actionButtons}
         `;
 
-        // Add event listeners for buttons (View + Edit/Delete on local/dev; GitHub uses whole-card click)
-        const viewBtn = item.querySelector('.view-btn');
+        // Add event listeners for buttons (Edit on local/dev; GitHub uses whole-card click)
+        const thumbBlock = item.querySelector('.event-item__thumb-block');
         const editBtn = item.querySelector('.edit-btn');
-        const deleteBtn = item.querySelector('.delete-btn');
 
-        if (viewBtn) {
-            viewBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
+        if (thumbBlock && !isGitHubPages) {
+            const openLabel = (displayEvent && displayEvent.name)
+                ? `Open event on globe: ${String(displayEvent.name)}`
+                : `Open event ${index + 1} on globe`;
+            thumbBlock.setAttribute('role', 'button');
+            thumbBlock.setAttribute('tabindex', '0');
+            thumbBlock.setAttribute('aria-label', openLabel);
+
+            const tryOpenFromPreview = (e) => {
+                if (e.target.closest('.multi-event-badge')) return;
                 if (this.eventManager.openEventFromList) {
                     this.eventManager.openEventFromList(event, index);
                 }
+            };
+
+            thumbBlock.addEventListener('click', (e) => {
+                tryOpenFromPreview(e);
             });
-            // Prevent dragging when clicking on button
-            viewBtn.addEventListener('mousedown', (e) => {
+
+            thumbBlock.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
                 e.preventDefault();
-                e.stopPropagation();
+                if (e.target.closest('.multi-event-badge')) return;
+                if (this.eventManager.openEventFromList) {
+                    this.eventManager.openEventFromList(event, index);
+                }
             });
         }
 
@@ -794,19 +818,6 @@ class EventRenderService {
             });
             // Prevent dragging when clicking on button
             editBtn.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-            });
-        }
-
-        if (deleteBtn && !isGitHubPages) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (this.eventManager.deleteEvent) {
-                    this.eventManager.deleteEvent(index);
-                }
-            });
-            // Prevent dragging when clicking on button
-            deleteBtn.addEventListener('mousedown', (e) => {
                 e.stopPropagation();
             });
         }
@@ -833,7 +844,6 @@ class EventRenderService {
                     this.eventManager.openEventFromList(event, index);
                 }
             });
-            // Same as View button: avoid extra gesture delay / drag quirks on the card chrome
             item.addEventListener('mousedown', (e) => {
                 if (e.button !== 0) return;
                 if (e.target.closest('.multi-event-badge')) return;

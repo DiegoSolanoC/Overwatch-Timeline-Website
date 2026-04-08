@@ -16,7 +16,7 @@ class EventInteractionService {
     }
 
     /**
-     * Open event info from list (View button or whole-card click on GitHub Pages).
+     * Open event info from list (preview click, or whole-card click on GitHub Pages).
      * Matches navigation: same camera helper, slide opens before closing the manager panel, marker refresh returns a real Promise.
      */
     openEventFromList(event, index) {
@@ -296,6 +296,9 @@ class EventInteractionService {
         if (badge) {
             badge.textContent = `${variantIndex + 1}/${event.variants.length}`;
         }
+
+        const hasDescription = variant.description && variant.description.trim().length > 0;
+        itemElement.classList.toggle('event-item--unfinished', !hasDescription);
     }
 }
 

@@ -16,17 +16,25 @@ class CityLookupService {
     }
 
     /**
-     * Lookup city coordinates (code lookup or API geocoding)
+     * Lookup city coordinates (code lookup or API geocoding).
+     * @param {Object} [fieldIds] - Optional DOM ids (defaults match edit modal).
+     * @param {string} [fieldIds.cityId]
+     * @param {string} [fieldIds.latId]
+     * @param {string} [fieldIds.lonId]
+     * @param {string} [fieldIds.displayNameId]
+     * @param {string} [fieldIds.lookupBtnId]
+     * @param {string} [fieldIds.useCodeLookupId]
      */
-    async lookupCity() {
+    async lookupCity(fieldIds = null) {
         if (!this.eventManager) return;
-        
-        const cityInput = document.getElementById('eventEditCity');
-        const latInput = document.getElementById('eventEditLat');
-        const lonInput = document.getElementById('eventEditLon');
-        const lookupBtn = document.getElementById('lookupCityBtn');
-        const useCodeLookup = document.getElementById('useCodeLookup');
-        
+
+        const ids = fieldIds && typeof fieldIds === 'object' ? fieldIds : {};
+        const cityInput = document.getElementById(ids.cityId || 'eventEditCity');
+        const latInput = document.getElementById(ids.latId || 'eventEditLat');
+        const lonInput = document.getElementById(ids.lonId || 'eventEditLon');
+        const lookupBtn = document.getElementById(ids.lookupBtnId || 'lookupCityBtn');
+        const useCodeLookup = document.getElementById(ids.useCodeLookupId || 'useCodeLookup');
+
         if (!cityInput || !latInput || !lonInput) return;
 
         const cityName = cityInput.value.trim();
@@ -44,7 +52,7 @@ class CityLookupService {
         // Check if user wants code lookup or API search
         const useCode = useCodeLookup ? useCodeLookup.checked : true;
 
-        const cityDisplayNameInput = document.getElementById('eventEditCityDisplayName');
+        const cityDisplayNameInput = document.getElementById(ids.displayNameId || 'eventEditCityDisplayName');
         
         if (useCode) {
             // Use local data lookup only

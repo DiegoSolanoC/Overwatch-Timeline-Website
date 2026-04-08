@@ -706,7 +706,15 @@ class EventListenerService {
                         matchedHeroes.push(heroName);
                     }
                 } else {
-                    const match = factionEntries.find(fe => fe.displayLower === lower || fe.filenameLower === lower);
+                    const fh = typeof window !== 'undefined' && window.FactionMatchHelpers;
+                    const match = factionEntries.find((fe) => (
+                        fe.displayLower === lower
+                        || fe.filenameLower === lower
+                        || (fh && typeof fh.factionIdsMatch === 'function' && (
+                            fh.factionIdsMatch(token, fe.filename)
+                            || fh.factionIdsMatch(token, fe.displayName)
+                        ))
+                    ));
                     if (match && match.filename && !seenFaction.has(match.filename)) {
                         seenFaction.add(match.filename);
                         matchedFactions.push(match.filename);

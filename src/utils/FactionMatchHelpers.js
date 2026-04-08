@@ -1,16 +1,46 @@
 /**
- * Faction id matching: PNG filenames use a numeric prefix only for sort order (e.g. 26Shambali.png).
+ * Faction id matching: PNG filenames use a numeric prefix only for sort order (e.g. 25Shambali Order.png).
  * Event data may store the prefixed filename, bare name, or manifest displayName — all should match
  * the same globe filter chip (filterKey = manifest filename).
+ *
+ * LEGACY_FACTION_BODY_ALIASES: short / old labels after renames (e.g. "Shambali" → "Shambali Order").
  */
 (function attachFactionMatchHelpers(global) {
+    /** Normalized body (lowercase) → canonical body for matching. */
+    /** Short / pre-rename bodies (after stripping `^\d+`) → body form matching current manifest filenames. */
+    const LEGACY_FACTION_BODY_ALIASES = {
+        shambali: 'shambali order',
+        omnica: 'omnica corporation',
+        vishkar: 'vishkar corporation',
+        lucheng: 'lucheng interstellar',
+        ironclad: 'ironclad guild',
+        crusaders: 'crusader initiative',
+        volskaya: 'volskaya industries',
+        crisis: 'the anubis omnic crisis',
+        lumerico: 'lumérico incorporated',
+        deadlock: 'deadlock rebels',
+        junkers: 'junker monarchy',
+        wayfinders: 'wayfinder society',
+        shimada: 'shimada clan',
+        hashimoto: 'hashimoto clan',
+        conspiracy: 'the chernobog conspiracy',
+        oasis: 'oasis ministries',
+        collective: 'the martins collective',
+        phreaks: 'the phreaks',
+        meka: 'm.e.k.a squad',
+        yokai: 'yokai gang'
+    };
+
     function normalizeFactionMatchKey(raw) {
         const s = String(raw ?? '').trim();
         if (!s) return '';
         if (/^\d+$/.test(s)) return s.toLowerCase();
         const rest = s.replace(/^\d+/, '').trim();
-        const body = (rest || s).replace(/\s+/g, ' ').trim();
-        return body.toLowerCase();
+        let body = (rest || s).replace(/\s+/g, ' ').trim().toLowerCase();
+        if (LEGACY_FACTION_BODY_ALIASES[body]) {
+            body = LEGACY_FACTION_BODY_ALIASES[body];
+        }
+        return body;
     }
 
     function factionIdsMatch(a, b) {
@@ -35,6 +65,7 @@
     global.FactionMatchHelpers = {
         normalizeFactionMatchKey,
         factionIdsMatch,
-        activeFilterSetMatchesFactionId
+        activeFilterSetMatchesFactionId,
+        LEGACY_FACTION_BODY_ALIASES
     };
 })(typeof window !== 'undefined' ? window : globalThis);
