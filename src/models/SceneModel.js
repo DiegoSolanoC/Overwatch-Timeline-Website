@@ -143,6 +143,9 @@ export class SceneModel {
         const rawDpr = window.devicePixelRatio || 1;
         const narrow = window.innerWidth <= 768;
         const capped = narrow ? Math.min(rawDpr, 1.75) : Math.min(rawDpr, 2.25);
+        if (typeof this.renderer.getPixelRatio === 'function' && this.renderer.getPixelRatio() === capped) {
+            return;
+        }
         this.renderer.setPixelRatio(capped);
     }
 

@@ -79,9 +79,10 @@ body.color-palette-gray .music-panel-close:hover {
 }
 
 .music-title {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: var(--accent-primary); /* Light blue for default blue palette */
     margin: 0; /* Match filters-title */
-    font-size: 20px; /* Explicit size for scaling */
+    font-size: 2.2rem; /* Explicit size for scaling */
     font-weight: 600;
     flex: 1; /* Match filters-title */
     line-height: 1.2;
@@ -277,8 +278,8 @@ body.color-palette-gray .music-mute-btn:hover {
         transform 180ms ease,
         filter 180ms ease;
     filter: blur(0);
-    max-width: 520px;
-    padding: 6px 10px;
+    max-width: calc(100vw - 40px); /* Full width minus margins */
+    padding: 6px 32px;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.0); /* text-only look */
     display: flex;
@@ -308,14 +309,15 @@ body.color-palette-gray .music-mute-btn:hover {
 }
 
 .music-now-playing-label {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: rgba(255, 255, 255, 0.82);
     font-weight: 650;
-    font-size: 14px;
+    font-size: 44px;
     letter-spacing: 0.6px;
     line-height: 1.05;
-    margin-bottom: 2px;
+    margin-bottom: 6px;
     text-transform: uppercase;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.5);
 }
 
 .music-now-playing-badge-title-row .music-now-playing-song {
@@ -325,16 +327,16 @@ body.color-palette-gray .music-mute-btn:hover {
 
 .music-now-playing-song {
     display: inline-block;
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: rgba(255, 255, 255, 0.98);
     font-weight: 700;
-    font-size: 26px;
+    font-size: 64px;
     letter-spacing: 0.2px;
-    line-height: 1.05;
+    line-height: 1.08;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    /* No truncation - display full song name */
     /* No glow; only subtle dark shadow for readability */
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 3px 18px rgba(0, 0, 0, 0.58);
     transition:
         opacity 180ms ease,
         transform 180ms ease,
@@ -368,50 +370,113 @@ body.color-palette-gray .music-mute-btn:hover {
 /* Passive event hover preview (under Event Manager button) — reuses music badge shell */
 .events-hover-preview-badge {
     align-items: flex-start;
-    max-width: 560px;
+    max-width: 720px;
 }
 
 .events-hover-preview-stack {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
     min-width: 0;
     text-align: left;
 }
 
-/* 1) Era — largest */
+/* 1) Era — largest, ~2x original size */
 .events-hover-preview-era {
     width: 100%;
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: rgba(255, 255, 255, 0.98);
     font-weight: 800;
-    font-size: 30px;
-    line-height: 1.12;
+    font-size: 64px;
+    line-height: 1.05;
     letter-spacing: 0.02em;
     white-space: normal;
-    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+    text-shadow: 0 3px 18px rgba(0, 0, 0, 0.58);
+    /* Start hidden, animations handle visibility */
+    opacity: 0;
+    transform: translateX(-50px);
+    filter: blur(3px);
 }
 
-/* 2) Number (no #) + event name */
+/* 2) Number (no #) + event name — scaled proportionally */
 .events-hover-preview-mainline {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 6px 10px;
+    gap: 8px 12px;
     width: 100%;
-    font-size: 22px;
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: 42px;
     font-weight: 700;
-    line-height: 1.18;
+    line-height: 1.12;
     color: rgba(255, 255, 255, 0.96);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.52);
+    /* Start hidden, animations handle visibility */
+    opacity: 0;
+    transform: translateX(-50px);
+    filter: blur(3px);
 }
 
 .events-hover-preview-badge--no-era .events-hover-preview-mainline {
-    font-size: 28px;
+    font-size: 54px;
     font-weight: 800;
-    line-height: 1.12;
+    line-height: 1.08;
+}
+
+/* Slide-in animations when badge becomes visible */
+.music-now-playing-badge--visible .events-hover-preview-era {
+    animation: events-hover-slide-in 280ms ease-out forwards;
+}
+
+.music-now-playing-badge--visible .events-hover-preview-mainline {
+    animation: events-hover-slide-in 280ms ease-out 80ms forwards;
+}
+
+@keyframes events-hover-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+        filter: blur(0);
+    }
+}
+
+/* Slide-out when badge is hiding - uses explicit hiding class */
+.events-hover-preview-badge--hiding .events-hover-preview-era,
+.events-hover-preview-badge--hiding .events-hover-preview-mainline {
+    animation: events-hover-slide-out 200ms ease-in forwards !important;
+}
+
+@keyframes events-hover-slide-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+        filter: blur(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(50px);
+        filter: blur(3px);
+    }
+}
+
+/* Flag before the number */
+.events-hover-preview-flag {
+    flex-shrink: 0;
+    width: 48px;
+    height: auto;
+    margin-right: 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    vertical-align: middle;
+    display: none;
 }
 
 .events-hover-preview-number {
@@ -435,7 +500,7 @@ body.color-palette-gray .music-mute-btn:hover {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 5px;
+    gap: 8px;
     min-height: 0;
 }
 
@@ -455,21 +520,21 @@ body.color-palette-gray .music-mute-btn:hover {
 /* 3) Other variant names — under primary title, same inset as title (not under the number) */
 .events-hover-preview-variants {
     width: 100%;
-    max-width: 480px;
+    max-width: 720px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .events-hover-preview-variant-line {
     color: rgba(255, 255, 255, 0.82);
     font-weight: 600;
-    font-size: 0.78em;
-    line-height: 1.3;
+    font-size: 0.7em;
+    line-height: 1.25;
     letter-spacing: 0.06px;
     white-space: normal;
     text-align: left;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* Custom scrollbar styling for music grid */
@@ -567,19 +632,28 @@ body.color-palette-gray .music-grid {
     width: 100%;
     background: #1D4A77; /* Blue for default blue palette - match filter-label */
     color: white; /* White text for contrast */
-    font-size: 14px; /* Explicit size for scaling - match filter-label */
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: 18px; /* Match filter-label */
     font-weight: 600; /* Bolder font */
-    padding: 8px 4px; /* Explicit padding for scaling */
-    margin-top: 0; /* No spacing between label and button */
+    padding: 6px 4px; /* Match filter-label padding */
+    margin-top: -1px; /* Match filter-label overlap */
+    position: relative;
+    z-index: 1;
     border-radius: 0; /* Sharp edges */
-    text-align: center;
     transition: all var(--panel-transition);
     box-sizing: border-box;
     letter-spacing: 0.5px; /* Better readability */
+    flex: 0 0 auto;
+    height: 3rem;
+    min-height: 3rem;
+    max-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
-    line-height: 1.2; /* Explicit line-height for scaling */
+    white-space: nowrap;
+    line-height: 1.2;
 }
 
 /* Gray palette: light gray background for music label - match filter-label */
@@ -670,8 +744,9 @@ body.color-palette-gray .music-actions {
 }
 
 .music-current-song {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: var(--accent-primary); /* Light blue for default blue palette */
-    font-size: 16px; /* Explicit size for scaling */
+    font-size: 28px; /* Large prominent song title */
     font-weight: 600;
     margin-bottom: 0;
     text-align: center;

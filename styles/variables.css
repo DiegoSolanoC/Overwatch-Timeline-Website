@@ -1,8 +1,57 @@
 /* ========================================
+   CUSTOM FONTS
+   ======================================== */
+
+/* Config font family - default for entire application */
+@font-face {
+    font-family: 'Config';
+    src: url('../assets/fonts/Config Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Config';
+    src: url('../assets/fonts/Config Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Config';
+    src: url('../assets/fonts/Config Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Config';
+    src: url('../assets/fonts/Config Bold Italic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Big Noodle Too Oblique - for titles and headings */
+@font-face {
+    font-family: 'BigNoodleToo';
+    src: url('../assets/fonts/bignoodletoooblique.ttf') format('truetype');
+    font-weight: normal;
+    font-style: oblique;
+    font-display: swap;
+}
+
+/* ========================================
    CSS CUSTOM PROPERTIES (Design Tokens)
    ======================================== */
 
 :root {
+    /* Font families */
+    --font-default: 'Config', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-title: 'BigNoodleToo', 'Impact', 'Arial Black', sans-serif;
     /* Color Palette - Blue Theme (Default) */
     --primary-blue: #0D47A1;
     --secondary-blue: #2196F3;
@@ -89,6 +138,10 @@
     --header-height: 60px;
     --footer-height: 65px; /* Increased for more space for news ticker */
     --pagination-dock-height: 290px; /* Desktop pagination thumbnails dock */
+    --pagination-dock-height-collapsed: 138px; /* Slider + collapse grip + compact number row */
+    /* Dock collapse: keep dock, globe band, slide, overlay, and thumbs in sync */
+    --pagination-dock-transition-duration: 0.42s;
+    --pagination-dock-transition-easing: cubic-bezier(0.32, 0.72, 0.25, 1);
     --panel-transition: 0.3s ease;
     
     /* Breakpoints */

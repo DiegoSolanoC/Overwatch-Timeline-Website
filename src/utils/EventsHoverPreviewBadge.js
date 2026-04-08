@@ -32,6 +32,8 @@ function getBodyScale() {
     }
 }
 
+let textFlagEl = null;
+
 function ensureBadge() {
     if (badgeEl) return;
     badgeEl = document.createElement('div');
@@ -43,6 +45,7 @@ function ensureBadge() {
         <div class="events-hover-preview-stack">
             <div class="events-hover-preview-era" aria-hidden="true"></div>
             <div class="events-hover-preview-mainline">
+                <img class="events-hover-preview-flag" aria-hidden="true" alt="" />
                 <span class="events-hover-preview-number" aria-hidden="true"></span>
                 <div class="events-hover-preview-title-column">
                     <span class="events-hover-preview-title"></span>
@@ -52,6 +55,7 @@ function ensureBadge() {
         </div>
     `;
     document.body.appendChild(badgeEl);
+    textFlagEl = badgeEl.querySelector('.events-hover-preview-flag');
     textNumberEl = badgeEl.querySelector('.events-hover-preview-number');
     textTitleEl = badgeEl.querySelector('.events-hover-preview-title');
     textEraEl = badgeEl.querySelector('.events-hover-preview-era');
@@ -92,22 +96,46 @@ export function getPlainEventTitleForHover(eventObj) {
 }
 
 /**
+ * Extract country name from cityDisplayName (e.g., "London, United Kingdom" -> "United Kingdom")
+ * @param {string} cityDisplayName
+ * @returns {string}
+ */
+function extractCountryFromCityDisplayName(cityDisplayName) {
+    if (!cityDisplayName || typeof cityDisplayName !== 'string') return '';
+    const parts = cityDisplayName.split(',');
+    if (parts.length >= 2) {
+        return parts[parts.length - 1].trim();
+    }
+    return '';
+}
+
+/**
  * Multi-variant roots often have no `name`; use first variant as primary title and list the rest.
  * @param {Object|null} eventObj - Root timeline event (may include `variants[]`)
- * @returns {{ primary: string, otherVariants: string[], era: string }}
+ * @returns {{ primary: string, otherVariants: string[], era: string, primaryCountry: string }}
  */
 export function getHoverPreviewLines(eventObj) {
-    if (!eventObj) return { primary: '', otherVariants: [], era: '' };
+    if (!eventObj) return { primary: '', otherVariants: [], era: '', primaryCountry: '' };
     const era =
         typeof window !== 'undefined'
         && window.EventTimelineHelpers
         && typeof window.EventTimelineHelpers.getEraNameTrimmed === 'function'
             ? window.EventTimelineHelpers.getEraNameTrimmed(eventObj)
             : '';
+    
+    // Get primary country from first variant's cityDisplayName or root event's cityDisplayName
+    let primaryCountry = '';
     const variants = Array.isArray(eventObj.variants) ? eventObj.variants : [];
+    if (variants.length > 0 && variants[0] && variants[0].cityDisplayName) {
+        primaryCountry = extractCountryFromCityDisplayName(variants[0].cityDisplayName);
+    }
+    if (!primaryCountry && eventObj.cityDisplayName) {
+        primaryCountry = extractCountryFromCityDisplayName(eventObj.cityDisplayName);
+    }
+    
     if (variants.length === 0) {
         const single = getPlainEventTitleForHover(eventObj);
-        return { primary: single || '', otherVariants: [], era };
+        return { primary: single || '', otherVariants: [], era, primaryCountry };
     }
     const variantTitles = variants.map((v, i) => {
         const t = v ? getPlainEventTitleForHover(v) : '';
@@ -116,7 +144,7 @@ export function getHoverPreviewLines(eventObj) {
     const parentName = getPlainEventTitleForHover(eventObj);
     const primary = variantTitles[0] || parentName || 'Event';
     const otherVariants = variantTitles.slice(1);
-    return { primary, otherVariants, era };
+    return { primary, otherVariants, era, primaryCountry };
 }
 
 /**
@@ -124,8 +152,9 @@ export function getHoverPreviewLines(eventObj) {
  * @param {string} titlePlain - Primary line (e.g. first variant or single event name)
  * @param {string[]} [otherVariantTitles] - Additional variant names (smaller text)
  * @param {string} [eraPlain] - Optional era name (root event field); shown under title on hover only
+ * @param {string} [primaryCountry] - Optional primary country for flag display
  */
-export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles, eraPlain) {
+export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles, eraPlain, primaryCountry) {
     try {
         if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
             return;
@@ -136,7 +165,28 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
         if (panel && panel.classList.contains('open')) return;
     } catch (_) {}
 
+    // Cancel any pending hide cleanup when showing new content
+    cancelPendingHideCleanup();
+
     ensureBadge();
+    
+    // Remove hiding state if present
+    badgeEl.classList.remove('events-hover-preview-badge--hiding');
+    
+    // Set flag if primary country provided
+    if (textFlagEl) {
+        const countryTrim = primaryCountry != null ? String(primaryCountry).trim() : '';
+        if (countryTrim) {
+            textFlagEl.src = `assets/images/flags/${countryTrim}.png`;
+            textFlagEl.alt = countryTrim;
+            textFlagEl.style.display = 'inline-block';
+        } else {
+            textFlagEl.src = '';
+            textFlagEl.alt = '';
+            textFlagEl.style.display = 'none';
+        }
+    }
+    
     if (textNumberEl) {
         textNumberEl.textContent =
             globalNumber1Based != null && Number.isFinite(globalNumber1Based)
@@ -206,20 +256,50 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
     };
 }
 
+let hideTimeoutId = null;
+
+function cancelPendingHideCleanup() {
+    if (hideTimeoutId) {
+        clearTimeout(hideTimeoutId);
+        hideTimeoutId = null;
+    }
+}
+
 export function hideEventsHoverPreview() {
     stopHoverPreviewFollow();
     if (!badgeEl) return;
-    if (textEraEl) {
-        textEraEl.textContent = '';
-        textEraEl.style.display = 'none';
-    }
-    if (textVariantsEl) {
-        textVariantsEl.innerHTML = '';
-        textVariantsEl.style.display = 'none';
-    }
-    badgeEl.classList.remove('events-hover-preview-badge--multiline');
-    badgeEl.classList.remove('events-hover-preview-badge--no-era');
+    
+    // Clear any pending hide cleanup
+    cancelPendingHideCleanup();
+    
+    // Add hiding class to trigger slide-out animation
+    badgeEl.classList.add('events-hover-preview-badge--hiding');
     badgeEl.classList.remove('music-now-playing-badge--visible');
+    
+    // Delay the cleanup until after the slide-out animation completes (200ms + buffer)
+    hideTimeoutId = setTimeout(() => {
+        hideTimeoutId = null;
+        if (!badgeEl) return;
+        // Only clean up if still in hiding state (not re-shown)
+        if (!badgeEl.classList.contains('music-now-playing-badge--visible')) {
+            if (textFlagEl) {
+                textFlagEl.src = '';
+                textFlagEl.alt = '';
+                textFlagEl.style.display = 'none';
+            }
+            if (textEraEl) {
+                textEraEl.textContent = '';
+                textEraEl.style.display = 'none';
+            }
+            if (textVariantsEl) {
+                textVariantsEl.innerHTML = '';
+                textVariantsEl.style.display = 'none';
+            }
+            badgeEl.classList.remove('events-hover-preview-badge--multiline');
+            badgeEl.classList.remove('events-hover-preview-badge--no-era');
+            badgeEl.classList.remove('events-hover-preview-badge--hiding');
+        }
+    }, 250);
 }
 
 if (typeof window !== 'undefined') {

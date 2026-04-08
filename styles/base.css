@@ -10,7 +10,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-default, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
     line-height: 1.6;
     color: #333;
     background: var(--bg-primary); /* Match footer/header to prevent white line */

@@ -6,6 +6,9 @@ export class InteractionController {
     constructor(sceneModel, uiView) {
         this.sceneModel = sceneModel;
         this.uiView = uiView;
+        /** Skip redundant WebGL setSize (avoids buffer clears / black flashes during layout tweens) */
+        this._lastGlobeBufferW = -1;
+        this._lastGlobeBufferH = -1;
         
         // Initialize services
         this.pulseService = new (window.MarkerPulseService || MarkerPulseService)(sceneModel);
@@ -250,11 +253,17 @@ export class InteractionController {
         }
         
         if (container && camera && renderer) {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            if (this.sceneModel && typeof this.sceneModel.applyRendererPixelRatioCap === 'function') {
-                this.sceneModel.applyRendererPixelRatioCap();
+            const w = Math.max(1, Math.round(container.clientWidth));
+            const h = Math.max(1, Math.round(container.clientHeight));
+            if (w !== this._lastGlobeBufferW || h !== this._lastGlobeBufferH) {
+                this._lastGlobeBufferW = w;
+                this._lastGlobeBufferH = h;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+                if (this.sceneModel && typeof this.sceneModel.applyRendererPixelRatioCap === 'function') {
+                    this.sceneModel.applyRendererPixelRatioCap();
+                }
             }
         }
 

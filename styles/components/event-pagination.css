@@ -2,6 +2,18 @@
    EVENT PAGINATION
    ======================================== */
 
+/* Dock pattern wave animation */
+@keyframes dock-pattern-wave {
+    0% {
+        -webkit-mask-position: 0% 0%;
+        mask-position: 0% 0%;
+    }
+    100% {
+        -webkit-mask-position: 100% 0%;
+        mask-position: 100% 0%;
+    }
+}
+
 /* Events List */
 .events-list {
     display: grid;
@@ -184,7 +196,28 @@ body.color-palette-gray .events-pagination-input:focus {
     display: none; /* Hidden on mobile */
 }
 
-@media (min-width: 769px) {
+/*
+ * Zero-height row between .layout-container and #paginationDock — holds the collapse control
+ * entirely above the dock (same idea as panel edge draggers, but horizontal).
+ */
+.pagination-dock-collapse-strip {
+    display: none;
+    flex: 0 0 0;
+    min-height: 0;
+    height: 0;
+    width: 100%;
+    position: relative;
+    z-index: 12;
+    overflow: visible;
+    pointer-events: none;
+}
+
+/* Desktop dock: require both min-width AND min-height to avoid landscape phones */
+@media (min-width: 769px) and (min-height: 500px) {
+    .pagination-dock-collapse-strip {
+        display: block;
+    }
+
     .pagination-dock {
         display: flex;
         flex-direction: column;
@@ -200,6 +233,68 @@ body.color-palette-gray .events-pagination-input:focus {
         position: relative;
         z-index: 10;
         flex: 0 0 var(--pagination-dock-height, 240px);
+        /* Clicks pass through the dock chrome; only .event-pagination (and its controls) receive hits */
+        pointer-events: none;
+        /* Allow collapse pill to protrude upward like panel edge draggers */
+        overflow: visible;
+        transition:
+            height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            min-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            max-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            flex-basis var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
+    }
+
+    body.pagination-dock-collapsed {
+        --pagination-dock-height: var(--pagination-dock-height-collapsed, 138px);
+    }
+    
+    /* Pattern overlay element with wave animation */
+    .pagination-dock-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('../../assets/images/maps/Pattern.png');
+        background-repeat: repeat;
+        background-size: 150px 150px;
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 0;
+        /* Wave mask: horizontal gradient that moves */
+        -webkit-mask-image: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.1) 15%,
+            rgba(0, 0, 0, 1) 35%,
+            rgba(0, 0, 0, 1) 65%,
+            rgba(0, 0, 0, 0.1) 85%,
+            rgba(0, 0, 0, 0.1) 100%
+        );
+        mask-image: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.1) 15%,
+            rgba(0, 0, 0, 1) 35%,
+            rgba(0, 0, 0, 1) 65%,
+            rgba(0, 0, 0, 0.1) 85%,
+            rgba(0, 0, 0, 0.1) 100%
+        );
+        -webkit-mask-size: 300% 100%;
+        mask-size: 300% 100%;
+        animation: dock-pattern-wave 12s linear infinite;
+    }
+    
+    /* Ensure dock content stays above the pattern */
+    .pagination-dock > * {
+        position: relative;
+        z-index: 1;
     }
     
     /* 
@@ -228,11 +323,15 @@ body.color-palette-gray .events-pagination-input:focus {
         overflow: hidden !important;
     }
     
-    /* Globe container must respect parent bounds */
     #globe-container {
         width: 100% !important;
         height: 100% !important;
         max-height: 100% !important;
+    }
+
+    /* Override entry/globe timeline bottom inset once dock exists (sibling layout, not overlapping strip) */
+    body:has(#paginationDock) #globe-container {
+        bottom: 0 !important;
     }
     
     /* Footer stays fixed height */
@@ -256,17 +355,35 @@ body.color-palette-gray .events-pagination-input:focus {
     max-width: calc(100vw - 12px);
     box-sizing: border-box;
     padding: 0 8px;
-    transition: opacity 0.18s ease;
+    transition:
+        opacity 0.18s ease,
+        padding var(--pagination-dock-transition-duration, 0.42s)
+            var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+        gap var(--pagination-dock-transition-duration, 0.42s)
+            var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
 }
 
-body.globe-grabbing .event-pagination {
-    opacity: 0.5;
+/*
+ * Dim pagination while dragging the globe only when it floats over the map (no dock).
+ * Desktop dock is always visible — keep full opacity so it never looks disabled or blocked.
+ */
+@media (max-width: 768px) {
+    body.globe-grabbing .event-pagination {
+        opacity: 0.5;
+    }
+}
+
+@media (min-width: 769px) and (max-height: 499px) {
+    body.globe-grabbing .event-pagination {
+        opacity: 0.5;
+    }
 }
 
 /*
  * Desktop: pagination lives inside the dock, not fixed positioned
+ * Requires both min-width AND min-height to avoid landscape phones
  */
-@media (min-width: 769px) {
+@media (min-width: 769px) and (min-height: 500px) {
     .event-pagination {
         position: relative;
         bottom: auto;
@@ -281,11 +398,20 @@ body.globe-grabbing .event-pagination {
         padding-right: calc(env(safe-area-inset-right, 0px) + clamp(28px, 5vw, 88px));
         padding-top: 12px;
         padding-bottom: 12px;
+        overflow: visible;
+        pointer-events: auto;
     }
 
     /* Was align-self: center on .event-number-buttons — that shrink-wraps the row and squishes cards */
     .event-number-buttons.event-number-buttons--thumbs-desktop {
         align-self: stretch;
+        padding-top: 0;
+        padding-bottom: 0;
+        transition:
+            padding-top var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            padding-bottom var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
     }
 
     .page-controls-row {
@@ -332,6 +458,14 @@ body.globe-grabbing .event-pagination {
         --thumb-skew: -11deg;
         transform: skewX(var(--thumb-skew));
         border-radius: 14px;
+        transition:
+            min-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            max-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            transform var(--panel-transition, 0.3s ease);
     }
 
     .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
@@ -356,6 +490,8 @@ body.globe-grabbing .event-pagination {
         visibility: visible !important;
         opacity: 1 !important;
         min-height: 48px;
+        transition: padding-bottom var(--pagination-dock-transition-duration, 0.42s)
+            var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
     }
 
     .event-page-slider-row.event-page-slider-row--desktop-only {
@@ -377,6 +513,90 @@ body.globe-grabbing .event-pagination {
     .event-page-slider-ticks {
         left: clamp(14px, 2.5vw, 26px);
         right: clamp(14px, 2.5vw, 26px);
+    }
+
+    /* Strip bottom = dock top: pill sits on that seam, bottom edge flush with the dock */
+    .pagination-dock-collapse-bar {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        width: max-content;
+        max-width: min(100vw - 48px, 100%);
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        pointer-events: none;
+    }
+
+    .pagination-dock-collapse-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        touch-action: manipulation;
+        pointer-events: auto;
+    }
+
+    .pagination-dock-collapse-pill {
+        width: 112px;
+        height: 32px;
+        border-radius: 6px 6px 0 0;
+        background: rgba(13, 71, 161, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+        transition:
+            width 0.25s ease,
+            height 0.25s ease,
+            background 0.25s ease,
+            box-shadow 0.25s ease;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .pagination-dock-collapse-pill__icon {
+        display: block;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1;
+        user-select: none;
+    }
+
+    .pagination-dock-collapse-handle:hover .pagination-dock-collapse-pill,
+    .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
+        background: rgba(13, 71, 161, 0.9);
+        width: 128px;
+        height: 38px;
+    }
+
+    .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
+        box-shadow:
+            0 2px 12px rgba(0, 0, 0, 0.4),
+            0 0 0 2px rgba(100, 181, 246, 0.85);
+    }
+
+    .pagination-dock-collapse-handle:focus {
+        outline: none;
+    }
+
+    body.pagination-dock-collapsed .event-pagination {
+        padding-top: 12px;
+        padding-bottom: 8px;
+        gap: 6px;
+    }
+
+    body.pagination-dock-collapsed .event-page-slider-row {
+        padding-bottom: 2px !important;
     }
 }
 
@@ -414,9 +634,10 @@ body.globe-grabbing .event-pagination {
 /* Page number labels above the slider */
 .event-page-slider-label {
     position: absolute;
-    top: -22px;
+    top: -26px;
     transform: translateX(-50%);
-    font-size: 11px;
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: 18px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.7);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -502,13 +723,14 @@ body.globe-grabbing .event-pagination {
 
 .event-page-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 30px;
-    height: 30px;
-    margin-top: -6px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, rgba(100, 181, 246, 1) 0%, rgba(25, 118, 210, 1) 100%);
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    width: 36px;
+    height: 36px;
+    margin-top: -9px;
+    border-radius: 0;
+    background: url('../../assets/images/misc/Website.png') center/contain no-repeat;
+    border: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
 }
 
 .event-page-slider::-moz-range-track {
@@ -520,12 +742,12 @@ body.globe-grabbing .event-pagination {
 }
 
 .event-page-slider::-moz-range-thumb {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, rgba(100, 181, 246, 1) 0%, rgba(25, 118, 210, 1) 100%);
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    width: 36px;
+    height: 36px;
+    border-radius: 0;
+    background: url('../../assets/images/misc/Website.png') center/contain no-repeat;
+    border: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
     cursor: pointer;
 }
 
@@ -685,8 +907,27 @@ button.event-number-btn.locked,
     opacity: 1 !important;
 }
 
+/* Missing description (matches Event Manager description-warning semantics) */
+.event-number-btn.event-number-btn--unfinished:not(:disabled):not(.locked) {
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 2px rgba(244, 67, 54, 0.85),
+        inset 0 0 28px rgba(183, 28, 28, 0.35);
+    border-color: rgba(244, 67, 54, 0.75) !important;
+}
+
+.event-number-btn.event-number-btn--unfinished:hover:not(:disabled):not(.locked) {
+    border-color: rgba(255, 138, 128, 0.95) !important;
+    box-shadow:
+        0 0 0 2px rgba(255, 170, 0, 0.35),
+        0 6px 20px rgba(0, 0, 0, 0.5),
+        inset 0 0 0 2px rgba(244, 67, 54, 0.65),
+        inset 0 0 32px rgba(211, 47, 47, 0.4);
+}
+
 /* ---------- Desktop: event thumbnails — rounded parallelogram (slope right), image fill, title overlay ---------- */
-@media (min-width: 769px) {
+/* Requires both min-width AND min-height to avoid landscape phones */
+@media (min-width: 769px) and (min-height: 500px) {
     .event-number-buttons.event-number-buttons--thumbs-desktop {
         width: 100%;
         max-width: 100%;
@@ -732,7 +973,17 @@ button.event-number-btn.locked,
         transition:
             transform var(--panel-transition, 0.25s ease),
             box-shadow var(--panel-transition, 0.25s ease),
-            border-color var(--panel-transition, 0.25s ease);
+            border-color var(--panel-transition, 0.25s ease),
+            min-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            max-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            background var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            border-width var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
     }
 
     .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual {
@@ -740,12 +991,25 @@ button.event-number-btn.locked,
         display: block;
         flex: 1 1 auto;
         min-height: 168px;
+        max-height: 420px;
         width: 124%;
         height: 100%;
         margin-left: -12%;
         overflow: hidden;
         transform: skewX(11deg) scale(1.06);
         transform-origin: center center;
+        opacity: 1;
+        visibility: visible;
+        transition:
+            opacity var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            min-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            max-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            margin var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            visibility 0s linear 0s;
     }
 
     /* Bottom scrim under title for readability over busy art */
@@ -783,6 +1047,16 @@ button.event-number-btn.locked,
         background: linear-gradient(160deg, rgba(40, 50, 70, 0.55) 0%, rgba(12, 14, 22, 0.92) 100%);
     }
 
+    /* Unfinished (no description): red frame + inset wash (scrim sits above image; tint the card shell) */
+    .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished:not(:disabled):not(.locked) {
+        border-color: rgba(244, 67, 54, 0.92) !important;
+        box-shadow:
+            0 5px 18px rgba(0, 0, 0, 0.42),
+            0 0 0 3px rgba(244, 67, 54, 0.5),
+            inset 0 0 140px rgba(183, 28, 28, 0.38) !important;
+    }
+
     .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__img {
         width: 100%;
         height: 100%;
@@ -812,6 +1086,7 @@ button.event-number-btn.locked,
         box-sizing: border-box;
         /* Inset from skewed parallelogram edges; extra side padding pulls numeral inward */
         padding: 14px 58px 34px 38px;
+        font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
         font-size: clamp(1.3rem, 3.75vmin, 1.6rem);
         font-weight: 700;
         line-height: 1.15;
@@ -858,7 +1133,7 @@ button.event-number-btn.locked,
         box-sizing: border-box;
         /* Equal sides so flex centers the label in the trapezoid; clip-path trims bottom-right only */
         padding: 10px clamp(16px, 2.4vw, 22px);
-        font-family: inherit;
+        font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
         font-size: clamp(1.15rem, 3.35vmin, 1.5rem);
         font-weight: 700;
         line-height: 1;
@@ -907,6 +1182,7 @@ button.event-number-btn.locked,
         padding: 18px 18px 17px 36px;
         margin: 0;
         box-sizing: border-box;
+        font-family: var(--font-default, 'Config', sans-serif);
         font-size: 12px;
         font-weight: 700;
         line-height: 1.32;
@@ -954,7 +1230,21 @@ button.event-number-btn.locked,
     }
 
     .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
-        display: none !important;
+        position: absolute;
+        inset: 0;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        z-index: 8;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+            opacity var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            visibility 0s linear var(--pagination-dock-transition-duration, 0.42s);
     }
 
     .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
@@ -963,6 +1253,18 @@ button.event-number-btn.locked,
         transform: skewX(var(--thumb-skew)) scale(1.045);
         box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
         border-color: rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) !important;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished:hover:not(:disabled),
+    .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished.number-btn-marker-hover:not(:disabled):not(.locked) {
+        transform: skewX(var(--thumb-skew)) scale(1.045);
+        border-color: rgba(255, 138, 128, 0.95) rgba(255, 186, 80, 0.88) rgba(255, 138, 128, 0.95) rgba(255, 186, 80, 0.88) !important;
+        box-shadow:
+            0 10px 26px rgba(0, 0, 0, 0.55),
+            0 0 0 2px rgba(244, 67, 54, 0.45),
+            inset 0 0 120px rgba(211, 47, 47, 0.32) !important;
     }
 
     .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:active:not(:disabled) {
@@ -1000,6 +1302,161 @@ button.event-number-btn.locked,
         transform: skewX(var(--thumb-skew)) scale(1.045);
         box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55) !important;
         border-color: rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) rgba(255, 186, 80, 0.9) rgba(255, 255, 255, 0.93) !important;
+    }
+
+    /* Keep unfinished red treatment on hover for all palettes */
+    body.color-palette-gray .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished:hover:not(:disabled),
+    body.color-palette-gray
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished.number-btn-marker-hover:not(:disabled):not(.locked),
+    body.color-palette-crimson .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished:hover:not(:disabled),
+    body.color-palette-crimson
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished.number-btn-marker-hover:not(:disabled):not(.locked),
+    body.color-palette-nulled .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished:hover:not(:disabled),
+    body.color-palette-nulled
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished.number-btn-marker-hover:not(:disabled):not(.locked) {
+        background: transparent !important;
+        transform: skewX(var(--thumb-skew)) scale(1.045);
+        border-color: rgba(255, 138, 128, 0.95) rgba(255, 186, 80, 0.88) rgba(255, 138, 128, 0.95) rgba(255, 186, 80, 0.88) !important;
+        box-shadow:
+            0 10px 26px rgba(0, 0, 0, 0.55),
+            0 0 0 2px rgba(244, 67, 54, 0.45),
+            inset 0 0 120px rgba(211, 47, 47, 0.32) !important;
+    }
+
+    /* -------- Dock collapsed: short white parallelogram slots (numbers only) -------- */
+    body.pagination-dock-collapsed .event-number-buttons.event-number-buttons--thumbs-desktop {
+        --thumb-outline-y: 4px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+    body.pagination-dock-collapsed .page-btn.page-btn--thumb-rail {
+        min-height: 44px !important;
+        max-height: 52px !important;
+        height: 48px !important;
+        align-self: center;
+    }
+
+    body.pagination-dock-collapsed
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn__visual {
+        opacity: 0 !important;
+        min-height: 0 !important;
+        max-height: 0 !important;
+        flex: 0 0 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transition:
+            opacity var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            min-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            max-height var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            margin var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            visibility 0s linear var(--pagination-dock-transition-duration, 0.42s) !important;
+    }
+
+    body.pagination-dock-collapsed
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn__variant-badge {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
+        transition: opacity 0.22s ease, visibility 0s linear 0.22s !important;
+    }
+
+    body.pagination-dock-collapsed .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
+        min-height: 44px !important;
+        max-height: 52px !important;
+        height: 48px !important;
+        background: #ffffff !important;
+        border-width: var(--thumb-outline-y) 0 var(--thumb-outline-y) 0 !important;
+        border-color: rgba(0, 0, 0, 0.14) !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28) !important;
+        justify-content: center;
+        align-items: center;
+    }
+
+    body.pagination-dock-collapsed .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+        font-size: clamp(1.05rem, 2.8vmin, 1.35rem);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #1a1a1a;
+        text-shadow: none;
+        transition:
+            opacity var(--pagination-dock-transition-duration, 0.42s)
+                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
+            visibility 0s linear 0s !important;
+    }
+
+    body.pagination-dock-collapsed
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn:hover:not(:disabled),
+    body.pagination-dock-collapsed
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+        transform: skewX(var(--thumb-skew)) scale(1.06);
+        background: #f3f7ff !important;
+        border-color: rgba(255, 186, 80, 0.95) !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    body.pagination-dock-collapsed
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.event-number-btn--unfinished:not(:disabled):not(.locked) {
+        box-shadow:
+            0 3px 10px rgba(0, 0, 0, 0.28),
+            inset 0 0 0 2px rgba(244, 67, 54, 0.75),
+            inset 0 0 20px rgba(211, 47, 47, 0.15) !important;
+    }
+
+    body.pagination-dock-collapsed.color-palette-gray .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn,
+    body.pagination-dock-collapsed.color-palette-crimson .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn,
+    body.pagination-dock-collapsed.color-palette-nulled .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
+        background: #ffffff !important;
+    }
+
+    body.pagination-dock-collapsed.color-palette-gray
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn:hover:not(:disabled),
+    body.pagination-dock-collapsed.color-palette-gray
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked),
+    body.pagination-dock-collapsed.color-palette-crimson
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn:hover:not(:disabled),
+    body.pagination-dock-collapsed.color-palette-crimson
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked),
+    body.pagination-dock-collapsed.color-palette-nulled
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn:hover:not(:disabled),
+    body.pagination-dock-collapsed.color-palette-nulled
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+        background: #f3f3f3 !important;
+        transform: skewX(var(--thumb-skew)) scale(1.06);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
     }
 }
 
@@ -1084,7 +1541,8 @@ body.color-palette-gray .event-number-btn.locked {
    Staggered entrance animation for thumbnails
    ======================================== */
 
-@media (min-width: 769px) {
+/* Requires both min-width AND min-height to avoid landscape phones */
+@media (min-width: 769px) and (min-height: 500px) {
     .event-number-btn.event-number-btn--enter {
         opacity: 0;
         transform: skewX(var(--thumb-skew, -11deg)) translateY(15px) scale(0.92);
