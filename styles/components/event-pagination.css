@@ -209,8 +209,8 @@ body.color-palette-gray .events-pagination-input:focus {
    ======================================== */
 
 /* ----------------------------------------
-   PAGINATION DOCK (Desktop only)
-   A dedicated section below the globe/map
+   PAGINATION DOCK
+   Shown when #paginationDock exists (all viewports; mobile stays collapsed via JS).
    ---------------------------------------- */
 .pagination-dock {
     display: none; /* Hidden on mobile */
@@ -232,13 +232,13 @@ body.color-palette-gray .events-pagination-input:focus {
     pointer-events: none;
 }
 
-/* Desktop dock: wide + min 600px height (matches JS short-edge rule for phone landscape) */
-@media (min-width: 769px) and (min-height: 600px) {
-    .pagination-dock-collapse-strip {
+/* Pagination dock when #paginationDock exists (all viewports) */
+
+    body:has(#paginationDock) .pagination-dock-collapse-strip {
         display: block;
     }
 
-    .pagination-dock {
+    body:has(#paginationDock) .pagination-dock {
         display: flex;
         flex-direction: column;
         align-items: stretch;
@@ -274,7 +274,7 @@ body.color-palette-gray .events-pagination-input:focus {
      * Pattern.png (same as globe/map overlay in GlobeInitHelpers).
      * ::before = tiled texture; ::after = uTintColor-style tint (getPaletteAccentHex → --dock-pattern-tint-rgb).
      */
-    .pagination-dock::before {
+    body:has(#paginationDock) .pagination-dock::before {
         content: '';
         position: absolute;
         inset: 0;
@@ -291,7 +291,7 @@ body.color-palette-gray .events-pagination-input:focus {
         opacity: 0.62;
     }
 
-    .pagination-dock::after {
+    body:has(#paginationDock) .pagination-dock::after {
         content: '';
         position: absolute;
         inset: 0;
@@ -301,12 +301,12 @@ body.color-palette-gray .events-pagination-input:focus {
         mix-blend-mode: color;
     }
 
-    body.pagination-dock-collapsed {
+    body:has(#paginationDock).pagination-dock-collapsed {
         --pagination-dock-height: var(--pagination-dock-height-collapsed, 138px);
     }
     
     /* JS still inserts this node; texture is drawn on .pagination-dock::before instead. */
-    .pagination-dock-pattern {
+    body:has(#paginationDock) .pagination-dock-pattern {
         display: none !important;
     }
 
@@ -314,7 +314,7 @@ body.color-palette-gray .events-pagination-input:focus {
      * Do not target .pagination-dock-pattern here: `.pagination-dock > * { position: relative }`
      * overrides its position:absolute and collapses the layer to 0 height (invisible).
      */
-    .pagination-dock > *:not(.pagination-dock-pattern) {
+    body:has(#paginationDock) .pagination-dock > *:not(.pagination-dock-pattern) {
         position: relative;
         z-index: 1;
     }
@@ -324,42 +324,226 @@ body.color-palette-gray .events-pagination-input:focus {
      * We need the content to exactly fill 100vh visually (which is 149.25vh in body coordinates).
      * Setting max-height prevents flex from distributing extra space.
      */
-    body {
+    body:has(#paginationDock) {
         max-height: var(--desktop-scale-inverse, 149.25%) !important;
         overflow: hidden !important;
     }
     
     /* Layout-container fills remaining space */
-    .layout-container {
+    body:has(#paginationDock) .layout-container {
         flex: 1 1 auto !important;
         min-height: 0 !important;
         overflow: hidden !important;
     }
     
     /* Main content area fills layout-container */
-    .layout-container main,
-    .layout-container #content {
+    body:has(#paginationDock) .layout-container main,
+    body:has(#paginationDock) .layout-container #content {
         width: 100% !important;
         height: 100% !important;
         max-height: 100% !important;
         overflow: hidden !important;
     }
     
-    #globe-container {
+    /* Override entry/globe timeline bottom inset once dock exists (sibling layout, not overlapping strip) */
+    body:has(#paginationDock) #globe-container {
         width: 100% !important;
         height: 100% !important;
         max-height: 100% !important;
-    }
-
-    /* Override entry/globe timeline bottom inset once dock exists (sibling layout, not overlapping strip) */
-    body:has(#paginationDock) #globe-container {
         bottom: 0 !important;
     }
     
     /* Footer stays fixed height */
-    footer {
+    body:has(#paginationDock) footer {
         flex: 0 0 var(--footer-height, 65px) !important;
     }
+
+/* Mobile / short-edge: dock is locked collapsed — no expand control */
+body.pagination-dock-mobile-locked .pagination-dock-collapse-strip {
+    display: none !important;
+}
+
+/* Short rails on mobile dock (expanded-desktop skewed rails are too tall) */
+body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail {
+    --thumb-skew: -11deg;
+    min-height: 48px !important;
+    max-height: 52px !important;
+    height: 48px !important;
+    width: clamp(44px, 4.2vw, 56px) !important;
+    min-width: 44px !important;
+    flex: 0 0 auto !important;
+    align-self: center !important;
+    transform: skewX(var(--thumb-skew)) !important;
+}
+
+body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .page-btn__arrow-inner {
+    transform: skewX(11deg);
+}
+
+body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
+    transform: skewX(var(--thumb-skew)) scale(1.06) !important;
+}
+
+/*
+ * Mobile-locked dock: match desktop collapsed slots (dark numerals on white — base .event-number-btn is color: white).
+ */
+body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__key {
+    display: none !important;
+}
+
+body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge {
+    display: none !important;
+}
+
+body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual {
+    display: none !important;
+}
+
+body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
+    --thumb-skew: -11deg;
+    position: relative;
+    min-height: 44px !important;
+    max-height: 52px !important;
+    height: 48px !important;
+    transform: skewX(var(--thumb-skew));
+    border-radius: 16px;
+    overflow: hidden;
+    flex: 0 0 calc((100% - 9 * 14px) / 10);
+    max-width: calc((100% - 9 * 14px) / 10);
+    background: #ffffff !important;
+    border-width: 4px 0 !important;
+    border-style: solid !important;
+    border-color: rgba(0, 0, 0, 0.14) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28) !important;
+    color: #1a1a1a !important;
+    justify-content: center;
+    align-items: center;
+}
+
+body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: clamp(1.05rem, 2.8vmin, 1.35rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #1a1a1a !important;
+    text-shadow: none;
+}
+
+body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
+body.pagination-dock-mobile-locked
+    .event-number-buttons.event-number-buttons--thumbs-desktop
+    .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+    transform: skewX(var(--thumb-skew)) scale(1.06);
+    background: #f3f7ff !important;
+    border-color: rgba(255, 186, 80, 0.95) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Slider off on mobile dock; page field row uses slider-like chrome */
+body.pagination-dock-mobile-locked:has(#paginationDock) .event-page-slider-row.event-page-slider-row--desktop-only {
+    display: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only {
+    display: flex !important;
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    padding: 0 clamp(14px, 4vw, 28px) 4px;
+    box-sizing: border-box;
+}
+
+body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-input-container {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: min(100%, 520px);
+    min-height: 48px;
+    margin: 0 auto;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 18px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-label {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: clamp(15px, 3.5vmin, 18px);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-input {
+    flex: 0 1 auto;
+    min-width: 52px;
+    width: 4.5rem;
+    max-width: 96px;
+    height: 36px;
+    margin: 0;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow:
+        0 2px 12px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.98);
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: clamp(17px, 4vmin, 22px);
+    font-weight: 700;
+    text-align: center;
+    line-height: 1;
+}
+
+body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-input:focus {
+    outline: none;
+    border-color: rgba(255, 200, 100, 0.85);
+    box-shadow:
+        0 0 0 2px rgba(255, 200, 100, 0.35),
+        0 2px 14px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.32);
+}
+
+body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-total {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-size: clamp(15px, 3.5vmin, 18px);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock) .event-pagination {
+    gap: 6px;
 }
 
 /* Event Pagination Controls */
@@ -385,22 +569,16 @@ body.color-palette-gray .events-pagination-input:focus {
             var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
 }
 
-/*
- * Dim pagination while dragging the globe only when it floats over the map (no dock).
- * Desktop dock is always visible — keep full opacity so it never looks disabled or blocked.
- */
+/* Dim pagination while dragging only when it still uses fixed float layout (no dock) */
 @media (max-width: 768px), (min-width: 769px) and (max-height: 599px) {
-    body.globe-grabbing .event-pagination {
+    body.globe-grabbing:not(:has(#paginationDock)) .event-pagination {
         opacity: 0.5;
     }
 }
 
-/*
- * Desktop: pagination lives inside the dock, not fixed positioned
- * Min short edge 600px (see JS) keeps phone landscape on floating mobile controls.
- */
-@media (min-width: 769px) and (min-height: 600px) {
-    .event-pagination {
+/* Pagination inside dock (all viewports when dock present) */
+
+    body:has(#paginationDock) .event-pagination {
         position: relative;
         bottom: auto;
         left: auto;
@@ -419,7 +597,7 @@ body.color-palette-gray .events-pagination-input:focus {
     }
 
     /* Was align-self: center on .event-number-buttons — that shrink-wraps the row and squishes cards */
-    .event-number-buttons.event-number-buttons--thumbs-desktop {
+    body:has(#paginationDock) .event-number-buttons.event-number-buttons--thumbs-desktop {
         align-self: stretch;
         padding-top: 0;
         padding-bottom: 0;
@@ -430,19 +608,19 @@ body.color-palette-gray .events-pagination-input:focus {
                 var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
     }
 
-    .page-controls-row {
+    body:has(#paginationDock) .page-controls-row {
         align-self: stretch;
         width: 100%;
         max-width: 100%;
         justify-content: center;
     }
 
-    .page-controls-row--page-only {
+    body:has(#paginationDock) .page-controls-row--page-only {
         justify-content: center;
     }
 
     /* Prev / next bracket the thumbnail title cards; same vertical metrics as cards */
-    .event-pagination-thumb-row {
+    body:has(#paginationDock) .event-pagination-thumb-row {
         display: flex;
         flex-direction: row;
         align-items: stretch;
@@ -454,14 +632,14 @@ body.color-palette-gray .events-pagination-input:focus {
         overflow: visible;
     }
 
-    .event-pagination-thumb-row .event-number-buttons.event-number-buttons--thumbs-desktop {
+    body:has(#paginationDock) .event-pagination-thumb-row .event-number-buttons.event-number-buttons--thumbs-desktop {
         flex: 1 1 auto;
         min-width: 0;
         width: auto;
         max-width: none;
     }
 
-    .page-btn.page-btn--thumb-rail {
+    body:has(#paginationDock) .page-btn.page-btn--thumb-rail {
         flex: 0 0 auto;
         width: clamp(44px, 4.2vw, 56px);
         min-width: 44px;
@@ -484,29 +662,29 @@ body.color-palette-gray .events-pagination-input:focus {
             transform var(--panel-transition, 0.3s ease);
     }
 
-    .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
+    body:has(#paginationDock) .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
         transform: skewX(var(--thumb-skew)) scale(1.06);
     }
 
-    .page-btn.page-btn--thumb-rail:active:not(:disabled) {
+    body:has(#paginationDock) .page-btn.page-btn--thumb-rail:active:not(:disabled) {
         transform: skewX(var(--thumb-skew)) scale(0.97);
     }
 
-    .page-btn.page-btn--thumb-rail:disabled {
+    body:has(#paginationDock) .page-btn.page-btn--thumb-rail:disabled {
         transform: skewX(var(--thumb-skew));
     }
 
     /* Counter-skew arrow icon inside skewed rail buttons */
-    .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .page-btn__arrow-inner {
+    body:has(#paginationDock) .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .page-btn__arrow-inner {
         transform: skewX(11deg);
     }
 
-    .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .ui-pagination-arrow {
+    body:has(#paginationDock) .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .ui-pagination-arrow {
         width: clamp(22px, 3.2vw, 30px);
         max-height: clamp(24px, 4vw, 36px);
     }
 
-    .event-page-slider-row {
+    body:has(#paginationDock) .event-page-slider-row {
         width: 100%;
         max-width: 100%;
         align-self: stretch;
@@ -520,29 +698,29 @@ body.color-palette-gray .events-pagination-input:focus {
             var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
     }
 
-    .event-page-slider-row.event-page-slider-row--desktop-only {
+    body:has(#paginationDock) .event-page-slider-row.event-page-slider-row--desktop-only {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
     }
     
     /* Hide page input on desktop - slider replaces it */
-    .page-controls-row--mobile-only {
+    body:has(#paginationDock) .page-controls-row--mobile-only {
         display: none !important;
     }
 
-    .event-page-slider-wrap {
+    body:has(#paginationDock) .event-page-slider-wrap {
         width: 100%;
         max-width: 100%;
     }
 
-    .event-page-slider-ticks {
+    body:has(#paginationDock) .event-page-slider-ticks {
         left: clamp(14px, 2.5vw, 26px);
         right: clamp(14px, 2.5vw, 26px);
     }
 
     /* Strip bottom = dock top: pill sits on that seam, bottom edge flush with the dock */
-    .pagination-dock-collapse-bar {
+    body:has(#paginationDock) .pagination-dock-collapse-bar {
         position: absolute;
         left: 50%;
         bottom: 0;
@@ -558,7 +736,7 @@ body.color-palette-gray .events-pagination-input:focus {
         pointer-events: none;
     }
 
-    .pagination-dock-collapse-handle {
+    body:has(#paginationDock) .pagination-dock-collapse-handle {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -571,7 +749,7 @@ body.color-palette-gray .events-pagination-input:focus {
         pointer-events: auto;
     }
 
-    .pagination-dock-collapse-pill {
+    body:has(#paginationDock) .pagination-dock-collapse-pill {
         width: 112px;
         height: 32px;
         border-radius: 6px 6px 0 0;
@@ -591,7 +769,7 @@ body.color-palette-gray .events-pagination-input:focus {
     }
 
     /* Left-pointing asset: CW 90° → ↑ (collapse when expanded); CCW 90° → ↓ (expand when collapsed) */
-    .pagination-dock-collapse-pill .ui-pagination-arrow--dock-collapse {
+    body:has(#paginationDock) .pagination-dock-collapse-pill .ui-pagination-arrow--dock-collapse {
         display: block;
         width: 22px;
         height: auto;
@@ -602,37 +780,36 @@ body.color-palette-gray .events-pagination-input:focus {
         transition: transform 0.22s ease;
     }
 
-    body.pagination-dock-collapsed .pagination-dock-collapse-pill .ui-pagination-arrow--dock-collapse {
+    body.pagination-dock-collapsed:has(#paginationDock) .pagination-dock-collapse-pill .ui-pagination-arrow--dock-collapse {
         transform: rotate(-90deg);
     }
 
-    .pagination-dock-collapse-handle:hover .pagination-dock-collapse-pill,
-    .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
+    body:has(#paginationDock) .pagination-dock-collapse-handle:hover .pagination-dock-collapse-pill,
+    body:has(#paginationDock) .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
         background: rgba(13, 71, 161, 0.9);
         width: 128px;
         height: 38px;
     }
 
-    .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
+    body:has(#paginationDock) .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
         box-shadow:
             0 2px 12px rgba(0, 0, 0, 0.4),
             0 0 0 2px rgba(100, 181, 246, 0.85);
     }
 
-    .pagination-dock-collapse-handle:focus {
+    body:has(#paginationDock) .pagination-dock-collapse-handle:focus {
         outline: none;
     }
 
-    body.pagination-dock-collapsed .event-pagination {
+    body.pagination-dock-collapsed:has(#paginationDock) .event-pagination {
         padding-top: 12px;
         padding-bottom: 8px;
         gap: 6px;
     }
 
-    body.pagination-dock-collapsed .event-page-slider-row {
+    body.pagination-dock-collapsed:has(#paginationDock) .event-page-slider-row {
         padding-bottom: 2px !important;
     }
-}
 
 .event-page-slider-row {
     width: 100%;
@@ -640,11 +817,9 @@ body.color-palette-gray .events-pagination-input:focus {
     box-sizing: border-box;
 }
 
-/* Full-width page scrubber: dock/desktop only; phone landscape is wide but short */
-@media (max-width: 768px), (min-width: 769px) and (max-height: 599px) {
-    .event-page-slider-row--desktop-only {
-        display: none !important;
-    }
+/* Hide slider only when pagination is not in the dock (legacy float mode) */
+body:not(:has(#paginationDock)) .event-page-slider-row--desktop-only {
+    display: none !important;
 }
 
 .event-page-slider-wrap {
@@ -956,7 +1131,7 @@ button.event-number-btn.locked,
     opacity: 1 !important;
 }
 
-/* Missing description (matches Event Manager description-warning semantics) */
+/* Missing description (matches Event Manager .event-item--unfinished shell) */
 .event-number-btn.event-number-btn--unfinished:not(:disabled):not(.locked) {
     box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.3),
@@ -1514,8 +1689,9 @@ button.event-number-btn.locked,
     }
 }
 
+/* Legacy float pagination (no dock): compact number row on narrow / short viewports */
 @media (max-width: 768px), (min-width: 769px) and (max-height: 599px) {
-    .event-pagination-thumb-row {
+    body:not(:has(#paginationDock)) .event-pagination-thumb-row {
         display: flex;
         flex-direction: row;
         flex-wrap: nowrap;
@@ -1527,12 +1703,12 @@ button.event-number-btn.locked,
         box-sizing: border-box;
     }
 
-    .event-pagination-thumb-row .event-number-buttons.event-number-buttons--thumbs-desktop {
+    body:not(:has(#paginationDock)) .event-pagination-thumb-row .event-number-buttons.event-number-buttons--thumbs-desktop {
         flex: 1 1 auto;
         min-width: 0;
     }
 
-    .page-btn.page-btn--thumb-rail {
+    body:not(:has(#paginationDock)) .page-btn.page-btn--thumb-rail {
         transform: none;
         min-height: 44px;
         width: 44px;
@@ -1540,31 +1716,31 @@ button.event-number-btn.locked,
         flex: 0 0 44px;
     }
 
-    .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
+    body:not(:has(#paginationDock)) .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
         transform: scale(1.08);
     }
 
-    .page-btn.page-btn--thumb-rail:active:not(:disabled) {
+    body:not(:has(#paginationDock)) .page-btn.page-btn--thumb-rail:active:not(:disabled) {
         transform: scale(0.95);
     }
 
-    .page-btn.page-btn--thumb-rail:disabled {
+    body:not(:has(#paginationDock)) .page-btn.page-btn--thumb-rail:disabled {
         transform: none;
     }
 
-    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__key {
+    body:not(:has(#paginationDock)) .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__key {
         display: none !important;
     }
 
-    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge {
+    body:not(:has(#paginationDock)) .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__variant-badge {
         display: none !important;
     }
 
-    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual {
+    body:not(:has(#paginationDock)) .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual {
         display: none !important;
     }
 
-    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
+    body:not(:has(#paginationDock)) .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
         display: flex !important;
         align-items: center;
         justify-content: center;

@@ -6,7 +6,7 @@
     <title>Timeline Overwatch - Interactive 3D Timeline</title>
     <link rel="icon" type="image/png" href="assets/images/icons/Icon.png">
     <link rel="stylesheet" href="styles.css?v=37">
-    <link rel="stylesheet" href="styles/entry.css?v=10">
+    <link rel="stylesheet" href="styles/entry.css?v=11">
 </head>
 <body>
     <header>
@@ -127,7 +127,7 @@
                     <div class="events-manage-title-section">
                         <div class="events-manage-title-row">
                             <h2 class="events-manage-title">Event Management</h2>
-                            <button type="button" id="eventsManageToolbarToggleBtn" class="events-manage-toolbar-toggle-btn" aria-pressed="false" title="Hide or show search, filters, country, and pagination bar">Hide controls</button>
+                            <button type="button" id="eventsManageToolbarToggleBtn" class="events-manage-toolbar-toggle-btn" aria-pressed="true" title="Hide or show search, filters, country, and pagination bar">Show controls</button>
                         </div>
                         <p class="events-manage-count" id="eventsCount">0 Events</p>
                     </div>
@@ -137,7 +137,9 @@
                         <button id="exportEventsBtn" class="events-manage-action-btn export-btn">📥 Export</button>
                     </div>
                 </div>
-                <div class="events-manage-search" id="eventsManageSearch">
+                <div class="events-manage-controls" id="eventsManageControls">
+                    <h3 class="events-manage-controls-title">Search &amp; filters</h3>
+                    <div class="events-manage-search" id="eventsManageSearch">
                     <div class="events-manage-search-row events-manage-search-row--primary">
                         <label for="eventsSearchInput" class="events-search-label">Search:</label>
                         <input type="text" id="eventsSearchInput" class="events-search-input events-search-input--title" placeholder="By title..." autocomplete="off" />
@@ -167,131 +169,12 @@
                         </label>
                         <button type="button" id="eventsSearchClear" class="events-search-clear-btn">Clear</button>
                     </div>
+                    </div>
                 </div>
                 <div class="events-list" id="eventsList">
                     <!-- Events will be dynamically generated here -->
                 </div>
                 <!-- Pagination controls will be inserted here -->
-            </div>
-        </div>
-        
-        <!-- Event Edit Modal -->
-        <div class="event-edit-modal" id="eventEditModal">
-            <div class="event-edit-modal-content">
-                <div class="event-edit-modal-header">
-                    <h3 id="eventEditModalTitle">Edit Event</h3>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div id="eventVariantTabs" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
-                        <button class="event-edit-modal-close" id="eventEditModalClose">&times;</button>
-                    </div>
-                </div>
-                <div class="event-edit-form">
-                    <div class="event-edit-field event-edit-field-full">
-                        <label for="eventEditName">Event Title:</label>
-                        <input type="text" id="eventEditName" class="event-edit-input" autocomplete="off" required>
-                    </div>
-                    <div class="event-edit-field">
-                        <label for="eventEditNumber">Event Number:</label>
-                        <input type="number" id="eventEditNumber" class="event-edit-input" autocomplete="off" min="1" step="1">
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <div class="event-edit-year-range-pair" role="group" aria-label="Year range (optional)">
-                            <div class="event-edit-year-range-cell">
-                                <label for="eventEditYearStart">First year (range)</label>
-                                <input type="number" id="eventEditYearStart" class="event-edit-input" autocomplete="off" step="1" placeholder="e.g. 2060">
-                            </div>
-                            <div class="event-edit-year-range-cell">
-                                <label for="eventEditYearEnd">Second year (optional)</label>
-                                <input type="number" id="eventEditYearEnd" class="event-edit-input" autocomplete="off" step="1" placeholder="Blank = single known year">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <p style="margin: 0; font-size: 12px; opacity: 0.88; line-height: 1.35;">Timeline is optional. Use two years when the event could fall anywhere in that window; leave the second year empty when the date is known to a single year.</p>
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label for="eventEditEraName">Era name (optional)</label>
-                        <input type="text" id="eventEditEraName" class="event-edit-input" autocomplete="off" placeholder="e.g. Pre-Crisis">
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label for="eventEditCity">City Name (for location lookup):</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="text" id="eventEditCity" class="event-edit-input" autocomplete="off" style="flex: 1;">
-                            <label style="display: flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px;">
-                                <input type="checkbox" id="useCodeLookup">
-                                Use Code Lookup
-                            </label>
-                        </div>
-                        <button type="button" id="lookupCityBtn" class="lookup-city-btn">🔍 Lookup</button>
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label for="eventEditCityDisplayName">City Display Name (shown in preview and info panel):</label>
-                        <input type="text" id="eventEditCityDisplayName" class="event-edit-input" autocomplete="off">
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label>Location Type:</label>
-                        <div class="location-type-buttons">
-                            <button type="button" class="location-type-btn active" data-location-type="earth" title="Earth (Latitude/Longitude)">🌍 Earth</button>
-                            <button type="button" class="location-type-btn" data-location-type="moon" title="Moon (X/Y Coordinates 0-100)">🌙 Moon</button>
-                            <button type="button" class="location-type-btn" data-location-type="mars" title="Mars (X/Y Coordinates 0-100)">🔴 Mars</button>
-                            <button type="button" class="location-type-btn" data-location-type="station" title="Space Station (ISS)">🛰️ Station</button>
-                            <button type="button" class="location-type-btn" data-location-type="marsShip" title="Mars Escape Ship">🚀 Ship</button>
-                        </div>
-                        <input type="hidden" id="eventEditLocationType" value="earth">
-                    </div>
-                    <div class="event-edit-field" id="latLonFields">
-                        <label for="eventEditLat">Latitude:</label>
-                        <input type="number" id="eventEditLat" class="event-edit-input" autocomplete="off" step="any" required>
-                    </div>
-                    <div class="event-edit-field" id="lonFields">
-                        <label for="eventEditLon">Longitude:</label>
-                        <input type="number" id="eventEditLon" class="event-edit-input" autocomplete="off" step="any" required>
-                    </div>
-                    <div class="event-edit-field" id="xyFields" style="display: none;">
-                        <label for="eventEditX">X (0-100):</label>
-                        <input type="number" id="eventEditX" class="event-edit-input" autocomplete="off" step="any" min="0" max="100" required>
-                    </div>
-                    <div class="event-edit-field" id="yFields" style="display: none;">
-                        <label for="eventEditY">Y (0-100):</label>
-                        <input type="number" id="eventEditY" class="event-edit-input" autocomplete="off" step="any" min="0" max="100" required>
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label for="eventEditDescription">Description:</label>
-                        <textarea id="eventEditDescription" class="event-edit-textarea" autocomplete="off" rows="4"></textarea>
-                    </div>
-                    <div class="event-edit-field">
-                        <label for="eventEditFilters">Hero Filters (comma-separated):</label>
-                        <input type="text" id="eventEditFilters" class="event-edit-input" autocomplete="off">
-                    </div>
-                    <div class="event-edit-field">
-                        <label for="eventEditFactions">Faction Filters (comma-separated):</label>
-                        <input type="text" id="eventEditFactions" class="event-edit-input" autocomplete="off">
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label for="eventEditSecondaryCountries">Secondary country list (comma-separated):</label>
-                        <input type="text" id="eventEditSecondaryCountries" class="event-edit-input" autocomplete="off" placeholder="Other countries or regions mentioned (optional)">
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label>Sources:</label>
-                        <div id="eventSourcesContainer"></div>
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button type="button" id="addSourceBtn" class="event-edit-btn">+ Add Source</button>
-                            <button type="button" id="removeSourcePairBtn" class="event-edit-btn" style="display: none; background: rgba(244, 67, 54, 0.8);">- Remove Source</button>
-                        </div>
-                    </div>
-                    <div class="event-edit-field event-edit-field-full">
-                        <label>News Headlines:</label>
-                        <div id="eventHeadlinesContainer"></div>
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button type="button" id="addHeadlineBtn" class="event-edit-btn">+ Add Headline</button>
-                            <button type="button" id="removeHeadlineBtn" class="event-edit-btn" style="display: none; background: rgba(244, 67, 54, 0.8);">- Remove Headline</button>
-                        </div>
-                    </div>
-                    <div class="event-edit-actions">
-                        <button id="eventEditSave" class="event-edit-btn save-btn">Save</button>
-                        <button id="eventEditCancel" class="event-edit-btn cancel-btn">Cancel</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -317,7 +200,7 @@
     <script src="src/services/StationFollowService.js?v=8"></script>
     
     <!-- Load component loader for globe/menu/features -->
-    <script type="module" src="src/app/component-loader.js?v=47"></script>
+    <script type="module" src="src/app/component-loader.js?v=48"></script>
     
     <!-- Load services -->
     <script src="src/services/SoundEffectsManager.js?v=8"></script>
@@ -337,10 +220,8 @@
     <script src="src/services/HeadlinesFieldManager.js?v=8"></script>
     <script src="src/services/FormAutocompleteService.js?v=9"></script>
     <script src="src/services/EventFormService.js?v=9"></script>
-    <!-- ModalSaveService - load before EventManager -->
-    <script src="src/services/ModalSaveService.js?v=8"></script>
     <script src="src/services/EventDragDropService.js?v=8"></script>
-    <script src="src/services/EventListenerService.js?v=11"></script>
+    <script src="src/services/EventListenerService.js?v=12"></script>
     <script src="src/services/EventInteractionService.js?v=9"></script>
     <script src="src/services/EventInitService.js?v=8"></script>
     <script src="src/services/CityLookupService.js?v=9"></script>

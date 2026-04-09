@@ -22,8 +22,7 @@ class EventManager {
                     initService: window.EventInitService || null,
                     cityLookupService: window.CityLookupService || null,
                     imagePathService: window.ImagePathService || null,
-                    globeSyncService: window.GlobeSyncService || null,
-                    modalSaveService: window.ModalSaveService ? new window.ModalSaveService() : null
+                    globeSyncService: window.GlobeSyncService || null
                 };
             }));
         
@@ -47,7 +46,6 @@ class EventManager {
                 if (services.cityLookupService) services.cityLookupService.setEventManager(eventManager);
                 if (services.imagePathService) services.imagePathService.setEventManager(eventManager);
                 if (services.globeSyncService) services.globeSyncService.setEventManager(eventManager);
-                if (services.modalSaveService) services.modalSaveService.setEventManager(eventManager);
             });
         
         configureServices(services, this);
@@ -56,7 +54,6 @@ class EventManager {
         // UI state
         this.draggedElement = null;
         this.dragOverIndex = null;
-        this.editingIndex = null;
         this.unsavedEventIndices = new Set(); // Track which events have unsaved changes
         this.currentPage = 1; // Current page number (1-indexed)
         this.eventsPerPage = 50; // Number of events per page
@@ -589,93 +586,7 @@ class EventManager {
         }
     }
 
-    openEditModal(index) {
-        if (this.isGitHubPages()) {
-            console.log('Event editing is disabled on GitHub Pages');
-            return;
-        }
-        const helper = window.EventManagerModalHelpers?.openEditModal;
-        if (helper) {
-            helper({
-                index, events: this.events, formService: this.formService,
-                setEditingIndex: (idx) => { this.editingIndex = idx; },
-                clearEditForm: () => { this.clearEditForm(); },
-                populateEditForm: (event) => { this.populateEditForm(event); },
-                heroes: this.heroes, factions: this.factions
-            });
-        } else {
-            // Fallback
-            const modal = document.getElementById('eventEditModal');
-            const modalTitle = document.getElementById('eventEditModalTitle');
-            if (!modal) return;
-            this.editingIndex = index;
-            modalTitle.textContent = index === null ? 'Add New Event' : 'Edit Event';
-            if (index === null) this.clearEditForm();
-            else this.populateEditForm(this.events[index]);
-            modal.classList.add('open');
-            if (this.formService) {
-                this.formService.setupLocationTypeHandler();
-                setTimeout(() => {
-                    const filtersInput = document.getElementById('eventEditFilters');
-                    const factionsInput = document.getElementById('eventEditFactions');
-                    const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
-                    const countryOptions = window.LocationFlagHelpers
-                        && typeof window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete === 'function'
-                        ? window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete()
-                        : [];
-                    if (filtersInput && this.heroes.length > 0) {
-                        this.formService.setupAutocomplete(filtersInput, this.heroes, 'heroes');
-                    }
-                    if (factionsInput && this.factions.length > 0) {
-                        this.formService.setupAutocomplete(factionsInput, this.factions, 'factions');
-                    }
-                    if (secondaryCountriesInput && countryOptions.length > 0) {
-                        this.formService.setupAutocomplete(secondaryCountriesInput, countryOptions, 'countries');
-                    }
-                }, 100);
-            }
-        }
-    }
-
-    closeEditModal() {
-        const helper = window.EventManagerModalHelpers?.closeEditModal;
-        if (helper) {
-            helper((idx) => { this.editingIndex = idx; });
-        } else {
-            const modal = document.getElementById('eventEditModal');
-            if (modal) modal.classList.remove('open');
-            this.editingIndex = null;
-            const filtersInput = document.getElementById('eventEditFilters');
-            if (filtersInput) filtersInput.dataset.autocompleteSetup = 'false';
-            const factionsInput = document.getElementById('eventEditFactions');
-            if (factionsInput) factionsInput.dataset.autocompleteSetup = 'false';
-            const secondaryCountriesInput = document.getElementById('eventEditSecondaryCountries');
-            if (secondaryCountriesInput) secondaryCountriesInput.dataset.autocompleteSetup = 'false';
-        }
-    }
-
-
-    // EventFormService delegations (consolidated)
-    setupLocationTypeHandler() { this.formService?.setupLocationTypeHandler(); }
-    setLocationType(locationType) { this.formService?.setLocationType(locationType); }
-    updateLocationFields() { this.formService?.updateLocationFields(); }
-    clearEditForm() { this.formService?.clearEditForm(); }
-    handleDeleteCurrentVariant() { this.formService?.handleDeleteCurrentVariant(); }
-    saveCurrentVariantToMemory() { this.formService?.saveCurrentVariantToMemory(); }
-    addSourcePair() { this.formService?.addSourcePair(); }
-    removeLastSourcePair() { this.formService?.removeLastSourcePair(); }
-    clearSourcePairs() { this.formService?.clearSourcePairs(); }
-    updateRemoveSourceButton() { this.formService?.updateRemoveSourceButton(); }
-    loadVariantToForm(variantIndex) { this.formService?.loadVariantToForm(variantIndex); }
-    updateVariantTabs() { this.formService?.updateVariantTabs(); }
-    deleteVariant(variantIndex) { this.formService?.deleteVariant(variantIndex); }
-    populateEditForm(event) { this.formService?.populateEditForm(event); }
-    setupAutocomplete(input, options, type) { this.formService?.setupAutocomplete(input, options, type); }
-
-    // CityLookupService delegations
-    async lookupCity() { return await this.cityLookupService?.lookupCity(); }
-
-    /** Info-panel inline editor: same lookup as modal, different field ids */
+    /** Info-panel inline editor: city lookup with slide field ids */
     async lookupCitySlide() {
         return await this.cityLookupService?.lookupCity({
             cityId: 'eventSlideEditCityLookup',
@@ -691,24 +602,6 @@ class EventManager {
     // ImagePathService delegation
     getEventImagePath(eventName, providedPath) {
         return this.imagePathService?.getEventImagePath(eventName, providedPath) || null;
-    }
-
-    saveEventFromModal() {
-        if (!this.modalSaveService) {
-            console.error('EventManager: ModalSaveService not available!');
-            alert('Error: ModalSaveService not available');
-            return;
-        }
-        const result = this.modalSaveService.saveEventFromModal();
-        if (result.success) {
-            this.currentPage = result.newCurrentPage;
-            this.renderEvents();
-            this.closeEditModal();
-            this.refreshGlobeEvents();
-        } else {
-            console.error('EventManager: Failed to save event:', result.error);
-            alert('Error saving event: ' + (result.error || 'Unknown error'));
-        }
     }
 
     /**

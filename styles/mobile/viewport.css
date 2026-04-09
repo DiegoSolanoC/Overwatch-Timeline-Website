@@ -171,8 +171,8 @@
     }
 
     /* Event manager: hide search/filters block (literal 768px — reliable vs. var() in @media) */
-    .events-manage-panel--toolbar-collapsed #eventsManageSearch,
-    .events-manage-panel--toolbar-collapsed .events-manage-search {
+    .events-manage-panel--toolbar-collapsed #eventsManageControls,
+    .events-manage-panel--toolbar-collapsed .events-manage-controls {
         display: none !important;
     }
 
@@ -402,7 +402,8 @@
         width: 100vw !important;
     }
 
-    .event-pagination {
+    /* Float pagination only — dock mode uses event-pagination.css + flex layout */
+    body:not(:has(#paginationDock)) .event-pagination {
         /* Anchor near footer (like desktop) to avoid huge empty middle space on tall phones */
         top: auto !important;
         bottom: calc(var(--footer-height) + 4px) !important;
@@ -413,7 +414,7 @@
         gap: 6px !important;
     }
 
-    .event-page-slider-row--desktop-only {
+    body:not(:has(#paginationDock)) .event-page-slider-row--desktop-only {
         display: none !important;
     }
 
@@ -550,5 +551,13 @@
 
     .features {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Phone landscape: wide but short — toolbar collapse when JS adds class (matches events-manage.css) */
+@media (min-width: 769px) and (max-height: 599px) {
+    .events-manage-panel--toolbar-collapsed #eventsManageControls,
+    .events-manage-panel--toolbar-collapsed .events-manage-controls {
+        display: none !important;
     }
 }

@@ -238,159 +238,6 @@ class EventListenerService {
             }
         }
 
-        // Edit modal
-        const modal = document.getElementById('eventEditModal');
-        const modalClose = document.getElementById('eventEditModalClose');
-        const modalCancel = document.getElementById('eventEditCancel');
-        const modalSave = document.getElementById('eventEditSave');
-        const lookupBtn = document.getElementById('lookupCityBtn');
-        const deleteVariantBtn = document.getElementById('eventEditDeleteVariant');
-
-        // Hide/lock modal controls on GitHub Pages
-        if (isGitHubPages) {
-            if (modalSave) {
-                modalSave.style.display = 'none';
-                modalSave.style.visibility = 'hidden';
-                modalSave.style.pointerEvents = 'none';
-            }
-            if (lookupBtn) {
-                lookupBtn.style.display = 'none';
-                lookupBtn.style.visibility = 'hidden';
-                lookupBtn.style.pointerEvents = 'none';
-            }
-            if (deleteVariantBtn) {
-                deleteVariantBtn.style.display = 'none';
-                deleteVariantBtn.style.visibility = 'hidden';
-                deleteVariantBtn.style.pointerEvents = 'none';
-            }
-        }
-
-        if (modalClose) {
-            modalClose.addEventListener('click', () => {
-                if (this.eventManager.closeEditModal) {
-                    this.eventManager.closeEditModal();
-                }
-            });
-        }
-
-        if (modalCancel) {
-            modalCancel.addEventListener('click', () => {
-                if (this.eventManager.closeEditModal) {
-                    this.eventManager.closeEditModal();
-                }
-            });
-        }
-
-        if (modalSave) {
-            modalSave.addEventListener('click', () => {
-                if (this.eventManager.saveEventFromModal) {
-                    this.eventManager.saveEventFromModal();
-                }
-            });
-        }
-
-        if (lookupBtn && !isGitHubPages) {
-            lookupBtn.addEventListener('click', () => {
-                if (this.eventManager.lookupCity) {
-                    this.eventManager.lookupCity();
-                }
-            });
-        }
-
-        if (deleteVariantBtn && !isGitHubPages) {
-            deleteVariantBtn.addEventListener('click', () => {
-                if (this.eventManager.formService && this.eventManager.formService.handleDeleteCurrentVariant) {
-                    this.eventManager.formService.handleDeleteCurrentVariant();
-                }
-            });
-        }
-
-        // Source pair buttons
-        const addSourceBtn = document.getElementById('addSourcePairBtn');
-        const removeSourceBtn = document.getElementById('removeSourcePairBtn');
-        
-        if (addSourceBtn && !isGitHubPages) {
-            addSourceBtn.addEventListener('click', () => {
-                if (this.eventManager.formService && this.eventManager.formService.addSourcePair) {
-                    this.eventManager.formService.addSourcePair();
-                }
-            });
-        }
-
-        if (removeSourceBtn && !isGitHubPages) {
-            removeSourceBtn.addEventListener('click', () => {
-                if (this.eventManager.formService && this.eventManager.formService.removeLastSourcePair) {
-                    this.eventManager.formService.removeLastSourcePair();
-                } else if (this.eventManager.removeLastSourcePair) {
-                    // Fallback to EventManager method if formService not available
-                    this.eventManager.removeLastSourcePair();
-                }
-            });
-        }
-        
-        // Handle addSourceBtn (alternative ID)
-        const addSourceBtnAlt = document.getElementById('addSourceBtn');
-        if (addSourceBtnAlt && !isGitHubPages) {
-            // Remove any existing listeners by cloning
-            const addSourceBtnClone = addSourceBtnAlt.cloneNode(true);
-            addSourceBtnAlt.parentNode.replaceChild(addSourceBtnClone, addSourceBtnAlt);
-            const newAddSourceBtn = document.getElementById('addSourceBtn');
-            
-            newAddSourceBtn.addEventListener('click', () => {
-                if (this.eventManager.formService && this.eventManager.formService.addSourcePair) {
-                    this.eventManager.formService.addSourcePair();
-                }
-            });
-        }
-        
-        // Handle removeSourcePairBtn (alternative ID)
-        const removeSourcePairBtn = document.getElementById('removeSourcePairBtn');
-        if (removeSourcePairBtn && !isGitHubPages) {
-            // Remove any existing listeners by cloning
-            const removeSourcePairBtnClone = removeSourcePairBtn.cloneNode(true);
-            removeSourcePairBtn.parentNode.replaceChild(removeSourcePairBtnClone, removeSourcePairBtn);
-            const newRemoveSourcePairBtn = document.getElementById('removeSourcePairBtn');
-            
-            newRemoveSourcePairBtn.addEventListener('click', () => {
-                if (this.eventManager.formService && this.eventManager.formService.removeLastSourcePair) {
-                    this.eventManager.formService.removeLastSourcePair();
-                } else if (this.eventManager.removeLastSourcePair) {
-                    // Fallback to EventManager method if formService not available
-                    this.eventManager.removeLastSourcePair();
-                }
-            });
-        }
-
-        // Headline buttons
-        const addHeadlineBtn = document.getElementById('addHeadlineBtn');
-        const removeHeadlineBtn = document.getElementById('removeHeadlineBtn');
-        
-        if (addHeadlineBtn && !isGitHubPages) {
-            // Remove any existing listeners by cloning
-            const addHeadlineBtnClone = addHeadlineBtn.cloneNode(true);
-            addHeadlineBtn.parentNode.replaceChild(addHeadlineBtnClone, addHeadlineBtn);
-            const newAddHeadlineBtn = document.getElementById('addHeadlineBtn');
-            
-            newAddHeadlineBtn.addEventListener('click', () => {
-                if (this.eventManager.formService && this.eventManager.formService.addHeadlineField) {
-                    this.eventManager.formService.addHeadlineField();
-                }
-            });
-        }
-
-        if (removeHeadlineBtn && !isGitHubPages) {
-            // Remove any existing listeners by cloning
-            const removeHeadlineBtnClone = removeHeadlineBtn.cloneNode(true);
-            removeHeadlineBtn.parentNode.replaceChild(removeHeadlineBtnClone, removeHeadlineBtn);
-            const newRemoveHeadlineBtn = document.getElementById('removeHeadlineBtn');
-            
-            newRemoveHeadlineBtn.addEventListener('click', () => {
-                if (this.eventManager.formService && this.eventManager.formService.removeLastHeadlineField) {
-                    this.eventManager.formService.removeLastHeadlineField();
-                }
-            });
-        }
-
         // Mark listeners as set up
         this.setupEventManagerSearch();
         this.eventManager.listenersSetup = true;
@@ -398,54 +245,70 @@ class EventListenerService {
     }
 
     /**
-     * Mobile: large toggle button collapses the search/filters toolbar. Desktop: class cleared; toolbar always shown.
+     * Mobile (narrow or short-edge): toggle collapses search/filters; default collapsed until localStorage `eventsManageToolbarCollapsed` is set.
+     * Desktop: toolbar always shown; aria-pressed cleared.
      */
     setupEventsManageToolbarCollapse(panel) {
         if (this._eventsManageToolbarCollapseBound) return;
         const btn = document.getElementById('eventsManageToolbarToggleBtn');
-        const searchEl = document.getElementById('eventsManageSearch');
+        const controlsEl =
+            document.getElementById('eventsManageControls') || document.getElementById('eventsManageSearch');
         if (!panel || !btn) return;
         this._eventsManageToolbarCollapseBound = true;
 
         const storageKey = 'eventsManageToolbarCollapsed';
-        const mql = window.matchMedia('(max-width: 768px)');
+        // Match pagination "phone" rule: narrow width OR short edge (phone landscape is often >768px wide).
+        const isEventsManageMobileToolbar = () => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            return w <= 768 || Math.min(w, h) < 600;
+        };
 
         const LABEL_HIDE = 'Hide controls';
         const LABEL_SHOW = 'Show controls';
 
         const apply = () => {
-            const mobile = mql.matches;
+            const mobile = isEventsManageMobileToolbar();
             const collapsed = btn.getAttribute('aria-pressed') === 'true';
 
             if (!mobile) {
                 panel.classList.remove('events-manage-panel--toolbar-collapsed');
+                btn.setAttribute('aria-pressed', 'false');
                 btn.textContent = LABEL_HIDE;
-                if (searchEl) searchEl.style.removeProperty('display');
+                if (controlsEl) controlsEl.style.removeProperty('display');
                 return;
             }
 
             panel.classList.toggle('events-manage-panel--toolbar-collapsed', collapsed);
             btn.textContent = collapsed ? LABEL_SHOW : LABEL_HIDE;
-            if (searchEl) {
+            if (controlsEl) {
                 if (collapsed) {
-                    searchEl.style.setProperty('display', 'none', 'important');
+                    controlsEl.style.setProperty('display', 'none', 'important');
                 } else {
-                    searchEl.style.removeProperty('display');
+                    controlsEl.style.removeProperty('display');
                 }
             }
         };
 
         try {
-            if (localStorage.getItem(storageKey) === '1') {
+            const stored = localStorage.getItem(storageKey);
+            if (stored === '1') {
                 btn.setAttribute('aria-pressed', 'true');
+            } else if (stored === '0') {
+                btn.setAttribute('aria-pressed', 'false');
+            } else {
+                // No preference: collapsed by default on mobile (portrait and landscape)
+                btn.setAttribute('aria-pressed', isEventsManageMobileToolbar() ? 'true' : 'false');
             }
-        } catch (_) {}
+        } catch (_) {
+            btn.setAttribute('aria-pressed', isEventsManageMobileToolbar() ? 'true' : 'false');
+        }
 
         apply();
 
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (!mql.matches) return;
+            if (!isEventsManageMobileToolbar()) return;
             const next = btn.getAttribute('aria-pressed') !== 'true';
             btn.setAttribute('aria-pressed', next ? 'true' : 'false');
             apply();
@@ -454,11 +317,11 @@ class EventListenerService {
             } catch (_) {}
         });
 
-        if (typeof mql.addEventListener === 'function') {
-            mql.addEventListener('change', apply);
-        } else {
-            mql.addListener(apply);
-        }
+        const onViewportChange = () => apply();
+        window.addEventListener('resize', onViewportChange);
+        window.addEventListener('orientationchange', () => {
+            requestAnimationFrame(() => apply());
+        });
     }
 
     /**

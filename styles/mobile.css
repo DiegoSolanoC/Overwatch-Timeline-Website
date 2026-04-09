@@ -5,8 +5,7 @@
  * imports the partials in order (viewport first, then component blocks).
  */
 
-@import url('mobile/viewport.css?v=3');
-@import url('mobile/music.css');
+@import url('mobile/viewport.css?v=6');
+@import url('mobile/music.css?v=2');
 @import url('mobile/events-manage.css');
-@import url('mobile/event-item.css');
-@import url('mobile/event-edit-modal.css');
+@import url('mobile/event-item.css?v=3');

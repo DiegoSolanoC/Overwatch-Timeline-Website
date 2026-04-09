@@ -678,14 +678,10 @@ class EventRenderService {
         // Don't use cache busting for initial loads - let browser cache work for performance
         const imagePathWithCache = imagePath || null;
         
-        // Warning icon for unfinished event - check if event is missing important information
         const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
         const isUnfinished = !hasDescription;
         item.classList.toggle('event-item--unfinished', isUnfinished);
-        const unfinishedWarning = isUnfinished 
-            ? `<div class="description-warning-badge" title="Unfinished event: Missing description">!</div>`
-            : '';
-        
+
         // Always use the same container structure to maintain consistent sizing
         const imageHtml = imagePathWithCache
             ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img data-src="${imagePathWithCache}" alt="${displayEvent.name}" decoding="async" fetchpriority="low" style="width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.18s ease;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload="this.style.opacity='1';"></div>`
@@ -696,22 +692,16 @@ class EventRenderService {
             ? `<div class="multi-event-badge" data-event-index="${index}" title="Click to cycle through variants">${currentVariantIndex + 1}/${event.variants.length}</div>`
             : '';
 
-        // Event number badge - show event number in chronological order (bottom-right)
+        // Slot numeral — same chrome pattern as dock thumbnails (top scrim, not a solid trapezoid chip)
         const overlapClass = options.hasOverlap ? ' event-number-badge--overlap' : '';
-        const overlapTitle = options.hasOverlap
+        const baseNumTitle = options.hasOverlap
             ? `Overlap detected on globe page ${Math.floor(index / 10) + 1}`
             : `Event #${index + 1}`;
-        const eventNumberBadge = `<div class="event-number-badge event-item__thumb-key${overlapClass}" title="${overlapTitle}">${index + 1}</div>`;
+        const numTitle = isUnfinished ? `${baseNumTitle} — Unfinished: missing description` : baseNumTitle;
+        const eventNumberBadge = `<div class="event-number-badge event-item__thumb-key${overlapClass}" title="${numTitle}">${index + 1}</div>`;
 
-        // On GitHub Pages, no action row — the whole card opens the event (read-only host).
-        // Preview opens the event; Edit opens the modal. Deleting is done from the info panel inline editor.
-        const actionButtons = isGitHubPages ? '' : `
-            <div class="event-item-actions">
-                <div class="event-item-actions-row">
-                    <button type="button" class="event-item-btn edit-btn" data-index="${index}">Edit</button>
-                </div>
-            </div>
-        `;
+        // No per-card action row: open the event from the preview (or whole card on GitHub Pages). Edit via info panel.
+        const actionButtons = '';
 
         const displayLocationType = (displayEvent && displayEvent.locationType) || event.locationType || 'earth';
         const locationDisplayText = locationName || `${event.lat ? event.lat.toFixed(4) : '0'}, ${event.lon ? event.lon.toFixed(4) : '0'}`;
@@ -757,7 +747,6 @@ class EventRenderService {
                     </div>
                 </div>
                 <div class="event-item__thumb-chrome">
-                    ${unfinishedWarning}
                     ${eventNumberBadge}
                 </div>
             </div>
@@ -776,9 +765,7 @@ class EventRenderService {
             </div>
         `;
 
-        // Add event listeners for buttons (Edit on local/dev; GitHub uses whole-card click)
         const thumbBlock = item.querySelector('.event-item__thumb-block');
-        const editBtn = item.querySelector('.edit-btn');
 
         if (thumbBlock && !isGitHubPages) {
             const openLabel = (displayEvent && displayEvent.name)
@@ -806,19 +793,6 @@ class EventRenderService {
                 if (this.eventManager.openEventFromList) {
                     this.eventManager.openEventFromList(event, index);
                 }
-            });
-        }
-
-        if (editBtn && !isGitHubPages) {
-            editBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (this.eventManager.openEditModal) {
-                    this.eventManager.openEditModal(index);
-                }
-            });
-            // Prevent dragging when clicking on button
-            editBtn.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
             });
         }
 

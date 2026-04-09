@@ -386,7 +386,7 @@ export class EventContentManager {
                     : (window.globeController?.dataModel?.factions || [])
             );
 
-            /** Same rules as {@link EventFormService.populateEditForm} so slide chips match the edit modal. */
+            /** Same rules as {@link EventFormService.factionsArrayToFormDisplayString} / manifest matching for edit fields. */
             const resolveFactionDisplayLabel = (rawFaction, manifestFilename) => {
                 const raw = String(rawFaction ?? '').trim();
                 const mf = getManifestFactions();

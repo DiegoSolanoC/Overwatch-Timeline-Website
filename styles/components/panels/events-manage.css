@@ -74,21 +74,20 @@ body.color-palette-gray .events-manage-close:hover {
     position: relative;
 }
 
+/* Same chrome as .filters-actions — solid plate isolates controls from panel pattern blend */
 .events-manage-header {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    padding-right: 80px; /* Add padding to avoid X button overlap */
-    border-bottom: 2px solid rgba(33, 150, 243, 0.3); /* Light blue for default blue palette */
-}
-
-/* Gray palette: orange border */
-body.color-palette-gray .events-manage-header {
-    border-bottom: 2px solid rgba(255, 102, 0, 0.3);
+    margin-bottom: 12px;
+    padding: 12px 80px 12px 15px;
+    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    isolation: isolate;
 }
 
 .events-manage-title-section {
@@ -129,17 +128,20 @@ body.color-palette-gray .events-manage-header {
     .events-manage-title-row {
         width: 100%;
     }
+}
 
-    .events-manage-panel--toolbar-collapsed #eventsManageSearch,
-    .events-manage-panel--toolbar-collapsed .events-manage-search {
+/* Collapse hidden controls: narrow *or* short edge (phone landscape) */
+@media (max-width: var(--breakpoint-mobile)), (max-height: 599px) {
+    .events-manage-panel--toolbar-collapsed #eventsManageControls,
+    .events-manage-panel--toolbar-collapsed .events-manage-controls {
         display: none !important;
     }
 }
 
 /* Same collapse rule with literal breakpoint (covers browsers where var() in @media fails) */
-@media (max-width: 768px) {
-    .events-manage-panel--toolbar-collapsed #eventsManageSearch,
-    .events-manage-panel--toolbar-collapsed .events-manage-search {
+@media (max-width: 768px), (max-height: 599px) {
+    .events-manage-panel--toolbar-collapsed #eventsManageControls,
+    .events-manage-panel--toolbar-collapsed .events-manage-controls {
         display: none !important;
     }
 }
@@ -167,7 +169,8 @@ body.color-palette-gray .events-manage-header {
     transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-@media (max-width: 768px) {
+/* Short-edge rule matches JS (phone landscape width often > 768) */
+@media (max-width: 768px), (max-height: 599px) {
     .events-manage-toolbar-toggle-btn {
         display: inline-flex;
         align-items: center;
@@ -248,15 +251,42 @@ body.color-palette-gray .events-manage-title {
     background: rgba(33, 150, 243, 0.5);
 }
 
-/* Event manager search bar */
-.events-manage-search {
+/* Search toolbar — outer frame matches .filters-actions + .filters-title */
+.events-manage-controls {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
     margin-bottom: 15px;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(var(--accent-primary-rgb), 0.2);
+    margin-top: 4px;
+    padding: 12px 70px 12px 15px;
+    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-radius: 8px;
+    /* Stronger than header plate — keeps fields readable over panel pattern */
+    background: rgba(0, 0, 0, 0.62);
+    box-sizing: border-box;
+    flex-shrink: 0;
+    isolation: isolate;
+}
+
+.events-manage-controls-title {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    color: var(--accent-primary);
+    margin: 0;
+    font-size: 2.2rem;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+/* Event manager search rows (inside .events-manage-controls) */
+.events-manage-search {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    border: none;
 }
 
 .events-manage-search-row {

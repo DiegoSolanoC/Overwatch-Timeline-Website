@@ -45,21 +45,16 @@ main#content {
     height: 100%;
 }
 
-/* Lift canvas above bottom pagination strip once timeline is active (entry.css loads after styles.css) */
-@media (min-width: 769px) {
-    body:has(footer.timeline-loaded) #globe-container {
-        bottom: 108px;
-    }
+/* Lift canvas above bottom pagination strip when timeline is active but dock is not in use */
+body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container {
+    bottom: 108px;
+}
 
-    /*
-     * Desktop pagination dock sits below .layout-container; the map already clears the dock via flex layout.
-     * Do not reserve an extra bottom inset — it wastes space and breaks resize/raycast after dock collapse.
-     */
-    @media (min-height: 600px) {
-        body:has(footer.timeline-loaded):has(#paginationDock) #globe-container {
-            bottom: 0;
-        }
-    }
+/*
+ * Pagination dock sits below .layout-container; flex layout clears the dock — no extra bottom inset.
+ */
+body:has(footer.timeline-loaded):has(#paginationDock) #globe-container {
+    bottom: 0;
 }
 
 /* Loading Overlay */

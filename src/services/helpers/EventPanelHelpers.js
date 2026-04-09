@@ -11,8 +11,7 @@ export function verifyEventPanels(statusService) {
     const panels = [
         { id: 'eventSlide', name: 'Event slide panel' },
         { id: 'eventImageOverlay', name: 'Event image overlay' },
-        { id: 'eventsManagePanel', name: 'Event manager panel' },
-        { id: 'eventEditModal', name: 'Event edit modal' }
+        { id: 'eventsManagePanel', name: 'Event manager panel' }
     ];
     
     panels.forEach(({ id, name }) => {

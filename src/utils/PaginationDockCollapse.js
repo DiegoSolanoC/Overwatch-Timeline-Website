@@ -1,9 +1,16 @@
 /**
- * Desktop pagination dock: toggle compact number-only row vs full thumbnails.
- * Persists in localStorage; dispatches resize for globe / panels using --pagination-dock-height.
+ * Pagination dock: toggle compact number-only row vs full thumbnails (desktop).
+ * Persists in localStorage on desktop; mobile (narrow or short edge) stays collapsed and locked.
  */
 
-const STORAGE_KEY = 'timeline-pagination-dock-collapsed';
+export const PAGINATION_DOCK_COLLAPSED_STORAGE_KEY = 'timeline-pagination-dock-collapsed';
+
+/** Narrow width or short edge — matches event-manager toolbar / phone landscape */
+export function isPaginationMobileCompactViewport() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    return w <= 768 || Math.min(w, h) < 600;
+}
 
 /** Notify listeners that only hook window.resize; globe uses ResizeObserver on #globe-container for live sync */
 function scheduleResize() {
@@ -26,11 +33,39 @@ function setCollapseButtonLabels(btn, collapsed) {
 }
 
 /**
- * Same action as clicking the dock collapse handle. No-op if the button is not in the DOM
- * (e.g. mobile / no dock layout).
+ * After #paginationDock is in the DOM: set collapsed + lock on mobile, else restore from localStorage.
+ */
+export function applyPaginationDockViewportMode() {
+    const btn = document.getElementById('paginationDockCollapseBtn');
+    const dock = document.getElementById('paginationDock');
+    if (!dock) return;
+
+    const mobile = isPaginationMobileCompactViewport();
+
+    if (mobile) {
+        document.body.classList.add('pagination-dock-mobile-locked');
+        document.body.classList.add('pagination-dock-collapsed');
+        setCollapseButtonLabels(btn, true);
+        return;
+    }
+
+    document.body.classList.remove('pagination-dock-mobile-locked');
+    let collapsed = false;
+    try {
+        collapsed = localStorage.getItem(PAGINATION_DOCK_COLLAPSED_STORAGE_KEY) === '1';
+    } catch (_) {}
+    document.body.classList.toggle('pagination-dock-collapsed', collapsed);
+    setCollapseButtonLabels(btn, collapsed);
+}
+
+/**
+ * Same action as clicking the dock collapse handle.
  * @returns {boolean} true if a toggle was applied
  */
 export function togglePaginationDockCollapse() {
+    if (document.body.classList.contains('pagination-dock-mobile-locked')) {
+        return false;
+    }
     const btn = document.getElementById('paginationDockCollapseBtn');
     if (!btn) return false;
     const strip = document.getElementById('paginationDockCollapseStrip');
@@ -46,7 +81,7 @@ export function togglePaginationDockCollapse() {
     const nowCollapsed = document.body.classList.toggle('pagination-dock-collapsed');
     setCollapseButtonLabels(btn, nowCollapsed);
     try {
-        localStorage.setItem(STORAGE_KEY, nowCollapsed ? '1' : '0');
+        localStorage.setItem(PAGINATION_DOCK_COLLAPSED_STORAGE_KEY, nowCollapsed ? '1' : '0');
     } catch (_) {}
     scheduleResize();
     return true;
@@ -57,21 +92,6 @@ export function initPaginationDockCollapse() {
     if (!btn || btn.dataset.paginationDockCollapseInit === '1') return;
     btn.dataset.paginationDockCollapseInit = '1';
 
-    try {
-        if (localStorage.getItem(STORAGE_KEY) === '1') {
-            document.body.classList.add('pagination-dock-collapsed');
-            setCollapseButtonLabels(btn, true);
-        } else {
-            setCollapseButtonLabels(btn, false);
-        }
-    } catch (_) {
-        setCollapseButtonLabels(btn, false);
-    }
-
-    if (document.body.classList.contains('pagination-dock-collapsed')) {
-        scheduleResize();
-    }
-
     btn.addEventListener('click', () => {
         togglePaginationDockCollapse();
     });
@@ -81,6 +101,8 @@ if (typeof window !== 'undefined') {
     window.PaginationDockCollapse = {
         init: initPaginationDockCollapse,
         toggle: togglePaginationDockCollapse,
-        STORAGE_KEY,
+        applyViewportMode: applyPaginationDockViewportMode,
+        isMobileCompactViewport: isPaginationMobileCompactViewport,
+        STORAGE_KEY: PAGINATION_DOCK_COLLAPSED_STORAGE_KEY,
     };
 }

@@ -139,31 +139,70 @@ body.color-palette-gray .music-grid-btn .music-label {
 
 .music-actions {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 15px;
-    padding: 12px 15px;
-    border-bottom: 2px solid rgba(33, 150, 243, 0.3);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px 70px 12px 15px;
+    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-radius: 8px;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px 8px 0 0;
+    box-sizing: border-box;
     flex-shrink: 0;
-}
-
-body.color-palette-gray .music-actions {
-    border-bottom: 2px solid rgba(255, 102, 0, 0.3);
+    isolation: isolate;
 }
 
 .music-actions-buttons {
     display: flex;
+    flex-wrap: wrap;
     gap: 15px;
+    justify-content: flex-end;
+}
+
+.music-controls-section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 12px 70px 12px 15px;
+    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.62);
+    box-sizing: border-box;
+    flex-shrink: 0;
+    isolation: isolate;
+}
+
+.music-controls-section--playback {
+    margin-top: 0;
+}
+
+.music-controls-section--volume {
+    margin-top: 4px;
+}
+
+.music-controls-section-title {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    color: var(--accent-primary);
+    margin: 0;
+    font-size: 2.2rem;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.music-controls-section-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 .music-now-playing {
-    margin-bottom: 15px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     flex-shrink: 0;
     box-sizing: border-box;
 }

@@ -59,13 +59,7 @@ export function initializeAllServices(eventManager) {
         }),
         globeSyncService: initializeService(window.GlobeSyncService, (service) => {
             service.setEventManager(eventManager);
-        }),
-        modalSaveService: initializeService(
-            window.ModalSaveService ? new window.ModalSaveService() : null,
-            (service) => {
-                service.setEventManager(eventManager);
-            }
-        )
+        })
     };
     
     return services;

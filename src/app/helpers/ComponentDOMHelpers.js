@@ -5,7 +5,10 @@
 
 import { updateStatus } from '../../managers/StatusManager.js';
 import { getEventThumbNumberButtonsHtml } from '../../managers/helpers/PaginationThumbMarkup.js';
-import { initPaginationDockCollapse } from '../../utils/PaginationDockCollapse.js';
+import {
+    applyPaginationDockViewportMode,
+    initPaginationDockCollapse,
+} from '../../utils/PaginationDockCollapse.js';
 
 /**
  * Creates or returns existing element by ID
@@ -42,7 +45,9 @@ export function createMusicPanel() {
                 <h2 class="music-title">Music Options</h2>
                 <div class="music-actions-buttons"></div>
             </div>
-            <div class="music-now-playing" id="musicNowPlaying">
+            <div class="music-controls-section music-controls-section--playback">
+                <h3 class="music-controls-section-title">Now playing</h3>
+                <div class="music-now-playing" id="musicNowPlaying">
                 <div class="music-current-song-row">
                     <img class="music-playing-disc" src="assets/images/icons/Playing Icon.png" alt="" width="32" height="32" decoding="async" />
                     <div class="music-current-song" id="musicCurrentSong">Loading...</div>
@@ -70,16 +75,22 @@ export function createMusicPanel() {
                         </button>
                     </div>
                 </div>
+                </div>
             </div>
-            <div class="music-control-row">
-                <label for="volumeSlider">Music Volume:</label>
-                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="10">
-                <span id="volumeValue" class="volume-value">10%</span>
-            </div>
-            <div class="music-control-row">
-                <label for="soundEffectsSlider">Sound Effects Volume:</label>
-                <input type="range" id="soundEffectsSlider" class="volume-slider" min="0" max="100" value="50">
-                <span id="soundEffectsVolumeValue" class="volume-value">50%</span>
+            <div class="music-controls-section music-controls-section--volume">
+                <h3 class="music-controls-section-title">Volume</h3>
+                <div class="music-controls-section-inner">
+                    <div class="music-control-row">
+                        <label for="volumeSlider">Music Volume:</label>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="10">
+                        <span id="volumeValue" class="volume-value">10%</span>
+                    </div>
+                    <div class="music-control-row">
+                        <label for="soundEffectsSlider">Sound Effects Volume:</label>
+                        <input type="range" id="soundEffectsSlider" class="volume-slider" min="0" max="100" value="50">
+                        <span id="soundEffectsVolumeValue" class="volume-value">50%</span>
+                    </div>
+                </div>
             </div>
             <div class="music-grid" id="musicGrid"></div>
         </div>
@@ -165,8 +176,7 @@ export function createEventPagination() {
         </div>
     `;
     
-    // Desktop: create a dock container below the layout, move pagination into it
-    // Mobile: keep pagination inside #content with fixed positioning
+    // Dock below .layout-container for all viewports; mobile keeps dock visually collapsed (see PaginationDockCollapse).
     const DOCK_COLLAPSE_STRIP_HTML = `
         <div class="pagination-dock-collapse-bar" id="paginationDockCollapseBar">
             <button type="button" id="paginationDockCollapseBtn" class="pagination-dock-collapse-handle"
@@ -178,91 +188,56 @@ export function createEventPagination() {
             </button>
         </div>`;
 
-    // Dock + thumbnails only when the *short* edge is tablet-sized (excludes phone landscape).
     const setupPaginationPlacement = () => {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        const isDesktop = w > 768 && Math.min(w, h) >= 600;
         let dock = document.getElementById('paginationDock');
-        
-        if (isDesktop) {
-            // Create dock if it doesn't exist
-            if (!dock) {
-                dock = document.createElement('div');
-                dock.id = 'paginationDock';
-                dock.className = 'pagination-dock';
-                
-                // Insert after .layout-container, before footer
-                const layoutContainer = document.querySelector('.layout-container');
-                const footer = document.querySelector('footer');
-                if (layoutContainer && layoutContainer.parentNode) {
-                    if (footer) {
-                        layoutContainer.parentNode.insertBefore(dock, footer);
-                    } else {
-                        layoutContainer.parentNode.insertBefore(dock, layoutContainer.nextSibling);
-                    }
-                }
-            }
 
-            // Horizontal collapse control: strip between main layout and dock (not inside the dock)
+        if (!dock) {
+            dock = document.createElement('div');
+            dock.id = 'paginationDock';
+            dock.className = 'pagination-dock';
             const layoutContainer = document.querySelector('.layout-container');
-            let strip = document.getElementById('paginationDockCollapseStrip');
-            if (layoutContainer && layoutContainer.parentNode && dock.parentNode === layoutContainer.parentNode) {
-                if (!strip) {
-                    strip = document.createElement('div');
-                    strip.id = 'paginationDockCollapseStrip';
-                    strip.className = 'pagination-dock-collapse-strip';
-                    strip.innerHTML = DOCK_COLLAPSE_STRIP_HTML;
-                    layoutContainer.parentNode.insertBefore(strip, dock);
-                } else if (strip.nextSibling !== dock) {
-                    layoutContainer.parentNode.insertBefore(strip, dock);
+            const footer = document.querySelector('footer');
+            if (layoutContainer && layoutContainer.parentNode) {
+                if (footer) {
+                    layoutContainer.parentNode.insertBefore(dock, footer);
+                } else {
+                    layoutContainer.parentNode.insertBefore(dock, layoutContainer.nextSibling);
                 }
             }
-            
-            // Ensure pattern overlay element exists
-            if (!dock.querySelector('.pagination-dock-pattern')) {
-                const patternOverlay = document.createElement('div');
-                patternOverlay.className = 'pagination-dock-pattern';
-                dock.insertBefore(patternOverlay, dock.firstChild);
-            }
-            
-            // Move pagination into dock
-            if (pagination.parentNode !== dock) {
-                dock.appendChild(pagination);
-            }
-            // Clear mobile inline styles
-            pagination.style.removeProperty('position');
-            pagination.style.removeProperty('bottom');
-            pagination.style.removeProperty('left');
-            pagination.style.removeProperty('right');
-            pagination.style.removeProperty('transform');
-            pagination.style.removeProperty('top');
-        } else {
-            document.body.classList.remove('pagination-dock-collapsed');
-            const stripEl = document.getElementById('paginationDockCollapseStrip');
-            if (stripEl?.parentNode) {
-                stripEl.parentNode.removeChild(stripEl);
-            }
-            if (dock?.parentNode) {
-                dock.parentNode.removeChild(dock);
-            }
-            // Mobile: move pagination back into #content
-            const content = document.getElementById('content');
-            if (content && pagination.parentNode !== content) {
-                content.appendChild(pagination);
-            }
-            // Apply mobile fixed positioning
-            pagination.style.setProperty('position', 'fixed', 'important');
-            pagination.style.setProperty('bottom', '120px', 'important');
-            pagination.style.setProperty('left', '50%', 'important');
-            pagination.style.setProperty('right', 'auto', 'important');
-            pagination.style.setProperty('transform', 'translateX(-50%)', 'important');
-            pagination.style.setProperty('top', 'auto', 'important');
         }
 
-        if (isDesktop) {
-            initPaginationDockCollapse();
+        const layoutContainer = document.querySelector('.layout-container');
+        let strip = document.getElementById('paginationDockCollapseStrip');
+        if (layoutContainer && layoutContainer.parentNode && dock.parentNode === layoutContainer.parentNode) {
+            if (!strip) {
+                strip = document.createElement('div');
+                strip.id = 'paginationDockCollapseStrip';
+                strip.className = 'pagination-dock-collapse-strip';
+                strip.innerHTML = DOCK_COLLAPSE_STRIP_HTML;
+                layoutContainer.parentNode.insertBefore(strip, dock);
+            } else if (strip.nextSibling !== dock) {
+                layoutContainer.parentNode.insertBefore(strip, dock);
+            }
         }
+
+        if (!dock.querySelector('.pagination-dock-pattern')) {
+            const patternOverlay = document.createElement('div');
+            patternOverlay.className = 'pagination-dock-pattern';
+            dock.insertBefore(patternOverlay, dock.firstChild);
+        }
+
+        if (pagination.parentNode !== dock) {
+            dock.appendChild(pagination);
+        }
+        pagination.style.removeProperty('position');
+        pagination.style.removeProperty('bottom');
+        pagination.style.removeProperty('left');
+        pagination.style.removeProperty('right');
+        pagination.style.removeProperty('transform');
+        pagination.style.removeProperty('top');
+
+        applyPaginationDockViewportMode();
+        initPaginationDockCollapse();
     };
     
     // Initial placement
@@ -270,7 +245,6 @@ export function createEventPagination() {
     // Defer dock setup to ensure layout-container exists
     requestAnimationFrame(() => {
         setupPaginationPlacement();
-        initPaginationDockCollapse();
         // Trigger resize so globe/map adjusts to new container size
         // Use setTimeout to ensure CSS has been applied
         setTimeout(() => {

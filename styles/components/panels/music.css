@@ -84,7 +84,6 @@ body.color-palette-gray .music-panel-close:hover {
     margin: 0; /* Match filters-title */
     font-size: 2.2rem; /* Explicit size for scaling */
     font-weight: 600;
-    flex: 1; /* Match filters-title */
     line-height: 1.2;
 }
 
@@ -104,7 +103,7 @@ body.color-palette-gray .music-title {
     align-items: center;
     gap: 15px; /* Explicit gap for scaling */
     flex-shrink: 0; /* Don't shrink - fixed size */
-    margin-bottom: 15px; /* Explicit margin for scaling - Match filters spacing */
+    margin-bottom: 0;
     box-sizing: border-box; /* Ensure consistent sizing */
 }
 
@@ -749,36 +748,77 @@ body.color-palette-gray .music-grid-btn .music-label {
     font-weight: bold;
 }
 
+/* Title row — same plate language as .events-manage-header / .filters-actions */
 .music-actions {
     display: flex;
-    align-items: center;
-    gap: 12px; /* Match filters-actions */
-    margin-bottom: 15px; /* Match filters-actions */
-    padding: 12px 15px; /* Match filters-actions */
-    border-bottom: 2px solid rgba(33, 150, 243, 0.3); /* Light blue for default blue palette */
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px 70px 12px 15px;
+    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-radius: 8px;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px 8px 0 0;
+    box-sizing: border-box;
     flex-shrink: 0;
-}
-
-body.color-palette-gray .music-actions {
-    border-bottom: 2px solid rgba(255, 102, 0, 0.3); /* Orange for gray palette */
+    isolation: isolate;
 }
 
 .music-actions-buttons {
     display: flex;
-    gap: 15px; /* Match filters-actions-buttons */
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: flex-end;
 }
 
-/* Now Playing Section - matching filter tab styling */
+/* Playback / volume — match Event Manager .events-manage-controls (readable over panel pattern) */
+.music-controls-section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 12px 70px 12px 15px;
+    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.62);
+    box-sizing: border-box;
+    flex-shrink: 0;
+    isolation: isolate;
+}
+
+.music-controls-section--playback {
+    margin-top: 0;
+}
+
+.music-controls-section--volume {
+    margin-top: 4px;
+}
+
+.music-controls-section-title {
+    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    color: var(--accent-primary);
+    margin: 0;
+    font-size: 2.2rem;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.music-controls-section-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Inner chrome only — section frame carries the plate */
 .music-now-playing {
-    margin-bottom: 15px; /* Explicit margin for scaling */
-    padding: 15px; /* Explicit padding for scaling */
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px; /* Explicit border-radius for scaling */
-    flex-shrink: 0; /* Don't shrink - fixed size */
-    box-sizing: border-box; /* Ensure padding is included in size */
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 /* Startup theme / site ambience: no title row (progress controls only). */
@@ -992,12 +1032,12 @@ body.color-palette-gray .music-control-btn.active:hover {
         order: 0;
     }
 
-    .music-panel-content > .music-control-row,
+    .music-panel-content > .music-controls-section--volume,
     .music-panel-content > .music-grid {
         order: 1;
     }
 
-    .music-panel-content > .music-now-playing {
+    .music-panel-content > .music-controls-section--playback {
         order: 2;
         margin-top: auto;
     }
@@ -1007,8 +1047,8 @@ body.color-palette-gray .music-control-btn.active:hover {
         padding-bottom: 42px;
     }
 
-    /* Breathing room after volume sliders before the track grid / bottom overlap */
-    .music-panel-content > .music-control-row:last-of-type {
+    /* Breathing room before the track grid / bottom overlap */
+    .music-panel-content > .music-controls-section--volume {
         margin-bottom: 18px;
     }
 

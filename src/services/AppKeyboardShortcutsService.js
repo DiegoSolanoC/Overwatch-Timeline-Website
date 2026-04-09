@@ -51,7 +51,6 @@
             || target.closest('#eventsManagePanel')
             || target.closest('#paletteMenu')
             || target.closest('#eventSlide')
-            || target.closest('#eventEditModal')
             || target.closest('#externalLinkConfirmOverlay')
         );
     }
@@ -308,16 +307,6 @@
             var cancel = document.getElementById('externalLinkConfirmCancel');
             if (cancel) cancel.click();
             else ext.classList.remove('is-open');
-            return true;
-        }
-
-        var editModal = document.getElementById('eventEditModal');
-        if (editModal && editModal.classList.contains('open')) {
-            var closeBtn = document.getElementById('eventEditModalClose');
-            var cancelBtn = document.getElementById('eventEditCancel');
-            if (closeBtn) closeBtn.click();
-            else if (cancelBtn) cancelBtn.click();
-            else editModal.classList.remove('open');
             return true;
         }
 

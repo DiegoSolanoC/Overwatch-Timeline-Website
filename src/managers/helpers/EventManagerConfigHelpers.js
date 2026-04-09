@@ -41,9 +41,6 @@ export function configureServices(services, eventManager) {
     if (services.globeSyncService) {
         services.globeSyncService.setEventManager(eventManager);
     }
-    if (services.modalSaveService) {
-        services.modalSaveService.setEventManager(eventManager);
-    }
 }
 
 /**
@@ -63,8 +60,7 @@ export function initializeServicesFallback() {
         initService: window.EventInitService || null,
         cityLookupService: window.CityLookupService || null,
         imagePathService: window.ImagePathService || null,
-        globeSyncService: window.GlobeSyncService || null,
-        modalSaveService: window.ModalSaveService ? new window.ModalSaveService() : null
+        globeSyncService: window.GlobeSyncService || null
     };
 }
 

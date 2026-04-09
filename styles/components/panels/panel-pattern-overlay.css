@@ -1,0 +1,48 @@
+/* ========================================
+   Sliding panels — Pattern.png + palette tint (same language as .pagination-dock)
+   Event management, filters, music, event info (event-slide). Static texture (no motion).
+   ======================================== */
+
+.events-manage-panel,
+.filters-panel,
+.music-panel,
+.event-slide {
+    isolation: isolate;
+}
+
+.events-manage-panel::before,
+.filters-panel::before,
+.music-panel::before,
+.event-slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: url('../../../assets/images/maps/Pattern.png');
+    background-repeat: repeat;
+    background-size: clamp(520px, 42vw, 960px) auto;
+    background-position: center center;
+    opacity: 0.62;
+}
+
+.events-manage-panel::after,
+.filters-panel::after,
+.music-panel::after,
+.event-slide::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: rgb(var(--dock-pattern-tint-rgb, 33, 150, 243) / 0.28);
+    mix-blend-mode: color;
+}
+
+.events-manage-content,
+.filters-panel-content,
+.music-panel-content,
+.event-slide-content {
+    position: relative;
+    z-index: 1;
+}

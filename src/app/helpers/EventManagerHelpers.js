@@ -4,7 +4,6 @@
  */
 
 import { updateStatus } from '../../managers/StatusManager.js';
-import '../../managers/helpers/EventManagerModalHelpers.js';
 
 /**
  * Initializes EventManager, handling both script tag loading and ES6 module scenarios
@@ -180,8 +179,7 @@ export function verifyEventPanels() {
     const panels = [
         { id: 'eventSlide', name: 'Event slide panel' },
         { id: 'eventImageOverlay', name: 'Event image overlay' },
-        { id: 'eventsManagePanel', name: 'Event manager panel' },
-        { id: 'eventEditModal', name: 'Event edit modal' }
+        { id: 'eventsManagePanel', name: 'Event manager panel' }
     ];
     
     panels.forEach(({ id, name }) => {
