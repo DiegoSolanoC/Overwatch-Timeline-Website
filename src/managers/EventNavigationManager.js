@@ -37,6 +37,9 @@ import {
 import { dismissFiltersAndMusicPanels } from '../utils/PanelDismissHelpers.js';
 import { findVariantMarker } from './helpers/VariantHelpers.js';
 
+/** Incremented per thumb <img> so late onload/onerror from a previous URL is ignored */
+const THUMB_IMG_LOAD_GEN_KEY = '__owThumbLoadGen';
+
 /** First variant or root — aligns with default slide / marker label for multi-events */
 function getDisplayEventForPaginationThumb(rootEvent) {
     if (!rootEvent) return null;
@@ -1047,7 +1050,12 @@ export class EventNavigationManager {
                         variantBadge.removeAttribute('data-event-index');
                         variantBadge.textContent = '';
                     }
-                    if (imgWrap) imgWrap.classList.remove('event-number-btn__img-wrap--empty');
+                    if (imgWrap) {
+                        imgWrap.classList.remove(
+                            'event-number-btn__img-wrap--empty',
+                            'event-number-btn__img-wrap--loading'
+                        );
+                    }
                 } else {
                     btn.style.display = 'flex';
                     const targetEvent = currentPageEvents[eventIndex];
@@ -1082,17 +1090,35 @@ export class EventNavigationManager {
                         const path = getEventImagePath(displayEv, plainName);
                         imgWrap.classList.toggle('event-number-btn__img-wrap--empty', !path);
                         if (path) {
+                            const gen = (imgEl[THUMB_IMG_LOAD_GEN_KEY] || 0) + 1;
+                            imgEl[THUMB_IMG_LOAD_GEN_KEY] = gen;
+                            imgWrap.classList.add('event-number-btn__img-wrap--loading');
                             imgEl.style.display = '';
-                            imgEl.src = path;
-                            imgEl.alt = plainName;
                             imgEl.onerror = () => {
+                                if (imgEl[THUMB_IMG_LOAD_GEN_KEY] !== gen) return;
                                 imgEl.style.display = 'none';
+                                imgWrap.classList.remove('event-number-btn__img-wrap--loading');
                                 imgWrap.classList.add('event-number-btn__img-wrap--empty');
                             };
+                            imgEl.onload = () => {
+                                if (imgEl[THUMB_IMG_LOAD_GEN_KEY] !== gen) return;
+                                imgWrap.classList.remove('event-number-btn__img-wrap--loading');
+                            };
+                            imgEl.removeAttribute('src');
+                            imgEl.alt = plainName;
+                            imgEl.src = path;
+                            if (
+                                imgEl.complete &&
+                                imgEl.naturalWidth > 0 &&
+                                imgEl[THUMB_IMG_LOAD_GEN_KEY] === gen
+                            ) {
+                                imgWrap.classList.remove('event-number-btn__img-wrap--loading');
+                            }
                         } else {
                             imgEl.removeAttribute('src');
                             imgEl.alt = plainName;
                             imgEl.style.display = 'none';
+                            imgWrap.classList.remove('event-number-btn__img-wrap--loading');
                         }
                     }
 

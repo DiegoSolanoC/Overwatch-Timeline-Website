@@ -1396,6 +1396,20 @@ button.event-number-btn.locked,
         background: #fff;
     }
 
+    .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__img-wrap--loading {
+        background-color: #fff;
+        background-image: url('../../assets/images/misc/loading.gif');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: clamp(28px, 22%, 48px) auto;
+    }
+
+    .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn__img-wrap--loading
+        .event-number-btn__img {
+        opacity: 0 !important;
+    }
+
     /* Unfinished (no description): red frame + inset wash (scrim sits above image; tint the card shell) */
     .event-number-buttons.event-number-buttons--thumbs-desktop
         .event-number-btn.event-number-btn--unfinished:not(:disabled):not(.locked) {

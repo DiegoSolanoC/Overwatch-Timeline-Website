@@ -188,8 +188,13 @@ class EventRenderService {
         if (!('IntersectionObserver' in window)) {
             imgs.forEach((img) => {
                 if (img.dataset.src) {
+                    const wrap = img.closest('.event-item-preview-image');
                     img.src = img.dataset.src;
                     delete img.dataset.src;
+                    if (img.complete && img.naturalWidth > 0) {
+                        img.style.opacity = '1';
+                        wrap?.classList.remove('event-item-preview-image--loading');
+                    }
                 }
             });
             return;
@@ -206,8 +211,13 @@ class EventRenderService {
                 const img = entry.target;
                 const src = img.dataset ? img.dataset.src : null;
                 if (src) {
+                    const wrap = img.closest('.event-item-preview-image');
                     img.src = src;
                     delete img.dataset.src;
+                    if (img.complete && img.naturalWidth > 0) {
+                        img.style.opacity = '1';
+                        wrap?.classList.remove('event-item-preview-image--loading');
+                    }
                 }
                 obs.unobserve(img);
             });
@@ -685,7 +695,7 @@ class EventRenderService {
 
         // Always use the same container structure to maintain consistent sizing
         const imageHtml = imagePathWithCache
-            ? `<div class="event-item-preview-image" style="position: relative; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1; overflow: hidden;"><img data-src="${imagePathWithCache}" alt="${displayEvent.name}" decoding="async" fetchpriority="low" style="width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.18s ease;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload="this.style.opacity='1';"></div>`
+            ? `<div class="event-item-preview-image event-item-preview-image--loading" style="position: relative; width: 100%; aspect-ratio: 1; overflow: hidden;"><img data-src="${imagePathWithCache}" alt="${displayEvent.name}" decoding="async" fetchpriority="low" style="width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.18s ease;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; width: 100%; height: 100%;\\'>No Image</div>';" onload="this.style.opacity='1';var p=this.closest('.event-item-preview-image');if(p)p.classList.remove('event-item-preview-image--loading');"></div>`
             : `<div class="event-item-preview-image" style="position: relative; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; background: rgba(0,0,0,0.5); width: 100%; aspect-ratio: 1;">No Image</div>`;
 
         // Multi-event indicator badge - show current variant / total (e.g., "1/2")

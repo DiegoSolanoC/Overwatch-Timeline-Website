@@ -731,6 +731,30 @@ body.color-palette-gray .event-item-title {
     background: rgba(76, 175, 80, 0.92);
 }
 
+/* Counter parent skew so the variant trapezoid lines up with the thumb on narrow portrait */
+@media (max-width: 768px) and (orientation: portrait) {
+    #eventsList .event-item__thumb-visual .multi-event-badge {
+        left: 4px;
+        margin-left: 0;
+        top: 2px;
+        max-width: min(46%, 8rem);
+        min-width: 2.65em;
+        padding: 7px 10px 7px 6px;
+        font-size: clamp(0.92rem, 2.8vmin, 1.12rem);
+        clip-path: polygon(0% 0%, 100% 0%, 77% 100%, 0% 100%);
+        transform: skewX(-11deg);
+        transform-origin: top left;
+    }
+}
+
+#eventsList .event-item .event-item__thumb-media .event-item-preview-image.event-item-preview-image--loading {
+    background-color: rgba(0, 0, 0, 0.45);
+    background-image: url('../../assets/images/misc/loading.gif');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: clamp(32px, 28%, 56px) auto;
+}
+
 #eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key {
     left: 0;
     top: 0;
