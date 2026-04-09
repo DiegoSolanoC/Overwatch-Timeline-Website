@@ -224,9 +224,9 @@ async function loadTransport() {
             baseClass: 'header-hub-btn header-hub-btn--icon',
             iconSpanId: 'hyperloopIcon',
             headerOrder: 40,
-            mobileParentId: 'content',
+            mobileParentId: 'dockGlobeRailLeft',
             mobileBaseClass: 'globe-control-btn',
-            mobileClassName: 'hyperloop-btn'
+            mobileClassName: 'hyperloop-btn dock-globe-rail__btn'
         });
 
         createGlobeControlButton({
@@ -240,9 +240,9 @@ async function loadTransport() {
             baseClass: 'header-hub-btn header-hub-btn--icon',
             iconSpanId: 'weatherEffectsIcon',
             headerOrder: 45,
-            mobileParentId: 'content',
+            mobileParentId: 'dockGlobeRailLeft',
             mobileBaseClass: 'globe-control-btn',
-            mobileClassName: 'weather-effects-btn'
+            mobileClassName: 'weather-effects-btn dock-globe-rail__btn'
         });
         
         // Setup transport toggle
@@ -303,25 +303,7 @@ async function loadControls() {
     await withLoadWrapper(async () => {
         const controller = window.globeController;
 
-        // Add map view toggle (globe <-> flat map)
-        createGlobeControlButton({
-            id: 'mapViewToggle',
-            className: '',
-            title: 'Toggle Map View',
-            label: 'Map',
-            iconPath: 'assets/images/icons/Switch to Globe Icon.png',
-            iconAlt: 'Globe',
-            parentId: 'headerHubMapStack',
-            baseClass: 'header-hub-btn header-hub-btn--icon',
-            iconSpanId: 'mapViewToggleIcon',
-            headerOrder: 30,
-            mobileParentId: 'content',
-            mobileBaseClass: 'globe-control-btn',
-            mobileClassName: ''
-        });
-
-        // Add rotation toggle as a small secondary button under Map/Globe (desktop header).
-        // On mobile, it mounts as the existing globe-control button.
+        // Desktop: rotate in header subbar, map in #headerHubMapStack. Mobile: both on #dockGlobeRailRight (rotation left of map).
         createGlobeControlButton({
             id: 'autoRotateToggle',
             className: 'header-subbar-btn',
@@ -333,9 +315,25 @@ async function loadControls() {
             baseClass: 'header-hub-btn header-hub-btn--icon',
             iconSpanId: 'rotateIcon',
             headerOrder: 40,
-            mobileParentId: 'content',
+            mobileParentId: 'dockGlobeRailRight',
             mobileBaseClass: 'globe-control-btn',
-            mobileClassName: ''
+            mobileClassName: 'dock-globe-rail__btn'
+        });
+
+        createGlobeControlButton({
+            id: 'mapViewToggle',
+            className: '',
+            title: 'Toggle Map View',
+            label: 'Map',
+            iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+            iconAlt: 'Globe',
+            parentId: 'headerHubMapStack',
+            baseClass: 'header-hub-btn header-hub-btn--icon',
+            iconSpanId: 'mapViewToggleIcon',
+            headerOrder: 30,
+            mobileParentId: 'dockGlobeRailRight',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'dock-globe-rail__btn'
         });
         
         // Add exit button (if not already present)
@@ -404,11 +402,7 @@ async function loadMusic() {
             iconAlt: 'Music',
             parentId: 'headerHubRight',
             baseClass: 'header-hub-btn header-hub-btn--icon',
-            headerOrder: 60,
-            // Mobile: move Music to the left side (so universal buttons split across hubs)
-            mobileParentId: 'headerHub',
-            mobileBaseClass: 'header-hub-btn header-hub-btn--icon',
-            mobileClassName: ''
+            headerOrder: 60
         });
         
         // Add music panel HTML (if not already present)

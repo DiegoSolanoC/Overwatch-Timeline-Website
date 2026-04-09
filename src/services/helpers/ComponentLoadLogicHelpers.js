@@ -10,10 +10,15 @@ export async function loadPaletteLogic({ paletteService, createGlobeControlButto
     // Add palette button using helper
     createGlobeControlButton({
         id: 'colorPaletteToggle',
-        className: 'color-palette-btn bottom-right-btn',
+        className: '',
         title: 'Toggle Color Palette',
+        label: 'Palette',
         iconPath: 'assets/images/icons/Palette Icon.png',
-        iconAlt: 'Color Palette'
+        iconAlt: 'Color Palette',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 50,
+        iconSpanId: 'colorPaletteIcon'
     }, statusService);
     
     // Load palette sound effect using helper
@@ -86,20 +91,34 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
     // Add transport toggle using helper
     createGlobeControlButton({
         id: 'hyperloopToggle',
-        className: 'hyperloop-btn active',
+        className: 'active',
         title: 'Toggle Transport Systems',
+        label: 'Vehicles',
         iconPath: 'assets/images/icons/Train Icon.png',
         iconAlt: 'Transport',
-        iconSpanId: 'hyperloopIcon'
+        iconSpanId: 'hyperloopIcon',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 40,
+        mobileParentId: 'dockGlobeRailLeft',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'hyperloop-btn dock-globe-rail__btn'
     }, statusService);
 
     createGlobeControlButton({
         id: 'weatherEffectsToggle',
-        className: 'weather-effects-btn active',
+        className: 'active',
         title: 'Toggle weather',
+        label: 'Weather',
         iconPath: 'assets/images/icons/Weather Icon.png',
         iconAlt: 'Weather',
-        iconSpanId: 'weatherEffectsIcon'
+        iconSpanId: 'weatherEffectsIcon',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 45,
+        mobileParentId: 'dockGlobeRailLeft',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'weather-effects-btn dock-globe-rail__btn'
     }, statusService);
     
     if (controller.uiView) {
@@ -140,19 +159,34 @@ export async function loadControlsLogic({ createGlobeControlButton, createExitBu
     // Add rotation toggle using helper
     createGlobeControlButton({
         id: 'autoRotateToggle',
-        className: '',
+        className: 'header-subbar-btn',
         title: 'Toggle Auto-Rotation',
+        label: 'Rotation',
         iconPath: 'assets/images/icons/Rotation Icon.png',
-        iconAlt: 'Rotate'
+        iconAlt: 'Rotate',
+        iconSpanId: 'rotateIcon',
+        parentId: 'headerRotateSubBarInner',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 40,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     }, statusService);
 
-    // Add map view toggle (globe <-> flat map)
     createGlobeControlButton({
         id: 'mapViewToggle',
-        className: 'map-view-btn',
+        className: '',
         title: 'Toggle Map View',
-        iconPath: 'assets/images/icons/Switch to Flat Icon.png',
-        iconAlt: 'Switch Map'
+        label: 'Map',
+        iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+        iconAlt: 'Globe',
+        iconSpanId: 'mapViewToggleIcon',
+        parentId: 'headerHubMapStack',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 30,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     }, statusService);
     
     // Add exit button using helper
@@ -194,10 +228,14 @@ export async function loadMusicLogic({ createGlobeControlButton, createMusicPane
     // Add music toggle button using helper
     createGlobeControlButton({
         id: 'musicToggle',
-        className: 'music-btn bottom-right-btn',
+        className: '',
         title: 'Music Options',
+        label: 'Music',
         iconPath: 'assets/images/icons/Music Icon.png',
-        iconAlt: 'Music'
+        iconAlt: 'Music',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 60
     }, statusService);
     
     // Create music panel using helper
@@ -239,18 +277,26 @@ export async function loadEventsLogic({ initializeEventManager, createGlobeContr
     // Add filter and event manager buttons using helper
     createGlobeControlButton({
         id: 'filtersToggle',
-        className: 'filters-btn top-left-btn',
+        className: '',
         title: 'Open Filters',
+        label: 'Filters',
         iconPath: 'assets/images/icons/Filter Icon.png',
-        iconAlt: 'Filters'
+        iconAlt: 'Filters',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 20
     }, statusService);
     
     createGlobeControlButton({
         id: 'eventsManageToggle',
-        className: 'events-manage-btn top-left-btn',
+        className: '',
         title: 'Manage Events',
+        label: 'Events',
         iconPath: 'assets/images/icons/Event Manager Icon.png',
-        iconAlt: 'Event Manager'
+        iconAlt: 'Event Manager',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 10
     }, statusService);
     
     // Create event pagination using helper

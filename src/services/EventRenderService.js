@@ -147,8 +147,9 @@ class EventRenderService {
             return;
         }
 
-        const staggerMs = 22;
-        const maxDelayMs = 480;
+        /* Match dock thumbnail page-turn wave spacing (EventNavigationManager). */
+        const staggerMs = 58;
+        const maxDelayMs = 800;
 
         items.forEach((el, i) => {
             el.classList.remove('event-item--enter-active');
@@ -167,7 +168,7 @@ class EventRenderService {
         });
 
         // Cleanup: remove special classes after the animation finishes.
-        const totalMs = 520 + Math.min((items.length - 1) * staggerMs, maxDelayMs);
+        const totalMs = 515 + Math.min((items.length - 1) * staggerMs, maxDelayMs);
         window.setTimeout(() => {
             if (token !== this._entranceAnimToken) return;
             items.forEach((el) => {

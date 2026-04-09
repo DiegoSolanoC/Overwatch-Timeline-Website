@@ -529,34 +529,6 @@ body.color-palette-gray .event-item-title {
     cursor: grabbing;
 }
 
-/* ========================================
-   EVENT MANAGER PAGE TRANSITION
-   Staggered grow-in when changing pages
-   ======================================== */
-
-.event-item.event-item--enter {
-    opacity: 0;
-    transform: translateY(10px) scale(0.90);
-    will-change: transform, opacity;
-    transition-property: transform, opacity;
-    transition-duration: 520ms;
-    transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
-}
-
-.event-item.event-item--enter.event-item--enter-active {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .event-item.event-item--enter,
-    .event-item.event-item--enter.event-item--enter-active {
-        transition: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-    }
-}
-
 /*
  * Parallelogram thumb — scoped to #eventsList only.
  * Match dock thumbs (.event-number-buttons--thumbs-desktop): outline (8px), skew (-11deg),
@@ -601,6 +573,31 @@ body.color-palette-gray .event-item-title {
         box-shadow var(--panel-transition, 0.25s ease),
         border-color var(--panel-transition, 0.25s ease),
         background var(--panel-transition, 0.25s ease);
+}
+
+/* Page-turn grow-in (must follow #eventsList .event-item so specificity beats `transform: none` above).
+   Motion aligned with dock thumb grow: thumbPageTurnGrowKeyframes (non-skew) + EventNavigationManager timing. */
+#eventsList .event-item.event-item--enter {
+    opacity: 0;
+    transform: translateY(14px) scale(0.82);
+    will-change: transform, opacity;
+    transition-property: transform, opacity;
+    transition-duration: 515ms;
+    transition-timing-function: cubic-bezier(0.22, 0.88, 0.18, 1);
+}
+
+#eventsList .event-item.event-item--enter.event-item--enter-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #eventsList .event-item.event-item--enter,
+    #eventsList .event-item.event-item--enter.event-item--enter-active {
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
 }
 
 #eventsList .event-item.unsaved {

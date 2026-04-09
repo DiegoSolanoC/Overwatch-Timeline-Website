@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Main - Timeline Overwatch</title>
     <link rel="icon" type="image/png" href="assets/images/icons/Icon.png">
-    <link rel="stylesheet" href="styles.css?v=37">
+    <link rel="stylesheet" href="styles.css?v=44">
     <link rel="stylesheet" href="styles/entry.css?v=11">
 </head>
 <body>
@@ -14,7 +14,6 @@
             <button class="header-hub-btn" type="button" data-mode="globe" title="Global Timeline">Timeline</button>
             <button class="header-hub-btn" type="button" data-mode="glossary" title="Concept Glossary">Glossary</button>
             <button class="header-hub-btn" type="button" data-mode="biography" title="Character Bios">Bios</button>
-            <!-- Stacked view controls (Map/Globe + Rotate) -->
             <div class="header-hub-stack" id="headerHubMapStack" aria-label="View controls" data-header-order="30"></div>
         </div>
         <div class="header-hub header-hub--right" id="headerHubRight" aria-label="Main menu">
@@ -34,10 +33,12 @@
         </a>
     </header>
 
-    <!-- Desktop-only: sliding secondary controls below header -->
     <div class="header-subbar" id="headerRotateSubBar" aria-label="Rotation controls">
         <div class="header-subbar-inner" id="headerRotateSubBarInner"></div>
     </div>
+
+    <div id="dockGlobeRailLeft" class="dock-globe-rail dock-globe-rail--left" aria-label="Transport and weather"></div>
+    <div id="dockGlobeRailRight" class="dock-globe-rail dock-globe-rail--right" aria-label="Map view and rotation"></div>
 
     <div class="layout-container">
         <main id="content">

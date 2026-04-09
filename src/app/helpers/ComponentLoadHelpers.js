@@ -63,7 +63,6 @@ function _sortHeaderHubLeft(parent) {
             const n = parseFloat(el.dataset.headerOrder);
             if (Number.isFinite(n)) return n;
         }
-        // Keep the Map/Rotate stack after Events/Filters by default.
         if (el?.id === 'headerHubMapStack') return 30;
         return 9999;
     };
@@ -109,7 +108,7 @@ function _applyResponsiveMount(button) {
     if (!isMobile && targetParentId === 'headerHubRight') {
         _sortHeaderHubRight(_getHeaderHubRight());
     }
-    if (!isMobile && targetParentId === 'headerHub') {
+    if (!isMobile && (targetParentId === 'headerHub' || targetParentId === 'headerHubMapStack')) {
         _sortHeaderHubLeft(_getHeaderHubLeft());
     }
 }
@@ -288,7 +287,6 @@ export function createGlobeControlButton({
         button.setAttribute('aria-label', title);
     }
     const isHeaderHubBtn = (resolvedBaseClass || '').includes('header-hub-btn');
-    const isHeaderRightHub = resolvedParentId === 'headerHubRight';
 
     const iconWrap = document.createElement('span');
     iconWrap.id = finalIconSpanId;
@@ -346,6 +344,9 @@ export function createGlobeControlButton({
         }
         if (resolvedParentId === 'headerHub') {
             _sortHeaderHubLeft(parent);
+        }
+        if (resolvedParentId === 'headerHubMapStack') {
+            _sortHeaderHubLeft(_getHeaderHubLeft());
         }
 
         updateStatus(`✓ ${title} button added`, 'success');

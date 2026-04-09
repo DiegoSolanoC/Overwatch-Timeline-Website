@@ -53,53 +53,17 @@
         font-size: 14px !important;
     }
 
-    .globe-control-btn.top-left-btn {
-        width: 60px !important;
-        height: 50px !important;
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn {
+        width: 48px !important;
+        height: 42px !important;
         font-size: 12px !important;
     }
 
-    /* Left-side spacing: match right-side gap (10px between buttons, same as music/palette) */
-    .globe-control-btn.filters-btn {
-        left: 90px !important; /* 20 + 60 (button width) + 10 (gap) */
-    }
-
-    /* Row 2 left: Map + Rotation (under Events / Filters) */
-    .globe-control-btn#mapViewToggle {
-        bottom: auto !important;
-        top: 80px !important;
-        left: 20px !important;
-        right: auto !important;
-    }
-    .globe-control-btn#autoRotateToggle {
-        top: 80px !important;
-        left: 90px !important; /* 20 + 60 + 10 gap — same row as map */
-        right: auto !important;
-        bottom: auto !important;
-        transform: none !important;
-    }
-
-    /* Row 1 right: Vehicles + Weather — same vertical band as Events / Filters (top: 20px) */
-    .globe-control-btn.hyperloop-btn {
-        top: 20px !important;
-        left: auto !important;
-        right: 90px !important;
-        bottom: auto !important;
-    }
-    .globe-control-btn.weather-effects-btn {
-        top: 20px !important;
-        left: auto !important;
-        right: 20px !important;
-        bottom: auto !important;
-    }
-
-    /* Map view: hide rotation toggle (map has no auto-rotation) */
-    body.map-view-enabled .globe-control-btn#autoRotateToggle {
+    body.map-view-enabled .dock-globe-rail--right > .globe-control-btn#autoRotateToggle {
         display: none !important;
         visibility: hidden !important;
         pointer-events: none !important;
     }
-    /* Map toggle stays on row 2 in all modes. */
 
     .globe-control-btn.bottom-right-btn {
         width: 60px !important;

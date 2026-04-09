@@ -267,7 +267,6 @@ body.app-timeline-default #headerHubRight .header-hub-btn[data-action="menu"] {
 .header-hub.header-hub--right .header-hub-btn {
     border-right: none;
     border-left: 1px solid rgba(255, 255, 255, 0.14);
-    /* Evenly distribute buttons across the right hub width. */
     flex: 1 1 0;
 }
 
@@ -464,61 +463,23 @@ body.color-palette-nulled #hyperloopToggle.header-hub-btn.header-hub-btn--active
         --header-right-width: 40%;
     }
 
-    .header-hub {
-        width: var(--header-left-width);
+    /* Match desktop: each hub button grows to fill its column (flex 1 1 0 from .header-hub-btn). */
+    #headerHub.header-hub,
+    .header-hub.header-hub--right {
         min-width: 0;
+    }
+
+    #headerHub.header-hub {
+        width: var(--header-left-width);
+        justify-content: flex-start;
     }
 
     .header-hub.header-hub--right {
-        /* Keep the right hub from spilling into center/left on mobile.
-           If there are many buttons, allow horizontal scroll instead. */
         width: var(--header-right-width);
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Firefox */
+        justify-content: flex-end;
     }
 
-    .header-hub.header-hub--right::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* In the scroll row, each button should be a fixed tap target. */
-    .header-hub.header-hub--right .header-hub-btn {
-        flex: 0 0 auto;
-    }
-
-    .header-hub.header-hub--right .header-hub-btn.header-hub-btn--icon {
-        width: 46px;
-        min-width: 46px;
-        padding: 0;
-        justify-content: center;
-    }
-
-    /* Mobile special-case: Palette should not be a tiny icon-only chip.
-       Make it take space similar to a full header button (like Music on the left). */
-    .header-hub.header-hub--right #colorPaletteToggle.header-hub-btn {
-        flex: 1 1 0;
-        width: auto;
-        min-width: 0;
-        padding: 0 12px;
-        justify-content: center;
-    }
-    .header-hub.header-hub--right #colorPaletteToggle.header-hub-btn.header-hub-btn--icon {
-        width: auto;
-        min-width: 0;
-        padding: 0 12px;
-        justify-content: center;
-    }
-    .header-hub.header-hub--right #colorPaletteToggle .header-hub-btn-label {
-        display: inline-flex;
-    }
-
-    /* Mobile: Music is mounted on the left hub; keep its label visible too. */
-    #musicToggle .header-hub-btn-label {
-        display: inline-flex;
-    }
-
+    /* Icon-only on mobile — same as Events / Filters (labels hidden below). */
     .header-hub-btn-label {
         display: none;
     }

@@ -25,10 +25,7 @@ export function setupEventUIComponents({ updateStatus }) {
         iconAlt: 'Filters',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 20,
-        mobileParentId: 'content',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'filters-btn top-left-btn'
+        headerOrder: 20
     });
     
     // Add event manager button
@@ -41,10 +38,7 @@ export function setupEventUIComponents({ updateStatus }) {
         iconAlt: 'Event Manager',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 10,
-        mobileParentId: 'content',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'events-manage-btn top-left-btn'
+        headerOrder: 10
     });
     
     // Add event pagination
