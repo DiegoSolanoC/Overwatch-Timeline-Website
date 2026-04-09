@@ -737,7 +737,9 @@ body.color-palette-gray .event-item-title {
         /* Slightly inset from the skewed thumb edge (was 4px / 2px — still read as hugging the rim) */
         left: clamp(10px, 3.2vw, 16px);
         margin-left: 0;
-        top: clamp(6px, 2vw, 10px);
+        /* Flush with image area top (same as desktop #eventsList rule; inset was sitting below the photo) */
+        top: 0;
+        margin-top: 0;
         max-width: min(46%, 8rem);
         min-width: 2.65em;
         padding: 7px 10px 7px 6px;

@@ -1401,8 +1401,8 @@ button.event-number-btn.locked,
         background-image: url('../../assets/images/misc/loading.gif');
         background-repeat: no-repeat;
         background-position: center center;
-        /* Fill most of the slot (was clamp 28–48px / 22% — read as minuscule on real thumbs) */
-        background-size: clamp(52px, min(62%, 32vmin), 120px) auto;
+        /* Match .event-number-btn__img: object-fit cover — no letterboxing around the GIF */
+        background-size: cover;
     }
 
     .event-number-buttons.event-number-buttons--thumbs-desktop
