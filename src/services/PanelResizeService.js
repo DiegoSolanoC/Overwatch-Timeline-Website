@@ -27,7 +27,31 @@
     /** Avoid stacking ticks faster than the clip can breathe (ms) */
     var GEAR_TICK_MIN_INTERVAL_MS = 42;
     var GEAR_TICK_POOL_SIZE = 6;
-    var GEAR_TICK_VOLUME = 0.18;
+    /** Base loudness; multiplied by Sound Effects slider (same as panel dragger + page-slider scrub ticks). */
+    var GEAR_TICK_VOLUME_BASE = 0.36;
+
+    function gearTickEffectiveVolume() {
+        var sfx = typeof window !== 'undefined' ? window.SoundEffectsManager : null;
+        var g =
+            sfx && typeof sfx.volume === 'number' && !isNaN(sfx.volume)
+                ? Math.max(0, Math.min(1, sfx.volume))
+                : 0.5;
+        return Math.max(0, Math.min(1, GEAR_TICK_VOLUME_BASE * g));
+    }
+
+    function syncGearTickPoolVolume() {
+        if (!gearTickPool || !gearTickPool.length) {
+            return;
+        }
+        var v = gearTickEffectiveVolume();
+        gearTickPool.forEach(function (a) {
+            try {
+                a.volume = v;
+            } catch (e) {
+                /* ignore */
+            }
+        });
+    }
 
     /** Cumulative px pulled past clamp before rim appears; then ramp to 1 over RIM_PULL_RAMP_PX more */
     var RIM_PULL_DEAD_PX = 28;
@@ -43,7 +67,7 @@
             for (var i = 0; i < GEAR_TICK_POOL_SIZE; i++) {
                 var a = new Audio(GEAR_TICK_SRC);
                 a.preload = 'auto';
-                a.volume = GEAR_TICK_VOLUME;
+                a.volume = gearTickEffectiveVolume();
                 gearTickPool.push(a);
             }
         }
@@ -93,6 +117,7 @@
             }
             try {
                 a.currentTime = 0;
+                a.volume = gearTickEffectiveVolume();
                 var p = a.play();
                 gearTickPoolIx = (idx + 1) % n;
                 lastGearTickPerfMs = now;
@@ -366,7 +391,10 @@
     }
 
     if (typeof window !== 'undefined') {
-        window.PanelResizeGearTick = { play: playGearTick };
+        window.PanelResizeGearTick = {
+            play: playGearTick,
+            syncFromSoundEffectsVolume: syncGearTickPoolVolume
+        };
     }
 
     if (document.readyState === 'loading') {

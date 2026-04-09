@@ -713,9 +713,9 @@ body.color-palette-gray .music-grid {
     width: 100%;
     background: #1D4A77; /* Blue for default blue palette - match filter-label */
     color: white; /* White text for contrast */
-    font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
+    font-family: var(--font-control-bold, var(--font-default));
     font-size: 18px; /* Match filter-label */
-    font-weight: 600; /* Bolder font */
+    font-weight: 700;
     padding: 6px 4px; /* Match filter-label padding */
     margin-top: -1px; /* Match filter-label overlap */
     position: relative;
@@ -731,10 +731,22 @@ body.color-palette-gray .music-grid {
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1.2;
+}
+
+/* Line clamp on inner span — same behavior as .filter-label-text */
+.music-grid-btn .music-label-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    word-break: break-word;
+    hyphens: auto;
     line-height: 1.2;
+    text-align: center;
+    width: 100%;
+    max-height: calc(1.2em * 2);
 }
 
 /* Gray palette: light gray background for music label - match filter-label */

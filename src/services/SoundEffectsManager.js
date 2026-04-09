@@ -239,6 +239,11 @@ class SoundEffectsManager {
                 this.sounds[name].volume = volume;
             }
         });
+        // Panel edge drags + page-slider scrub use a separate Audio pool (tick.mp3)
+        if (typeof window !== 'undefined' && window.PanelResizeGearTick &&
+            typeof window.PanelResizeGearTick.syncFromSoundEffectsVolume === 'function') {
+            window.PanelResizeGearTick.syncFromSoundEffectsVolume();
+        }
     }
     
     // Initialize sound effects

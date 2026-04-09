@@ -120,10 +120,11 @@ body.color-palette-nulled main {
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     color: white;
+    font-family: var(--font-control-bold, var(--font-default));
     font-size: 16px;
     z-index: 100; /* Higher than test-container to ensure buttons are clickable */
     pointer-events: auto; /* Ensure buttons are clickable */
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;

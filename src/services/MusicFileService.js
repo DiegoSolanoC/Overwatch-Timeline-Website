@@ -154,10 +154,13 @@ class MusicFileService {
             
             imageContainer.appendChild(img);
             
-            // Label
+            // Label (outer centers; inner holds line-clamp — same pattern as filter buttons)
             const label = document.createElement('div');
             label.className = 'music-label';
-            label.textContent = song.name;
+            const labelText = document.createElement('span');
+            labelText.className = 'music-label-text';
+            labelText.textContent = song.name;
+            label.appendChild(labelText);
             
             musicBtn.appendChild(imageContainer);
             musicBtn.appendChild(label);

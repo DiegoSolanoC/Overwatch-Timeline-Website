@@ -484,8 +484,7 @@
     }
 
     .filters-panel-content,
-    .music-panel-content,
-    .events-manage-content {
+    .music-panel-content {
         height: 100% !important;
         min-height: 100% !important;
         max-height: 100% !important;
@@ -495,18 +494,37 @@
         box-sizing: border-box !important;
     }
 
+    /* Skewed manager thumbs paint slightly past the grid cell — allow x so tips aren’t clipped */
+    .events-manage-content {
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
+        padding-bottom: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: visible !important;
+        box-sizing: border-box !important;
+    }
+
     .filters-panel,
-    .music-panel,
-    .events-manage-panel {
+    .music-panel {
         overflow-y: hidden !important;
         overflow-x: hidden !important;
     }
 
+    .events-manage-panel {
+        overflow-y: hidden !important;
+        overflow-x: visible !important;
+    }
+
     .filters-panel-content,
-    .music-panel-content,
-    .events-manage-content {
+    .music-panel-content {
         overflow-y: auto !important;
         overflow-x: hidden !important;
+    }
+
+    .events-manage-content {
+        overflow-y: auto !important;
+        overflow-x: visible !important;
     }
 
     .sidebar {

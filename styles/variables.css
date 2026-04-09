@@ -51,6 +51,8 @@
 :root {
     /* Font families */
     --font-default: 'Config', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Config Bold (700) — globe toggles, filter/music tile labels, panel action buttons */
+    --font-control-bold: 'Config', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-title: 'BigNoodleToo', 'Impact', 'Arial Black', sans-serif;
     /* Color Palette - Blue Theme (Default) */
     --primary-blue: #0D47A1;

@@ -165,7 +165,9 @@ export class EventContentManager {
             yokai: '32Yokai Gang',
             '32yokai': '32Yokai Gang',
             '33yokai': '32Yokai Gang',
-            '27null sector': '26Null Sector'
+            '27null sector': '26Null Sector',
+            /* Renamed in manifest; event data may still store the old display string */
+            "max's vault": "18Max's Vault"
         };
 
         const resolveFactionFilename = (rawFaction) => {

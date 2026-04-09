@@ -780,3 +780,104 @@
         width: 100vw !important;
     }
 }
+
+/*
+ * Mobile portrait: shorter map strip, taller info sheet, title/location/time scroll with description
+ * (DOM reparented in MobileEventSlideHelpers). Single scroll via .event-slide-scrollable only.
+ */
+@media (max-width: 768px) and (orientation: portrait) {
+    :root {
+        --event-mobile-map-strip-height: min(34vh, 260px);
+    }
+
+    .event-image-overlay {
+        top: var(--header-height, 60px) !important;
+        height: var(--event-mobile-map-strip-height) !important;
+    }
+
+    .event-slide:not(.event-slide--mobile-full-text),
+    .event-slide.open:not(.event-slide--mobile-full-text) {
+        top: calc(var(--header-height, 60px) + var(--event-mobile-map-strip-height)) !important;
+    }
+
+    .event-slide-content {
+        overflow-y: hidden !important;
+        padding: 12px 14px 12px 14px !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+
+    .event-slide-top {
+        margin-bottom: 8px !important;
+        padding-bottom: 8px !important;
+    }
+
+    .event-slide-top #eventVariantToggles {
+        margin-bottom: 8px !important;
+        gap: 6px !important;
+    }
+
+    .event-slide-top #eventVariantToggles .variant-toggle-btn {
+        font-size: 12px !important;
+        padding: 5px 10px !important;
+        min-height: 32px !important;
+    }
+
+    .event-slide-mid-controls {
+        margin: 0 0 8px 0 !important;
+        padding-bottom: 8px !important;
+    }
+
+    .event-slide-mid-controls .event-full-text-toggle-btn,
+    .event-slide-mid-controls .event-image-toggle-btn {
+        font-size: 12px !important;
+        padding: 6px 10px !important;
+        min-height: 36px !important;
+    }
+
+    .event-slide-scrollable {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        margin-bottom: 6px !important;
+        padding-top: 2px !important;
+    }
+
+    /* Lead block (title + location + time) lives in scrollable on portrait — compact type */
+    .event-slide-scrollable h2#eventSlideTitle {
+        font-size: 1.15rem !important;
+        line-height: 1.25 !important;
+        margin: 0 0 6px 0 !important;
+        font-weight: 700 !important;
+    }
+
+    .event-slide-scrollable p#eventSlideLocation.event-slide-location {
+        font-size: 14px !important;
+        line-height: 1.35 !important;
+        margin: 0 0 6px 0 !important;
+    }
+
+    .event-slide-scrollable .event-slide-location .event-location-flag {
+        height: 22px !important;
+        max-width: 52px !important;
+        margin-right: 8px !important;
+    }
+
+    .event-slide-scrollable .event-slide-location .event-location-pin {
+        width: 18px !important;
+        height: 18px !important;
+        margin-right: 8px !important;
+    }
+
+    .event-slide-scrollable p#eventSlideTimelineMeta.event-slide-timeline-meta {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+        margin: 0 0 10px 0 !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+    }
+
+    .event-slide-scrollable p#eventSlideText {
+        font-size: 14px !important;
+        line-height: 1.55 !important;
+    }
+}

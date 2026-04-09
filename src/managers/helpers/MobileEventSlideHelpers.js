@@ -13,6 +13,8 @@ export const DEFAULT_ZOOM = 3.5;
 const FULL_TEXT_LABEL_OFF = 'Full Text Display';
 const FULL_TEXT_LABEL_ON = 'Split View';
 
+let portraitLayoutListenerBound = false;
+
 /**
  * Check if device is mobile
  * @returns {boolean}
@@ -89,114 +91,106 @@ export function setupMobileFullTextToggleButton() {
 }
 
 /**
- * Setup mobile-specific DOM manipulations when opening event slide
+ * Move title, location (flag), and timeline meta into the scrollable column (portrait only).
+ * Restores to .event-slide-top when not portrait or not mobile.
  */
-export function setupMobileEventSlide() {
-    if (!isMobile()) return;
+export function syncMobileEventSlidePortraitLayout() {
+    const scroll = document.getElementById('eventSlideScrollable');
+    const text = document.getElementById('eventSlideText');
+    const top = document.getElementById('eventSlideTop');
+    const title = document.getElementById('eventSlideTitle');
+    const loc = document.getElementById('eventSlideLocation');
+    const meta = document.getElementById('eventSlideTimelineMeta');
 
-    const scrollableArea = document.getElementById('eventSlideScrollable');
-    const bottomSection = document.getElementById('eventSlideBottom');
-    const titleEl = document.getElementById('eventSlideTitle');
-    const contentEl = document.getElementById('eventSlideContent');
-
-    // Move all children from bottom section to scrollable area
-    if (scrollableArea && bottomSection) {
-        while (bottomSection.firstChild) {
-            scrollableArea.appendChild(bottomSection.firstChild);
-        }
-        console.log('[DEBUG Mobile] Moved all bottom content into scrollable area');
+    if (!scroll || !text || !top || !title) {
+        return;
     }
 
-    // Fix title position on mobile - same row as close button
-    setTimeout(() => {
-        if (titleEl) {
-            titleEl.style.setProperty('position', 'fixed', 'important');
-            titleEl.style.setProperty('top', '10px', 'important');
-            titleEl.style.setProperty('left', '20px', 'important');
-            titleEl.style.setProperty('right', '70px', 'important');
-            titleEl.style.setProperty('z-index', '999', 'important');
-            titleEl.style.setProperty('background', 'transparent', 'important');
-            titleEl.style.setProperty('padding', '0', 'important');
-            titleEl.style.setProperty('margin', '0', 'important');
-            titleEl.style.setProperty('box-shadow', 'none', 'important');
-            titleEl.style.setProperty('max-width', 'calc(100% - 90px)', 'important');
-            titleEl.style.setProperty('width', 'auto', 'important');
-            titleEl.style.setProperty('line-height', '50px', 'important');
-            titleEl.style.setProperty('height', '50px', 'important');
-            console.log('[DEBUG Mobile] Fixed title position on same row as close button');
-        }
+    if (!isMobile() || !isMobilePortrait()) {
+        restorePortraitMetaToTop();
+        return;
+    }
 
-        // Adjust content padding for fixed title row
-        if (contentEl) {
-            contentEl.style.setProperty('padding-top', '70px', 'important');
-        }
+    if (title.parentElement === scroll) {
+        return;
+    }
 
-        // Adjust scrollable area margin for fixed title
-        if (scrollableArea) {
-            scrollableArea.style.setProperty('margin-top', '0', 'important');
-            scrollableArea.style.setProperty('padding-top', '0', 'important');
-        }
-    }, 50);
+    scroll.insertBefore(title, text);
+    if (loc) {
+        scroll.insertBefore(loc, text);
+    }
+    if (meta) {
+        scroll.insertBefore(meta, text);
+    }
 }
 
 /**
- * Cleanup mobile-specific DOM manipulations when closing event slide
+ * Put title / location / timeline back under .event-slide-top (after variant toggles or era).
+ */
+export function restorePortraitMetaToTop() {
+    const top = document.getElementById('eventSlideTop');
+    const title = document.getElementById('eventSlideTitle');
+    const loc = document.getElementById('eventSlideLocation');
+    const meta = document.getElementById('eventSlideTimelineMeta');
+    if (!top || !title || title.parentElement === top) {
+        return;
+    }
+
+    const variants = document.getElementById('eventVariantToggles');
+    const era = document.getElementById('eventSlideEra');
+    const anchor =
+        variants && variants.parentNode === top ? variants : era && era.parentNode === top ? era : null;
+
+    if (anchor) {
+        top.insertBefore(title, anchor.nextSibling);
+    } else {
+        top.insertBefore(title, top.firstChild);
+    }
+
+    if (loc) {
+        top.insertBefore(loc, title.nextSibling);
+    }
+    if (meta) {
+        const after = loc || title;
+        top.insertBefore(meta, after.nextSibling);
+    }
+}
+
+function ensurePortraitLayoutListener() {
+    if (typeof window === 'undefined' || portraitLayoutListenerBound) {
+        return;
+    }
+    portraitLayoutListenerBound = true;
+
+    const run = () => {
+        const slide = document.getElementById('eventSlide');
+        if (!slide || !slide.classList.contains('open')) {
+            return;
+        }
+        syncMobileEventSlidePortraitLayout();
+    };
+
+    window.addEventListener('resize', run);
+    window.addEventListener('orientationchange', () => {
+        window.setTimeout(run, 120);
+    });
+}
+
+/**
+ * Setup mobile-specific DOM when opening event slide
+ */
+export function setupMobileEventSlide() {
+    ensurePortraitLayoutListener();
+    if (!isMobile()) {
+        return;
+    }
+    syncMobileEventSlidePortraitLayout();
+}
+
+/**
+ * Cleanup mobile-specific DOM when closing event slide
  */
 export function cleanupMobileEventSlide() {
     resetMobileFullTextUi();
-
-    if (!isMobile()) return;
-
-    const scrollableArea = document.getElementById('eventSlideScrollable');
-    const bottomSection = document.getElementById('eventSlideBottom');
-    const titleEl = document.getElementById('eventSlideTitle');
-    const contentEl = document.getElementById('eventSlideContent');
-
-    if (scrollableArea && bottomSection) {
-        // Find elements that should be in bottom section
-        const sourcesEl = document.getElementById('eventSourcesSection');
-        const filtersEl = document.getElementById('eventFiltersSection');
-        const controlButtons = document.querySelector('.event-control-buttons');
-        const navButtons = document.querySelector('.event-navigation-buttons');
-
-        // Move them back to bottom section
-        if (sourcesEl && sourcesEl.parentElement === scrollableArea) {
-            bottomSection.appendChild(sourcesEl);
-        }
-        if (filtersEl && filtersEl.parentElement === scrollableArea) {
-            bottomSection.appendChild(filtersEl);
-        }
-        if (controlButtons && controlButtons.parentElement === scrollableArea) {
-            bottomSection.appendChild(controlButtons);
-        }
-        if (navButtons && navButtons.parentElement === scrollableArea) {
-            bottomSection.appendChild(navButtons);
-        }
-        console.log('[DEBUG Mobile] Moved bottom content back to bottom section');
-    }
-
-    // Reset title position
-    if (titleEl) {
-        titleEl.style.position = '';
-        titleEl.style.top = '';
-        titleEl.style.left = '';
-        titleEl.style.right = '';
-        titleEl.style.zIndex = '';
-        titleEl.style.background = '';
-        titleEl.style.padding = '';
-        titleEl.style.margin = '';
-        titleEl.style.boxShadow = '';
-        titleEl.style.maxWidth = '';
-    }
-
-    // Reset content padding
-    if (contentEl) {
-        contentEl.style.paddingTop = '';
-    }
-
-    // Reset scrollable area
-    if (scrollableArea) {
-        scrollableArea.style.marginTop = '';
-        scrollableArea.style.paddingTop = '';
-    }
+    restorePortraitMetaToTop();
 }

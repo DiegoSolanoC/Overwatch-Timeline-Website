@@ -112,8 +112,9 @@ body.color-palette-gray .music-grid {
     width: 100%;
     background: #1D4A77;
     color: white;
+    font-family: var(--font-control-bold, var(--font-default));
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     padding: 8px 4px;
     margin-top: 0;
     border-radius: 0;
@@ -121,10 +122,26 @@ body.color-palette-gray .music-grid {
     transition: all 0.3s ease;
     box-sizing: border-box;
     letter-spacing: 0.5px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     line-height: 1.2;
+    min-height: 3rem;
+    max-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.music-grid-btn .music-label-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    hyphens: auto;
+    line-height: 1.2;
+    text-align: center;
+    width: 100%;
+    max-height: calc(1.2em * 2);
 }
 
 body.color-palette-gray .music-grid-btn .music-label {

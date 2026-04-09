@@ -7,7 +7,8 @@
     display: grid;
     /* Wider event manager panel gains more cards per row instead of ultra-wide cards */
     grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-    gap: 10px;
+    /* Same as dock thumb row: .event-number-buttons--thumbs-desktop --thumb-row-gap */
+    gap: 14px;
     margin-bottom: 15px;
     margin-top: 15px;
     flex: 1;
@@ -363,27 +364,6 @@ body.pagination-dock-mobile-locked .pagination-dock-collapse-strip {
     display: none !important;
 }
 
-/* Short rails on mobile dock (expanded-desktop skewed rails are too tall) */
-body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail {
-    --thumb-skew: -11deg;
-    min-height: 48px !important;
-    max-height: 52px !important;
-    height: 48px !important;
-    width: clamp(44px, 4.2vw, 56px) !important;
-    min-width: 44px !important;
-    flex: 0 0 auto !important;
-    align-self: center !important;
-    transform: skewX(var(--thumb-skew)) !important;
-}
-
-body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .page-btn__arrow-inner {
-    transform: skewX(11deg);
-}
-
-body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
-    transform: skewX(var(--thumb-skew)) scale(1.06) !important;
-}
-
 /*
  * Mobile-locked dock: match desktop collapsed slots (dark numerals on white — base .event-number-btn is color: white).
  */
@@ -397,27 +377,6 @@ body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--t
 
 body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__visual {
     display: none !important;
-}
-
-body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
-    --thumb-skew: -11deg;
-    position: relative;
-    min-height: 44px !important;
-    max-height: 52px !important;
-    height: 48px !important;
-    transform: skewX(var(--thumb-skew));
-    border-radius: 16px;
-    overflow: hidden;
-    flex: 0 0 calc((100% - 9 * 14px) / 10);
-    max-width: calc((100% - 9 * 14px) / 10);
-    background: #ffffff !important;
-    border-width: 4px 0 !important;
-    border-style: solid !important;
-    border-color: rgba(0, 0, 0, 0.14) !important;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28) !important;
-    color: #1a1a1a !important;
-    justify-content: center;
-    align-items: center;
 }
 
 body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn__num {
@@ -442,14 +401,179 @@ body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--t
     text-shadow: none;
 }
 
-body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
-body.pagination-dock-mobile-locked
-    .event-number-buttons.event-number-buttons--thumbs-desktop
-    .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
-    transform: skewX(var(--thumb-skew)) scale(1.06);
-    background: #f3f7ff !important;
-    border-color: rgba(255, 186, 80, 0.95) !important;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+/* Portrait: square slots + horizontal scroll so narrow viewports do not crush buttons into pills */
+@media (orientation: portrait) {
+    body.pagination-dock-mobile-locked:has(#paginationDock) .event-pagination-thumb-row {
+        align-items: center !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail {
+        min-height: 48px !important;
+        max-height: 48px !important;
+        height: 48px !important;
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        aspect-ratio: 1 !important;
+        flex: 0 0 auto !important;
+        align-self: center !important;
+        transform: none !important;
+        border-radius: 10px !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .page-btn__arrow-inner {
+        transform: none;
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
+        transform: scale(1.06) !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail:active:not(:disabled) {
+        transform: scale(0.97) !important;
+    }
+
+    body.pagination-dock-mobile-locked:has(#paginationDock)
+        .event-pagination-thumb-row
+        .event-number-buttons.event-number-buttons--thumbs-desktop {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: auto !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        align-self: center !important;
+        gap: 8px !important;
+        padding: 4px 2px 8px !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        box-sizing: border-box !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
+        position: relative;
+        flex: 0 0 auto !important;
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        max-height: 48px !important;
+        aspect-ratio: 1 !important;
+        transform: none !important;
+        border-radius: 10px !important;
+        overflow: hidden;
+        background: #ffffff !important;
+        border-width: 2px !important;
+        border-style: solid !important;
+        border-color: rgba(0, 0, 0, 0.14) !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28) !important;
+        color: #1a1a1a !important;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
+    body.pagination-dock-mobile-locked
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+        transform: scale(1.06) !important;
+        background: #f3f7ff !important;
+        border-color: rgba(255, 186, 80, 0.95) !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+    }
+}
+
+/* Landscape: distribute slots across the row (pre-portrait-fix behavior) */
+@media (orientation: landscape) {
+    body.pagination-dock-mobile-locked:has(#paginationDock) .event-pagination-thumb-row {
+        align-items: stretch !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail {
+        --thumb-skew: -11deg;
+        min-height: 48px !important;
+        max-height: 52px !important;
+        height: 48px !important;
+        width: clamp(44px, 4.2vw, 56px) !important;
+        min-width: 44px !important;
+        max-width: none !important;
+        aspect-ratio: unset !important;
+        flex: 0 0 auto !important;
+        align-self: center !important;
+        transform: skewX(var(--thumb-skew)) !important;
+        border-radius: 14px !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail .page-btn__arrow-inner {
+        transform: skewX(11deg);
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail:hover:not(:disabled) {
+        transform: skewX(var(--thumb-skew)) scale(1.06) !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-pagination-thumb-row .page-btn.page-btn--thumb-rail:active:not(:disabled) {
+        transform: skewX(var(--thumb-skew)) scale(0.97) !important;
+    }
+
+    body.pagination-dock-mobile-locked:has(#paginationDock)
+        .event-pagination-thumb-row
+        .event-number-buttons.event-number-buttons--thumbs-desktop {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: auto !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        align-self: stretch !important;
+        gap: 14px !important;
+        padding: 2px 0 6px !important;
+        box-sizing: border-box !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn {
+        --thumb-skew: -11deg;
+        position: relative;
+        min-height: 44px !important;
+        max-height: 52px !important;
+        height: 48px !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        aspect-ratio: unset !important;
+        flex: 0 0 calc((100% - 9 * 14px) / 10) !important;
+        max-width: calc((100% - 9 * 14px) / 10) !important;
+        transform: skewX(var(--thumb-skew)) !important;
+        border-radius: 16px !important;
+        overflow: hidden;
+        background: #ffffff !important;
+        border-width: 4px 0 !important;
+        border-style: solid !important;
+        border-color: rgba(0, 0, 0, 0.14) !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28) !important;
+        color: #1a1a1a !important;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box !important;
+    }
+
+    body.pagination-dock-mobile-locked .event-number-buttons.event-number-buttons--thumbs-desktop .event-number-btn:hover:not(:disabled),
+    body.pagination-dock-mobile-locked
+        .event-number-buttons.event-number-buttons--thumbs-desktop
+        .event-number-btn.number-btn-marker-hover:not(:disabled):not(.locked) {
+        transform: skewX(var(--thumb-skew)) scale(1.06) !important;
+        background: #f3f7ff !important;
+        border-color: rgba(255, 186, 80, 0.95) !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) !important;
+    }
 }
 
 /* Slider off on mobile dock; page field row uses slider-like chrome */
