@@ -14,6 +14,7 @@ import { AutoRotateController } from './AutoRotateController.js';
 import { PlaneManager } from './PlaneManager.js';
 import { applyCurrentPaletteToTransportVehicles } from '../utils/TransportPaletteColors.js';
 import { applyPaletteToExistingEventMarkers } from '../managers/helpers/MarkerCreationHelpers.js';
+import { maybeInstallDevSunYawControl } from '../dev/DevSunYawControl.js';
 
 export class GlobeController {
     constructor() {
@@ -157,6 +158,7 @@ export class GlobeController {
         this.globeView.addCityMarkers();
         this.globeView.addSeaportMarkers();
         this.globeView.addEventMarkers();
+        this.globeView.addEarthCityLights();
         
         // Update plane visibility based on initial page
         // Use setTimeout to ensure planes are fully created and added to scene
@@ -260,6 +262,7 @@ export class GlobeController {
             this.globeView.addSatelliteMarkers(satellites);
         }, 100);
 
+        maybeInstallDevSunYawControl(this);
     }
 
     /**

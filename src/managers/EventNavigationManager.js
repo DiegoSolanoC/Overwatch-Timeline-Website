@@ -36,6 +36,7 @@ import {
 } from '../utils/EventsHoverPreviewBadge.js';
 import { dismissFiltersAndMusicPanels } from '../utils/PanelDismissHelpers.js';
 import { findVariantMarker } from './helpers/VariantHelpers.js';
+import { buildGlobalEraStripeBackgroundLinearGradient } from '../utils/EraHoverPreviewTheme.js';
 
 /** Incremented per thumb <img> so late onload/onerror from a previous URL is ignored */
 const THUMB_IMG_LOAD_GEN_KEY = '__owThumbLoadGen';
@@ -47,6 +48,14 @@ function getDisplayEventForPaginationThumb(rootEvent) {
         return rootEvent.variants[0] || rootEvent;
     }
     return rootEvent;
+}
+
+/** Same rule as dock thumbs / event list: first variant (or root) must have a non-empty description */
+function eventRootSlotMissingDescription(rootEvent) {
+    if (!rootEvent) return true;
+    const displayEv = getDisplayEventForPaginationThumb(rootEvent) || rootEvent;
+    const d = displayEv && displayEv.description;
+    return !(d && String(d).trim().length > 0);
 }
 
 /**
@@ -637,6 +646,25 @@ export class EventNavigationManager {
                         ticksEl.appendChild(sub);
                     }
                 }
+
+                /* Center of each event slot: red when that root slot lacks description (progress aid) */
+                for (let p = 0; p < tpTicks; p++) {
+                    const onPage = Math.min(
+                        eventsPerPage,
+                        Math.max(0, totalEvents - p * eventsPerPage)
+                    );
+                    for (let e = 0; e < onPage; e++) {
+                        const g = p * eventsPerPage + e;
+                        const rootEv = g >= 0 && g < totalEvents ? events[g] : null;
+                        if (!eventRootSlotMissingDescription(rootEv)) continue;
+                        const mark = document.createElement('span');
+                        mark.className =
+                            'event-page-slider-tick event-page-slider-tick--unfinished-slot';
+                        mark.style.left = `${((p + (e + 0.5) / onPage) / tpTicks) * 100}%`;
+                        mark.title = 'Unfinished: missing description';
+                        ticksEl.appendChild(mark);
+                    }
+                }
             }
 
             if (pageSlider) {
@@ -698,6 +726,28 @@ export class EventNavigationManager {
                 } else {
                     pagination.style.display = 'flex';
                 }
+            }
+
+            let eraStrip = document.getElementById('eventPageSliderEraStrip');
+            if (!eraStrip && pageSlider) {
+                const wrap = pageSlider.closest('.event-page-slider-wrap');
+                if (wrap) {
+                    eraStrip = document.createElement('div');
+                    eraStrip.id = 'eventPageSliderEraStrip';
+                    eraStrip.className = 'event-page-slider-era-strip';
+                    eraStrip.setAttribute('aria-hidden', 'true');
+                    wrap.appendChild(eraStrip);
+                }
+            }
+            if (eraStrip) {
+                const allEv = Array.isArray(this.dataModel.events) ? this.dataModel.events : [];
+                const eps = this.dataModel.eventsPerPage || 10;
+                const tpStrip = Math.max(1, totalPages);
+                eraStrip.style.background = buildGlobalEraStripeBackgroundLinearGradient(
+                    allEv,
+                    eps,
+                    tpStrip
+                );
             }
         };
 

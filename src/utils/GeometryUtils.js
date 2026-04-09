@@ -1,24 +1,32 @@
 /**
  * GeometryUtils - Utility functions for coordinate conversion and geometry
- * Version: 1.1.0 (Added xyToPlanePosition for Moon/Mars support)
+ * Version: 1.2.0 (Oblate Earth: lat/lon ray meets WGS84-scaled ellipsoid)
  */
 
+import { EARTH_POLAR_TO_EQUATORIAL_RATIO } from '../constants/GlobePhysicalConstants.js';
+
 /**
- * Convert lat/lon to 3D coordinates on sphere
+ * Convert lat/lon to 3D on an oblate spheroid (equatorial radius = radius, polar = radius * WGS84 ratio).
+ * Matches UV mapping that assumes spherical angles; ray from origin along that direction to the ellipsoid.
  * @param {number} lat - Latitude
  * @param {number} lon - Longitude
- * @param {number} radius - Sphere radius
+ * @param {number} radius - Equatorial radius (matches scaled globe mesh)
  * @returns {THREE.Vector3}
  */
 export function latLonToVector3(lat, lon, radius) {
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (lon + 180) * (Math.PI / 180);
 
-    const x = -(radius * Math.sin(phi) * Math.cos(theta));
-    const z = (radius * Math.sin(phi) * Math.sin(theta));
-    const y = (radius * Math.cos(phi));
+    const ux = -(Math.sin(phi) * Math.cos(theta));
+    const uz = Math.sin(phi) * Math.sin(theta);
+    const uy = Math.cos(phi);
 
-    return new THREE.Vector3(x, y, z);
+    const a = radius;
+    const b = radius * EARTH_POLAR_TO_EQUATORIAL_RATIO;
+    const inv = (ux * ux + uz * uz) / (a * a) + (uy * uy) / (b * b);
+    const k = 1 / Math.sqrt(inv);
+
+    return new THREE.Vector3(k * ux, k * uy, k * uz);
 }
 
 /**

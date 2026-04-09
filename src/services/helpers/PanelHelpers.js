@@ -176,6 +176,7 @@ export function createEventPagination(statusService) {
                 <div class="event-page-slider-ticks" id="eventPageSliderTicks" aria-hidden="true"></div>
                 <input type="range" id="eventPageSlider" class="event-page-slider" min="0" max="10000" value="0" step="1"
                     title="Scrub pages" aria-label="Pages along timeline" aria-valuemin="0" aria-valuemax="10000" aria-valuenow="0" />
+                <div class="event-page-slider-era-strip" id="eventPageSliderEraStrip" aria-hidden="true"></div>
             </div>
         </div>
         <div class="event-pagination-thumb-row">

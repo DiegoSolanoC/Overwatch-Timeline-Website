@@ -123,10 +123,6 @@ body.color-palette-gray .events-list {
     max-height: 18px;
 }
 
-.events-pagination-btn__label {
-    line-height: 1.2;
-}
-
 .events-pagination-btn:hover:not(:disabled) {
     background: rgba(33, 150, 243, 0.5);
     border-color: rgba(33, 150, 243, 0.9);
@@ -838,6 +834,13 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
         max-width: 100%;
     }
 
+    body:has(#paginationDock) .event-page-slider-era-strip {
+        width: auto;
+        align-self: stretch;
+        margin-left: clamp(14px, 2.5vw, 26px);
+        margin-right: clamp(14px, 2.5vw, 26px);
+    }
+
     body:has(#paginationDock) .event-page-slider-ticks {
         left: clamp(14px, 2.5vw, 26px);
         right: clamp(14px, 2.5vw, 26px);
@@ -931,6 +934,30 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
         gap: 6px;
     }
 
+    /*
+     * Collapsed dock: Atlas News trapezoid (footer.timeline-loaded) extends above the footer into
+     * this band — bump left padding so the prev arrow / slider don’t sit under it.
+     */
+    body.pagination-dock-collapsed:has(#paginationDock):has(footer.timeline-loaded) .event-pagination,
+    body.pagination-dock-mobile-locked:has(#paginationDock):has(footer.timeline-loaded) .event-pagination {
+        padding-left: calc(env(safe-area-inset-left, 0px) + clamp(108px, 19vw, 138px));
+        padding-right: calc(env(safe-area-inset-right, 0px) + clamp(28px, 5vw, 88px));
+    }
+
+    @media (max-width: 768px) {
+        body.pagination-dock-collapsed:has(#paginationDock):has(footer.timeline-loaded) .event-pagination,
+        body.pagination-dock-mobile-locked:has(#paginationDock):has(footer.timeline-loaded) .event-pagination {
+            padding-left: calc(env(safe-area-inset-left, 0px) + clamp(92px, 24vw, 118px));
+        }
+    }
+
+    @media (max-width: 480px) {
+        body.pagination-dock-collapsed:has(#paginationDock):has(footer.timeline-loaded) .event-pagination,
+        body.pagination-dock-mobile-locked:has(#paginationDock):has(footer.timeline-loaded) .event-pagination {
+            padding-left: calc(env(safe-area-inset-left, 0px) + clamp(78px, 28vw, 102px));
+        }
+    }
+
     body.pagination-dock-collapsed:has(#paginationDock) .event-page-slider-row {
         padding-bottom: 2px !important;
     }
@@ -949,7 +976,30 @@ body:not(:has(#paginationDock)) .event-page-slider-row--desktop-only {
 .event-page-slider-wrap {
     position: relative;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+/*
+ * Era map: same horizontal inset as ticks; tucked under the range so it reads as one control.
+ */
+.event-page-slider-era-strip {
     display: block;
+    width: calc(100% - 30px);
+    align-self: center;
+    flex: 0 0 auto;
+    margin: -7px 15px 2px;
+    height: 5px;
+    border-radius: 0 0 5px 5px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
 }
 
 /* Align with native range track (≈ half thumb inset); ticks sit on the track line */
@@ -1018,13 +1068,26 @@ body:not(:has(#paginationDock)) .event-page-slider-row--desktop-only {
     box-shadow: 0 0 6px rgba(76, 175, 80, 0.65) !important;
 }
 
+/* Center of each event slice on the slider: missing description (first variant / root, same as dock) */
+.event-page-slider-tick--unfinished-slot {
+    top: 2px;
+    bottom: 2px;
+    width: 3px;
+    margin-left: -1.5px;
+    z-index: 3;
+    background: rgba(244, 67, 54, 0.95);
+    box-shadow: 0 0 7px rgba(244, 67, 54, 0.7);
+    border-radius: 1px;
+}
+
 .event-page-slider {
     position: relative;
     z-index: 1;
     display: block;
     width: 100%;
     height: 48px;
-    margin: 0;
+    margin: 0 0 0 0;
+    flex-shrink: 0;
     -webkit-appearance: none;
     appearance: none;
     background: transparent;

@@ -5,6 +5,8 @@
 
 import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './GlobePlaneHelpers.js';
 import { loadTexture } from './GlobeTextureHelpers.js';
+import { EARTH_GLOBE_LIGHT_LAYER } from '../../constants/GlobeLightingConstants.js';
+import { EARTH_POLAR_TO_EQUATORIAL_RATIO } from '../../constants/GlobePhysicalConstants.js';
 
 function _createRadialGlowTexture({ size = 256 } = {}) {
     const canvas = document.createElement('canvas');
@@ -95,11 +97,15 @@ export function createGlobeMesh(textureLoader, renderer, initialTexturePath, nor
         normalMap: normalMap,
         transparent: false,
         opacity: 1.0,
-        metalness: 0.1,
-        roughness: 0.9
+        metalness: 0.12,
+        roughness: 0.62
     });
-    
-    return new THREE.Mesh(geometry, material);
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = 'earthSurface';
+    /* Oblate spheroid: polar axis Y slightly shorter than equatorial XZ (WGS84). */
+    mesh.scale.set(1, EARTH_POLAR_TO_EQUATORIAL_RATIO, 1);
+    return mesh;
 }
 
 /**
@@ -107,8 +113,10 @@ export function createGlobeMesh(textureLoader, renderer, initialTexturePath, nor
  */
 const PATTERN_WAVE_VERTEX_SHADER = `
 varying vec2 vUv;
+varying vec3 vWorldNormal;
 void main() {
     vUv = uv;
+    vWorldNormal = normalize(mat3(modelMatrix) * normal);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
@@ -122,8 +130,11 @@ uniform sampler2D uPatternMap;
 uniform vec3 uTintColor;
 uniform float uTime;
 uniform float uBaseOpacity;
+uniform float uShadeBySun;
+uniform vec3 uSunDirWorld;
 
 varying vec2 vUv;
+varying vec3 vWorldNormal;
 
 void main() {
     vec4 texColor = texture2D(uPatternMap, vUv);
@@ -153,8 +164,13 @@ void main() {
     
     // Glow color - brighten the tint at the wave center
     vec3 glowColor = uTintColor * glowBoost;
-    
-    gl_FragColor = vec4(glowColor * texColor.rgb, finalOpacity);
+    vec3 outRgb = glowColor * texColor.rgb;
+
+    float ndl = max(0.0, dot(normalize(vWorldNormal), normalize(uSunDirWorld)));
+    float sunMul = mix(0.008, 1.0, pow(ndl, 0.32));
+    outRgb *= mix(1.0, sunMul, uShadeBySun);
+
+    gl_FragColor = vec4(outRgb, finalOpacity);
 }
 `;
 
@@ -164,9 +180,10 @@ void main() {
  * @param {number} tintColor - Tint color hex
  * @param {number} opacity - Base opacity
  * @param {boolean} doubleSided - Whether material is double-sided
+ * @param {boolean} [shadeGlobeBySun=false] - Globe only: dim additive pattern on night hemisphere
  * @returns {THREE.ShaderMaterial}
  */
-function createPatternWaveMaterial(patternTexture, tintColor, opacity, doubleSided = false) {
+function createPatternWaveMaterial(patternTexture, tintColor, opacity, doubleSided = false, shadeGlobeBySun = false) {
     const color = new THREE.Color(tintColor);
     
     return new THREE.ShaderMaterial({
@@ -174,7 +191,9 @@ function createPatternWaveMaterial(patternTexture, tintColor, opacity, doubleSid
             uPatternMap: { value: patternTexture },
             uTintColor: { value: new THREE.Vector3(color.r, color.g, color.b) },
             uTime: { value: 0.0 },
-            uBaseOpacity: { value: opacity }
+            uBaseOpacity: { value: opacity },
+            uShadeBySun: { value: shadeGlobeBySun ? 1.0 : 0.0 },
+            uSunDirWorld: { value: new THREE.Vector3(0, 0, 1) }
         },
         vertexShader: PATTERN_WAVE_VERTEX_SHADER,
         fragmentShader: PATTERN_WAVE_FRAGMENT_SHADER,
@@ -204,7 +223,7 @@ export function createGlobePatternOverlay(textureLoader, renderer, tintColor = 0
         null
     );
     
-    const material = createPatternWaveMaterial(patternTexture, tintColor, opacity, false);
+    const material = createPatternWaveMaterial(patternTexture, tintColor, opacity, false, true);
     
     return new THREE.Mesh(geometry, material);
 }
@@ -262,21 +281,69 @@ export function getPaletteAccentHex(palette) {
     }
 }
 
-/** World-space sun anchor (directional light copies this). */
-const SUN_BACKGROUND_BASE_POSITION = new THREE.Vector3(-35, 20, -90);
+/** Ring radius in the horizontal (XZ) plane; matches legacy 3D offset length (~84). */
+const SUN_ANCHOR_RADIUS = new THREE.Vector3(-78, 14, -28).length();
+/** Fallback azimuth on the equatorial ring (same horizontal bearing as old -78,0,-28). */
+const SUN_BACKGROUND_FALLBACK_POSITION = new THREE.Vector3(-78, 0, -28).normalize().multiplyScalar(SUN_ANCHOR_RADIUS);
 /** Matches `--breakpoint-mobile` / project mobile layout. */
 const SUN_VIEWPORT_MOBILE_MAX_WIDTH = 768;
 /** Pull sun toward origin (Earth) on small screens (lower = closer). */
 const SUN_MOBILE_DISTANCE_SCALE = 0.52;
 
+/** World +Y: manual dev yaw spins the sun anchor around the vertical axis. */
+const _SUN_DEV_YAW_AXIS = new THREE.Vector3(0, 1, 0);
+
+/**
+ * Random azimuth only: sun stays in the equatorial (XZ) plane (Y = 0) so light never comes from steep above/below.
+ * @returns {THREE.Vector3}
+ */
+function createRandomSunAnchorBasePosition() {
+    const theta = Math.random() * Math.PI * 2;
+    const r = SUN_ANCHOR_RADIUS;
+    return new THREE.Vector3(Math.cos(theta) * r, 0, Math.sin(theta) * r);
+}
+
 /**
  * Move sun sprite + light closer to the globe on mobile; restore desktop offset when wide.
  * @param {{sprite: THREE.Sprite, light: THREE.DirectionalLight}|null|undefined} sunBg
  */
+/**
+ * Put Earth globe / flat map subtree on the dedicated light layer so only Earth receives sun + earth hemisphere.
+ * @param {THREE.Object3D|null} root
+ */
+export function assignEarthLightLayer(root) {
+    if (!root) return;
+    root.traverse((obj) => {
+        if (obj.layers) obj.layers.set(EARTH_GLOBE_LIGHT_LAYER);
+    });
+}
+
+/**
+ * Sets `uSunDirWorld` on globe atmosphere shaders (procedural clouds, aurora, pattern) from the sun light.
+ * Atlas clouds use MeshStandardMaterial and follow scene lights instead.
+ * @param {THREE.DirectionalLight|null|undefined} light
+ * @param {(THREE.Object3D|null|undefined)[]} meshes
+ */
+export function syncAtmosphereSunDirUniforms(light, meshes) {
+    if (!light || !meshes || !meshes.length) return;
+    const dir = light.position.clone().normalize();
+    for (let i = 0; i < meshes.length; i++) {
+        const mat = meshes[i] && meshes[i].material;
+        if (mat && mat.uniforms && mat.uniforms.uSunDirWorld) {
+            mat.uniforms.uSunDirWorld.value.copy(dir);
+        }
+    }
+}
+
 export function applySunBackgroundForViewport(sunBg) {
     if (!sunBg || !sunBg.sprite) return;
     const mobile = typeof window !== 'undefined' && window.innerWidth <= SUN_VIEWPORT_MOBILE_MAX_WIDTH;
-    const pos = SUN_BACKGROUND_BASE_POSITION.clone();
+    const base = sunBg.sunAnchorBase || SUN_BACKGROUND_FALLBACK_POSITION;
+    const pos = base.clone();
+    const yawDeg = Number(sunBg.sunDevYawDeg);
+    if (Number.isFinite(yawDeg)) {
+        pos.applyAxisAngle(_SUN_DEV_YAW_AXIS, THREE.MathUtils.degToRad(yawDeg));
+    }
     if (mobile) pos.multiplyScalar(SUN_MOBILE_DISTANCE_SCALE);
     sunBg.sprite.position.copy(pos);
     if (sunBg.light) sunBg.light.position.copy(pos);
@@ -312,12 +379,21 @@ export function addSunBackground({ scene }) {
     sprite.frustumCulled = false;
     scene.add(sprite);
 
-    const light = new THREE.DirectionalLight(0xfff0d6, 0.45);
+    /* Primary key light — layer 1 only so Moon/Mars stay on self-lit world ambient (layer 0). */
+    const light = new THREE.DirectionalLight(0xfffcfa, 3.15);
+    light.name = 'SunDirectionalLight';
+    light.layers.set(EARTH_GLOBE_LIGHT_LAYER);
     scene.add(light);
     scene.add(light.target);
     light.target.position.set(0, 0, 0);
 
-    const result = { sprite, light };
+    const result = {
+        sprite,
+        light,
+        sunAnchorBase: createRandomSunAnchorBasePosition(),
+        /** Manual spin (degrees, world Y); dev slider — see DevSunYawControl.js */
+        sunDevYawDeg: 0
+    };
     applySunBackgroundForViewport(result);
     return result;
 }
@@ -373,12 +449,15 @@ export function createGlobeAuroraShell({ radius = 1.022, uIntensity = 0.42 } = {
             uTime: { value: 0 },
             uIntensity: { value: uIntensity },
             uVeilExpand: { value: 0 },
-            uVeilBoost: { value: 1.0 }
+            uVeilBoost: { value: 1.0 },
+            uSunDirWorld: { value: new THREE.Vector3(0, 0, 1) }
         },
         vertexShader: `
             varying vec3 vObjNormal;
+            varying vec3 vWorldNormal;
             void main() {
                 vObjNormal = normal;
+                vWorldNormal = normalize(mat3(modelMatrix) * normal);
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
@@ -387,7 +466,9 @@ export function createGlobeAuroraShell({ radius = 1.022, uIntensity = 0.42 } = {
             uniform float uIntensity;
             uniform float uVeilExpand;
             uniform float uVeilBoost;
+            uniform vec3 uSunDirWorld;
             varying vec3 vObjNormal;
+            varying vec3 vWorldNormal;
 
             float hash11(float x) {
                 return fract(sin(x) * 43758.5453123);
@@ -435,6 +516,12 @@ export function createGlobeAuroraShell({ radius = 1.022, uIntensity = 0.42 } = {
                 float strength = band * (0.30 + 0.52 * curtains * ripples) * pulse * bright * uIntensity * uVeilBoost;
                 float veilPresence = smoothstep(0.0, 0.028, ve);
                 strength *= veilPresence;
+
+                float ndl = max(0.0, dot(normalize(vWorldNormal), normalize(uSunDirWorld)));
+                // Favor the night hemisphere (shell normal away from sun); dim subsolar day side.
+                // Floor on the bright side so polar geometry / high ndl still leaves a hint of banding.
+                float night = clamp(1.0 - ndl, 0.0, 1.0);
+                strength *= mix(0.26, 1.0, pow(night, 0.42));
 
                 vec3 col = vec3(0.10, 0.90, 0.40);
                 float fr0 = mix(0.918, 0.91, ve);
@@ -570,7 +657,7 @@ function makeCloudTintColor(tintHex) {
 }
 
 /**
- * Updates cloud mesh tint to match palette (texture: MeshBasicMaterial.color; procedural: uTint).
+ * Updates cloud mesh tint to match palette (texture: Standard/Basic color; procedural: uTint).
  * @param {THREE.Mesh|null} mesh
  * @param {number} tintHex - e.g. rim key color 0x6fd3ff
  */
@@ -617,12 +704,15 @@ function makeGlobeCloudProceduralMaterial(opacity, tintHex) {
         uniforms: {
             uTime: { value: 0 },
             uOpacity: { value: opacity },
-            uTint: { value: new THREE.Vector3(tintCol.r, tintCol.g, tintCol.b) }
+            uTint: { value: new THREE.Vector3(tintCol.r, tintCol.g, tintCol.b) },
+            uSunDirWorld: { value: new THREE.Vector3(0, 0, 1) }
         },
         vertexShader: `
             varying vec3 vObjNormal;
+            varying vec3 vWorldNormal;
             void main() {
                 vObjNormal = normal;
+                vWorldNormal = normalize(mat3(modelMatrix) * normal);
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
         `,
@@ -630,7 +720,9 @@ function makeGlobeCloudProceduralMaterial(opacity, tintHex) {
             uniform float uTime;
             uniform float uOpacity;
             uniform vec3 uTint;
+            uniform vec3 uSunDirWorld;
             varying vec3 vObjNormal;
+            varying vec3 vWorldNormal;
             float hash11(float x) {
                 return fract(sin(x) * 43758.5453123);
             }
@@ -656,10 +748,12 @@ function makeGlobeCloudProceduralMaterial(opacity, tintHex) {
                 float deck = smoothstep(0.10, 0.38, mu) * (1.0 - smoothstep(0.72, 0.94, mu));
                 deck = mix(0.42, 1.0, deck);
                 float cov = smoothstep(0.38, 0.74, d) * deck;
-                float alpha = cov * uOpacity;
-                if (alpha < 0.015) discard;
+                float ndl = max(0.0, dot(normalize(vWorldNormal), normalize(uSunDirWorld)));
+                float sunMask = mix(0.025, 1.0, pow(ndl, 0.32));
+                float alpha = cov * uOpacity * mix(0.12, 1.0, pow(ndl, 0.28));
+                if (alpha < 0.012) discard;
                 float lit = 0.82 + 0.18 * cov;
-                vec3 albedo = vec3(0.93, 0.95, 1.0) * lit * uTint;
+                vec3 albedo = vec3(0.93, 0.95, 1.0) * lit * uTint * sunMask;
                 gl_FragColor = vec4(albedo, alpha);
             }
         `,
@@ -750,12 +844,16 @@ function startCloudAtlasRandomLoad(mesh, textureLoader, renderer, variants, opac
             tex.needsUpdate = true;
             const h = mesh.userData.cloudTintHex != null ? mesh.userData.cloudTintHex : 0xffffff;
             const tc = makeCloudTintColor(h);
-            mesh.material = new THREE.MeshBasicMaterial({
+            mesh.material = new THREE.MeshStandardMaterial({
                 map: tex,
                 alphaMap: tex,
                 color: tc.clone(),
                 transparent: true,
                 opacity: Math.min(1, opacity),
+                metalness: 0.02,
+                roughness: 0.96,
+                emissive: 0x000000,
+                emissiveIntensity: 0,
                 depthWrite: false,
                 depthTest: true,
                 side: THREE.FrontSide,
@@ -931,8 +1029,8 @@ export function createEarthMapPlane(textureLoader, renderer, texturePath, onText
         transparent: false,
         opacity: 1.0,
         depthWrite: true,
-        metalness: 0.1,
-        roughness: 0.9
+        metalness: 0.12,
+        roughness: 0.62
     });
 
     const plane = new THREE.Mesh(geometry, material);
@@ -1007,6 +1105,8 @@ if (typeof window !== 'undefined') {
     window.GlobeInitHelpers.createGlobeMesh = createGlobeMesh;
     window.GlobeInitHelpers.createEarthMapPlane = createEarthMapPlane;
     window.GlobeInitHelpers.setupCelestialPlanes = setupCelestialPlanes;
+    window.GlobeInitHelpers.assignEarthLightLayer = assignEarthLightLayer;
+    window.GlobeInitHelpers.syncAtmosphereSunDirUniforms = syncAtmosphereSunDirUniforms;
     window.GlobeInitHelpers.addSunBackground = addSunBackground;
     window.GlobeInitHelpers.applySunBackgroundForViewport = applySunBackgroundForViewport;
     window.GlobeInitHelpers.createGlobeRimGlowSprite = createGlobeRimGlowSprite;

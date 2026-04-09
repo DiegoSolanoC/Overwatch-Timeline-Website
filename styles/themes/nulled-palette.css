@@ -159,6 +159,11 @@ body.color-palette-nulled .event-page-slider-tick--sub.event-page-slider-tick--f
     box-shadow: 0 0 6px rgba(76, 175, 80, 0.65) !important;
 }
 
+body.color-palette-nulled .event-page-slider-tick--unfinished-slot {
+    background: rgba(244, 67, 54, 0.96) !important;
+    box-shadow: 0 0 7px rgba(244, 67, 54, 0.72) !important;
+}
+
 body.color-palette-nulled .event-number-btn {
     background: rgba(55, 32, 88, 0.9) !important;
 }

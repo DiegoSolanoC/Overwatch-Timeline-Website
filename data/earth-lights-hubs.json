@@ -1,0 +1,2289 @@
+{
+  "description": "City-light hubs: train + plane route cities, seaports with connections, all airports in locations.json, and Earth events (from data/events.json). App merges live EventManager events at runtime.",
+  "generated": "2026-04-09T19:13:21.687Z",
+  "count": 280,
+  "hubs": [
+    {
+      "name": "Aatlis, Morocco",
+      "lat": 34.0209,
+      "lon": -6.8416,
+      "kinds": [
+        "air_route",
+        "event",
+        "station"
+      ]
+    },
+    {
+      "name": "Aberdeen",
+      "lat": 57.1497,
+      "lon": -2.0943,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Acapulco",
+      "lat": 16.8531,
+      "lon": -99.8237,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Alexandria",
+      "lat": 31.2001,
+      "lon": 29.9187,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Algiers",
+      "lat": 36.7538,
+      "lon": 3.0588,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Almaty, Kazakhstan",
+      "lat": 43.222,
+      "lon": 76.8512,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Amsterdam",
+      "lat": 52.3105,
+      "lon": 4.7683,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Anchorage",
+      "lat": 61.2181,
+      "lon": -149.9003,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Annecy, France",
+      "lat": 45.8992348,
+      "lon": 6.1288847,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Apia",
+      "lat": -13.83,
+      "lon": -171.7667,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Arequipa",
+      "lat": -16.3409,
+      "lon": -71.5831,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Ashgabat, Turkmenistan",
+      "lat": 37.9601,
+      "lon": 58.3261,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Assab",
+      "lat": 13.0092,
+      "lon": 42.7394,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Astana, Kazakhstan",
+      "lat": 51.1694,
+      "lon": 71.4491,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Asuncion, Paraguay",
+      "lat": -25.2800459,
+      "lon": -57.6343814,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Atlanta",
+      "lat": 33.6407,
+      "lon": -84.4277,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Atlantic Arcology",
+      "lat": 37.7412,
+      "lon": -25.6756,
+      "kinds": [
+        "air_route",
+        "airport",
+        "event",
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Auckland",
+      "lat": -36.8485,
+      "lon": 174.7633,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Austin, United States",
+      "lat": 30.2711286,
+      "lon": -97.7436995,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Baku, Azerbaijan",
+      "lat": 40.4093,
+      "lon": 49.8671,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Baltic Sea",
+      "lat": 56,
+      "lon": 18,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Banda Aceh",
+      "lat": 5.5483,
+      "lon": 95.3238,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Bangkok",
+      "lat": 13.69,
+      "lon": 100.7501,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Barcelona",
+      "lat": 41.3851,
+      "lon": 2.1734,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Beijing",
+      "lat": 40.0799,
+      "lon": 116.6031,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Belem",
+      "lat": -1.3842,
+      "lon": -48.4765,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Bellaire, United States",
+      "lat": 29.7057858,
+      "lon": -95.4588299,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Bengaluru, India",
+      "lat": 12.9767936,
+      "lon": 77.590082,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Benghazi",
+      "lat": 32.1167,
+      "lon": 20.0667,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Berbera",
+      "lat": 10.434,
+      "lon": 45.0143,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Bergen",
+      "lat": 60.3913,
+      "lon": 5.3221,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Berlin",
+      "lat": 52.52,
+      "lon": 13.405,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Berlin, Germany",
+      "lat": 52.5173885,
+      "lon": 13.3951309,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Black Forest, Germany",
+      "lat": 48.2634439,
+      "lon": 8.1647488,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Blizzard World",
+      "lat": 33.6846,
+      "lon": -117,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Bloomington, United States",
+      "lat": 39.1670396,
+      "lon": -86.5342881,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Bogotá",
+      "lat": 4.7016,
+      "lon": -74.1469,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Bogota, Colombia",
+      "lat": 4.7831994,
+      "lon": -73.6731282,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Boklovo, Kurjikstan",
+      "lat": 41.5089324,
+      "lon": 74.724091,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Brisbane",
+      "lat": -27.4698,
+      "lon": 153.0251,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "British Columbia, Canada",
+      "lat": 55.001251,
+      "lon": -125.002441,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Bucharest",
+      "lat": 44.4268,
+      "lon": 26.1025,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Bucharest, Romania",
+      "lat": 44.4361414,
+      "lon": 26.102684,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Buenos Aires",
+      "lat": -34.6037,
+      "lon": -58.3816,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Buenos Aires, Argentina",
+      "lat": -34.8222,
+      "lon": -58.5358,
+      "kinds": [
+        "airport",
+        "event"
+      ]
+    },
+    {
+      "name": "Busan",
+      "lat": 35.1796,
+      "lon": 129.0756,
+      "kinds": [
+        "station"
+      ]
+    },
+    {
+      "name": "Busan",
+      "lat": 35.1028,
+      "lon": 129.0403,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Busan, South Korea",
+      "lat": 35.1799528,
+      "lon": 129.0752365,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Cairo",
+      "lat": 30.1219,
+      "lon": 31.4056,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Cairo, Egypt",
+      "lat": 30.0444,
+      "lon": 31.2357,
+      "kinds": [
+        "air_route",
+        "event"
+      ]
+    },
+    {
+      "name": "Cairo, Egypt",
+      "lat": 30.0443879,
+      "lon": 31.2357257,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Calgary",
+      "lat": 51.1315,
+      "lon": -114.0105,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Callao",
+      "lat": -12.05,
+      "lon": -77.15,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Camp Hale, United States",
+      "lat": 39.475518,
+      "lon": -106.1177077,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Cape Town",
+      "lat": -33.9249,
+      "lon": 18.4241,
+      "kinds": [
+        "air_route",
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Capetown, South Africa",
+      "lat": -33.9228378,
+      "lon": 18.426976,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Caracas",
+      "lat": 10.4806,
+      "lon": -66.9036,
+      "kinds": [
+        "station"
+      ]
+    },
+    {
+      "name": "Cardiff",
+      "lat": 51.4816,
+      "lon": -3.1791,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Cartagena",
+      "lat": 10.391,
+      "lon": -75.5136,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Casablanca",
+      "lat": 33.5731,
+      "lon": -7.5898,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Castillo, Mexico",
+      "lat": 18,
+      "lon": -95,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Catania",
+      "lat": 37.5079,
+      "lon": 15.083,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Changchun, China",
+      "lat": 43.8171,
+      "lon": 125.3235,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Charleston",
+      "lat": 32.7765,
+      "lon": -79.9311,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Chengdu, China",
+      "lat": 30.659867,
+      "lon": 104.063315,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Chennai",
+      "lat": 13.0827,
+      "lon": 80.2707,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Chiang Mai City, Thailand",
+      "lat": 18.7882778,
+      "lon": 98.9858802,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Chicago",
+      "lat": 41.9742,
+      "lon": -87.9073,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Chicago, United States",
+      "lat": 41.8755616,
+      "lon": -87.6244212,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Chittagong",
+      "lat": 22.3569,
+      "lon": 91.7832,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Chongqing, China",
+      "lat": 30.05518,
+      "lon": 107.8748712,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "City State of Numbani",
+      "lat": 12.0022,
+      "lon": 8.5919,
+      "kinds": [
+        "air_route",
+        "airport",
+        "event",
+        "station"
+      ]
+    },
+    {
+      "name": "Colombo",
+      "lat": 6.9271,
+      "lon": 79.8612,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Colosseo",
+      "lat": 41.9028,
+      "lon": 12.7,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Colosseo, Italy",
+      "lat": 41.8909421,
+      "lon": 12.491903,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Congo Basin, Democratic Republic of the Congo",
+      "lat": -0.5,
+      "lon": 18,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Copenhagen,, Denmark",
+      "lat": 55.6867243,
+      "lon": 12.5700724,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Coral Sea, Oceania",
+      "lat": -20,
+      "lon": 155,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Cyprus",
+      "lat": 35.1264,
+      "lon": 33.4299,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Dakar",
+      "lat": 14.7167,
+      "lon": -17.4677,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Dallas",
+      "lat": 32.8998,
+      "lon": -97.0403,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Darwin",
+      "lat": -12.4634,
+      "lon": 130.8456,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Deadlock Gorge, United States",
+      "lat": 40.0170005,
+      "lon": -105.2664724,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Delhi",
+      "lat": 28.5562,
+      "lon": 77.1,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Denver",
+      "lat": 39.8561,
+      "lon": -104.6737,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Detroit, United States",
+      "lat": 42.3315509,
+      "lon": -83.0466403,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Doha",
+      "lat": 25.2731,
+      "lon": 51.608,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Dorado, Mexico",
+      "lat": 19.1738,
+      "lon": -96.1342,
+      "kinds": [
+        "event",
+        "port"
+      ]
+    },
+    {
+      "name": "Dubai",
+      "lat": 25.2532,
+      "lon": 55.3657,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Dublin, Ireland",
+      "lat": 53.3493795,
+      "lon": -6.2605593,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Durban",
+      "lat": -29.8579,
+      "lon": 31.0292,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Ecopoint Monterrey, United States",
+      "lat": 36.6537668,
+      "lon": -124,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Eichenwalde Castle, Germany",
+      "lat": 50,
+      "lon": 8,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Esperança",
+      "lat": 38.7223,
+      "lon": -9.1393,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Esperança, Portugal",
+      "lat": 41.1579,
+      "lon": -8.6291,
+      "kinds": [
+        "air_route",
+        "event",
+        "station"
+      ]
+    },
+    {
+      "name": "Frankfurt",
+      "lat": 50.0379,
+      "lon": 8.5622,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Freetown, Sierra Leone",
+      "lat": 8.4657,
+      "lon": -13.2317,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Fukuoka, Japan",
+      "lat": 33.6251241,
+      "lon": 130.6180016,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Gapolli",
+      "lat": 36.7606,
+      "lon": 22.5644,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Geneva, Switzerland",
+      "lat": 46.2017559,
+      "lon": 6.1466014,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Genoa",
+      "lat": 44.4056,
+      "lon": 8.9463,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Georgetown",
+      "lat": 6.8013,
+      "lon": -58.1551,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Glasgow, United Kingdom",
+      "lat": 55.861155,
+      "lon": -4.2501687,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Gothenburg",
+      "lat": 57.7089,
+      "lon": 11.9746,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Gothenburg, Sweden",
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Guayaquil",
+      "lat": -2.1709,
+      "lon": -79.9224,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Guayaquil",
+      "lat": -2.1574,
+      "lon": -79.8836,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Gwishin Omnium, East China Sea",
+      "lat": 33,
+      "lon": 125,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Halifax",
+      "lat": 44.6488,
+      "lon": -63.5752,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Hanamura, Japan",
+      "lat": 35.6762,
+      "lon": 139.6503,
+      "kinds": [
+        "event",
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Hanamura, Japan",
+      "lat": 35.6768601,
+      "lon": 139.7638947,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Havana",
+      "lat": 23.1136,
+      "lon": -82.3666,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Havana",
+      "lat": 22.9892,
+      "lon": -82.4091,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Havana, Cuba",
+      "lat": 23.135305,
+      "lon": -82.3589631,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Helsinki, Finland",
+      "lat": 60.1666204,
+      "lon": 24.9435408,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Ho Chi Minh City",
+      "lat": 10.8231,
+      "lon": 106.6297,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Hofn",
+      "lat": 64.2539,
+      "lon": -15.2083,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Hong Kong",
+      "lat": 22.3193,
+      "lon": 114.1694,
+      "kinds": [
+        "air_route",
+        "port"
+      ]
+    },
+    {
+      "name": "Hong Kong",
+      "lat": 22.308,
+      "lon": 113.9185,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Honiara",
+      "lat": -9.4281,
+      "lon": 159.9497,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Honolulu",
+      "lat": 21.3099,
+      "lon": -157.8581,
+      "kinds": [
+        "air_route",
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Honolulu, Hawaii",
+      "lat": 21.304547,
+      "lon": -157.855676,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Houston",
+      "lat": 29.7604,
+      "lon": -95.3698,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Houston",
+      "lat": 29.735,
+      "lon": -95.27,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Houston, United States",
+      "lat": 29.7589382,
+      "lon": -95.3676974,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Hyderabad, India",
+      "lat": 17.360589,
+      "lon": 78.4740613,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Ibadan, Nigeria",
+      "lat": 7.3786064,
+      "lon": 3.8969928,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Illios, Greece",
+      "lat": 36.1725297,
+      "lon": 27.9194016,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Ilo",
+      "lat": -17.6394,
+      "lon": -71.3375,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Istanbul",
+      "lat": 40.9769,
+      "lon": 28.8146,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Istanbul, Turkey",
+      "lat": 41.006381,
+      "lon": 28.9758715,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Jakarta",
+      "lat": -6.2088,
+      "lon": 106.8456,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Jakarta, Indonesia",
+      "lat": -6.1754049,
+      "lon": 106.827168,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Jayapura",
+      "lat": -2.5489,
+      "lon": 140.7181,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Jeddah",
+      "lat": 21.4858,
+      "lon": 39.1925,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Johannesburg",
+      "lat": -26.1392,
+      "lon": 28.246,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Kabul, Afghanistan",
+      "lat": 34.5553,
+      "lon": 69.2075,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Kanezaka, Japan",
+      "lat": 35.3606,
+      "lon": 138.7274,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Kansas City",
+      "lat": 39.2976,
+      "lon": -94.7139,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Karachi",
+      "lat": 24.8607,
+      "lon": 67.0011,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Kings Row",
+      "lat": 51.5074,
+      "lon": -0.1278,
+      "kinds": [
+        "air_route",
+        "station"
+      ]
+    },
+    {
+      "name": "Kyoto, Japan",
+      "lat": 35.0115754,
+      "lon": 135.7681441,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "La Guaira",
+      "lat": 10.601,
+      "lon": -66.9344,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "La Rochelle",
+      "lat": 46.1603,
+      "lon": -1.1511,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Lagos",
+      "lat": 6.4474,
+      "lon": 3.3903,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Lagos",
+      "lat": 6.5774,
+      "lon": 3.3213,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Lagos, Nigeria",
+      "lat": 6.4550575,
+      "lon": 3.3941795,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Las Vegas, United States",
+      "lat": 36.1674263,
+      "lon": -115.1484131,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Lijiang",
+      "lat": 26.8721,
+      "lon": 100.233,
+      "kinds": [
+        "air_route",
+        "station"
+      ]
+    },
+    {
+      "name": "Lijiang City, China",
+      "lat": 26.8595868,
+      "lon": 100.2249797,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "London Heathrow",
+      "lat": 51.47,
+      "lon": -0.4543,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "London, United Kingdom",
+      "lat": 51.5074456,
+      "lon": -0.1277653,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Los Angeles",
+      "lat": 33.7405,
+      "lon": -118.272,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Los Angeles",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Los Angeles, United States",
+      "lat": 34.0522,
+      "lon": -119.2,
+      "kinds": [
+        "air_route",
+        "event"
+      ]
+    },
+    {
+      "name": "Madang",
+      "lat": -5.2217,
+      "lon": 145.7875,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Madrid",
+      "lat": 40.4983,
+      "lon": -3.5676,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Makassar",
+      "lat": -5.1477,
+      "lon": 119.4327,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Malé, Maldives",
+      "lat": 4.1755,
+      "lon": 73.5093,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Malevento",
+      "lat": 43.7696,
+      "lon": 11.6,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Managua",
+      "lat": 12.1415,
+      "lon": -86.1682,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Manila",
+      "lat": 14.5995,
+      "lon": 120.9842,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Manzanillo",
+      "lat": 19.0519,
+      "lon": -104.3153,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Mar del Plata",
+      "lat": -37.9342,
+      "lon": -57.5733,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Melbourne",
+      "lat": -37.8136,
+      "lon": 144.9631,
+      "kinds": [
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Melbourne",
+      "lat": -37.669,
+      "lon": 144.841,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Melbourne, Australia",
+      "lat": -37.8142454,
+      "lon": 144.9631732,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Mexico City",
+      "lat": 19.4326,
+      "lon": -99.1332,
+      "kinds": [
+        "air_route",
+        "station"
+      ]
+    },
+    {
+      "name": "Mexico City",
+      "lat": 19.4363,
+      "lon": -99.0721,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Mexico City, Mexico",
+      "lat": 19.3207722,
+      "lon": -99.1514678,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Miami",
+      "lat": 25.7617,
+      "lon": -80.1918,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Midtown",
+      "lat": 40.7527,
+      "lon": -73.9772,
+      "kinds": [
+        "air_route",
+        "station"
+      ]
+    },
+    {
+      "name": "Mombasa",
+      "lat": -4.0435,
+      "lon": 39.6682,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Monte Carlo",
+      "lat": 43.7384,
+      "lon": 7.4246,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Monte Cristi, Dominican Republic",
+      "lat": 19.7177718,
+      "lon": -71.4448113,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Monte-Carlo, Monaco",
+      "lat": 43.7402961,
+      "lon": 7.426559,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Moscow",
+      "lat": 55.7558,
+      "lon": 37.6173,
+      "kinds": [
+        "air_route",
+        "station"
+      ]
+    },
+    {
+      "name": "Moscow Sheremetyevo",
+      "lat": 55.9726,
+      "lon": 37.4146,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Moscow, Russia",
+      "lat": 55.625578,
+      "lon": 37.6063916,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Mount Logan, Canada",
+      "lat": 60.5678461,
+      "lon": -140.4056911,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Mumbai",
+      "lat": 19.076,
+      "lon": 72.8777,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Mumbai",
+      "lat": 19.0896,
+      "lon": 72.8656,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Murmansk",
+      "lat": 68.9585,
+      "lon": 33.0827,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Muscat",
+      "lat": 23.5859,
+      "lon": 58.4059,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Nagpur",
+      "lat": 21.1458,
+      "lon": 79.0882,
+      "kinds": [
+        "station"
+      ]
+    },
+    {
+      "name": "Nampula, Mozambique",
+      "lat": -14.966969,
+      "lon": 39.2707752,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Necropolis, Egypt",
+      "lat": 29,
+      "lon": 31,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "New Mexico, United States",
+      "lat": 35.6876096,
+      "lon": -105.938456,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "New Orleans",
+      "lat": 29.9934,
+      "lon": -90.258,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "New York",
+      "lat": 40.6892,
+      "lon": -74.0445,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "New York City, United States",
+      "lat": 40.7579554,
+      "lon": -73.9855319,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "New York JFK",
+      "lat": 40.6413,
+      "lon": -73.7781,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "New York, United States",
+      "lat": 40.7127281,
+      "lon": -74.0060152,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Noumea",
+      "lat": -22.2551,
+      "lon": 166.4508,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Nova Scotia, Canada",
+      "lat": 45.1960403,
+      "lon": -63.1653789,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Novaya Zemlya",
+      "lat": 73.5,
+      "lon": 56,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Novoanskoye, Russia",
+      "lat": 60,
+      "lon": 100,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Nuku'alofa",
+      "lat": -21.1394,
+      "lon": -175.2018,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Oasis University, Iraq",
+      "lat": 29.5918,
+      "lon": 52.5836,
+      "kinds": [
+        "air_route",
+        "event",
+        "station"
+      ]
+    },
+    {
+      "name": "Osaka",
+      "lat": 34.6937,
+      "lon": 135.5023,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Oslo, Norway",
+      "lat": 59.9133301,
+      "lon": 10.7389701,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Oymyakon, Russia",
+      "lat": 63.4629473,
+      "lon": 142.7869693,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Oyo, Nigeria",
+      "lat": 8.2151249,
+      "lon": 3.5642897,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Panama",
+      "lat": 9.1,
+      "lon": -79.7,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Paris",
+      "lat": 48.8566,
+      "lon": 2.3522,
+      "kinds": [
+        "air_route"
+      ]
+    },
+    {
+      "name": "Paris CDG",
+      "lat": 49.0097,
+      "lon": 2.5479,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Paris, France",
+      "lat": 48.8534951,
+      "lon": 2.3483915,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "París,, France",
+      "lat": 48.8588897,
+      "lon": 2.320041,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Perth",
+      "lat": -31.9505,
+      "lon": 115.8605,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Petra, Jordan",
+      "lat": 30.3258363,
+      "lon": 35.4745669,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Phuket",
+      "lat": 7.8804,
+      "lon": 98.3923,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Pontianak",
+      "lat": -0.0263,
+      "lon": 109.3425,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Port Moresby",
+      "lat": -9.4438,
+      "lon": 147.1803,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Port Vila",
+      "lat": -17.7333,
+      "lon": 168.3167,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Portland Oregon",
+      "lat": 45.5898,
+      "lon": -122.5951,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Punta Arenas",
+      "lat": -53.0026,
+      "lon": -70.8546,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Quito",
+      "lat": -0.1292,
+      "lon": -78.3575,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Reykjavik Iceland",
+      "lat": 64.13,
+      "lon": -21.9406,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Rio de Janeiro",
+      "lat": -22.9068,
+      "lon": -43.1729,
+      "kinds": [
+        "air_route",
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Rio de Janeiro, Brazil",
+      "lat": -22.9110137,
+      "lon": -43.2093727,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Rio Gallegos",
+      "lat": -51.6053,
+      "lon": -69.3126,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Riyadh, Saudi Arabia",
+      "lat": 23.333333,
+      "lon": 45.333333,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Rome,, Italy",
+      "lat": 41.8933203,
+      "lon": 12.4829321,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Rotterdam",
+      "lat": 51.9244,
+      "lon": 4.4777,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Runasapi, Peru",
+      "lat": -13.1631,
+      "lon": -72.545,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Saint Petersburg, Russia",
+      "lat": 59.938732,
+      "lon": 30.316229,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Salerno",
+      "lat": 40.6824,
+      "lon": 14.7681,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Salvador",
+      "lat": -12.9714,
+      "lon": -38.5014,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Salvador Bahia",
+      "lat": -12.9105,
+      "lon": -38.3311,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "San Francisco",
+      "lat": 37.7749,
+      "lon": -122.4194,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "San Francisco",
+      "lat": 37.6213,
+      "lon": -122.379,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "San Jose Costa Rica",
+      "lat": 9.9936,
+      "lon": -84.208,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "San Juan",
+      "lat": 18.4655,
+      "lon": -66.1057,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Santiago Chile",
+      "lat": -33.3928,
+      "lon": -70.7858,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Sao Luis",
+      "lat": -2.5854,
+      "lon": -44.2341,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "São Paulo",
+      "lat": -23.4356,
+      "lon": -46.4731,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Seattle",
+      "lat": 47.6062,
+      "lon": -122.3321,
+      "kinds": [
+        "air_route",
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Seattle Tacoma",
+      "lat": 47.4502,
+      "lon": -122.3088,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Seoul Incheon",
+      "lat": 37.4602,
+      "lon": 126.4407,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Serenza, Italy",
+      "lat": 45.4371908,
+      "lon": 13,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Shambali Monastery, Nepal",
+      "lat": 28.3949,
+      "lon": 84.124,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Shanghai",
+      "lat": 31.2304,
+      "lon": 121.4737,
+      "kinds": [
+        "air_route",
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Shanghai Pudong",
+      "lat": 31.1443,
+      "lon": 121.8083,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Singapore",
+      "lat": 1.2644,
+      "lon": 103.822,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Singapore",
+      "lat": 1.3644,
+      "lon": 103.9915,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Singapore",
+      "lat": 1.357107,
+      "lon": 103.8194992,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Socotra",
+      "lat": 12.4634,
+      "lon": 53.8237,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "St Pierre Miquelon",
+      "lat": 46.7628,
+      "lon": -56.1731,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Stuttgrat, Germany",
+      "lat": 48.7758,
+      "lon": 9.1829,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Suez",
+      "lat": 30.5,
+      "lon": 32.35,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Surabaya",
+      "lat": -7.2575,
+      "lon": 112.7521,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Suravasa, India",
+      "lat": 23.2599,
+      "lon": 77.4126,
+      "kinds": [
+        "airport",
+        "event"
+      ]
+    },
+    {
+      "name": "Suva",
+      "lat": -18.1248,
+      "lon": 178.4501,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Sydney",
+      "lat": -33.8688,
+      "lon": 151.2093,
+      "kinds": [
+        "port",
+        "station"
+      ]
+    },
+    {
+      "name": "Sydney",
+      "lat": -33.9461,
+      "lon": 151.1772,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Sydney, Australia",
+      "lat": -33.8698439,
+      "lon": 151.2082848,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Tashkent, Uzbekistan",
+      "lat": 41.2995,
+      "lon": 69.2401,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Tbilisi, Georgia",
+      "lat": 41.7151,
+      "lon": 44.8271,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "The Hague, Netherlands",
+      "lat": 52.0799838,
+      "lon": 4.3113461,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Tiveden, Sweden",
+      "lat": 59.3385984,
+      "lon": 17.9828394,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Tokyo Haneda",
+      "lat": 35.5494,
+      "lon": 139.7798,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Toronto Pearson",
+      "lat": 43.6777,
+      "lon": -79.6248,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Toronto, Canada",
+      "lat": 43.6532,
+      "lon": -79.3832,
+      "kinds": [
+        "air_route",
+        "event",
+        "station"
+      ]
+    },
+    {
+      "name": "Toronto, Canada",
+      "lat": 43.6534817,
+      "lon": -79.3839347,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Valparaiso",
+      "lat": -33.0472,
+      "lon": -71.6127,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Vancouver",
+      "lat": 49.2827,
+      "lon": -123.1207,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Venice, Italy",
+      "lat": 45.4371908,
+      "lon": 12.3345898,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Vishakhapatnam",
+      "lat": 17.6868,
+      "lon": 83.2185,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Warsaw, Poland",
+      "lat": 52.2333742,
+      "lon": 21.0711489,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Watchpoint Gibraltar",
+      "lat": 36.1408,
+      "lon": -5.3536,
+      "kinds": [
+        "event",
+        "port"
+      ]
+    },
+    {
+      "name": "Watchpoint Gibraltar",
+      "lat": 36.1285933,
+      "lon": -5.3474761,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Wellington",
+      "lat": -41.2865,
+      "lon": 174.7762,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Wheeler County, United States",
+      "lat": 35.3921902,
+      "lon": -100.2632764,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Winnipeg",
+      "lat": 49.91,
+      "lon": -97.2399,
+      "kinds": [
+        "airport"
+      ]
+    },
+    {
+      "name": "Xi'an, China",
+      "lat": 34.261004,
+      "lon": 108.9423363,
+      "kinds": [
+        "event"
+      ]
+    },
+    {
+      "name": "Yangon",
+      "lat": 16.8661,
+      "lon": 96.1951,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Yerevan, Armenia",
+      "lat": 40.1792,
+      "lon": 44.4991,
+      "kinds": [
+        "supplemental"
+      ]
+    },
+    {
+      "name": "Zamboanga",
+      "lat": 6.9214,
+      "lon": 122.078,
+      "kinds": [
+        "port"
+      ]
+    },
+    {
+      "name": "Zurich",
+      "lat": 47.3769,
+      "lon": 8.5417,
+      "kinds": [
+        "air_route",
+        "station"
+      ]
+    },
+    {
+      "name": "Zurich, Switzerland",
+      "lat": 47.3744489,
+      "lon": 8.5410422,
+      "kinds": [
+        "event"
+      ]
+    }
+  ]
+}

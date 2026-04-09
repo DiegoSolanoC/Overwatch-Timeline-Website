@@ -2,6 +2,8 @@
  * Passive hover preview under the Event Manager header button (mirrors music "now playing" badge).
  */
 
+import { getEraHoverPreviewSlug } from './EraHoverPreviewTheme.js';
+
 let badgeEl = null;
 let textNumberEl = null;
 let textTitleEl = null;
@@ -258,6 +260,12 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
 
     if (textEraNameEl) {
         textEraNameEl.textContent = eraTrim;
+        const eraSlug = getEraHoverPreviewSlug(eraTrim);
+        if (eraSlug) {
+            textEraNameEl.setAttribute('data-era', eraSlug);
+        } else {
+            textEraNameEl.removeAttribute('data-era');
+        }
     }
     if (textEraYearsEl) {
         textEraYearsEl.textContent = yearTrim;
@@ -364,7 +372,10 @@ export function hideEventsHoverPreview() {
                 textPrimaryFlagSlot.innerHTML = '';
                 textPrimaryFlagSlot.style.display = 'none';
             }
-            if (textEraNameEl) textEraNameEl.textContent = '';
+            if (textEraNameEl) {
+                textEraNameEl.textContent = '';
+                textEraNameEl.removeAttribute('data-era');
+            }
             if (textEraYearsEl) textEraYearsEl.textContent = '';
             if (textEraEl) {
                 textEraEl.style.display = '';

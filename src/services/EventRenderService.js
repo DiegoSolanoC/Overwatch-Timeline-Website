@@ -436,8 +436,8 @@ class EventRenderService {
         // Build pagination HTML (prev/next wrap: no disabled state, wrap at ends)
         let paginationHTML = '<div class="events-pagination-controls">';
         
-        // Previous button (wraps to last page when on first page)
-        paginationHTML += `<button type="button" class="events-pagination-btn" id="eventsPrevPage" title="Previous (wrap to last)"><span class="events-pagination-btn__arrow" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="20" height="20" decoding="async" /></span><span class="events-pagination-btn__label">Prev</span></button>`;
+        // Previous button (wraps to last page when on first page) — icon only; labels via aria
+        paginationHTML += `<button type="button" class="events-pagination-btn" id="eventsPrevPage" title="Previous page (wraps to last)" aria-label="Previous page"><span class="events-pagination-btn__arrow" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="20" height="20" decoding="async" /></span></button>`;
         
         // Page selector with text input (no spinner - use type="text" with pattern or keep number and hide spinner via CSS)
         paginationHTML += `<span class="events-pagination-page-selector">`;
@@ -447,7 +447,7 @@ class EventRenderService {
         paginationHTML += `</span>`;
         
         // Next button (wraps to first page when on last page)
-        paginationHTML += `<button type="button" class="events-pagination-btn" id="eventsNextPage" title="Next (wrap to first)"><span class="events-pagination-btn__label">Next</span><span class="events-pagination-btn__arrow" aria-hidden="true"><img class="ui-pagination-arrow ui-pagination-arrow--flip-h" src="assets/images/icons/Arrow Icon.png" alt="" width="20" height="20" decoding="async" /></span></button>`;
+        paginationHTML += `<button type="button" class="events-pagination-btn" id="eventsNextPage" title="Next page (wraps to first)" aria-label="Next page"><span class="events-pagination-btn__arrow" aria-hidden="true"><img class="ui-pagination-arrow ui-pagination-arrow--flip-h" src="assets/images/icons/Arrow Icon.png" alt="" width="20" height="20" decoding="async" /></span></button>`;
         
         paginationHTML += '</div>';
         paginationContainer.innerHTML = paginationHTML;

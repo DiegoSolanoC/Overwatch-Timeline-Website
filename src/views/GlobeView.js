@@ -1,7 +1,7 @@
 /**
  * GlobeView - Handles globe rendering, markers, and connection lines
  */
-import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition, latLonToMapPlanePosition } from '../utils/GeometryUtils.js?v=3';
+import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition, latLonToMapPlanePosition } from '../utils/GeometryUtils.js?v=4';
 import { EventMarkerManager } from '../managers/EventMarkerManager.js';
 import { configureTexture, loadTexture, changePlaneTexture } from './helpers/GlobeTextureHelpers.js';
 import {
@@ -12,7 +12,9 @@ import {
 } from './helpers/GlobePlaneHelpers.js';
 import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
 import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
-import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, createGlobeRimGlowSprite, createGlobeAuroraShell, createFlatMapAuroraShell, createGlobeCloudLayer, createFlatMapCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint, rerandomizeGlobeCloudAtlas, rerandomizeFlatMapCloudAtlas, createGlobePatternOverlay, createMapPatternOverlay, getPaletteAccentHex, updatePatternWave } from './helpers/GlobeInitHelpers.js';
+import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, assignEarthLightLayer, syncAtmosphereSunDirUniforms, createGlobeRimGlowSprite, createGlobeAuroraShell, createFlatMapAuroraShell, createGlobeCloudLayer, createFlatMapCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint, rerandomizeGlobeCloudAtlas, rerandomizeFlatMapCloudAtlas, createGlobePatternOverlay, createMapPatternOverlay, getPaletteAccentHex, updatePatternWave } from './helpers/GlobeInitHelpers.js';
+import { EARTH_POLAR_TO_EQUATORIAL_RATIO, EARTH_OBLIQUITY_DEG } from '../constants/GlobePhysicalConstants.js';
+import { createEarthCityLightsPoints, disposeEarthCityLights } from './helpers/EarthLightsHelpers.js';
 
 // THREE is loaded globally via script tag in index.html
 
@@ -58,6 +60,11 @@ export class GlobeView {
 
         /** Slow phase for starfield opacity shimmer (see updateAtmosphereEffects). */
         this._starfieldShimmerPhase = Math.random() * Math.PI * 2;
+
+        /** Additive yellow city-light points on Earth (rebuilt when events refresh). */
+        this._earthCityLights = null;
+        /** Warm point lights at random city-light sites (same layer as Earth). */
+        this._earthCityAccentLights = null;
     }
 
     /**
@@ -92,17 +99,17 @@ export class GlobeView {
         );
         
         // Create globe mesh
-        const globe = createGlobeMesh(
+        const earthMesh = createGlobeMesh(
             textureLoader,
             renderer,
             initialTexturePath,
             normalMap,
             (texture) => {
-                const globe = this.sceneModel.getGlobe();
-                if (globe) {
-                    globe.material.map = texture;
-                    globe.material.normalMap = normalMap;
-                    globe.material.needsUpdate = true;
+                const surf = this.sceneModel.getGlobeSurfaceMesh ? this.sceneModel.getGlobeSurfaceMesh() : this.sceneModel.getGlobe();
+                if (surf && surf.material) {
+                    surf.material.map = texture;
+                    surf.material.normalMap = normalMap;
+                    surf.material.needsUpdate = true;
                 }
                 this.textureCache.set(initialTexturePath, texture);
                 if (onTextureLoaded) {
@@ -111,20 +118,30 @@ export class GlobeView {
             },
             (err) => {
                 console.error('Error loading Earth texture:', err);
-                const globe = this.sceneModel.getGlobe();
-                if (globe) {
-                    globe.material.color.setHex(0x4a90e2);
+                const surf = this.sceneModel.getGlobeSurfaceMesh ? this.sceneModel.getGlobeSurfaceMesh() : this.sceneModel.getGlobe();
+                if (surf && surf.material) {
+                    surf.material.color.setHex(0x4a90e2);
                 }
             }
         );
-        this.sceneModel.setGlobe(globe);
-        scene.add(globe);
+
+        /*
+         * World-fixed axial tilt (obliquity): middle group only, never spun by controllers.
+         * Inner `globe` is what getGlobe() returns — user drag + auto-rotate = spin about physical axis.
+         */
+        const globe = new THREE.Group();
+        globe.name = 'earthGlobeRoot';
+        globe.userData.earthSurfaceMesh = earthMesh;
+        globe.add(earthMesh);
+
+        const oblate = EARTH_POLAR_TO_EQUATORIAL_RATIO;
 
         // Pattern overlay on globe - tinted by palette
         const patternTint = getPaletteAccentHex(paletteKey);
         const globePattern = createGlobePatternOverlay(textureLoader, renderer, patternTint, 0.15);
         if (globePattern) {
             this._globePatternOverlay = globePattern;
+            globePattern.scale.set(1, oblate, 1);
             globe.add(globePattern);
         }
 
@@ -140,6 +157,7 @@ export class GlobeView {
         });
         if (cloudLayer) {
             this._cloudLayer = cloudLayer;
+            cloudLayer.scale.set(1, oblate, 1);
             globe.add(cloudLayer);
         }
 
@@ -149,6 +167,7 @@ export class GlobeView {
         });
         if (aurora) {
             this._auroraMesh = aurora;
+            aurora.scale.set(1, oblate, 1);
             globe.add(aurora);
             this._seedAuroraVeilAnimIfNeeded();
         }
@@ -166,6 +185,19 @@ export class GlobeView {
             rimGlow.renderOrder = 2;
             globe.add(rimGlow);
         }
+
+        const axialTiltFixed = new THREE.Group();
+        axialTiltFixed.name = 'earthAxialTilt';
+        axialTiltFixed.rotation.x = THREE.MathUtils.degToRad(EARTH_OBLIQUITY_DEG);
+        axialTiltFixed.add(globe);
+
+        const earthAssembly = new THREE.Group();
+        earthAssembly.name = 'earthAssembly';
+        earthAssembly.add(axialTiltFixed);
+
+        this.sceneModel.setGlobe(globe);
+        scene.add(earthAssembly);
+        assignEarthLightLayer(globe);
 
         // Create flat Earth map plane (hidden by default; used for map view toggle)
         const earthMapPlane = createEarthMapPlane(
@@ -220,12 +252,15 @@ export class GlobeView {
             this._syncMapAuroraVeilFromGlobe();
         }
 
+        assignEarthLightLayer(earthMapPlane);
+
         // Add a background "sun" element (sprite + warm light); hidden in flat map view.
         const sunBackground = addSunBackground({ scene });
         if (sunBackground) {
             this.sceneModel.setSunBackground(sunBackground);
         }
-        
+        this._syncAtmosphereSunDirection();
+
         // Preload other Earth map textures for quick palette switching
         const allMapTextures = [
             'assets/images/maps/MAP.png',
@@ -312,6 +347,26 @@ export class GlobeView {
     }
 
     /** Copy veil/time uniforms so map aurora is not stuck at uVeilExpand=0 before first frame. */
+    /**
+     * Aligns shader-based overlays with the sun (procedural clouds / aurora / pattern) and city lights;
+     * atlas clouds use scene lights instead.
+     */
+    _syncAtmosphereSunDirection() {
+        const sunBg = this.sceneModel.getSunBackground ? this.sceneModel.getSunBackground() : this.sceneModel.sunBackground;
+        const light = sunBg && sunBg.light;
+        syncAtmosphereSunDirUniforms(light, [
+            this._cloudLayer,
+            this._auroraMesh,
+            this._globePatternOverlay,
+            this._earthCityLights
+        ]);
+    }
+
+    /** Call after the sun light moves (e.g. viewport resize) so `uSunDirWorld` stays in sync. */
+    syncSunDirectionToShaders() {
+        this._syncAtmosphereSunDirection();
+    }
+
     _syncMapAuroraVeilFromGlobe() {
         const g = this._auroraMesh;
         const m = this._mapAuroraMesh;
@@ -349,6 +404,7 @@ export class GlobeView {
                     cloudTextureVariants: GLOBE_CLOUD_ATLAS_VARIANTS,
                     opacity: GLOBE_CLOUD_BASE_OPACITY
                 });
+                this._syncAtmosphereSunDirection();
             }
         }
         if (this._mapCloudLayer) {
@@ -510,6 +566,11 @@ export class GlobeView {
             console.error('Globe not found');
             return;
         }
+        const surface = this.sceneModel.getGlobeSurfaceMesh ? this.sceneModel.getGlobeSurfaceMesh() : globe;
+        if (!surface || !surface.material) {
+            console.error('Globe surface mesh not found');
+            return;
+        }
 
         const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
 
@@ -517,8 +578,8 @@ export class GlobeView {
         if (this.textureCache.has(texturePath)) {
             const cachedTexture = this.textureCache.get(texturePath);
             console.log('Using cached texture:', texturePath);
-            globe.material.map = cachedTexture;
-            globe.material.needsUpdate = true;
+            surface.material.map = cachedTexture;
+            surface.material.needsUpdate = true;
             if (earthMapPlane && earthMapPlane.material) {
                 earthMapPlane.material.map = cachedTexture;
                 earthMapPlane.material.needsUpdate = true;
@@ -535,8 +596,8 @@ export class GlobeView {
         loadTexture(textureLoader, texturePath, renderer, (texture) => {
                 console.log('Globe texture changed to:', texturePath);
                 this.textureCache.set(texturePath, texture);
-                globe.material.map = texture;
-                globe.material.needsUpdate = true;
+                surface.material.map = texture;
+                surface.material.needsUpdate = true;
                 if (earthMapPlane && earthMapPlane.material) {
                     earthMapPlane.material.map = texture;
                     earthMapPlane.material.needsUpdate = true;
@@ -782,6 +843,10 @@ export class GlobeView {
         if (sunBg) {
             if (sunBg.sprite) sunBg.sprite.visible = v;
             if (sunBg.light) sunBg.light.visible = v;
+        }
+        const earthAmb = this.sceneModel.earthAmbientLayer1;
+        if (earthAmb) {
+            earthAmb.intensity = v ? 0.002 : 0.72;
         }
     }
 
@@ -1236,14 +1301,59 @@ export class GlobeView {
     
     /**
      * Refresh event markers (remove old, add new for current page)
-     * Delegates to EventMarkerManager
-     */
-    /**
+     * Rebuilds Earth city lights afterward so event locations stay covered.
      * @param {boolean} [animate=true]
      * @returns {Promise<void>|undefined}
      */
     refreshEventMarkers(animate = true, options = {}) {
-        return this.eventMarkerManager.refreshEventMarkers(animate, options);
+        const ret = this.eventMarkerManager.refreshEventMarkers(animate, options);
+        if (ret && typeof ret.then === 'function') {
+            return ret.then(() => this.refreshEarthCityLights());
+        }
+        return Promise.resolve(this.refreshEarthCityLights()).then(() => ret);
+    }
+
+    /**
+     * Yellow “city light” points on the globe: transport hubs + Earth events (see EarthLightsData.js).
+     */
+    addEarthCityLights() {
+        this.refreshEarthCityLights();
+    }
+
+    /**
+     * Recompute city lights from current {@link DataModel} (including events).
+     * Async: loads continent mask (Alpha.png) to skip ocean placement.
+     * @returns {Promise<void>}
+     */
+    async refreshEarthCityLights() {
+        const globe = this.sceneModel.getGlobe();
+        if (!globe) return;
+        if (this._earthCityLights) {
+            globe.remove(this._earthCityLights);
+            disposeEarthCityLights(this._earthCityLights);
+            this._earthCityLights = null;
+        }
+        if (this._earthCityAccentLights && this._earthCityAccentLights.length) {
+            for (const L of this._earthCityAccentLights) {
+                globe.remove(L);
+            }
+            this._earthCityAccentLights = null;
+        }
+        try {
+            const pts = await createEarthCityLightsPoints(this.dataModel);
+            if (pts && pts.instancedMesh) {
+                this._earthCityLights = pts.instancedMesh;
+                globe.add(pts.instancedMesh);
+                const accent = pts.accentPointLights || [];
+                this._earthCityAccentLights = accent;
+                for (const L of accent) {
+                    globe.add(L);
+                }
+            }
+        } catch (e) {
+            console.warn('GlobeView: earth city lights failed', e);
+        }
+        this._syncAtmosphereSunDirection();
     }
     
     /**

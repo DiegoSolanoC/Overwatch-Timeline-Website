@@ -505,6 +505,91 @@
       "lon": -171.9993
     },
     {
+      "name": "Seattle Tacoma",
+      "lat": 47.4502,
+      "lon": -122.3088
+    },
+    {
+      "name": "Portland Oregon",
+      "lat": 45.5898,
+      "lon": -122.5951
+    },
+    {
+      "name": "New Orleans",
+      "lat": 29.9934,
+      "lon": -90.258
+    },
+    {
+      "name": "Kansas City",
+      "lat": 39.2976,
+      "lon": -94.7139
+    },
+    {
+      "name": "Calgary",
+      "lat": 51.1315,
+      "lon": -114.0105
+    },
+    {
+      "name": "Winnipeg",
+      "lat": 49.91,
+      "lon": -97.2399
+    },
+    {
+      "name": "St Pierre Miquelon",
+      "lat": 46.7628,
+      "lon": -56.1731
+    },
+    {
+      "name": "Salvador Bahia",
+      "lat": -12.9105,
+      "lon": -38.3311
+    },
+    {
+      "name": "Managua",
+      "lat": 12.1415,
+      "lon": -86.1682
+    },
+    {
+      "name": "Quito",
+      "lat": -0.1292,
+      "lon": -78.3575
+    },
+    {
+      "name": "Guayaquil",
+      "lat": -2.1574,
+      "lon": -79.8836
+    },
+    {
+      "name": "Rio Gallegos",
+      "lat": -51.6053,
+      "lon": -69.3126
+    },
+    {
+      "name": "Punta Arenas",
+      "lat": -53.0026,
+      "lon": -70.8546
+    },
+    {
+      "name": "Mar del Plata",
+      "lat": -37.9342,
+      "lon": -57.5733
+    },
+    {
+      "name": "Santiago Chile",
+      "lat": -33.3928,
+      "lon": -70.7858
+    },
+    {
+      "name": "Belem",
+      "lat": -1.3842,
+      "lon": -48.4765
+    },
+    {
+      "name": "Sao Luis",
+      "lat": -2.5854,
+      "lon": -44.2341
+    },
+    {
       "name": "North Pole Station",
       "lat": 90,
       "lon": 0

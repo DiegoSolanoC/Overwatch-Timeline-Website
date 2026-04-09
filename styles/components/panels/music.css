@@ -413,6 +413,67 @@ body.color-palette-gray .music-mute-btn:hover {
     display: none;
 }
 
+/*
+ * Era line only: thematic colors while preview is visible or exiting.
+ * (--visible is removed as soon as hide runs, but --hiding keeps content for slide-out; without this
+ * the era span would inherit white from .events-hover-preview-era for ~200ms.)
+ */
+.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='age-progress'],
+.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='age-progress'] {
+    color: #66bb6a;
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.6),
+        0 0 22px rgba(102, 187, 106, 0.35);
+}
+
+.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='omnic-crisis'],
+.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='omnic-crisis'] {
+    color: #ff5722;
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.6),
+        0 0 22px rgba(255, 87, 34, 0.42);
+}
+
+.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='golden-age'],
+.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='golden-age'] {
+    color: #ffca28;
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.6),
+        0 0 22px rgba(255, 202, 40, 0.4);
+}
+
+.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='fall-overwatch'],
+.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='fall-overwatch'] {
+    color: #4e342e;
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.65),
+        0 0 20px rgba(78, 52, 46, 0.45);
+}
+
+.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='age-conflict'],
+.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='age-conflict'] {
+    color: #42a5f5;
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.6),
+        0 0 22px rgba(66, 165, 245, 0.38);
+}
+
+.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='null-sector'],
+.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='null-sector'] {
+    color: #ba68c8;
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.6),
+        0 0 22px rgba(186, 104, 200, 0.38);
+}
+
+.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='reign-talon'],
+.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='reign-talon'] {
+    color: #8b1313;
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.65),
+        0 0 22px rgba(139, 19, 19, 0.4);
+}
+
 .events-hover-preview-era__years {
     font-size: clamp(22px, 2.75vw, 32px);
     font-weight: 700;

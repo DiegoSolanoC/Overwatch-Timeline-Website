@@ -18,27 +18,27 @@ export function getCelestialMaterialTint(palette = 'blue') {
         return {
             color: 0xf2efe9,
             emissive: 0xff7733,
-            emissiveIntensity: 0.12
+            emissiveIntensity: 0.52
         };
     }
     if (p === 'crimson') {
         return {
             color: 0xfaf0ef,
             emissive: 0xb71c28,
-            emissiveIntensity: 0.15
+            emissiveIntensity: 0.5
         };
     }
     if (p === 'nulled') {
         return {
             color: 0xeee9fa,
             emissive: 0x7e57c2,
-            emissiveIntensity: 0.14
+            emissiveIntensity: 0.5
         };
     }
     return {
         color: 0xeef3fb,
         emissive: 0x3d6fb5,
-        emissiveIntensity: 0.18
+        emissiveIntensity: 0.55
     };
 }
 

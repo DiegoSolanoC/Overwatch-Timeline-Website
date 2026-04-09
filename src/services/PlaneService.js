@@ -2,14 +2,19 @@
  * PlaneService - Handles plane creation, updates, and spawning
  */
 
-// Geometry utility functions (from GeometryUtils.js)
+// Keep in sync with GeometryUtils.latLonToVector3 (oblate WGS84 ellipsoid).
+const _EARTH_POLAR_RATIO = 6356752.314245179 / 6378137.0;
 function latLonToVector3(lat, lon, radius) {
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (lon + 180) * (Math.PI / 180);
-    const x = -(radius * Math.sin(phi) * Math.cos(theta));
-    const z = (radius * Math.sin(phi) * Math.sin(theta));
-    const y = (radius * Math.cos(phi));
-    return new THREE.Vector3(x, y, z);
+    const ux = -(Math.sin(phi) * Math.cos(theta));
+    const uz = Math.sin(phi) * Math.sin(theta);
+    const uy = Math.cos(phi);
+    const a = radius;
+    const b = radius * _EARTH_POLAR_RATIO;
+    const inv = (ux * ux + uz * uz) / (a * a) + (uy * uy) / (b * b);
+    const k = 1 / Math.sqrt(inv);
+    return new THREE.Vector3(k * ux, k * uy, k * uz);
 }
 
 function createArcBetweenPoints(lat1, lon1, lat2, lon2, altitude, segments, isMainConnection = true, forceLongWay = false) {

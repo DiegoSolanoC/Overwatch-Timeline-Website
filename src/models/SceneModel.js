@@ -2,6 +2,8 @@
  * SceneModel - Manages Three.js scene state
  * Handles scene, camera, renderer, globe, markers, and UI state
  */
+import { EARTH_GLOBE_LIGHT_LAYER } from '../constants/GlobeLightingConstants.js';
+
 export class SceneModel {
     constructor() {
         // Three.js core objects
@@ -12,6 +14,8 @@ export class SceneModel {
         this.stars = null;
         /** @type {{sprite: THREE.Sprite, light: THREE.DirectionalLight}|null} Background sun from addSunBackground */
         this.sunBackground = null;
+        /** @type {THREE.AmbientLight|null} Earth-only fill (light layer 1); intensity raised in flat map when sun light is hidden. */
+        this.earthAmbientLayer1 = null;
         this.earthMapPlane = null;
         this.moonPlane = null;
         this.marsPlane = null;
@@ -81,21 +85,25 @@ export class SceneModel {
         // Store mobile state for later use
         this.isMobilePortrait = isMobilePortrait;
 
+        this.camera.layers.enable(EARTH_GLOBE_LIGHT_LAYER);
+
         // Renderer setup
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         this.applyRendererPixelRatioCap();
         container.appendChild(this.renderer.domElement);
 
-        // Add lighting for normal map visualization (MeshStandardMaterial needs lighting)
-        // Ambient light for overall illumination
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        this.scene.add(ambientLight);
-        
-        // Directional light to show normal map depth
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(5, 3, 5);
-        this.scene.add(directionalLight);
+        /*
+         * Layer 0: Moon/Mars, markers, stars — higher ambient so panels stay self-lit (emissive + fill).
+         * Layer 1: Earth globe + flat map — almost only sun directional; trace ambient for map mode / edge stability (no hemisphere — it flattened night).
+         */
+        const worldAmbient = new THREE.AmbientLight(0xffffff, 0.52);
+        worldAmbient.layers.set(0);
+        this.scene.add(worldAmbient);
+
+        this.earthAmbientLayer1 = new THREE.AmbientLight(0xffffff, 0.002);
+        this.earthAmbientLayer1.layers.set(EARTH_GLOBE_LIGHT_LAYER);
+        this.scene.add(this.earthAmbientLayer1);
 
         // Initialize GLTF Loader
         this.gltfLoader = new THREE.GLTFLoader();
@@ -163,6 +171,18 @@ export class SceneModel {
      */
     getGlobe() {
         return this.globe;
+    }
+
+    /**
+     * The textured Earth mesh when the globe root is a Group (tilt + spin); otherwise the root mesh.
+     * @returns {THREE.Mesh|null}
+     */
+    getGlobeSurfaceMesh() {
+        const g = this.globe;
+        if (!g) return null;
+        if (g.isMesh) return g;
+        const m = g.userData && g.userData.earthSurfaceMesh;
+        return m && m.isMesh ? m : null;
     }
 
     /**

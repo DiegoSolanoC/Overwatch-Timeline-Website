@@ -2,6 +2,12 @@
  * InteractionController - Handles mouse/touch controls and marker interactions
  * Coordinates interaction services for separation of concerns
  */
+
+function isEventFromDevSunYawPanel(event) {
+    const t = event && event.target;
+    return !!(t && typeof t.closest === 'function' && t.closest('.dev-sun-yaw-panel'));
+}
+
 export class InteractionController {
     constructor(sceneModel, uiView) {
         this.sceneModel = sceneModel;
@@ -67,7 +73,8 @@ export class InteractionController {
         container.addEventListener('mouseup', () => this.onMouseUp());
         container.addEventListener('mouseleave', () => this.onMouseUp());
         container.addEventListener('click', (e) => this.onMarkerClick(e));
-        container.addEventListener('dblclick', () => {
+        container.addEventListener('dblclick', (e) => {
+            if (isEventFromDevSunYawPanel(e)) return;
             if (typeof window.closeTimelineMusicFiltersPanelsIfOpen === 'function') {
                 window.closeTimelineMusicFiltersPanelsIfOpen();
             }
@@ -84,6 +91,7 @@ export class InteractionController {
      * @param {MouseEvent} event - Mouse event
      */
     onMouseDown(event) {
+        if (isEventFromDevSunYawPanel(event)) return;
         this.mouseService.onMouseDown(event);
     }
 
@@ -92,6 +100,15 @@ export class InteractionController {
      * @param {MouseEvent} event - Mouse event
      */
     onMouseMove(event) {
+        if (isEventFromDevSunYawPanel(event)) {
+            if (this.sceneModel.isDraggingState()) {
+                this.sceneModel.setPreviousMousePosition({
+                    x: event.clientX,
+                    y: event.clientY
+                });
+            }
+            return;
+        }
         this.mouseService.onMouseMove(event, (e) => this.markerService.checkEventMarkerHover(e));
     }
 
@@ -178,6 +195,7 @@ export class InteractionController {
      * @param {MouseEvent} event - Mouse event
      */
     onMarkerClick(event) {
+        if (isEventFromDevSunYawPanel(event)) return;
         this.markerService.onMarkerClick(
             event,
             (marker) => this.zoomToMarker(marker),
@@ -190,6 +208,7 @@ export class InteractionController {
      * @param {TouchEvent} event - Touch event
      */
     onTouchStart(event) {
+        if (event.touches.length === 1 && isEventFromDevSunYawPanel(event)) return;
         this.touchService.onTouchStart(event);
     }
 
@@ -198,6 +217,16 @@ export class InteractionController {
      * @param {TouchEvent} event - Touch event
      */
     onTouchMove(event) {
+        if (event.touches.length === 1 && isEventFromDevSunYawPanel(event)) {
+            const touch = event.touches[0];
+            if (this.sceneModel.isDraggingState()) {
+                this.sceneModel.setPreviousMousePosition({
+                    x: touch.clientX,
+                    y: touch.clientY
+                });
+            }
+            return;
+        }
         this.touchService.onTouchMove(event);
     }
 
@@ -206,6 +235,7 @@ export class InteractionController {
      * @param {WheelEvent} event - Wheel event
      */
     onWheel(event) {
+        if (isEventFromDevSunYawPanel(event)) return;
         this.cameraService.onWheel(event);
     }
 
@@ -272,6 +302,10 @@ export class InteractionController {
             const GH = typeof window !== 'undefined' ? window.GlobeInitHelpers : null;
             if (sunBg && GH && typeof GH.applySunBackgroundForViewport === 'function') {
                 GH.applySunBackgroundForViewport(sunBg);
+            }
+            if (window.globeController && window.globeController.globeView
+                && typeof window.globeController.globeView.syncSunDirectionToShaders === 'function') {
+                window.globeController.globeView.syncSunDirectionToShaders();
             }
         } catch (_) { /* ignore */ }
     }
