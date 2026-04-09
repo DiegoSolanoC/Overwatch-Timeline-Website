@@ -734,9 +734,10 @@ body.color-palette-gray .event-item-title {
 /* Counter parent skew so the variant trapezoid lines up with the thumb on narrow portrait */
 @media (max-width: 768px) and (orientation: portrait) {
     #eventsList .event-item__thumb-visual .multi-event-badge {
-        left: 4px;
+        /* Slightly inset from the skewed thumb edge (was 4px / 2px — still read as hugging the rim) */
+        left: clamp(10px, 3.2vw, 16px);
         margin-left: 0;
-        top: 2px;
+        top: clamp(6px, 2vw, 10px);
         max-width: min(46%, 8rem);
         min-width: 2.65em;
         padding: 7px 10px 7px 6px;
