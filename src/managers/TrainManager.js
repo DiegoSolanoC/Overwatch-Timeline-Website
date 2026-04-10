@@ -31,7 +31,6 @@ export class TrainManager {
      */
     createTrain(routeData, isMultiStop = false, journeyProgress = 0) {
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
 
         // Map view: use a straight line between endpoints (no curvature)
@@ -237,7 +236,7 @@ export class TrainManager {
         trainGroup.visible = false;
         trainGroup.userData.isNewlySpawned = true;
         
-        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
+        const parent = globe;
         if (parent) parent.add(trainGroup);
         this.transportModel.addTrain(trainGroup);
         
@@ -276,9 +275,10 @@ export class TrainManager {
     updateTrains() {
         if (!this.sceneModel.getHyperloopVisible()) return;
 
-        const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (isMapView) return;
+
+        const globe = this.sceneModel.getGlobe();
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const trains = this.transportModel.getTrains();
         const planeUp = new THREE.Vector3(0, 0, 1);
@@ -546,7 +546,8 @@ export class TrainManager {
         console.log(`📊 Cities in graph: ${Object.keys(routeGraph).length}`);
         
         const DEPARTURE_COOLDOWN_MS = 8000;
-        if (routeCurves.length > 0 && this.sceneModel.getHyperloopVisible()) {
+        const startInMap = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (routeCurves.length > 0 && this.sceneModel.getHyperloopVisible() && !startInMap) {
             // Initial spawn: respect reservations + departure cooldown
             for (let attempt = 0; attempt < 12; attempt++) {
                 const randomRoute = routeCurves[Math.floor(Math.random() * routeCurves.length)];
@@ -566,10 +567,7 @@ export class TrainManager {
             const hyperloopVisible = this.sceneModel.getHyperloopVisible();
             const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             
-            if (!isPageVisible || !hyperloopVisible) return;
-
-            // Map view: reduce spawn frequency by ~half
-            if (isMapView && Math.random() < 0.5) return;
+            if (!isPageVisible || !hyperloopVisible || isMapView) return;
             
             // Limit number of trains (half the normal amount for mobile performance)
             const MAX_TRAINS = 15;

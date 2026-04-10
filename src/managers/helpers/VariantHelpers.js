@@ -14,7 +14,13 @@ export function findVariantMarker(sceneModel, eventData, variantIndex) {
     if (!window.globeController || !window.globeController.interactionController) {
         return null;
     }
-    
+
+    const mapOn = sceneModel.getMapViewEnabled?.() ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
+    if (mapOn && window.globeController.map2dLite?.getStubForVariant) {
+        const stub = window.globeController.map2dLite.getStubForVariant(eventData, variantIndex);
+        if (stub) return stub;
+    }
+
     const markers = sceneModel.getMarkers();
     
     // Try to find the marker for this specific variant

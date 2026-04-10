@@ -53,9 +53,6 @@ export class TransportView {
         if (!this.sceneModel.getHyperloopVisible()) return;
 
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
-        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         
         // Calculate position behind the plane
@@ -77,7 +74,7 @@ export class TransportView {
         };
         
         segment.visible = hyperloopVisible;
-        if (parent) parent.add(segment);
+        if (globe) globe.add(segment);
         this.transportModel.addPlaneTrail(segment);
     }
 
@@ -117,9 +114,6 @@ export class TransportView {
         if (!this.sceneModel.getHyperloopVisible()) return;
 
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
-        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         
         const triangleSize = 0.006; // Triangle size (reverted to original)
@@ -159,7 +153,7 @@ export class TransportView {
         };
         
         triangle.visible = hyperloopVisible;
-        if (parent) parent.add(triangle);
+        if (globe) globe.add(triangle);
         this.transportModel.addBoatTrail(triangle);
     }
 
@@ -331,12 +325,7 @@ export class TransportView {
         if (!this.sceneModel.getHyperloopVisible()) return;
 
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
-        const planeWidth = 2.0;
-        const halfW = planeWidth / 2;
-        const wrapX = (x) => ((x + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
         
         // Calculate random offset to the sides
         // Get a random perpendicular direction
@@ -357,8 +346,7 @@ export class TransportView {
         const dot = new THREE.Mesh(dotGeometry, dotMaterial);
         
         // Position with random side offset
-        const px = isMapView ? wrapX(position.x + offsetX) : (position.x + offsetX);
-        dot.position.set(px, position.y + offsetY, position.z + offsetZ);
+        dot.position.set(position.x + offsetX, position.y + offsetY, position.z + offsetZ);
         
         dot.userData = {
             age: 0,
@@ -366,8 +354,7 @@ export class TransportView {
         };
         
         dot.visible = hyperloopVisible;
-        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
-        if (parent) parent.add(dot);
+        if (globe) globe.add(dot);
         this.transportModel.addPlaneTrail(dot); // Use plane trail system
     }
 
@@ -379,7 +366,6 @@ export class TransportView {
         if (!airports || airports.length === 0) return;
         
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         
@@ -412,8 +398,8 @@ export class TransportView {
             const mapMarker = new THREE.Mesh(mapMarkerGeometry, mapMarkerMaterial);
             mapMarker.position.copy(mapPosition);
             mapMarker.userData = { type: 'airport', name: airport.name, isMapMarker: true };
-            mapMarker.visible = hyperloopVisible && isMapView;
-            if (earthMapPlane) earthMapPlane.add(mapMarker);
+            mapMarker.visible = false;
+            if (globe) globe.add(mapMarker);
             
             this.airportMarkers.push({ globe: globeMarker, map: mapMarker, airport });
         });
@@ -426,7 +412,6 @@ export class TransportView {
      */
     removeAirportMarkers() {
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         
         this.airportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
             if (globeMarker) {
@@ -437,7 +422,7 @@ export class TransportView {
             if (mapMarker) {
                 if (mapMarker.geometry) mapMarker.geometry.dispose();
                 if (mapMarker.material) mapMarker.material.dispose();
-                if (earthMapPlane) earthMapPlane.remove(mapMarker);
+                if (globe) globe.remove(mapMarker);
             }
         });
         
@@ -453,7 +438,7 @@ export class TransportView {
         
         this.airportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
             if (globeMarker) globeMarker.visible = hyperloopVisible && !isMapView;
-            if (mapMarker) mapMarker.visible = hyperloopVisible && isMapView;
+            if (mapMarker) mapMarker.visible = false;
         });
     }
 
@@ -465,7 +450,6 @@ export class TransportView {
         if (!cities || cities.length === 0) return;
         
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         
@@ -498,8 +482,8 @@ export class TransportView {
             const mapMarker = new THREE.Mesh(mapMarkerGeometry, mapMarkerMaterial);
             mapMarker.position.copy(mapPosition);
             mapMarker.userData = { type: 'trainStation', name: city.name, isMapMarker: true };
-            mapMarker.visible = hyperloopVisible && isMapView;
-            if (earthMapPlane) earthMapPlane.add(mapMarker);
+            mapMarker.visible = false;
+            if (globe) globe.add(mapMarker);
             
             this.trainStationMarkers.push({ globe: globeMarker, map: mapMarker, city });
         });
@@ -512,7 +496,6 @@ export class TransportView {
      */
     removeTrainStationMarkers() {
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         
         this.trainStationMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
             if (globeMarker) {
@@ -523,7 +506,7 @@ export class TransportView {
             if (mapMarker) {
                 if (mapMarker.geometry) mapMarker.geometry.dispose();
                 if (mapMarker.material) mapMarker.material.dispose();
-                if (earthMapPlane) earthMapPlane.remove(mapMarker);
+                if (globe) globe.remove(mapMarker);
             }
         });
         
@@ -539,7 +522,7 @@ export class TransportView {
         
         this.trainStationMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
             if (globeMarker) globeMarker.visible = hyperloopVisible && !isMapView;
-            if (mapMarker) mapMarker.visible = hyperloopVisible && isMapView;
+            if (mapMarker) mapMarker.visible = false;
         });
     }
 
@@ -551,7 +534,6 @@ export class TransportView {
         if (!seaports || seaports.length === 0) return;
         
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         
@@ -584,8 +566,8 @@ export class TransportView {
             const mapMarker = new THREE.Mesh(mapMarkerGeometry, mapMarkerMaterial);
             mapMarker.position.copy(mapPosition);
             mapMarker.userData = { type: 'seaport', name: seaport.name, isMapMarker: true };
-            mapMarker.visible = hyperloopVisible && isMapView;
-            if (earthMapPlane) earthMapPlane.add(mapMarker);
+            mapMarker.visible = false;
+            if (globe) globe.add(mapMarker);
             
             this.seaportMarkers.push({ globe: globeMarker, map: mapMarker, seaport });
         });
@@ -598,7 +580,6 @@ export class TransportView {
      */
     removeSeaportMarkers() {
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         
         this.seaportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
             if (globeMarker) {
@@ -609,7 +590,7 @@ export class TransportView {
             if (mapMarker) {
                 if (mapMarker.geometry) mapMarker.geometry.dispose();
                 if (mapMarker.material) mapMarker.material.dispose();
-                if (earthMapPlane) earthMapPlane.remove(mapMarker);
+                if (globe) globe.remove(mapMarker);
             }
         });
         
@@ -625,7 +606,7 @@ export class TransportView {
         
         this.seaportMarkers.forEach(({ globe: globeMarker, map: mapMarker }) => {
             if (globeMarker) globeMarker.visible = hyperloopVisible && !isMapView;
-            if (mapMarker) mapMarker.visible = hyperloopVisible && isMapView;
+            if (mapMarker) mapMarker.visible = false;
         });
     }
 

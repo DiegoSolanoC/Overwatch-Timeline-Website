@@ -1,7 +1,7 @@
 /**
  * GlobeView - Handles globe rendering, markers, and connection lines
  */
-import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition, latLonToMapPlanePosition } from '../utils/GeometryUtils.js?v=4';
+import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition } from '../utils/GeometryUtils.js?v=4';
 import { EventMarkerManager } from '../managers/EventMarkerManager.js';
 import { configureTexture, loadTexture, changePlaneTexture } from './helpers/GlobeTextureHelpers.js';
 import {
@@ -12,7 +12,7 @@ import {
 } from './helpers/GlobePlaneHelpers.js';
 import { createMarkerWithPin } from './helpers/GlobeMarkerHelpers.js';
 import { createConnectionLine, createConnectionGlow } from './helpers/GlobeConnectionHelpers.js';
-import { createGlobeMesh, createEarthMapPlane, setupCelestialPlanes, addSunBackground, assignEarthLightLayer, syncAtmosphereSunDirUniforms, createGlobeRimGlowSprite, createGlobeAuroraShell, createFlatMapAuroraShell, createGlobeCloudLayer, createFlatMapCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint, rerandomizeGlobeCloudAtlas, rerandomizeFlatMapCloudAtlas, createGlobePatternOverlay, createMapPatternOverlay, getPaletteAccentHex, updatePatternWave } from './helpers/GlobeInitHelpers.js';
+import { createGlobeMesh, setupCelestialPlanes, addSunBackground, assignEarthLightLayer, syncAtmosphereSunDirUniforms, createGlobeRimGlowSprite, createGlobeAuroraShell, createGlobeCloudLayer, GLOBE_CLOUD_ATLAS_VARIANTS, applyGlobeCloudPaletteTint, rerandomizeGlobeCloudAtlas, createGlobePatternOverlay, getPaletteAccentHex, updatePatternWave } from './helpers/GlobeInitHelpers.js';
 import { EARTH_POLAR_TO_EQUATORIAL_RATIO, EARTH_OBLIQUITY_DEG } from '../constants/GlobePhysicalConstants.js';
 import { createEarthCityLightsPoints, disposeEarthCityLights } from './helpers/EarthLightsHelpers.js';
 
@@ -20,10 +20,8 @@ import { createEarthCityLightsPoints, disposeEarthCityLights } from './helpers/E
 
 const MISC_STAR_PNG = 'assets/images/misc/Star.png';
 
-/** Globe cloud / map weather baseline opacity */
+/** Globe cloud / weather baseline opacity */
 const GLOBE_CLOUD_BASE_OPACITY = 0.5;
-/** Flat map clouds + aurora vs globe: lower = subtler so the 2D map stays readable (was 0.7; reduced for less intrusion). */
-const MAP_WEATHER_ALPHA_VS_GLOBE = 0.44;
 
 export class GlobeView {
     constructor(sceneModel, dataModel) {
@@ -39,9 +37,6 @@ export class GlobeView {
         /** Smoothed random veil size / intensity for aurora shader (see updateAtmosphereEffects). */
         this._auroraVeilAnim = null;
         this._cloudLayer = null;
-        /** Weather overlays on the flat map (same toggle as globe clouds / aurora; shooting stars stay globe-only). */
-        this._mapCloudLayer = null;
-        this._mapAuroraMesh = null;
 
         /** Shared Star.png for background starfield (~30%) and shooting star heads (deduped load). */
         this._miscStarPngPromise = null;
@@ -85,6 +80,9 @@ export class GlobeView {
             ? 'assets/images/maps/MAP Black.png'
             : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : (isNulled ? 'assets/images/maps/MAP Nulled.png' : 'assets/images/maps/MAP.png'));
         console.log('Initializing globe with palette:', savedPalette || 'blue (default)', 'Texture:', initialTexturePath);
+        if (this.sceneModel.setEarthMapTextureUrl) {
+            this.sceneModel.setEarthMapTextureUrl(initialTexturePath);
+        }
         
         const textureLoader = new THREE.TextureLoader();
         
@@ -199,60 +197,15 @@ export class GlobeView {
         scene.add(earthAssembly);
         assignEarthLightLayer(globe);
 
-        // Create flat Earth map plane (hidden by default; used for map view toggle)
-        const earthMapPlane = createEarthMapPlane(
-            textureLoader,
-            renderer,
-            initialTexturePath,
-            (texture) => {
-                const p = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-                if (p && p.material) {
-                    p.material.map = texture;
-                    p.material.needsUpdate = true;
-                }
-                this.textureCache.set(initialTexturePath, texture);
-            },
-            (err) => console.warn('Error loading Earth map plane texture:', err)
-        );
+        // Flat map is DOM-only ({@link Map2DLiteLayer}); no WebGL earth map mesh.
         if (this.sceneModel.setEarthMapPlane) {
-            this.sceneModel.setEarthMapPlane(earthMapPlane);
+            this.sceneModel.setEarthMapPlane(null);
         } else {
-            this.sceneModel.earthMapPlane = earthMapPlane;
+            this.sceneModel.earthMapPlane = null;
         }
-        scene.add(earthMapPlane);
-
-        // Pattern overlay on map - tinted by palette
-        const mapPattern = createMapPatternOverlay(textureLoader, renderer, patternTint, 0.15);
-        if (mapPattern) {
-            this._mapPatternOverlay = mapPattern;
-            earthMapPlane.add(mapPattern);
+        if (this.sceneModel.setEarthMapTextureUrl) {
+            this.sceneModel.setEarthMapTextureUrl(initialTexturePath);
         }
-
-        const auroraIntensity = isGray ? 0.34 : (isCrimson ? 0.38 : (isNulled ? 0.36 : 0.42));
-        const mapCloudOpacity = GLOBE_CLOUD_BASE_OPACITY * MAP_WEATHER_ALPHA_VS_GLOBE;
-        const mapCloudLayer = createFlatMapCloudLayer({
-            textureLoader,
-            renderer,
-            opacity: mapCloudOpacity,
-            tintHex: cloudTintHex,
-            cloudTextureVariants: GLOBE_CLOUD_ATLAS_VARIANTS
-        });
-        if (mapCloudLayer) {
-            this._mapCloudLayer = mapCloudLayer;
-            mapCloudLayer.position.z = 0.002;
-            earthMapPlane.add(mapCloudLayer);
-        }
-        const mapAurora = createFlatMapAuroraShell({
-            uIntensity: auroraIntensity * MAP_WEATHER_ALPHA_VS_GLOBE
-        });
-        if (mapAurora) {
-            this._mapAuroraMesh = mapAurora;
-            mapAurora.position.z = 0.006;
-            earthMapPlane.add(mapAurora);
-            this._syncMapAuroraVeilFromGlobe();
-        }
-
-        assignEarthLightLayer(earthMapPlane);
 
         // Add a background "sun" element (sprite + warm light); hidden in flat map view.
         const sunBackground = addSunBackground({ scene });
@@ -305,19 +258,10 @@ export class GlobeView {
             a.material.uniforms.uIntensity.value = ai;
         }
         applyGlobeCloudPaletteTint(this._cloudLayer, color);
-        applyGlobeCloudPaletteTint(this._mapCloudLayer, color);
-        const mapA = this._mapAuroraMesh;
-        if (mapA && mapA.material && mapA.material.uniforms && mapA.material.uniforms.uIntensity) {
-            mapA.material.uniforms.uIntensity.value = ai * MAP_WEATHER_ALPHA_VS_GLOBE;
-        }
-        // Update pattern overlay tint (shader material uses uTintColor uniform)
         const patternTint = getPaletteAccentHex(p);
         const tintColor = new THREE.Color(patternTint);
         if (this._globePatternOverlay && this._globePatternOverlay.material && this._globePatternOverlay.material.uniforms) {
             this._globePatternOverlay.material.uniforms.uTintColor.value.set(tintColor.r, tintColor.g, tintColor.b);
-        }
-        if (this._mapPatternOverlay && this._mapPatternOverlay.material && this._mapPatternOverlay.material.uniforms) {
-            this._mapPatternOverlay.material.uniforms.uTintColor.value.set(tintColor.r, tintColor.g, tintColor.b);
         }
     }
 
@@ -330,20 +274,18 @@ export class GlobeView {
      */
     _rerandomizeAuroraVeilState() {
         this._auroraVeilAnim = null;
-        for (const a of [this._auroraMesh, this._mapAuroraMesh]) {
-            if (a && a.material && a.material.uniforms && a.material.uniforms.uTime) {
-                a.material.uniforms.uTime.value = Math.random() * 400;
-            }
+        const a = this._auroraMesh;
+        if (a && a.material && a.material.uniforms && a.material.uniforms.uTime) {
+            a.material.uniforms.uTime.value = Math.random() * 400;
         }
         this._seedAuroraVeilAnimIfNeeded();
     }
 
-    /** Globe aurora drives veil animation when present; otherwise the flat-map aurora. */
     _primaryAuroraForVeil() {
         if (this._auroraMesh && this._auroraMesh.material && this._auroraMesh.material.uniforms) {
             return this._auroraMesh;
         }
-        return this._mapAuroraMesh || null;
+        return null;
     }
 
     /** Copy veil/time uniforms so map aurora is not stuck at uVeilExpand=0 before first frame. */
@@ -367,30 +309,18 @@ export class GlobeView {
         this._syncAtmosphereSunDirection();
     }
 
-    _syncMapAuroraVeilFromGlobe() {
-        const g = this._auroraMesh;
-        const m = this._mapAuroraMesh;
-        if (!g || !m || !g.material || !g.material.uniforms || !m.material || !m.material.uniforms) return;
-        const u = g.material.uniforms;
-        const um = m.material.uniforms;
-        if (u.uTime && um.uTime) um.uTime.value = u.uTime.value;
-        if (u.uVeilExpand && um.uVeilExpand) um.uVeilExpand.value = u.uVeilExpand.value;
-        if (u.uVeilBoost && um.uVeilBoost) um.uVeilBoost.value = u.uVeilBoost.value;
-    }
-
     /**
      * Toggle aurora + clouds from scene preference; turning on re-randomizes like reload.
      * @param {boolean} enabled
      */
     setWeatherEffectsVisible(enabled) {
+        const mapOn = this.sceneModel.getMapViewEnabled?.() ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (mapOn) return;
+
         const on = !!enabled;
         if (on) this._rerandomizeAuroraVeilState();
         if (this._auroraMesh) {
             this._auroraMesh.visible = on;
-        }
-        if (this._mapAuroraMesh) {
-            this._mapAuroraMesh.visible = on;
-            if (on) this._syncMapAuroraVeilFromGlobe();
         }
         if (this._cloudLayer) {
             if (!on) {
@@ -405,20 +335,6 @@ export class GlobeView {
                     opacity: GLOBE_CLOUD_BASE_OPACITY
                 });
                 this._syncAtmosphereSunDirection();
-            }
-        }
-        if (this._mapCloudLayer) {
-            if (!on) {
-                this._mapCloudLayer.visible = false;
-            } else {
-                const renderer = this.sceneModel.getRenderer();
-                const textureLoader = new THREE.TextureLoader();
-                rerandomizeFlatMapCloudAtlas(this._mapCloudLayer, {
-                    textureLoader,
-                    renderer,
-                    cloudTextureVariants: GLOBE_CLOUD_ATLAS_VARIANTS,
-                    opacity: GLOBE_CLOUD_BASE_OPACITY * MAP_WEATHER_ALPHA_VS_GLOBE
-                });
             }
         }
         this._setShootingStarsWeatherVisible(on);
@@ -481,14 +397,14 @@ export class GlobeView {
         const weatherOn = typeof this.sceneModel.getGlobeWeatherEffectsVisible !== 'function'
             || this.sceneModel.getGlobeWeatherEffectsVisible();
 
-        for (const c of [this._cloudLayer, this._mapCloudLayer]) {
+        for (const c of [this._cloudLayer]) {
             if (c && weatherOn && c.material && c.material.uniforms && c.material.uniforms.uTime) {
                 c.material.uniforms.uTime.value += dt;
             }
         }
 
         const primary = this._primaryAuroraForVeil();
-        const auroraTargets = [this._auroraMesh, this._mapAuroraMesh].filter(Boolean);
+        const auroraTargets = [this._auroraMesh].filter(Boolean);
         if (weatherOn && primary && primary.material && primary.material.uniforms) {
             const u = primary.material.uniforms;
             if (u.uTime) u.uTime.value += dt;
@@ -551,8 +467,10 @@ export class GlobeView {
      */
     updatePatternWave(deltaSeconds) {
         const dt = Number.isFinite(deltaSeconds) ? deltaSeconds : 0;
-        updatePatternWave(this._globePatternOverlay, dt);
-        updatePatternWave(this._mapPatternOverlay, dt);
+        const mapOn = this.sceneModel.getMapViewEnabled?.() ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (!mapOn) {
+            updatePatternWave(this._globePatternOverlay, dt);
+        }
     }
 
     /**
@@ -572,7 +490,12 @@ export class GlobeView {
             return;
         }
 
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
+        const applyEarthMapTexture = () => {
+            if (this.sceneModel.setEarthMapTextureUrl) {
+                this.sceneModel.setEarthMapTextureUrl(texturePath);
+            }
+            window.globeController?.map2dLite?.refreshTexturesFromScene?.();
+        };
 
         // Check if texture is already cached
         if (this.textureCache.has(texturePath)) {
@@ -580,10 +503,7 @@ export class GlobeView {
             console.log('Using cached texture:', texturePath);
             surface.material.map = cachedTexture;
             surface.material.needsUpdate = true;
-            if (earthMapPlane && earthMapPlane.material) {
-                earthMapPlane.material.map = cachedTexture;
-                earthMapPlane.material.needsUpdate = true;
-            }
+            applyEarthMapTexture();
             if (onTextureLoaded) {
                 onTextureLoaded();
             }
@@ -598,10 +518,7 @@ export class GlobeView {
                 this.textureCache.set(texturePath, texture);
                 surface.material.map = texture;
                 surface.material.needsUpdate = true;
-                if (earthMapPlane && earthMapPlane.material) {
-                    earthMapPlane.material.map = texture;
-                    earthMapPlane.material.needsUpdate = true;
-                }
+                applyEarthMapTexture();
                 if (onTextureLoaded) {
                     onTextureLoaded();
                 }
@@ -637,6 +554,7 @@ export class GlobeView {
     applyCelestialPaletteTint(paletteName) {
         const moonPlane = this.sceneModel.getMoonPlane?.() ?? this.sceneModel.moonPlane;
         const marsPlane = this.sceneModel.getMarsPlane?.() ?? this.sceneModel.marsPlane;
+        const orbitPlane = this.sceneModel.getOrbitPlane?.() ?? this.sceneModel.orbitPlane;
         const p =
             paletteName === 'gray'
                 ? 'gray'
@@ -647,6 +565,7 @@ export class GlobeView {
                     : 'blue';
         if (moonPlane?.material) applyCelestialMaterialTint(moonPlane.material, p);
         if (marsPlane?.material) applyCelestialMaterialTint(marsPlane.material, p);
+        if (orbitPlane?.material) applyCelestialMaterialTint(orbitPlane.material, p);
     }
 
     /**
@@ -848,6 +767,17 @@ export class GlobeView {
         if (earthAmb) {
             earthAmb.intensity = v ? 0.002 : 0.72;
         }
+    }
+
+    /**
+     * Flat map is DOM-only; keep globe-side overlays in sync when toggling modes.
+     * @param {boolean} mapEnabled
+     */
+    configureMapViewPresentation(mapEnabled) {
+        const mapOn = !!mapEnabled;
+        if (this._globePatternOverlay) this._globePatternOverlay.visible = !mapOn;
+        if (this._cloudLayer) this._cloudLayer.visible = !mapOn;
+        if (this._auroraMesh) this._auroraMesh.visible = !mapOn;
     }
 
     /**
@@ -1549,114 +1479,6 @@ export class GlobeView {
                     userDataKey: 'isSeaportConnectionLine',
                     visible: false // Hide seaport connection lines
                 }
-            });
-        });
-    }
-
-    /**
-     * Render flat (straight) transport lines on the Earth map plane.
-     * - Main + secondary train connections are visible.
-     * - Seaport connections are created but hidden (match globe behavior).
-     * Uses horizontal wrapping (Pac-Man) when a connection crosses the map seam.
-     */
-    renderMapTransportLines() {
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        if (!earthMapPlane) return;
-
-        const planeWidth = 2.0;
-        const halfW = planeWidth / 2;
-        const z = 0.008;
-
-        // Remove existing map transport lines to avoid duplicates
-        const toRemove = [];
-        earthMapPlane.traverse(obj => {
-            if (!obj?.userData) return;
-            if (obj.userData.isConnectionLine || obj.userData.isSecondaryLine || obj.userData.isSeaportConnectionLine) {
-                toRemove.push(obj);
-            }
-        });
-        toRemove.forEach(o => { if (o.parent) o.parent.remove(o); });
-
-        const addWrappedLine = ({ fromLat, fromLon, toLat, toLon, color, opacity, userDataKey, visible = true }) => {
-            const a = latLonToMapPlanePosition(fromLat, fromLon, planeWidth, 1.0, z);
-            const b = latLonToMapPlanePosition(toLat, toLon, planeWidth, 1.0, z);
-
-            // Choose shortest horizontal path by allowing b.x to shift by ±width
-            let bx = b.x;
-            const dx = bx - a.x;
-            if (dx > halfW) bx -= planeWidth;
-            else if (dx < -halfW) bx += planeWidth;
-
-            const bxWrapped = ((bx + halfW) % planeWidth + planeWidth) % planeWidth - halfW;
-            const crossesRight = bx > halfW;
-            const crossesLeft = bx < -halfW;
-
-            const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
-
-            const makeLine = (p1, p2) => {
-                const geom = new THREE.BufferGeometry().setFromPoints([p1, p2]);
-                const line = new THREE.Line(geom, material);
-                if (userDataKey) line.userData[userDataKey] = true;
-                line.visible = visible;
-                earthMapPlane.add(line);
-            };
-
-            if (crossesRight || crossesLeft) {
-                const boundaryX = crossesRight ? halfW : -halfW;
-                const t = (boundaryX - a.x) / (bx - a.x);
-                const yAt = a.y + (b.y - a.y) * t;
-
-                makeLine(new THREE.Vector3(a.x, a.y, z), new THREE.Vector3(boundaryX, yAt, z));
-                makeLine(new THREE.Vector3(-boundaryX, yAt, z), new THREE.Vector3(bxWrapped, b.y, z));
-            } else {
-                makeLine(new THREE.Vector3(a.x, a.y, z), new THREE.Vector3(bxWrapped, b.y, z));
-            }
-        };
-
-        // Train connections (main + secondary)
-        const cities = this.dataModel.getAllCities();
-
-        this.dataModel.getTrainConnections().forEach(conn => {
-            const from = cities.find(c => c.name === conn.from);
-            const to = cities.find(c => c.name === conn.to);
-            if (!from || !to) return;
-            addWrappedLine({
-                fromLat: from.lat, fromLon: from.lon,
-                toLat: to.lat, toLon: to.lon,
-                color: 0xffd700,
-                opacity: 0.95,
-                userDataKey: 'isConnectionLine',
-                visible: true
-            });
-        });
-
-        this.dataModel.getSecondaryConnections().forEach(conn => {
-            const from = cities.find(c => c.name === conn.from);
-            const to = cities.find(c => c.name === conn.to);
-            if (!from || !to) return;
-            addWrappedLine({
-                fromLat: from.lat, fromLon: from.lon,
-                toLat: to.lat, toLon: to.lon,
-                color: 0xffffff,
-                opacity: 0.7,
-                userDataKey: 'isSecondaryLine',
-                visible: true
-            });
-        });
-
-        // Seaport connections (hidden, but present)
-        const ports = this.dataModel.getAllSeaports();
-        this.dataModel.getSeaportConnections().forEach(conn => {
-            const from = ports.find(p => p.name === conn.from);
-            const to = ports.find(p => p.name === conn.to);
-            if (!from || !to) return;
-            addWrappedLine({
-                fromLat: from.lat, fromLon: from.lon,
-                toLat: to.lat, toLon: to.lon,
-                color: 0xff0000,
-                opacity: 0.8,
-                userDataKey: 'isSeaportConnectionLine',
-                visible: false
             });
         });
     }

@@ -132,7 +132,13 @@ export class ToggleManager {
             
             const visible = !sceneModel.getHyperloopVisible();
             sceneModel.setHyperloopVisible(visible);
-            
+
+            window.globeController?.eventMarkerManager?.refreshEventMarkers?.(false);
+            const gc = window.globeController;
+            if (gc?.sceneModel?.getMapViewEnabled?.() && gc.transportController?.setSatellitesMapViewEnabled) {
+                gc.transportController.setSatellitesMapViewEnabled(true);
+            }
+
             if (visible) {
                 toggleBtn.classList.add('active');
                 console.log('🚄 Transport systems ENABLED (Trains, Planes)');

@@ -15,7 +15,7 @@ import { PlaneManager } from './PlaneManager.js';
 import { applyCurrentPaletteToTransportVehicles } from '../utils/TransportPaletteColors.js';
 import { applyPaletteToExistingEventMarkers } from '../managers/helpers/MarkerCreationHelpers.js';
 import { maybeInstallDevSunYawControl } from '../dev/DevSunYawControl.js';
-
+import { Map2DLiteLayer } from '../ui/Map2DLiteLayer.js';
 export class GlobeController {
     constructor() {
         // Initialize models
@@ -59,6 +59,8 @@ export class GlobeController {
         this._globeResizeObserver = null;
         /** Layout changed (#globe-container / dock); resize WebGL in animate() so setSize and render share one rAF. */
         this._globeLayoutDirty = false;
+        /** @type {import('../ui/Map2DLiteLayer.js').Map2DLiteLayer|null} */
+        this.map2dLite = null;
     }
 
     /**
@@ -100,6 +102,13 @@ export class GlobeController {
 
         // Initialize scene
         this.sceneModel.initScene(container);
+        this.map2dLite = new Map2DLiteLayer({
+            container,
+            sceneModel: this.sceneModel,
+            dataModel: this.dataModel
+        });
+
+        const shouldDefaultToMapView = window.innerWidth <= 768;
 
         // Initialize globe with texture
         this.globeView.initGlobe(() => {
@@ -107,32 +116,6 @@ export class GlobeController {
             this.animate();
         });
 
-        // Mobile default: start in the flat "unwrapped map" view.
-        // Do this BEFORE markers/transport are created so everything mounts onto the correct surface.
-        const shouldDefaultToMapView = window.innerWidth <= 768;
-        if (shouldDefaultToMapView) {
-            const globe = this.sceneModel.getGlobe();
-            const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-            if (globe && earthMapPlane) {
-                this.sceneModel.setMapViewEnabled(true);
-                document.body.classList.add('map-view-enabled');
-                globe.visible = false;
-                earthMapPlane.visible = true;
-                earthMapPlane.scale.set(3.1, 3.1, 3.1);
-                earthMapPlane.rotation.set(0, 0, 0);
-
-                if (earthMapPlane.material) {
-                    earthMapPlane.material.transparent = false;
-                    earthMapPlane.material.opacity = 1.0;
-                    earthMapPlane.material.depthWrite = true;
-                    earthMapPlane.material.needsUpdate = true;
-                }
-            }
-            if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
-                this.globeView.setGlobeSkyVisible(false);
-            }
-        }
-        
         // Position Moon/Mars panels immediately after globe initialization
         // (planes are created synchronously in initGlobe, before texture load callback)
         // Use setTimeout to ensure planes are fully added to scene
@@ -148,9 +131,6 @@ export class GlobeController {
 
         // Add starfield
         this.globeView.addStarfield();
-        if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
-            this.globeView.setGlobeSkyVisible(!this.sceneModel.getMapViewEnabled());
-        }
         // Add occasional shooting stars (background streaks)
         this.globeView.addShootingStars();
 
@@ -159,7 +139,14 @@ export class GlobeController {
         this.globeView.addSeaportMarkers();
         this.globeView.addEventMarkers();
         this.globeView.addEarthCityLights();
-        
+
+        if (shouldDefaultToMapView) {
+            this.setMapViewEnabled(true);
+        }
+        if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
+            this.globeView.setGlobeSkyVisible(!this.sceneModel.getMapViewEnabled());
+        }
+
         // Update plane visibility based on initial page
         // Use setTimeout to ensure planes are fully created and added to scene
         // Call multiple times to catch planes when they're ready
@@ -193,11 +180,6 @@ export class GlobeController {
         this.globeView.addSeaportConnectionLines((routeData) => {
             this.transportModel.addBoatRouteCurve(routeData);
         });
-
-        // Build the flat-map transport lines once (straight segments + wrap)
-        if (this.globeView && typeof this.globeView.renderMapTransportLines === 'function') {
-            this.globeView.renderMapTransportLines();
-        }
 
         // Build route graphs
         this.routeController.buildRouteGraph();
@@ -295,15 +277,18 @@ export class GlobeController {
                 this.lastFrameTime = performance.now();
                 
                 // Restart spawning (they check isPageVisible internally, so safe to restart)
-                if (!this.trainSpawnInterval) {
-                    this.transportController.spawnTrainsRandomly();
-                    this.trainSpawnInterval = this.transportController.trainSpawnInterval;
-                }
-                if (!this.transportController.planeSpawnInterval) {
-                    this.transportController.spawnPlanesRandomly();
-                }
-                if (!this.transportController.boatSpawnInterval) {
-                    this.transportController.spawnBoatsRandomly();
+                const inMap = this.sceneModel.getMapViewEnabled?.() ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+                if (!inMap) {
+                    if (!this.trainSpawnInterval) {
+                        this.transportController.spawnTrainsRandomly();
+                        this.trainSpawnInterval = this.transportController.trainSpawnInterval;
+                    }
+                    if (!this.transportController.planeSpawnInterval) {
+                        this.transportController.spawnPlanesRandomly();
+                    }
+                    if (!this.transportController.boatSpawnInterval) {
+                        this.transportController.spawnBoatsRandomly();
+                    }
                 }
             }
         });
@@ -336,7 +321,6 @@ export class GlobeController {
         const camera = this.sceneModel.getCamera();
         const renderer = this.sceneModel.getRenderer();
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
 
         if (!scene || !camera || !renderer || !globe || this.isCleanedUp) return;
@@ -358,6 +342,16 @@ export class GlobeController {
         if (this._globeLayoutDirty && this.interactionController) {
             this._globeLayoutDirty = false;
             this.interactionController.onWindowResize();
+        }
+
+        const domLiteMap = isMapView && this.map2dLite && this.map2dLite.isVisible();
+        if (domLiteMap) {
+            // Keep WebGL moon/mars rig positions in sync with map camera (DOM overlay reads them for panel layout).
+            this.planeManager.updatePlanePositions(camera);
+            this.map2dLite.onContainerResize();
+            this.uiView.updateLabelPosition();
+            this.uiView.checkAndAutoShowImage();
+            return;
         }
 
         // Update Moon/Mars plane positions to stay on camera's right side
@@ -389,16 +383,17 @@ export class GlobeController {
             // Keep the map plane fixed (no billboard/lookAt), camera pans instead.
         }
 
-        // Transport simulation only while vehicles are enabled (saves CPU when toggled off).
-        // Satellites: decor "small" sats are unloaded when transport is off; ISS / Mars Ship always run.
-        if (this.sceneModel.getHyperloopVisible()) {
-            this.transportController.updateTrains();
-            this.transportController.updatePlanes();
-            this.transportController.updateBoats();
-            this.transportView.updateTrailSegments();
-            this.transportView.updateBoatTrailSegments();
+        // Map view: no transport, trails, or satellite motion (lite mode).
+        if (!isMapView) {
+            if (this.sceneModel.getHyperloopVisible()) {
+                this.transportController.updateTrains();
+                this.transportController.updatePlanes();
+                this.transportController.updateBoats();
+                this.transportView.updateTrailSegments();
+                this.transportView.updateBoatTrailSegments();
+            }
+            this.transportController.updateSatellites();
         }
-        this.transportController.updateSatellites();
 
         // Update label position
         this.uiView.updateLabelPosition();
@@ -440,8 +435,7 @@ export class GlobeController {
      */
     setMapViewEnabled(enabled) {
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        if (!globe || !earthMapPlane) return;
+        if (!globe) return;
 
         const isEnabled = !!enabled;
         this.sceneModel.setMapViewEnabled(isEnabled);
@@ -449,38 +443,40 @@ export class GlobeController {
         // Expose mode to CSS so we can hide/show mode-specific controls (e.g. auto-rotate).
         document.body.classList.toggle('map-view-enabled', isEnabled);
 
-        // Swap visibility (globe includes its child routes/markers)
-        globe.visible = !isEnabled;
-        earthMapPlane.visible = isEnabled;
+        const renderer = this.sceneModel.getRenderer();
+        const canvas = renderer && renderer.domElement;
+        const moonRig = this.sceneModel.getMoonRig ? this.sceneModel.getMoonRig() : this.sceneModel.moonRig;
+        const marsRig = this.sceneModel.getMarsRig ? this.sceneModel.getMarsRig() : this.sceneModel.marsRig;
+
+        if (isEnabled) {
+            globe.visible = false;
+            if (moonRig) moonRig.visible = false;
+            if (marsRig) marsRig.visible = false;
+            if (canvas) {
+                canvas.style.visibility = 'hidden';
+                canvas.style.pointerEvents = 'none';
+            }
+            if (this.map2dLite) {
+                this.map2dLite.show();
+            }
+        } else {
+            if (this.map2dLite) {
+                this.map2dLite.hide();
+            }
+            if (canvas) {
+                canvas.style.visibility = '';
+                canvas.style.pointerEvents = '';
+            }
+            globe.visible = true;
+            if (moonRig) moonRig.visible = true;
+            if (marsRig) marsRig.visible = true;
+        }
 
         if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
             this.globeView.setGlobeSkyVisible(!isEnabled);
         }
 
-        // Map plane visual style: semi-transparent overlay map
-        if (earthMapPlane.material) {
-            earthMapPlane.material.transparent = false;
-            earthMapPlane.material.opacity = 1.0;
-            earthMapPlane.material.depthWrite = true;
-            earthMapPlane.material.needsUpdate = true;
-        }
-
-        // Map plane should fill the center when enabled.
-        // Scaling the parent scales markers/transports consistently (they're parented to the plane).
-        if (isEnabled) {
-            earthMapPlane.scale.set(3.1, 3.1, 3.1);
-            earthMapPlane.rotation.set(0, 0, 0);
-        } else {
-            earthMapPlane.scale.set(1, 1, 1);
-            earthMapPlane.rotation.set(0, 0, 0);
-        }
-
-        // Flat map: rebuild flat transport lines (straight segments + wrapping)
-        if (isEnabled && this.globeView && typeof this.globeView.renderMapTransportLines === 'function') {
-            this.globeView.renderMapTransportLines();
-        }
-
-        // Satellites/station/mars ship: project orbits onto the flat map and seam-wrap
+        // Satellites: reparent ISS/Mars Ship for map visibility (no decor / no map transport lines in lite map)
         if (this.transportController && typeof this.transportController.setSatellitesMapViewEnabled === 'function') {
             this.transportController.setSatellitesMapViewEnabled(isEnabled);
         }
@@ -517,7 +513,7 @@ export class GlobeController {
             this.uiView.hideEventSlide();
         }
 
-        // Recreate event markers onto globe vs map plane
+        // Recreate event markers (globe + celestial rigs; Earth map markers are DOM-only)
         if (this.globeView && typeof this.globeView.refreshEventMarkers === 'function') {
             this.globeView.refreshEventMarkers();
         }
@@ -526,6 +522,24 @@ export class GlobeController {
         if (this.transportView && typeof this.transportView.updateAllTransportMarkersVisibility === 'function') {
             this.transportView.updateAllTransportMarkersVisibility();
         }
+
+        if (this.globeView && typeof this.globeView.configureMapViewPresentation === 'function') {
+            this.globeView.configureMapViewPresentation(isEnabled);
+        }
+        if (this.planeManager && typeof this.planeManager.syncCelestialVisualMeshesForViewMode === 'function') {
+            this.planeManager.syncCelestialVisualMeshesForViewMode();
+        }
+        if (!isEnabled) {
+            this.planeManager.updatePlaneVisibility();
+        }
+    }
+
+    /**
+     * @param {THREE.Mesh} plane
+     * @param {boolean} show
+     */
+    animatePlaneScale(plane, show) {
+        this.planeManager.animatePlaneScale(plane, show);
     }
 
 

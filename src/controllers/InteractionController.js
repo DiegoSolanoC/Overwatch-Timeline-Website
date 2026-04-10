@@ -243,6 +243,11 @@ export class InteractionController {
      * Zoom in (move camera closer)
      */
     zoomIn() {
+        const mapOn = this.sceneModel.getMapViewEnabled?.() ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (mapOn && window.globeController?.map2dLite?.isVisible?.()) {
+            window.globeController.map2dLite.zoomIn();
+            return;
+        }
         this.cameraService.zoomIn();
     }
 
@@ -250,6 +255,11 @@ export class InteractionController {
      * Zoom out (move camera farther)
      */
     zoomOut() {
+        const mapOn = this.sceneModel.getMapViewEnabled?.() ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (mapOn && window.globeController?.map2dLite?.isVisible?.()) {
+            window.globeController.map2dLite.zoomOut();
+            return;
+        }
         this.cameraService.zoomOut();
     }
 
@@ -317,31 +327,29 @@ export class InteractionController {
     updatePlanesPosition(isMobilePortrait) {
         const moonPlane = this.sceneModel.getMoonPlane();
         const marsPlane = this.sceneModel.getMarsPlane();
-        
-        if (moonPlane) {
+        const moonTarget = this.sceneModel.getMoonRig ? this.sceneModel.getMoonRig() : null;
+        const marsTarget = this.sceneModel.getMarsRig ? this.sceneModel.getMarsRig() : null;
+        const moonMove = moonTarget || moonPlane;
+        const marsMove = marsTarget || marsPlane;
+
+        if (moonMove) {
             if (isMobilePortrait) {
-                // Mobile portrait: horizontal layout at the top
-                moonPlane.position.set(-0.8, 1.2, 0); // Left side, at the top
+                moonMove.position.set(-0.8, 1.2, 0);
             } else {
-                // Desktop: vertical layout on the right
-                moonPlane.position.set(1.5, 0.3, 0); // To the right, slightly above center
+                moonMove.position.set(1.5, 0.3, 0);
             }
-            // Update lookAt direction
             const cameraZ = isMobilePortrait ? 5.5 : 3.5;
-            moonPlane.lookAt(0, 0, cameraZ);
+            moonMove.lookAt(0, 0, cameraZ);
         }
-        
-        if (marsPlane) {
+
+        if (marsMove) {
             if (isMobilePortrait) {
-                // Mobile portrait: horizontal layout at the top
-                marsPlane.position.set(0.3, 1.2, 0); // Right of Moon, at the top
+                marsMove.position.set(0.3, 1.2, 0);
             } else {
-                // Desktop: vertical layout on the right
-                marsPlane.position.set(1.5, -0.3, 0); // To the right, slightly below center
+                marsMove.position.set(1.5, -0.3, 0);
             }
-            // Update lookAt direction
             const cameraZ = isMobilePortrait ? 5.5 : 3.5;
-            marsPlane.lookAt(0, 0, cameraZ);
+            marsMove.lookAt(0, 0, cameraZ);
         }
     }
     

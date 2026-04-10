@@ -17,19 +17,32 @@ export const EVENT_PULSE_RING_RENDER_ORDER = 17;
  * @param {THREE.Vector3} params.position - Marker position
  * @returns {THREE.Mesh} - The created marker mesh
  */
-export function createMarkerMesh({ radius, color, position }) {
+export function createMarkerMesh({ radius, color, position, flatOnPlane = false }) {
     const THREE = window.THREE;
-    
-    const markerGeometry = new THREE.SphereGeometry(radius, 16, 16);
+
+    let markerGeometry;
+    if (flatOnPlane) {
+        markerGeometry = new THREE.CircleGeometry(radius, 28);
+    } else {
+        markerGeometry = new THREE.SphereGeometry(radius, 16, 16);
+    }
+
     const markerMaterial = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(color)
+        color: new THREE.Color(color),
+        side: flatOnPlane ? THREE.DoubleSide : THREE.FrontSide,
+        polygonOffset: flatOnPlane,
+        polygonOffsetFactor: flatOnPlane ? -1 : 0,
+        polygonOffsetUnits: flatOnPlane ? -1 : 0
     });
-    
+
     const marker = new THREE.Mesh(markerGeometry, markerMaterial);
     marker.material.needsUpdate = true;
     marker.position.copy(position);
     marker.renderOrder = EVENT_MARKER_RENDER_ORDER;
-    
+    if (flatOnPlane) {
+        marker.userData.isFlatMapEventMarker = true;
+    }
+
     return marker;
 }
 
@@ -234,7 +247,7 @@ export function shouldEventBeLocked(event, activeFilters) {
  * @param {boolean} isMainVariant - Whether this is the main variant
  * @returns {number} - Marker radius
  */
-export function getMarkerRadius(isMainVariant) {
+export function getMarkerRadius(isMainVariant, locationType = 'earth') {
     const isSmallMobile = window.innerWidth <= 480;
     const isMapView = window.globeController?.sceneModel?.getMapViewEnabled
         ? window.globeController.sceneModel.getMapViewEnabled()
@@ -244,8 +257,20 @@ export function getMarkerRadius(isMainVariant) {
         ? (isSmallMobile ? 0.030 : 0.015)
         : (isSmallMobile ? 0.020 : 0.010);
 
-    // Map view: event pins should be smaller (desktop + mobile).
-    return isMapView ? (base * 0.7) : base;
+    if (!isMapView) return base;
+
+    const mapDotFactor = 0.7;
+    const sm = window.globeController?.sceneModel;
+    const earthPlane = sm?.getEarthMapPlane ? sm.getEarthMapPlane() : sm?.earthMapPlane;
+    const mapScaleX = earthPlane?.scale?.x > 0 ? earthPlane.scale.x : 1;
+
+    // Earth flat markers are children of the scaled map plane, so their world radius is
+    // base * mapDotFactor * mapScaleX. Moon/Mars markers sit on side rigs without that scale;
+    // use the same world-size target so panel dots match Earth map dots.
+    if (locationType === 'moon' || locationType === 'mars') {
+        return base * mapDotFactor * mapScaleX;
+    }
+    return base * mapDotFactor;
 }
 
 /**
@@ -255,6 +280,21 @@ export function getMarkerRadius(isMainVariant) {
  */
 export function getMarkerColor(isMainVariant) {
     return isMainVariant ? 0xff6600 : 0xff69b4;
+}
+
+/** Locked / filtered-out marker color (matches {@link MarkerLockAnimationHelpers}). */
+export const EVENT_MARKER_LOCKED_HEX = 0x331100;
+
+/**
+ * Diameter in CSS pixels for a DOM map marker, matching {@link getMarkerRadius} on the flat Earth map
+ * (plane width 2 in scene units → diameter fraction = radius in unit space).
+ * @param {number} mapWorldWidthPx - Width in px of the 2:1 map layer (e.g. Map2DLiteLayer `_baseW`).
+ * @param {boolean} isMainVariant
+ */
+export function getMap2dLiteMarkerDiameterPx(mapWorldWidthPx, isMainVariant) {
+    const w = Math.max(1, mapWorldWidthPx);
+    const r = getMarkerRadius(isMainVariant, 'earth');
+    return Math.max(6, Math.round(r * w));
 }
 
 /**
@@ -274,6 +314,11 @@ export function getDefaultMarkerOriginalHex(userData) {
  * @param {*} sceneModel
  */
 export function applyPaletteToExistingEventMarkers(sceneModel) {
+    const gc = typeof window !== 'undefined' ? window.globeController : null;
+    if (sceneModel?.getMapViewEnabled?.() && gc?.map2dLite) {
+        gc.map2dLite.refreshTexturesFromScene?.();
+        gc.map2dLite.syncMarkers?.({ mode: 'instant' });
+    }
     if (!sceneModel || typeof sceneModel.getMarkers !== 'function') return;
     const markers = sceneModel.getMarkers();
     if (!markers || !markers.length) return;

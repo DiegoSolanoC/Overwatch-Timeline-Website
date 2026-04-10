@@ -57,6 +57,8 @@ class MarkerInteractionService {
         this.sceneModel = sceneModel;
         this.uiView = uiView;
         this.pulseService = pulseService;
+        /** @type {{ userData: object }|null} */
+        this._domLiteHoverStub = null;
     }
 
     /**
@@ -132,6 +134,8 @@ class MarkerInteractionService {
         
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
+        // Match camera layer mask (Earth map subtree uses layer 1). Default raycaster only tests layer 0.
+        raycaster.layers.mask = camera.layers.mask;
 
         const markers = this.sceneModel.getMarkers();
         const eventMarkers = [];
@@ -301,7 +305,8 @@ class MarkerInteractionService {
         
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(mouse, camera);
-        
+        raycaster.layers.mask = camera.layers.mask;
+
         // CRITICAL: Only include EVENT markers (not seaport or city markers)
         // Seaport markers were blocking event markers from being clicked
         const clickableObjects = [];
@@ -486,6 +491,99 @@ class MarkerInteractionService {
             }
             // Empty globe tap (not a drag) closes music/filters panels
             closeTimelineMusicFiltersPanelsIfOpen();
+        }
+    }
+
+    /**
+     * Map2DLite DOM markers: same chrome as WebGL hover (pagination highlight, Events preview badge, auto-rotate pause).
+     * WebGL pulse rings are skipped (no mesh). Desktop only — matches {@link checkEventMarkerHover}.
+     * @param {{ userData: object }|null} markerOrNull - Stub from Map2DLiteLayer, or null to clear.
+     */
+    setDomLiteMarkerHover(markerOrNull) {
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            return;
+        }
+
+        window.globeController?.map2dLite?.clearSyntheticMarkerHover?.();
+
+        const eventImageOverlay = document.getElementById('eventImageOverlay');
+        if (eventImageOverlay && eventImageOverlay.classList.contains('open')) {
+            const opacity = parseFloat(window.getComputedStyle(eventImageOverlay).opacity);
+            if (opacity > 0.1) {
+                this.highlightNumberButtonForMarker(null);
+                this._syncEventsHoverPreviewFromMarker(null);
+                this._domLiteHoverStub = null;
+                window.globeController?.map2dLite?.stopHoverRadiateLoop?.();
+                return;
+            }
+        }
+
+        const currentGl = this.pulseService.getHoveredMarker();
+        if (currentGl) {
+            this.pulseService.stopEventMarkerPulse(currentGl);
+            this.pulseService.setHoveredMarker(null);
+        }
+
+        if (markerOrNull) {
+            const ud = markerOrNull.userData;
+            if (!ud || ud.isLocked || ud.isInteractive === false) {
+                this.highlightNumberButtonForMarker(null);
+                this._syncEventsHoverPreviewFromMarker(null);
+                this._domLiteHoverStub = null;
+                window.globeController?.map2dLite?.stopHoverRadiateLoop?.();
+                return;
+            }
+            this.sceneModel.setAutoRotate(false);
+            if (this.sceneModel.autoRotateTimeout) {
+                clearTimeout(this.sceneModel.autoRotateTimeout);
+                this.sceneModel.autoRotateTimeout = null;
+            }
+            this.highlightNumberButtonForMarker(markerOrNull);
+            this._syncEventsHoverPreviewFromMarker(markerOrNull);
+            this._domLiteHoverStub = markerOrNull;
+            window.globeController?.map2dLite?.setSyntheticHoverFromStub?.(markerOrNull);
+            return;
+        }
+
+        this.highlightNumberButtonForMarker(null);
+        this._syncEventsHoverPreviewFromMarker(null);
+        this._domLiteHoverStub = null;
+        window.globeController?.map2dLite?.stopHoverRadiateLoop?.();
+        if (this.sceneModel.getAutoRotateEnabled() && !this.sceneModel.eventMarker) {
+            this.sceneModel.autoRotateTimeout = setTimeout(() => {
+                this.sceneModel.setAutoRotate(true);
+            }, 500);
+        }
+    }
+
+    /**
+     * Clear DOM-lite hover only if `stub` is still the active target (avoids mouseleave firing after another marker’s enter).
+     * Pagination resolves the marker again on every pointer leave, creating a **new** map-lite stub object
+     * each time (unlike WebGL meshes, which keep a stable reference). Match proxy stubs by `event` + `variantIndex` like
+     * {@link Map2DLiteLayer#setSyntheticHoverFromStub}.
+     * @param {{ userData: object }} stub
+     */
+    clearDomLiteMarkerHoverIf(stub) {
+        if (!this._domLiteHoverStub) return;
+        if (!stub?.userData) {
+            if (this._domLiteHoverStub.userData?.isMap2dLiteProxy) {
+                this.setDomLiteMarkerHover(null);
+            }
+            return;
+        }
+        if (this._domLiteHoverStub === stub) {
+            this.setDomLiteMarkerHover(null);
+            return;
+        }
+        const cur = this._domLiteHoverStub.userData;
+        const next = stub.userData;
+        if (
+            cur.isMap2dLiteProxy &&
+            next.isMap2dLiteProxy &&
+            cur.event === next.event &&
+            (cur.variantIndex ?? 0) === (next.variantIndex ?? 0)
+        ) {
+            this.setDomLiteMarkerHover(null);
         }
     }
 }

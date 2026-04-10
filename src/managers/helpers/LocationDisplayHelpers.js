@@ -168,6 +168,12 @@ export function setupEarthLocation(element, lat, lon, marker, isAlreadyOpen, exi
         const content = createLocationContent(locationName, 'earth');
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, 'earth');
+        if (marker && marker.userData && marker.userData.isMap2dLiteProxy) {
+            element.onclick = (e) => {
+                e.stopPropagation();
+                window.globeController?.map2dLite?.flyToLatLon(lat, lon);
+            };
+        }
         
         // Set up location update callback if enabled
         if (enableUpdateCallback) {
@@ -187,6 +193,12 @@ export function setupEarthLocation(element, lat, lon, marker, isAlreadyOpen, exi
         const content = createLocationContent(`${lat.toFixed(4)}, ${lon.toFixed(4)}`, 'earth');
         setLocationContentWithFade(element, content, isAlreadyOpen);
         setupLocationClickHandler(element, marker, 'earth');
+        if (marker && marker.userData && marker.userData.isMap2dLiteProxy) {
+            element.onclick = (e) => {
+                e.stopPropagation();
+                window.globeController?.map2dLite?.flyToLatLon(lat, lon);
+            };
+        }
         return true;
     }
 }

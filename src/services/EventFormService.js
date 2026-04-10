@@ -369,6 +369,13 @@ class EventFormService {
             if (variant.y !== undefined) {
                 document.getElementById('eventEditY').value = variant.y;
             }
+            const vLt = variant.locationType || 'earth';
+            if (vLt === 'station' || vLt === 'marsShip') {
+                const xEl = document.getElementById('eventEditX');
+                const yEl = document.getElementById('eventEditY');
+                if (xEl && !String(xEl.value).trim()) xEl.value = '50';
+                if (yEl && !String(yEl.value).trim()) yEl.value = '50';
+            }
         }
         
         // Load variant-specific city display name if it exists
@@ -602,6 +609,15 @@ class EventFormService {
                 document.getElementById('eventEditY').value = event.y || '';
             }
             document.getElementById('eventEditCityDisplayName').value = event.cityDisplayName || '';
+        }
+        {
+            const ltNow = document.getElementById('eventEditLocationType')?.value;
+            if (ltNow === 'station' || ltNow === 'marsShip') {
+                const xEl = document.getElementById('eventEditX');
+                const yEl = document.getElementById('eventEditY');
+                if (xEl && !String(xEl.value).trim()) xEl.value = '50';
+                if (yEl && !String(yEl.value).trim()) yEl.value = '50';
+            }
         }
         document.getElementById('eventEditCity').value = '';
         

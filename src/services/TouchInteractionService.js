@@ -179,7 +179,7 @@ class TouchInteractionService {
                     const rect = renderer.domElement.getBoundingClientRect();
                     const viewportW = Math.max(1, rect.width);
                     const viewportH = Math.max(1, rect.height);
-                    
+
                     const fovRad = (camera.fov * Math.PI) / 180;
                     const distance = Math.max(0.01, camera.position.z - earthMapPlane.position.z);
                     const halfViewH = Math.tan(fovRad / 2) * distance;

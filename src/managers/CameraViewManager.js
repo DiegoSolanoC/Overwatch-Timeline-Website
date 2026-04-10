@@ -151,8 +151,6 @@ export class CameraViewManager {
     resetToDefault() {
         const camera = this.sceneModel.getCamera();
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
-        const renderer = this.sceneModel.getRenderer ? this.sceneModel.getRenderer() : null;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         if (!camera || !globe) return;
 
@@ -161,23 +159,16 @@ export class CameraViewManager {
         this.uiView.originalCameraPosition = null;
         this.uiView.originalGlobeRotation = null;
 
+        if (isMapView) {
+            window.globeController?.map2dLite?.resetView?.();
+            if (window.globeController && window.globeController.interactionController) {
+                window.globeController.interactionController.restorePlanesVisibility();
+            }
+            return;
+        }
+
         const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
         let defaultZoom = isMobilePortrait ? 5.5 : 3.5;
-
-        // Map view: choose a zoom that fits the whole map in the viewport (prevents revealing space).
-        if (isMapView && earthMapPlane && renderer) {
-            const rect = renderer.domElement.getBoundingClientRect();
-            const viewportW = Math.max(1, rect.width);
-            const viewportH = Math.max(1, rect.height);
-            const aspect = viewportW / viewportH;
-            const fovRad = (camera.fov * Math.PI) / 180;
-            const tan = Math.tan(fovRad / 2);
-            const halfMapW = 1.0 * (earthMapPlane.scale?.x ?? 1);
-            const halfMapH = 0.5 * (earthMapPlane.scale?.y ?? 1);
-            const fitDistH = halfMapH / tan;
-            const fitDistW = halfMapW / (tan * aspect);
-            defaultZoom = Math.max(1.6, Math.min(fitDistH, fitDistW) * 0.98);
-        }
 
         const targetPosition = new THREE.Vector3(0, 0, defaultZoom);
         const startPosition = camera.position.clone();
@@ -329,7 +320,8 @@ export class CameraViewManager {
         const activeMarker = this.sceneModel.getActiveMarker();
         
         if (!labelElement || !activeMarker) return;
-        
+        if (activeMarker.userData && activeMarker.userData.isMap2dLiteProxy) return;
+
         const camera = this.sceneModel.getCamera();
         const renderer = this.sceneModel.getRenderer();
         

@@ -31,7 +31,6 @@ export class BoatManager {
      */
     createBoat(routeData, isMultiStop = false) {
         const globe = this.sceneModel.getGlobe();
-        const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const gltfLoader = this.sceneModel.getGLTFLoader();
         const planeWidth = 2.0;
@@ -147,7 +146,7 @@ export class BoatManager {
         
         boatGroup.visible = false;
         boatGroup.position.set(0, 0, 0);
-        const parent = (isMapView && earthMapPlane) ? earthMapPlane : globe;
+        const parent = globe;
         if (parent) parent.add(boatGroup);
         this.transportModel.addBoat(boatGroup);
         
@@ -186,8 +185,10 @@ export class BoatManager {
     updateBoats() {
         if (!this.sceneModel.getHyperloopVisible()) return;
 
-        const globe = this.sceneModel.getGlobe();
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (isMapView) return;
+
+        const globe = this.sceneModel.getGlobe();
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
         const boats = this.transportModel.getBoats();
         const planeUp = new THREE.Vector3(0, 0, 1);
@@ -327,10 +328,7 @@ export class BoatManager {
             const hyperloopVisible = this.sceneModel.getHyperloopVisible();
             const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             
-            if (!isPageVisible || !hyperloopVisible) return;
-
-            // Map view: reduce spawn frequency by ~half
-            if (isMapView && Math.random() < 0.5) return;
+            if (!isPageVisible || !hyperloopVisible || isMapView) return;
             
             // Limit number of boats (half the normal amount for mobile performance)
             const MAX_BOATS = 15;

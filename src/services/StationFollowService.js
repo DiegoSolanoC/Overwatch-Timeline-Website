@@ -129,6 +129,7 @@ class StationFollowService {
     updateStationPinLines() {
         if (!this.sceneModel) return;
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        if (isMapView) return;
         const globe = this.sceneModel.getGlobe();
         if (!globe && !isMapView) return;
         

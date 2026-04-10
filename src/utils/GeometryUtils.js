@@ -152,7 +152,7 @@ export function createArcBetweenPoints(lat1, lon1, lat2, lon2, altitude, segment
  * @param {THREE.Vector3} planeNormal - Normal vector of the plane (default: 0, 0, 1 for XY plane)
  * @returns {THREE.Vector3}
  */
-export function xyToPlanePosition(x, y, planeWidth, planeHeight, planeCenter, planeNormal = null) {
+export function xyToPlanePosition(x, y, planeWidth, planeHeight, planeCenter, planeNormal = null, surfaceZ = 0.03) {
     // Convert from 0-100 coordinate system to -1 to 1 (centered)
     // (0,0) = top-left in image = (-width/2, height/2) in 3D
     // (100,100) = bottom-right in image = (width/2, -height/2) in 3D
@@ -164,7 +164,7 @@ export function xyToPlanePosition(x, y, planeWidth, planeHeight, planeCenter, pl
     // Since markers are added as children of the plane, we need LOCAL coordinates (relative to plane center)
     const localX = normalizedX * (planeWidth / 2);
     const localY = normalizedY * (planeHeight / 2);
-    const localZ = 0.03; // Push marker further in front of plane surface to prevent clipping with hover waves
+    const localZ = surfaceZ;
     
     // Plane default orientation: X is left-right, Y is up-down, Z is forward-back
     // Since markers are children of the plane, return LOCAL position (not world position)

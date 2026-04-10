@@ -167,10 +167,6 @@ export class EventSlideManager {
             if (latLonRow) latLonRow.style.display = '';
             if (xyRow) xyRow.style.display = 'none';
             if (lookupRow) lookupRow.style.display = '';
-        } else if (type === 'station' || type === 'marsShip') {
-            if (latLonRow) latLonRow.style.display = 'none';
-            if (xyRow) xyRow.style.display = 'none';
-            if (lookupRow) lookupRow.style.display = 'none';
         } else {
             if (latLonRow) latLonRow.style.display = 'none';
             if (xyRow) xyRow.style.display = '';
@@ -206,7 +202,7 @@ export class EventSlideManager {
                 window.alert('Please fill in latitude and longitude for Earth locations.');
                 return false;
             }
-        } else if (type !== 'station' && type !== 'marsShip') {
+        } else {
             x = parseFloat(document.getElementById('eventSlideEditX')?.value ?? '');
             y = parseFloat(document.getElementById('eventSlideEditY')?.value ?? '');
             if (Number.isNaN(x) || Number.isNaN(y) || x < 0 || x > 100 || y < 0 || y > 100) {
@@ -224,7 +220,7 @@ export class EventSlideManager {
         if (type === 'earth') {
             target.lat = lat;
             target.lon = lon;
-        } else if (type !== 'station' && type !== 'marsShip') {
+        } else {
             target.x = x;
             target.y = y;
         }
@@ -239,7 +235,7 @@ export class EventSlideManager {
             if (type === 'earth') {
                 rootEvent.lat = lat;
                 rootEvent.lon = lon;
-            } else if (type !== 'station' && type !== 'marsShip') {
+            } else {
                 rootEvent.x = x;
                 rootEvent.y = y;
             }
@@ -427,7 +423,7 @@ export class EventSlideManager {
         if (lt === 'earth') {
             v1.lat = v0.lat;
             v1.lon = v0.lon;
-        } else if (lt !== 'station' && lt !== 'marsShip') {
+        } else {
             v1.x = v0.x;
             v1.y = v0.y;
         }
@@ -471,7 +467,7 @@ export class EventSlideManager {
         if (lt === 'earth') {
             if (v.lat !== undefined) root.lat = v.lat;
             if (v.lon !== undefined) root.lon = v.lon;
-        } else if (lt !== 'station' && lt !== 'marsShip') {
+        } else {
             if (v.x !== undefined) root.x = v.x;
             if (v.y !== undefined) root.y = v.y;
         }
@@ -579,7 +575,7 @@ export class EventSlideManager {
             if (lt === 'earth') {
                 nv.lat = last?.lat;
                 nv.lon = last?.lon;
-            } else if (lt !== 'station' && lt !== 'marsShip') {
+            } else {
                 nv.x = last?.x;
                 nv.y = last?.y;
             }
@@ -723,9 +719,13 @@ export class EventSlideManager {
         if (locType === 'earth') {
             if (latEl && target.lat != null) latEl.value = String(target.lat);
             if (lonEl && target.lon != null) lonEl.value = String(target.lon);
-        } else if (locType !== 'station' && locType !== 'marsShip') {
+        } else {
             if (xEl && target.x != null) xEl.value = String(target.x);
             if (yEl && target.y != null) yEl.value = String(target.y);
+            if ((locType === 'station' || locType === 'marsShip') && xEl && yEl) {
+                if (!String(xEl.value).trim()) xEl.value = '50';
+                if (!String(yEl.value).trim()) yEl.value = '50';
+            }
         }
     }
 

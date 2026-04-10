@@ -224,25 +224,27 @@ class ImageOverlayService {
         this.lastCameraPosition = currentCameraPos.clone();
         this.lastGlobeRotation = { ...currentGlobeRot };
         
-        // Check if recentered on event marker
-        const markerWorldPos = new THREE.Vector3();
-        this.currentEventMarker.getWorldPosition(markerWorldPos);
-        const targetDirection = markerWorldPos.clone().normalize();
-        const cameraDirection = camera.position.clone().normalize();
-        
-        const currentLat = Math.asin(cameraDirection.y);
-        const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);
-        const targetLat = Math.asin(targetDirection.y);
-        const targetLon = Math.atan2(targetDirection.z, targetDirection.x);
-        
-        const latDiff = targetLat - currentLat;
-        let lonDiff = targetLon - currentLon;
-        if (lonDiff > Math.PI) lonDiff -= 2 * Math.PI;
-        if (lonDiff < -Math.PI) lonDiff += 2 * Math.PI;
-        
-        const angleDiff = Math.abs(latDiff) + Math.abs(lonDiff);
-        // Use a threshold that matches when auto-rotate stops (0.01 from GlobeController)
-        const isRecentered = angleDiff < 0.02; // Slightly more lenient than auto-rotate threshold
+        // Check if recentered on event marker (DOM map uses a stub without getWorldPosition)
+        let isRecentered = true;
+        if (!this.currentEventMarker.userData || !this.currentEventMarker.userData.isMap2dLiteProxy) {
+            const markerWorldPos = new THREE.Vector3();
+            this.currentEventMarker.getWorldPosition(markerWorldPos);
+            const targetDirection = markerWorldPos.clone().normalize();
+            const cameraDirection = camera.position.clone().normalize();
+
+            const currentLat = Math.asin(cameraDirection.y);
+            const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);
+            const targetLat = Math.asin(targetDirection.y);
+            const targetLon = Math.atan2(targetDirection.z, targetDirection.x);
+
+            const latDiff = targetLat - currentLat;
+            let lonDiff = targetLon - currentLon;
+            if (lonDiff > Math.PI) lonDiff -= 2 * Math.PI;
+            if (lonDiff < -Math.PI) lonDiff += 2 * Math.PI;
+
+            const angleDiff = Math.abs(latDiff) + Math.abs(lonDiff);
+            isRecentered = angleDiff < 0.02;
+        }
         
         // Conditions for showing image:
         // 1. Not dragging (user stopped interacting)

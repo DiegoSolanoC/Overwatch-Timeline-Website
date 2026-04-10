@@ -373,25 +373,28 @@ export class ImageOverlayManager {
         this.lastGlobeRotation = { ...currentGlobeRot };
         this._hasCamMovementSample = true;
 
-        this.uiView.currentEventMarker.getWorldPosition(this._markerWorldScratch);
-        this._targetDirScratch.copy(this._markerWorldScratch).normalize();
-        this._camDirScratch.copy(camera.position).normalize();
-        const targetDirection = this._targetDirScratch;
-        const cameraDirection = this._camDirScratch;
-        
-        const currentLat = Math.asin(cameraDirection.y);
-        const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);
-        const targetLat = Math.asin(targetDirection.y);
-        const targetLon = Math.atan2(targetDirection.z, targetDirection.x);
-        
-        const latDiff = targetLat - currentLat;
-        let lonDiff = targetLon - currentLon;
-        if (lonDiff > Math.PI) lonDiff -= 2 * Math.PI;
-        if (lonDiff < -Math.PI) lonDiff += 2 * Math.PI;
-        
-        const angleDiff = Math.abs(latDiff) + Math.abs(lonDiff);
-        // Use a threshold that matches when auto-rotate stops (0.01 from GlobeController)
-        const isRecentered = angleDiff < 0.02; // Slightly more lenient than auto-rotate threshold
+        const curMarker = this.uiView.currentEventMarker;
+        let isRecentered = true;
+        if (!curMarker.userData || !curMarker.userData.isMap2dLiteProxy) {
+            curMarker.getWorldPosition(this._markerWorldScratch);
+            this._targetDirScratch.copy(this._markerWorldScratch).normalize();
+            this._camDirScratch.copy(camera.position).normalize();
+            const targetDirection = this._targetDirScratch;
+            const cameraDirection = this._camDirScratch;
+
+            const currentLat = Math.asin(cameraDirection.y);
+            const currentLon = Math.atan2(cameraDirection.z, cameraDirection.x);
+            const targetLat = Math.asin(targetDirection.y);
+            const targetLon = Math.atan2(targetDirection.z, targetDirection.x);
+
+            const latDiff = targetLat - currentLat;
+            let lonDiff = targetLon - currentLon;
+            if (lonDiff > Math.PI) lonDiff -= 2 * Math.PI;
+            if (lonDiff < -Math.PI) lonDiff += 2 * Math.PI;
+
+            const angleDiff = Math.abs(latDiff) + Math.abs(lonDiff);
+            isRecentered = angleDiff < 0.02;
+        }
         
         // Conditions for showing image:
         // 1. Not dragging (user stopped interacting)

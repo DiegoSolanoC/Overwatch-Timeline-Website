@@ -3,7 +3,7 @@
  * Extracted from EventMarkerManager to reduce duplication
  */
 
-import { getDefaultMarkerOriginalHex } from './MarkerCreationHelpers.js';
+import { getDefaultMarkerOriginalHex, EVENT_MARKER_LOCKED_HEX } from './MarkerCreationHelpers.js';
 
 function markerAccentHex(marker) {
     const ud = marker.userData;
@@ -67,7 +67,7 @@ export function animateMarkersGrow(markers, pinLines) {
                     if (marker.userData.isLocked) {
                         // Locked: animate to dark color
                         const startColor = new THREE.Color(markerAccentHex(marker));
-                        const targetColor = new THREE.Color(0x331100); // Dark
+                        const targetColor = new THREE.Color(EVENT_MARKER_LOCKED_HEX);
                         marker.material.color.lerpColors(startColor, targetColor, easeProgress);
                         marker.material.needsUpdate = true;
                         
@@ -106,7 +106,7 @@ export function animateMarkersGrow(markers, pinLines) {
                     if (marker.material && marker.userData) {
                         if (marker.userData.isLocked) {
                             // Locked: dark color
-                            marker.material.color.setHex(0x331100);
+                            marker.material.color.setHex(EVENT_MARKER_LOCKED_HEX);
                         } else {
                             marker.material.color.setHex(markerAccentHex(marker));
                         }
@@ -125,7 +125,7 @@ export function animateMarkersGrow(markers, pinLines) {
                         const m = line.userData && line.userData.marker;
                         if (m && m.userData) {
                             if (m.userData.isLocked) {
-                                line.material.color.setHex(0x331100);
+                                line.material.color.setHex(EVENT_MARKER_LOCKED_HEX);
                             } else {
                                 line.material.color.setHex(markerAccentHex(m));
                             }

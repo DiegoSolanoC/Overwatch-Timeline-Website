@@ -4,13 +4,18 @@
  */
 
 import { latLonToVector3, xyToPlanePosition } from '../utils/GeometryUtils.js';
-import { calculateMarkerPosition } from './helpers/MarkerPositionHelpers.js';
 import { createMarkerMesh, createMarkerUserData, shouldEventBeLocked, getMarkerRadius, getDefaultMarkerOriginalHex } from './helpers/MarkerCreationHelpers.js';
 import { createPinLinePoints, createPinLine } from './helpers/PinLineHelpers.js';
 import { traverseEventMarkers, collectEventMarkers, collectEventMarkerPins } from './helpers/MarkerTraversalHelpers.js';
 import { animateMarkersGrow, animateMarkersShrink } from './helpers/MarkerAnimationHelpers.js';
 import { animateMarkerLock, animateMarkerUnlock } from './helpers/MarkerLockAnimationHelpers.js';
 import { createSingleEventMarker, createMultiEventMarkers } from './helpers/MarkerCreationLogicHelpers.js';
+
+function delayThenSyncPagination(manager, options) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 50);
+    }).then(() => manager._syncPaginationUiAfterFilters(options));
+}
 
 /**
  * EventMarkerManager class
@@ -177,6 +182,10 @@ export class EventMarkerManager {
             if (earthMapPlane) removeOrphanedEventPins(earthMapPlane);
             const moon = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
             const mars = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
+            const moonRig = this.sceneModel.getMoonRig ? this.sceneModel.getMoonRig() : this.sceneModel.moonRig;
+            const marsRig = this.sceneModel.getMarsRig ? this.sceneModel.getMarsRig() : this.sceneModel.marsRig;
+            if (moonRig) removeOrphanedEventPins(moonRig);
+            if (marsRig) removeOrphanedEventPins(marsRig);
             if (moon) removeOrphanedEventPins(moon);
             if (mars) removeOrphanedEventPins(mars);
         };
@@ -215,10 +224,19 @@ export class EventMarkerManager {
         const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
         const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
+        const moonRig = this.sceneModel.getMoonRig ? this.sceneModel.getMoonRig() : this.sceneModel.moonRig;
+        const marsRig = this.sceneModel.getMarsRig ? this.sceneModel.getMarsRig() : this.sceneModel.marsRig;
         const issSatellite = window.globeController?.transportController?.findISS
             ? window.globeController.transportController.findISS()
             : null;
-        const containers = [scene, globe, earthMapPlane, moonPlane, marsPlane, issSatellite].filter(Boolean);
+        const marsShipSatellite = window.globeController?.transportController?.findMarsShip
+            ? window.globeController.transportController.findMarsShip()
+            : null;
+        const orbitPlane = this.sceneModel.getOrbitPlane ? this.sceneModel.getOrbitPlane() : this.sceneModel.orbitPlane;
+        const orbitRig = this.sceneModel.getOrbitRig ? this.sceneModel.getOrbitRig() : this.sceneModel.orbitRig;
+        const containers = [
+            scene, globe, earthMapPlane, moonRig, marsRig, orbitRig, moonPlane, marsPlane, orbitPlane, issSatellite, marsShipSatellite
+        ].filter(Boolean);
         containers.forEach(parent => {
             const toRemove = [];
             parent.traverse(obj => {
@@ -234,7 +252,8 @@ export class EventMarkerManager {
         return this.removeEventMarkers(animate).then(() => {
             return this.addEventMarkers(animate);
         }).then(() => {
-            this.applyFilters(options);
+            return this.applyFilters({ ...options, domLiteFromRefresh: true, domLiteAnimate: animate });
+        }).then(() => {
             if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
                 window.globeController.updatePlaneVisibility();
             }
@@ -244,23 +263,21 @@ export class EventMarkerManager {
     /**
      * Apply active filters to event markers
      * Locks events that don't match any selected filter
-     * @param {{ preservePaginationThumbEntrance?: boolean }} [options]
+     * @param {{ preservePaginationThumbEntrance?: boolean, domLiteAnimate?: boolean, domLiteFromRefresh?: boolean }} [options] - `domLiteFromRefresh` true when called from {@link refreshEventMarkers} (page turn vs filter-only DOM sync)
+     * @returns {Promise<void>}
      */
     applyFilters(options = {}) {
         const activeFilters = this.sceneModel.activeFilters;
         const globe = this.sceneModel.getGlobe();
-        
-        if (!globe) return;
-        
+
+        if (!globe) return Promise.resolve();
+
         // If no filters active, unlock all and refresh number button states
         if (activeFilters.size === 0) {
             this.unlockAllEvents();
-            setTimeout(() => {
-                this._syncPaginationUiAfterFilters(options);
-            }, 50);
-            return;
+            return delayThenSyncPagination(this, options);
         }
-        
+
         // Helper function to check and lock/unlock a marker (multi-variant: unlock if any variant matches)
         const processMarker = (child) => {
             if (child.userData && child.userData.isEventMarker) {
@@ -272,23 +289,33 @@ export class EventMarkerManager {
                 }
             }
         };
-        
+
         // Check event markers using traversal helper
         traverseEventMarkers(this.sceneModel, processMarker);
-        
-        // Update number buttons after filters are applied
-        // Use a small delay to ensure markers are locked before checking
-        setTimeout(() => {
-            this._syncPaginationUiAfterFilters(options);
-        }, 50); // Small delay to ensure markers are processed
+
+        // Small delay so WebGL lock/unlock animations can start before we sync DOM map + pagination
+        return delayThenSyncPagination(this, options);
     }
 
     /**
      * After marker lock state changes, refresh pagination thumbs. When {@link refreshEventMarkers}
      * was triggered by a page turn, preserve the staggered thumb entrance (do not strip --enter).
+     * @returns {Promise<void>}
      */
-    _syncPaginationUiAfterFilters(options = {}) {
-        const ui = window.globeController?.uiView;
+    async _syncPaginationUiAfterFilters(options = {}) {
+        const gc = window.globeController;
+        if (gc?.map2dLite?.syncMarkers && this.sceneModel.getMapViewEnabled?.()) {
+            const fromRefresh = options.domLiteFromRefresh === true;
+            const wantAnim = options.domLiteAnimate !== false;
+            if (fromRefresh && wantAnim) {
+                await gc.map2dLite.syncMarkers({ mode: 'pageTurn' });
+            } else if (fromRefresh && !wantAnim) {
+                await gc.map2dLite.syncMarkers({ mode: 'instant' });
+            } else {
+                await gc.map2dLite.syncMarkers({ mode: 'filter' });
+            }
+        }
+        const ui = gc?.uiView;
         if (!ui) return;
         if (options.preservePaginationThumbEntrance) {
             if (typeof ui.updateNumberButtons === 'function') {

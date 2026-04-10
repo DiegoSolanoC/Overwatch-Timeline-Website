@@ -28,6 +28,7 @@ import {
     countFilterMatchingEntitiesInEvent
 } from './helpers/MarkerCreationHelpers.js';
 import { getGlobalEventNumber1Based } from './helpers/EventSlideShowHelpers.js';
+import { useOrbitPanelForStationShipMarkers } from './helpers/TransportOrbitPanelHelpers.js';
 import {
     showEventsHoverPreview,
     hideEventsHoverPreview,
@@ -37,6 +38,7 @@ import {
 import { dismissFiltersAndMusicPanels } from '../utils/PanelDismissHelpers.js';
 import { findVariantMarker } from './helpers/VariantHelpers.js';
 import { buildGlobalEraStripeBackgroundLinearGradient } from '../utils/EraHoverPreviewTheme.js';
+import { createMap2dLiteNavigationStub } from '../ui/Map2DLiteLayer.js';
 
 /** Incremented per thumb <img> so late onload/onerror from a previous URL is ignored */
 const THUMB_IMG_LOAD_GEN_KEY = '__owThumbLoadGen';
@@ -73,7 +75,10 @@ const CoordinateMatcher = {
         if (locationType === 'moon' || locationType === 'mars') {
             return this.matchXYCoordinates(marker, event);
         } else if (locationType === 'station' || locationType === 'marsShip') {
-            // Station/MarsShip: match by event reference (already checked) or name
+            const sm = typeof window !== 'undefined' ? window.globeController?.sceneModel : null;
+            if (sm && useOrbitPanelForStationShipMarkers(sm)) {
+                return this.matchXYCoordinates(marker, event);
+            }
             return true;
         } else {
             return this.matchLatLonCoordinates(marker, event);
@@ -200,7 +205,29 @@ function findMarkerForPaginationThumb(sceneModel, markers, targetEvent, globalEv
         const vm = findVariantMarker(sceneModel, targetEvent, vi);
         if (vm) return vm;
     }
-    return CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
+    const found = CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
+    if (found) return found;
+
+    const mapOn = sceneModel.getMapViewEnabled?.() ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
+    if (!mapOn) return null;
+    if ((targetEvent.locationType || 'earth') !== 'earth') return null;
+
+    let displayEvent;
+    let variantIndex;
+    if (Array.isArray(targetEvent.variants) && targetEvent.variants.length > 0) {
+        if (targetEvent.variants.length > 1) {
+            const vi = getPaginationThumbVariantIndex(targetEvent, globalEventIndex);
+            variantIndex = vi;
+            displayEvent = targetEvent.variants[vi] || targetEvent.variants[0];
+        } else {
+            variantIndex = 0;
+            displayEvent = targetEvent.variants[0];
+        }
+    } else {
+        displayEvent = targetEvent;
+        variantIndex = null;
+    }
+    return createMap2dLiteNavigationStub(targetEvent, displayEvent, variantIndex, sceneModel);
 }
 
 /** WAAPI keyframes: outgoing shrink (per-slot wave, overlaps following slot) */

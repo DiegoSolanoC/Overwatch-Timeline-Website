@@ -3,7 +3,7 @@
  * Extracted from EventMarkerManager to reduce duplication
  */
 
-import { getDefaultMarkerOriginalHex } from './MarkerCreationHelpers.js';
+import { getDefaultMarkerOriginalHex, EVENT_MARKER_LOCKED_HEX } from './MarkerCreationHelpers.js';
 
 /**
  * Animates a marker locking (scale down, color to dark)
@@ -37,7 +37,7 @@ export function animateMarkerLock(marker) {
     } else {
         pinLineStartColor.copy(startColor);
     }
-    const targetColor = new THREE.Color(0x331100); // Dark orange/near black
+    const targetColor = new THREE.Color(EVENT_MARKER_LOCKED_HEX);
     
     // Mark as animating to prevent pulse interference
     marker.userData.isAnimating = true;

@@ -3,7 +3,7 @@
  * Extracted from GlobeView to reduce complexity
  */
 
-import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath } from './GlobePlaneHelpers.js';
+import { createCelestialPlane, getMoonTexturePath, getMarsTexturePath, getOrbitTexturePath } from './GlobePlaneHelpers.js';
 import { loadTexture } from './GlobeTextureHelpers.js';
 import { EARTH_GLOBE_LIGHT_LAYER } from '../../constants/GlobeLightingConstants.js';
 import { EARTH_POLAR_TO_EQUATORIAL_RATIO } from '../../constants/GlobePhysicalConstants.js';
@@ -1049,7 +1049,7 @@ export function createEarthMapPlane(textureLoader, renderer, texturePath, onText
  * @param {'blue'|'gray'|'crimson'|'nulled'} [params.palette] - Active color palette
  * @param {boolean} [params.isGray] - Legacy: if true and palette omitted, use gray
  * @param {Object} params.sceneModel - SceneModel instance
- * @returns {Object} - Object with moonPlane and marsPlane
+ * @returns {Object} - moonPlane, marsPlane, orbitPlane and rigs
  */
 export function setupCelestialPlanes({ scene, textureLoader, renderer, palette, isGray, sceneModel }) {
     const paletteKey =
@@ -1066,14 +1066,31 @@ export function setupCelestialPlanes({ scene, textureLoader, renderer, palette, 
         position: new THREE.Vector3(1.5, 0.3, 0),
         visible: false
     });
-    
+    moonPlane.userData.isCelestialVisualMesh = true;
+
+    const moonRig = new THREE.Group();
+    moonRig.name = 'moonCelestialRig';
+    moonRig.userData.isCelestialScaleRig = true;
+    moonRig.position.copy(moonPlane.position);
+    moonRig.quaternion.copy(moonPlane.quaternion);
+    moonRig.scale.copy(moonPlane.scale);
+    moonPlane.position.set(0, 0, 0);
+    moonPlane.quaternion.set(0, 0, 0, 1);
+    moonPlane.scale.set(1, 1, 1);
+    moonRig.add(moonPlane);
+
     if (sceneModel.setMoonPlane) {
         sceneModel.setMoonPlane(moonPlane);
     } else {
         sceneModel.moonPlane = moonPlane;
     }
-    scene.add(moonPlane);
-    console.log('Moon plane created at:', moonPlane.position, 'rotation:', moonPlane.quaternion);
+    if (sceneModel.setMoonRig) {
+        sceneModel.setMoonRig(moonRig);
+    } else {
+        sceneModel.moonRig = moonRig;
+    }
+    scene.add(moonRig);
+    console.log('Moon rig created at:', moonRig.position, 'rotation:', moonRig.quaternion);
 
     const marsTexturePath = getMarsTexturePath(paletteKey);
     const marsPlane = createCelestialPlane({
@@ -1085,16 +1102,69 @@ export function setupCelestialPlanes({ scene, textureLoader, renderer, palette, 
         position: new THREE.Vector3(1.5, -0.3, 0),
         visible: false
     });
-    
+    marsPlane.userData.isCelestialVisualMesh = true;
+
+    const marsRig = new THREE.Group();
+    marsRig.name = 'marsCelestialRig';
+    marsRig.userData.isCelestialScaleRig = true;
+    marsRig.position.copy(marsPlane.position);
+    marsRig.quaternion.copy(marsPlane.quaternion);
+    marsRig.scale.copy(marsPlane.scale);
+    marsPlane.position.set(0, 0, 0);
+    marsPlane.quaternion.set(0, 0, 0, 1);
+    marsPlane.scale.set(1, 1, 1);
+    marsRig.add(marsPlane);
+
     if (sceneModel.setMarsPlane) {
         sceneModel.setMarsPlane(marsPlane);
     } else {
         sceneModel.marsPlane = marsPlane;
     }
-    scene.add(marsPlane);
-    console.log('Mars plane created at:', marsPlane.position, 'rotation:', marsPlane.quaternion);
-    
-    return { moonPlane, marsPlane };
+    if (sceneModel.setMarsRig) {
+        sceneModel.setMarsRig(marsRig);
+    } else {
+        sceneModel.marsRig = marsRig;
+    }
+    scene.add(marsRig);
+    console.log('Mars rig created at:', marsRig.position, 'rotation:', marsRig.quaternion);
+
+    const orbitTexturePath = getOrbitTexturePath();
+    const orbitPlane = createCelestialPlane({
+        texturePath: orbitTexturePath,
+        paletteKey,
+        textureLoader,
+        renderer,
+        size: 0.4,
+        position: new THREE.Vector3(1.5, -0.75, 0),
+        visible: false
+    });
+    orbitPlane.userData.isCelestialVisualMesh = true;
+
+    const orbitRig = new THREE.Group();
+    orbitRig.name = 'orbitCelestialRig';
+    orbitRig.userData.isCelestialScaleRig = true;
+    orbitRig.position.copy(orbitPlane.position);
+    orbitRig.quaternion.copy(orbitPlane.quaternion);
+    orbitRig.scale.copy(orbitPlane.scale);
+    orbitPlane.position.set(0, 0, 0);
+    orbitPlane.quaternion.set(0, 0, 0, 1);
+    orbitPlane.scale.set(1, 1, 1);
+    orbitRig.add(orbitPlane);
+
+    if (sceneModel.setOrbitPlane) {
+        sceneModel.setOrbitPlane(orbitPlane);
+    } else {
+        sceneModel.orbitPlane = orbitPlane;
+    }
+    if (sceneModel.setOrbitRig) {
+        sceneModel.setOrbitRig(orbitRig);
+    } else {
+        sceneModel.orbitRig = orbitRig;
+    }
+    scene.add(orbitRig);
+    console.log('Orbit rig created at:', orbitRig.position, 'rotation:', orbitRig.quaternion);
+
+    return { moonPlane, marsPlane, orbitPlane, moonRig, marsRig, orbitRig };
 }
 
 // Make available globally for script tag loading

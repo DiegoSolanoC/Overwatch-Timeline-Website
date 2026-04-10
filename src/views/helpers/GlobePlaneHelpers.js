@@ -7,6 +7,16 @@
 export const CELESTIAL_MOON_TEXTURE = 'assets/images/misc/Moon.png';
 export const CELESTIAL_MARS_TEXTURE = 'assets/images/misc/Mars.png';
 
+/** Flat panel for station / Mars-ship events when transport is off or in map view. */
+export const CELESTIAL_ORBIT_TEXTURE = 'assets/images/misc/Orbit.png';
+
+/**
+ * @returns {string}
+ */
+export function getOrbitTexturePath() {
+    return CELESTIAL_ORBIT_TEXTURE;
+}
+
 /**
  * Subtle multiply + emissive accent aligned with each UI palette
  * @param {'blue'|'gray'|'crimson'|'nulled'} palette

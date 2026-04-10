@@ -49,7 +49,30 @@ class CameraControlService {
         const camera = this.sceneModel.getCamera();
         const globe = this.sceneModel.getGlobe();
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
-        
+        if (isMapView && marker && marker.userData && marker.userData.isMap2dLiteProxy) {
+            if (onPlanesVisibilityChange) {
+                onPlanesVisibilityChange(false);
+            }
+            this.sceneModel.setAutoRotate(false);
+            if (this.sceneModel.autoRotateTimeout) {
+                clearTimeout(this.sceneModel.autoRotateTimeout);
+                this.sceneModel.autoRotateTimeout = null;
+            }
+            const ev = marker.userData.event;
+            const vi = marker.userData.variantIndex;
+            let lat = ev && ev.lat;
+            let lon = ev && ev.lon;
+            if (ev && ev.variants && vi != null && ev.variants[vi]) {
+                const v = ev.variants[vi];
+                if (v.lat !== undefined) lat = v.lat;
+                if (v.lon !== undefined) lon = v.lon;
+            }
+            if (lat != null && lon != null) {
+                window.globeController?.map2dLite?.flyToLatLon(lat, lon);
+            }
+            return;
+        }
+
         // Store original camera position and globe rotation before zooming
         if (!this.uiView.originalCameraPosition) {
             this.uiView.originalCameraPosition = camera.position.clone();
@@ -78,11 +101,17 @@ class CameraControlService {
 
         // Calculate target camera position
         let targetPosition;
+        const markerLoc = marker.userData && marker.userData.locationType;
+        const skipMapPanClamp = markerLoc === 'moon' || markerLoc === 'mars';
         if (isMapView) {
-            // Flat map: keep camera perpendicular to the plane (no tilt), pan to marker and clamp to map borders.
             const desiredZ = 2.0;
-            const { x, y } = this._clampMapXY(markerWorldPosition.x, markerWorldPosition.y, desiredZ);
-            targetPosition = new THREE.Vector3(x, y, desiredZ);
+            // Moon/Mars markers sit on side rigs, not on the Earth map — don't clamp to map pan bounds.
+            if (skipMapPanClamp) {
+                targetPosition = new THREE.Vector3(markerWorldPosition.x, markerWorldPosition.y, desiredZ);
+            } else {
+                const { x, y } = this._clampMapXY(markerWorldPosition.x, markerWorldPosition.y, desiredZ);
+                targetPosition = new THREE.Vector3(x, y, desiredZ);
+            }
         } else {
             // Globe: move camera along radial direction toward marker.
             const targetDistance = 2.5; // Closer zoom distance
@@ -107,10 +136,11 @@ class CameraControlService {
             camera.position.copy(currentPosition);
             
             if (isMapView) {
-                // Keep camera orientation stable (no tilt) and clamp pan during animation too.
-                const clamped = this._clampMapXY(camera.position.x, camera.position.y, camera.position.z);
-                camera.position.x = clamped.x;
-                camera.position.y = clamped.y;
+                if (!skipMapPanClamp) {
+                    const clamped = this._clampMapXY(camera.position.x, camera.position.y, camera.position.z);
+                    camera.position.x = clamped.x;
+                    camera.position.y = clamped.y;
+                }
                 camera.lookAt(camera.position.x, camera.position.y, 0);
             } else {
                 // Look at the marker's world position (not just origin)
@@ -147,10 +177,11 @@ class CameraControlService {
                 requestAnimationFrame(animate);
             } else {
                 if (isMapView) {
-                    // Final clamp to ensure we never end outside borders.
-                    const clamped = this._clampMapXY(camera.position.x, camera.position.y, camera.position.z);
-                    camera.position.x = clamped.x;
-                    camera.position.y = clamped.y;
+                    if (!skipMapPanClamp) {
+                        const clamped = this._clampMapXY(camera.position.x, camera.position.y, camera.position.z);
+                        camera.position.x = clamped.x;
+                        camera.position.y = clamped.y;
+                    }
                     camera.lookAt(camera.position.x, camera.position.y, 0);
                 }
                 // After zoom completes, set up recentering timeout if viewing event
@@ -181,6 +212,19 @@ class CameraControlService {
         const renderer = this.sceneModel.getRenderer();
         
         if (!camera || !globe) return;
+
+        if (isMapView) {
+            if (onPlanesVisibilityRestore) {
+                onPlanesVisibilityRestore();
+            }
+            this.sceneModel.setAutoRotate(false);
+            if (this.sceneModel.autoRotateTimeout) {
+                clearTimeout(this.sceneModel.autoRotateTimeout);
+                this.sceneModel.autoRotateTimeout = null;
+            }
+            window.globeController?.map2dLite?.resetView?.();
+            return;
+        }
         
         // Restore plane visibility for Moon/Mars events (they might have been hidden by Earth event zoom)
         if (onPlanesVisibilityRestore) {
@@ -193,13 +237,13 @@ class CameraControlService {
             clearTimeout(this.sceneModel.autoRotateTimeout);
             this.sceneModel.autoRotateTimeout = null;
         }
-        
+
         // Default camera position and (optionally) globe rotation
         // On mobile portrait, use more zoomed out position to show Moon/Mars panels
         const isMobilePortrait = this.sceneModel.isMobilePortrait || (window.innerWidth <= 768 && window.innerHeight > window.innerWidth);
         let defaultZoom = isMobilePortrait ? 5.5 : 3.5;
 
-        // Map view: choose a zoom that fits the whole map in the viewport (prevents seeing beyond edges).
+        // Map view: fit whole map (same perspective 3D pipeline as Moon/Mars planes).
         if (isMapView && camera && earthMapPlane && renderer) {
             const rect = renderer.domElement.getBoundingClientRect();
             const viewportW = Math.max(1, rect.width);
@@ -216,8 +260,18 @@ class CameraControlService {
 
         const targetPosition = new THREE.Vector3(0, 0, defaultZoom);
         const targetRotation = { x: 0, y: 0, z: 0 };
+
+        // Map: snap to default framing (no lerp) — avoids “flying into” the plane while staying true perspective 3D.
+        if (isMapView && earthMapPlane && renderer) {
+            camera.position.copy(targetPosition);
+            const clamped = this._clampMapXY(camera.position.x, camera.position.y, camera.position.z);
+            camera.position.x = clamped.x;
+            camera.position.y = clamped.y;
+            camera.lookAt(camera.position.x, camera.position.y, 0);
+            return;
+        }
         
-        // Animate camera to default position
+        // Animate camera to default position (globe)
         const startPosition = camera.position.clone();
         const startRotation = {
             x: globe.rotation.x,
@@ -280,7 +334,7 @@ class CameraControlService {
         // Different zoom limits for mobile portrait (allows more zoom out to show panels)
         const minZoom = 1.5;
         let maxZoom = isMobilePortrait ? 7.0 : 5.0;
-        
+
         // Map view: clamp zoom-out so the viewport never shows beyond the map edges.
         if (isMapView && camera && earthMapPlane && renderer) {
             const rect = renderer.domElement.getBoundingClientRect();

@@ -102,39 +102,13 @@ class LocationFieldManager {
             if (lonInput) lonInput.required = true;
             if (xInput) xInput.required = false;
             if (yInput) yInput.required = false;
-        } else if (locationType === 'station' || locationType === 'marsShip') {
-            // Station / Mars Ship: hide coordinate fields (no coordinates needed - placed on moving object)
-            if (latLonFields) latLonFields.style.display = 'none';
-            if (lonFields) lonFields.style.display = 'none';
-            if (xyFields) xyFields.style.display = 'none';
-            if (yFields) yFields.style.display = 'none';
-            if (cityLookupField) cityLookupField.style.display = 'none';
-            // Show city display name field for Station (like Moon/Mars)
-            if (cityDisplayNameField) cityDisplayNameField.style.display = '';
-            const latInput = document.getElementById('eventEditLat');
-            const lonInput = document.getElementById('eventEditLon');
-            const xInput = document.getElementById('eventEditX');
-            const yInput = document.getElementById('eventEditY');
-            const cityDisplayNameInput = document.getElementById('eventEditCityDisplayName');
-            if (latInput) latInput.required = false;
-            if (lonInput) lonInput.required = false;
-            if (xInput) xInput.required = false;
-            if (yInput) yInput.required = false;
-            
-            // Set default city display name if field is empty
-            if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
-                cityDisplayNameInput.value = (locationType === 'marsShip')
-                    ? 'Red Promise Escape Ship'
-                    : 'Interstellar Journey Space Station';
-            }
         } else {
-            // Moon or Mars
+            // Moon, Mars, Station, Mars Ship: panel X/Y (orbit panel when transport is off or on map)
             if (latLonFields) latLonFields.style.display = 'none';
             if (lonFields) lonFields.style.display = 'none';
             if (xyFields) xyFields.style.display = '';
             if (yFields) yFields.style.display = '';
             if (cityLookupField) cityLookupField.style.display = 'none';
-            // Show city display name field for Moon/Mars (same as Earth)
             if (cityDisplayNameField) cityDisplayNameField.style.display = '';
             const latInput = document.getElementById('eventEditLat');
             const lonInput = document.getElementById('eventEditLon');
@@ -145,29 +119,27 @@ class LocationFieldManager {
             if (lonInput) lonInput.required = false;
             if (xInput) xInput.required = true;
             if (yInput) yInput.required = true;
-            
-            // Set default X/Y coordinates if fields are empty (only when switching, not when editing existing)
+
             if (xInput && !xInput.value.trim()) {
-                if (locationType === 'moon') {
-                    xInput.value = '60';
-                } else if (locationType === 'mars') {
-                    xInput.value = '45';
-                }
+                if (locationType === 'moon') xInput.value = '60';
+                else if (locationType === 'mars') xInput.value = '45';
+                else if (locationType === 'station' || locationType === 'marsShip') xInput.value = '50';
             }
             if (yInput && !yInput.value.trim()) {
-                if (locationType === 'moon') {
-                    yInput.value = '70';
-                } else if (locationType === 'mars') {
-                    yInput.value = '35';
-                }
+                if (locationType === 'moon') yInput.value = '70';
+                else if (locationType === 'mars') yInput.value = '35';
+                else if (locationType === 'station' || locationType === 'marsShip') yInput.value = '50';
             }
-            
-            // Set default city display name if field is empty
+
             if (cityDisplayNameInput && !cityDisplayNameInput.value.trim()) {
                 if (locationType === 'moon') {
                     cityDisplayNameInput.value = 'Horizon Lunar Colony';
                 } else if (locationType === 'mars') {
                     cityDisplayNameInput.value = 'Red Promise Colony';
+                } else if (locationType === 'marsShip') {
+                    cityDisplayNameInput.value = 'Red Promise Escape Ship';
+                } else if (locationType === 'station') {
+                    cityDisplayNameInput.value = 'Interstellar Journey Space Station';
                 }
             }
         }

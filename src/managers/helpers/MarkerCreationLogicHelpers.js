@@ -4,8 +4,44 @@
  */
 
 import { calculateMarkerPosition } from './MarkerPositionHelpers.js';
-import { createMarkerMesh, createMarkerUserData, shouldEventBeLocked, getMarkerRadius, getMarkerColor } from './MarkerCreationHelpers.js';
+import {
+    createMarkerMesh,
+    createMarkerUserData,
+    shouldEventBeLocked,
+    getMarkerRadius,
+    getMarkerColor,
+    EVENT_MARKER_LOCKED_HEX
+} from './MarkerCreationHelpers.js';
 import { createPinLinePoints, createPinLine } from './PinLineHelpers.js';
+import { EARTH_GLOBE_LIGHT_LAYER } from '../../constants/GlobeLightingConstants.js';
+import { useOrbitPanelForStationShipMarkers } from './TransportOrbitPanelHelpers.js';
+
+function stationShipOnOrbitPanel(sceneModel, locationType) {
+    return (locationType === 'station' || locationType === 'marsShip')
+        && sceneModel
+        && useOrbitPanelForStationShipMarkers(sceneModel);
+}
+
+/** Map view: old station/ship dots scaled with Earth plane; orbit-panel mode matches Moon/Mars. */
+function stationShipWantsEarthMapScaleBoost(isMapView, locationType, sceneModel) {
+    return isMapView && (locationType === 'station' || locationType === 'marsShip')
+        && !stationShipOnOrbitPanel(sceneModel, locationType);
+}
+
+function webglMarkerRadiusLocationType(locationType, sceneModel) {
+    if (stationShipOnOrbitPanel(sceneModel, locationType)) return 'moon';
+    return locationType;
+}
+
+function attachEventMarkerToSceneList(sceneModel, marker, { isMapView, targetParent, globe }) {
+    const markers = sceneModel.getMarkers();
+    if (markers.indexOf(marker) === -1) {
+        markers.push(marker);
+    }
+    if (isMapView && globe && targetParent === globe && marker.layers) {
+        marker.layers.set(EARTH_GLOBE_LIGHT_LAYER);
+    }
+}
 
 /**
  * Creates a marker for a single event
@@ -22,9 +58,11 @@ import { createPinLinePoints, createPinLine } from './PinLineHelpers.js';
 export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, marsPlane, issSatellite, marsShipSatellite, animate }) {
     const eventLocationType = event.locationType || 'earth';
     const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
-    const earthMapPlane = sceneModel.getEarthMapPlane ? sceneModel.getEarthMapPlane() : sceneModel.earthMapPlane;
-    const mapScaleFactor = (isMapView && earthMapPlane && earthMapPlane.scale) ? (earthMapPlane.scale.x || 1) : 1;
-    const wantsMapScaleBoost = isMapView && (eventLocationType === 'moon' || eventLocationType === 'mars' || eventLocationType === 'station' || eventLocationType === 'marsShip');
+    if (isMapView && eventLocationType === 'earth') {
+        return null;
+    }
+    const mapScaleFactor = 1;
+    const wantsMapScaleBoost = stationShipWantsEarthMapScaleBoost(isMapView, eventLocationType, sceneModel);
     
     // Calculate position using helper
     const positionData = calculateMarkerPosition({
@@ -43,11 +81,11 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
     const { position, targetParent } = positionData;
     
     // Get marker properties using helpers
-    const markerRadius = getMarkerRadius(true); // Single events are always main variant
+    const markerRadius = getMarkerRadius(true, webglMarkerRadiusLocationType(eventLocationType, sceneModel));
     const markerColor = getMarkerColor(true); // Orange
     
     // Create marker using helper
-    const marker = createMarkerMesh({ radius: markerRadius, color: markerColor, position });
+    const marker = createMarkerMesh({ radius: markerRadius, color: markerColor, position, flatOnPlane: isMapView });
     
     const displayName = event.name || 'Event';
     
@@ -63,7 +101,7 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         const s = (wantsMapScaleBoost ? mapScaleFactor : 1.0) * 0.75;
         marker.scale.set(s, s, s);
         // Set locked color immediately
-        marker.material.color.setHex(0x331100);
+        marker.material.color.setHex(EVENT_MARKER_LOCKED_HEX);
     }
     
     marker.userData = { 
@@ -80,7 +118,9 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         pulseRings: [], // Store pulse rings for this marker
         isLocked: shouldBeLocked, // Set initial locked state based on filters
         originalScale: wantsMapScaleBoost ? mapScaleFactor : 1.0, // Store original scale for unlocking
-        originalColor: markerColor
+        originalColor: markerColor,
+        // createMarkerMesh sets this, but replacing userData clears it — required for map pulse sizing / draw order.
+        ...(isMapView ? { isFlatMapEventMarker: true } : {})
     };
 
     // If not animating and not locked, apply the intended base scale now.
@@ -90,10 +130,14 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
     }
     
     targetParent.add(marker);
-    const markers = sceneModel.getMarkers();
-    markers.push(marker);
+    attachEventMarkerToSceneList(sceneModel, marker, { isMapView, targetParent, globe });
     
-    // Add pin line using helper
+    let pinLine = null;
+    if (isMapView) {
+        return { marker, pinLine };
+    }
+
+    // Add pin line using helper (globe view only — map uses flat markers on the surface)
     const pinLineData = createPinLinePoints({
         locationType: eventLocationType,
         markerPosition: position,
@@ -102,9 +146,8 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         globe, moonPlane, marsPlane, issSatellite, marsShipSatellite
     });
     
-    let pinLine = null;
     if (pinLineData) {
-        const lineColor = shouldBeLocked ? 0x331100 : markerColor;
+        const lineColor = shouldBeLocked ? EVENT_MARKER_LOCKED_HEX : markerColor;
         pinLine = createPinLine({
             linePoints: pinLineData.linePoints,
             color: lineColor,
@@ -134,15 +177,17 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
     const results = [];
     const eventLocationType = event.locationType || 'earth';
     const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
-    const earthMapPlane = sceneModel.getEarthMapPlane ? sceneModel.getEarthMapPlane() : sceneModel.earthMapPlane;
-    const mapScaleFactor = (isMapView && earthMapPlane && earthMapPlane.scale) ? (earthMapPlane.scale.x || 1) : 1;
+    const mapScaleFactor = 1;
     const activeFilters = sceneModel.activeFilters;
     const shouldBeLocked = shouldEventBeLocked(event, activeFilters);
     
     event.variants.forEach((variant, variantIndex) => {
         // Get location type from variant if available, otherwise use event location type
         const variantLocationType = variant.locationType || eventLocationType;
-        
+        if (isMapView && variantLocationType === 'earth') {
+            return;
+        }
+
         // Calculate position using helper
         const lat = variant.lat !== undefined ? variant.lat : event.lat;
         const lon = variant.lon !== undefined ? variant.lon : event.lon;
@@ -164,12 +209,12 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
         const isMainVariant = variantIndex === 0;
         
         // Get marker properties using helpers
-        const markerRadius = getMarkerRadius(isMainVariant);
+        const markerRadius = getMarkerRadius(isMainVariant, webglMarkerRadiusLocationType(variantLocationType, sceneModel));
         const markerColor = getMarkerColor(isMainVariant);
         const isInteractive = isMainVariant;
         
         // Create marker using helper
-        const marker = createMarkerMesh({ radius: markerRadius, color: markerColor, position });
+        const marker = createMarkerMesh({ radius: markerRadius, color: markerColor, position, flatOnPlane: isMapView });
         
         const displayName = variant.name || `Variant ${variantIndex + 1}`;
         
@@ -178,11 +223,11 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
             marker.scale.set(0, 0, 0);
         } else if (shouldBeLocked) {
             // If locked and not animating, start at locked scale
-            const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station' || variantLocationType === 'marsShip');
+            const wantsMapScaleBoost = stationShipWantsEarthMapScaleBoost(isMapView, variantLocationType, sceneModel);
             const s = (wantsMapScaleBoost ? mapScaleFactor : 1.0) * 0.75;
             marker.scale.set(s, s, s);
             // Set locked color immediately
-            marker.material.color.setHex(0x331100);
+            marker.material.color.setHex(EVENT_MARKER_LOCKED_HEX);
         }
         
         // Create userData using helper
@@ -202,27 +247,27 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
             originalColor: markerColor
         });
 
-        // Map view: make Moon/Mars/Station markers match Earth map marker sizing
-        const wantsMapScaleBoost = isMapView && (variantLocationType === 'moon' || variantLocationType === 'mars' || variantLocationType === 'station' || variantLocationType === 'marsShip');
+        const wantsMapScaleBoost = stationShipWantsEarthMapScaleBoost(isMapView, variantLocationType, sceneModel);
         if (wantsMapScaleBoost) {
             marker.userData.originalScale = mapScaleFactor;
             if (!animate && !shouldBeLocked) {
                 marker.scale.set(mapScaleFactor, mapScaleFactor, mapScaleFactor);
             }
         }
-        
+        if (isMapView) {
+            marker.userData.isFlatMapEventMarker = true;
+        }
+
         // Hide variant markers by default (only show when event is open)
         if (!isMainVariant) {
             marker.visible = false;
         }
         
         targetParent.add(marker);
-        const markers = sceneModel.getMarkers();
-        markers.push(marker);
+        attachEventMarkerToSceneList(sceneModel, marker, { isMapView, targetParent, globe });
         
         let pinLine = null;
-        // Add pin line for main variants using helper
-        if (isMainVariant) {
+        if (isMainVariant && !isMapView) {
             const pinLineData = createPinLinePoints({
                 locationType: variantLocationType,
                 markerPosition: position,
@@ -232,7 +277,7 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
             });
             
             if (pinLineData) {
-                const lineColor = shouldBeLocked ? 0x331100 : markerColor;
+                const lineColor = shouldBeLocked ? EVENT_MARKER_LOCKED_HEX : markerColor;
                 pinLine = createPinLine({
                     linePoints: pinLineData.linePoints,
                     color: lineColor,

@@ -3895,7 +3895,9 @@
       ],
       "yearStart": 2053,
       "yearEnd": 2068,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "x": 60,
+      "y": 30
     },
     {
       "name": "Specimen 8 is Born",
@@ -6854,12 +6856,14 @@
             "Juno"
           ],
           "factions": [
-            "07Lucheng",
-            "00Overwatch"
+            "Lucheng Interstellar",
+            "Overwatch"
           ],
           "image": "",
           "locationType": "marsShip",
-          "cityDisplayName": "Red Promise Escape Ship"
+          "cityDisplayName": "Red Promise Escape Ship",
+          "x": 20,
+          "y": 20
         },
         {
           "name": "Emergency Landing",
@@ -6881,8 +6885,10 @@
           "cityDisplayName": "Dorado, Mexico"
         }
       ],
+      "yearStart": 2079,
       "eraName": "The Null Sector Invasion",
-      "yearStart": 2079
+      "x": 20,
+      "y": 20
     },
     {
       "name": "Warm Welcome",

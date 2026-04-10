@@ -19,6 +19,13 @@ export class SceneModel {
         this.earthMapPlane = null;
         this.moonPlane = null;
         this.marsPlane = null;
+        /** @type {THREE.Group|null} Parent group for Moon mesh + markers (world transform). */
+        this.moonRig = null;
+        /** @type {THREE.Group|null} Parent group for Mars mesh + markers. */
+        this.marsRig = null;
+        this.orbitPlane = null;
+        /** @type {THREE.Group|null} Station / Mars-ship panel when transport is off or in map view. */
+        this.orbitRig = null;
 
         // Markers
         this.markers = [];
@@ -41,6 +48,9 @@ export class SceneModel {
         this.eventMarker = null; // Current event marker for recentering
         this.activeFilters = new Set(); // Currently active filter selections
         this.isMapView = false; // Earth view mode: globe (false) or flat map (true)
+
+        /** Same equirectangular asset as the WebGL map plane; used by DOM lite map `<img>`. */
+        this.earthMapTextureUrl = '';
 
         // Page visibility
         this.isPageVisible = true;
@@ -217,6 +227,13 @@ export class SceneModel {
         return !!this.isMapView;
     }
 
+    setEarthMapTextureUrl(url) {
+        this.earthMapTextureUrl = url || '';
+    }
+
+    getEarthMapTextureUrl() {
+        return this.earthMapTextureUrl || '';
+    }
 
     /**
      * Set stars (group with point layers, or legacy single Points)
@@ -275,6 +292,59 @@ export class SceneModel {
      */
     getMarsPlane() {
         return this.marsPlane;
+    }
+
+    /**
+     * @param {THREE.Group|null} rig
+     */
+    setMoonRig(rig) {
+        this.moonRig = rig;
+    }
+
+    getMoonRig() {
+        return this.moonRig;
+    }
+
+    /**
+     * @param {THREE.Group|null} rig
+     */
+    setMarsRig(rig) {
+        this.marsRig = rig;
+    }
+
+    getMarsRig() {
+        return this.marsRig;
+    }
+
+    setOrbitPlane(plane) {
+        this.orbitPlane = plane;
+    }
+
+    getOrbitPlane() {
+        return this.orbitPlane;
+    }
+
+    setOrbitRig(rig) {
+        this.orbitRig = rig;
+    }
+
+    getOrbitRig() {
+        return this.orbitRig;
+    }
+
+    /** Parent for orbit-panel event markers (station / marsShip in panel mode). */
+    getOrbitMarkerParent() {
+        return this.orbitRig || this.orbitPlane;
+    }
+
+    /** Parent for Moon event markers (rig when present, else legacy mesh). */
+    getMoonMarkerParent() {
+        return this.moonRig || this.moonPlane;
+    }
+
+    /** Parent for Mars event markers. */
+    getMarsMarkerParent() {
+        return this.marsRig || this.marsPlane;
     }
 
     /**

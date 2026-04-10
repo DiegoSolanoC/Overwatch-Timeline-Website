@@ -5,6 +5,7 @@
 
 import { latLonToVector3 } from '../../utils/GeometryUtils.js';
 import { EVENT_PIN_RENDER_ORDER } from './MarkerCreationHelpers.js';
+import { useOrbitPanelForStationShipMarkers } from './TransportOrbitPanelHelpers.js';
 
 /**
  * Creates pin line points and parent for a marker
@@ -21,26 +22,28 @@ import { EVENT_PIN_RENDER_ORDER } from './MarkerCreationHelpers.js';
  */
 export function createPinLinePoints({ locationType, markerPosition, lat, lon, globe, moonPlane, marsPlane, issSatellite, marsShipSatellite }) {
     const THREE = window.THREE;
-    
+    const sceneModel = window.globeController?.sceneModel;
+    const isMapView = sceneModel?.getMapViewEnabled
+        ? sceneModel.getMapViewEnabled()
+        : !!sceneModel?.isMapView;
+    if (isMapView) return null;
+
+    const stationShipOnOrbit =
+        (locationType === 'station' || locationType === 'marsShip')
+        && sceneModel
+        && useOrbitPanelForStationShipMarkers(sceneModel);
+    if (stationShipOnOrbit) {
+        const orbitParent = sceneModel.getOrbitMarkerParent?.() ?? sceneModel.getOrbitPlane?.() ?? sceneModel.orbitPlane;
+        if (!orbitParent || !markerPosition) return null;
+        const markerLocalPos = markerPosition.clone();
+        const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
+        return {
+            linePoints: [lineStart, markerLocalPos],
+            lineParent: orbitParent
+        };
+    }
+
     if (locationType === 'earth') {
-        const isMapView = window.globeController?.sceneModel?.getMapViewEnabled
-            ? window.globeController.sceneModel.getMapViewEnabled()
-            : !!window.globeController?.sceneModel?.isMapView;
-
-        const earthMapPlane = window.globeController?.sceneModel?.getEarthMapPlane
-            ? window.globeController.sceneModel.getEarthMapPlane()
-            : window.globeController?.sceneModel?.earthMapPlane;
-
-        if (isMapView && earthMapPlane && markerPosition) {
-            // Flat map: pin line from plane surface to marker (local space)
-            const markerLocalPos = markerPosition.clone();
-            const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
-            return {
-                linePoints: [lineStart, markerLocalPos],
-                lineParent: earthMapPlane
-            };
-        }
-
         return {
             linePoints: [
                 latLonToVector3(lat, lon, 1.0),
@@ -49,18 +52,24 @@ export function createPinLinePoints({ locationType, markerPosition, lat, lon, gl
             lineParent: globe
         };
     } else if (locationType === 'moon' && moonPlane) {
+        const moonParent = window.globeController?.sceneModel?.getMoonMarkerParent
+            ? window.globeController.sceneModel.getMoonMarkerParent()
+            : moonPlane;
         const markerLocalPos = markerPosition.clone();
         const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
         return {
             linePoints: [lineStart, markerLocalPos],
-            lineParent: moonPlane
+            lineParent: moonParent
         };
     } else if (locationType === 'mars' && marsPlane) {
+        const marsParent = window.globeController?.sceneModel?.getMarsMarkerParent
+            ? window.globeController.sceneModel.getMarsMarkerParent()
+            : marsPlane;
         const markerLocalPos = markerPosition.clone();
         const lineStart = new THREE.Vector3(markerLocalPos.x, markerLocalPos.y, 0);
         return {
             linePoints: [lineStart, markerLocalPos],
-            lineParent: marsPlane
+            lineParent: marsParent
         };
     } else if (locationType === 'station' && issSatellite) {
         const lineStart = new THREE.Vector3(0, 0, 0);
