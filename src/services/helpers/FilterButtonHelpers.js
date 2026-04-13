@@ -19,6 +19,11 @@ export function getHeroDisplayName(heroName) {
 export function getFilterKeyAndDisplayName(item, type) {
     if (type === 'factions') {
         return { filterKey: item.filename, displayName: item.displayName };
+    } else if (type === 'npcs') {
+        return {
+            filterKey: item,
+            displayName: getHeroDisplayName(item)
+        };
     } else if (type === 'music') {
         return { 
             filterKey: `assets/audio/music/${item.filename}`, 
@@ -133,7 +138,7 @@ export function useCachedButtons(type, buttonCache, filtersGrid, stateManager, u
 /**
  * Create filter buttons (with caching)
  */
-export function createFilterButtons(items, type, folder, filtersGrid, buttonCache, stateManager, imageService, soundManager, heroes, factions, preloadImages, updateFilterCounts) {
+export function createFilterButtons(items, type, folder, filtersGrid, buttonCache, stateManager, imageService, soundManager, heroes, factions, npcs, preloadImages, updateFilterCounts) {
     if (!filtersGrid) return;
     
     // Try to use cached buttons first
@@ -154,11 +159,29 @@ export function createFilterButtons(items, type, folder, filtersGrid, buttonCach
     // Cache the buttons
     buttonCache[type] = cachedButtons;
     
-    // Preload images for the other type in background
-    if (type === 'heroes' && factions.length > 0) {
-        setTimeout(() => preloadImages(factions, 'factions', 'assets/images/factions'), 100);
-    } else if (type === 'factions' && heroes.length > 0) {
-        setTimeout(() => preloadImages(heroes, 'heroes', 'assets/images/heroes'), 100);
+    const npcList = Array.isArray(npcs) ? npcs : [];
+    // Preload images for other categories in the background
+    if (type === 'heroes') {
+        if (factions.length > 0) {
+            setTimeout(() => preloadImages(factions, 'factions', 'assets/images/factions'), 100);
+        }
+        if (npcList.length > 0) {
+            setTimeout(() => preloadImages(npcList, 'npcs', 'assets/images/npcs'), 150);
+        }
+    } else if (type === 'factions') {
+        if (heroes.length > 0) {
+            setTimeout(() => preloadImages(heroes, 'heroes', 'assets/images/heroes'), 100);
+        }
+        if (npcList.length > 0) {
+            setTimeout(() => preloadImages(npcList, 'npcs', 'assets/images/npcs'), 150);
+        }
+    } else if (type === 'npcs') {
+        if (heroes.length > 0) {
+            setTimeout(() => preloadImages(heroes, 'heroes', 'assets/images/heroes'), 100);
+        }
+        if (factions.length > 0) {
+            setTimeout(() => preloadImages(factions, 'factions', 'assets/images/factions'), 150);
+        }
     }
     
     updateFilterCounts();

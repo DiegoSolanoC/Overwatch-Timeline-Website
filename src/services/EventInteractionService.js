@@ -34,28 +34,26 @@ class EventInteractionService {
             }, 320);
         };
 
-        const openFromMarkers = () => {
-            if (!(window.globeController && window.globeController.globeView && window.globeController.uiView)) {
+        const resolveTimelineUiContext = () => {
+            const gc = window.globeController;
+            if (gc?.globeView && gc?.uiView && gc?.dataModel) {
+                return { dataModel: gc.dataModel, uiView: gc.uiView, globe: gc };
+            }
+            const bridge = window.__codexEventSlideBridge;
+            if (bridge?.uiView && bridge?.dataModel) {
+                return { dataModel: bridge.dataModel, uiView: bridge.uiView, globe: null };
+            }
+            return null;
+        };
+
+        const openSlideForListItem = () => {
+            const ctx = resolveTimelineUiContext();
+            if (!ctx?.uiView) {
                 closeManagerPanel();
                 return;
             }
 
-            const markers = window.globeController.sceneModel.getMarkers();
-            const eventMarker = markers.find(m => {
-                if (m.userData && m.userData.isEventMarker) {
-                    const markerEvent = m.userData.event;
-                    return (markerEvent === event) ||
-                        (markerEvent.lat !== undefined && event.lat !== undefined &&
-                            Math.abs(markerEvent.lat - event.lat) < 0.0001 &&
-                            Math.abs(markerEvent.lon - event.lon) < 0.0001);
-                }
-                return false;
-            });
-
-            if (!eventMarker) {
-                closeManagerPanel();
-                return;
-            }
+            const { uiView, globe } = ctx;
 
             const isMultiEvent = event.variants && event.variants.length > 0;
             let variantIndex = 0;
@@ -65,36 +63,58 @@ class EventInteractionService {
             }
             const displayEvent = isMultiEvent ? event.variants[variantIndex] : event;
 
-            let targetMarker = eventMarker;
-            if (isMultiEvent && variantIndex > 0) {
-                const variantMarker = markers.find(m => (
-                    m.userData && m.userData.isEventMarker &&
-                    m.userData.event === event &&
-                    m.userData.variantIndex === variantIndex
-                ));
-                if (variantMarker) targetMarker = variantMarker;
+            let targetMarker = null;
+            if (globe?.sceneModel) {
+                const markers = globe.sceneModel.getMarkers();
+                const eventMarker = markers.find(m => {
+                    if (m.userData && m.userData.isEventMarker) {
+                        const markerEvent = m.userData.event;
+                        return (markerEvent === event) ||
+                            (markerEvent.lat !== undefined && event.lat !== undefined &&
+                                Math.abs(markerEvent.lat - event.lat) < 0.0001 &&
+                                Math.abs(markerEvent.lon - event.lon) < 0.0001);
+                    }
+                    return false;
+                });
+
+                if (eventMarker && eventMarker.userData && eventMarker.userData.isLocked) {
+                    closeManagerPanel();
+                    return;
+                }
+
+                if (eventMarker) {
+                    targetMarker = eventMarker;
+                    if (isMultiEvent && variantIndex > 0) {
+                        const variantMarker = markers.find(m => (
+                            m.userData && m.userData.isEventMarker &&
+                            m.userData.event === event &&
+                            m.userData.variantIndex === variantIndex
+                        ));
+                        if (variantMarker) targetMarker = variantMarker;
+                    }
+
+                    const ic = globe.interactionController;
+                    const navLoc = window.NavigationLocationHelpers;
+                    if (ic && navLoc && typeof navLoc.handleLocationTypeCamera === 'function' && typeof navLoc.getLocationType === 'function') {
+                        navLoc.handleLocationTypeCamera(ic, targetMarker, navLoc.getLocationType(targetMarker, displayEvent));
+                    } else if (ic) {
+                        const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
+                        if (locationType === 'moon' || locationType === 'mars') {
+                            ic.resetCameraToDefault();
+                        } else {
+                            ic.zoomToMarker(targetMarker);
+                        }
+                    }
+                }
             }
 
-            const eventName = displayEvent.name || eventMarker.userData.eventName;
+            const eventName = displayEvent.name || (targetMarker && targetMarker.userData && targetMarker.userData.eventName) || event.name;
             const eventDescription = displayEvent.description;
             const imagePath = this.eventManager.getEventImagePath
                 ? this.eventManager.getEventImagePath(displayEvent.name, displayEvent.image)
                 : null;
 
-            const ic = window.globeController.interactionController;
-            const navLoc = window.NavigationLocationHelpers;
-            if (ic && navLoc && typeof navLoc.handleLocationTypeCamera === 'function' && typeof navLoc.getLocationType === 'function') {
-                navLoc.handleLocationTypeCamera(ic, targetMarker, navLoc.getLocationType(targetMarker, displayEvent));
-            } else if (ic) {
-                const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
-                if (locationType === 'moon' || locationType === 'mars') {
-                    ic.resetCameraToDefault();
-                } else {
-                    ic.zoomToMarker(targetMarker);
-                }
-            }
-
-            window.globeController.uiView.showEventSlide(
+            uiView.showEventSlide(
                 eventName,
                 imagePath,
                 eventDescription,
@@ -107,34 +127,38 @@ class EventInteractionService {
         };
 
         const runOpenFlow = () => {
-            if (window.globeController && window.globeController.dataModel) {
-                const dataModel = window.globeController.dataModel;
-                const currentPage = dataModel.getCurrentEventPage();
-                const eventsPerPage = dataModel.eventsPerPage || 10;
-                const eventPage = Math.floor(index / eventsPerPage) + 1;
-
-                if (eventPage !== currentPage) {
-                    dataModel.setCurrentEventPage(eventPage);
-                    if (window.globeController.uiView && typeof window.globeController.uiView.updatePaginationUI === 'function') {
-                        window.globeController.uiView.updatePaginationUI();
-                    }
-                    const gv = window.globeController.globeView;
-                    const refreshPromise = gv && typeof gv.refreshEventMarkers === 'function'
-                        ? gv.refreshEventMarkers(false)
-                        : null;
-                    if (refreshPromise && typeof refreshPromise.then === 'function') {
-                        refreshPromise.then(() => {
-                            requestAnimationFrame(openFromMarkers);
-                        }).catch(() => {
-                            setTimeout(openFromMarkers, 50);
-                        });
-                    } else {
-                        requestAnimationFrame(openFromMarkers);
-                    }
-                    return;
-                }
+            const ctx = resolveTimelineUiContext();
+            if (!ctx?.dataModel) {
+                openSlideForListItem();
+                return;
             }
-            openFromMarkers();
+
+            const { dataModel, uiView, globe } = ctx;
+            const currentPage = dataModel.getCurrentEventPage();
+            const eventsPerPage = dataModel.eventsPerPage || 10;
+            const eventPage = Math.floor(index / eventsPerPage) + 1;
+
+            if (eventPage !== currentPage) {
+                dataModel.setCurrentEventPage(eventPage);
+                if (uiView && typeof uiView.updatePaginationUI === 'function') {
+                    uiView.updatePaginationUI();
+                }
+                const gv = globe?.globeView;
+                const refreshPromise = gv && typeof gv.refreshEventMarkers === 'function'
+                    ? gv.refreshEventMarkers(false)
+                    : null;
+                if (refreshPromise && typeof refreshPromise.then === 'function') {
+                    refreshPromise.then(() => {
+                        requestAnimationFrame(openSlideForListItem);
+                    }).catch(() => {
+                        setTimeout(openSlideForListItem, 50);
+                    });
+                } else {
+                    requestAnimationFrame(openSlideForListItem);
+                }
+                return;
+            }
+            openSlideForListItem();
         };
 
         runOpenFlow();
@@ -166,11 +190,14 @@ class EventInteractionService {
         if (itemElement) {
             this.updateEventItemPreview(eventIndex, event, itemElement, currentIndex);
         }
-        if (typeof window !== 'undefined' && window.globeController?.uiView?.updateNumberButtons) {
-            window.globeController.uiView.updateNumberButtons();
+        const ui = typeof window !== 'undefined'
+            ? (window.globeController?.uiView || window.__codexEventSlideBridge?.uiView)
+            : null;
+        if (ui?.updateNumberButtons) {
+            ui.updateNumberButtons();
         }
-        if (typeof window !== 'undefined' && window.globeController?.uiView?.refreshGlobePaginationThumbHover) {
-            window.globeController.uiView.refreshGlobePaginationThumbHover(eventIndex);
+        if (ui?.refreshGlobePaginationThumbHover) {
+            ui.refreshGlobePaginationThumbHover(eventIndex);
         }
     }
     
@@ -187,8 +214,11 @@ class EventInteractionService {
         if (this.eventManager.renderEvents) {
             this.eventManager.renderEvents();
         }
-        if (typeof window !== 'undefined' && window.globeController?.uiView?.updateNumberButtons) {
-            window.globeController.uiView.updateNumberButtons();
+        const ui = typeof window !== 'undefined'
+            ? (window.globeController?.uiView || window.__codexEventSlideBridge?.uiView)
+            : null;
+        if (ui?.updateNumberButtons) {
+            ui.updateNumberButtons();
         }
     }
     

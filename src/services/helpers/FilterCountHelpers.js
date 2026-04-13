@@ -9,10 +9,12 @@
 export function updateFilterCounts(stateManager) {
     const heroesCount = document.getElementById('heroesCount');
     const factionsCount = document.getElementById('factionsCount');
-    const { heroCount, factionCount } = stateManager.getCounts();
+    const npcsCount = document.getElementById('npcsCount');
+    const { heroCount, factionCount, npcCount = 0 } = stateManager.getCounts();
     
     updateCountDisplay(heroesCount, heroCount);
     updateCountDisplay(factionsCount, factionCount);
+    updateCountDisplay(npcsCount, npcCount);
 }
 
 /**

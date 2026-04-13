@@ -206,6 +206,7 @@ export class EventContentManager {
         
         const CATEGORY_ICON_HEROES = 'assets/images/icons/Heroes Icon.png';
         const CATEGORY_ICON_FACTIONS = 'assets/images/icons/Factions Icon.png';
+        const CATEGORY_ICON_NPCS = 'assets/images/icons/NPC Icon.png';
         const CATEGORY_ICON_COUNTRIES = 'assets/images/icons/Location Icon.png';
 
         const collectCountryFlagFilesForEvent = (ev) => {
@@ -275,6 +276,7 @@ export class EventContentManager {
             const countryFilters = em?.searchCountryFilters;
             const heroSearch = em?.searchHeroFilters;
             const factionSearch = em?.searchFactionFilters;
+            const npcSearch = em?.searchNpcFilters;
             const fkLower = String(filterKey || '').toLowerCase();
 
             if (type === 'countries') {
@@ -283,6 +285,10 @@ export class EventContentManager {
                 }
             } else if (type === 'heroes') {
                 if (activeFilters.has(filterKey) || (Array.isArray(heroSearch) && heroSearch.includes(filterKey))) {
+                    tag.classList.add('selected');
+                }
+            } else if (type === 'npcs') {
+                if (activeFilters.has(filterKey) || (Array.isArray(npcSearch) && npcSearch.includes(filterKey))) {
                     tag.classList.add('selected');
                 }
             } else if (type === 'factions') {
@@ -314,6 +320,8 @@ export class EventContentManager {
 
             if (type === 'factions') {
                 img.src = `assets/images/factions/${encodeURIComponent(filterKey)}.png`;
+            } else if (type === 'npcs') {
+                img.src = `assets/images/npcs/${encodeURIComponent(filterKey)}.png`;
             } else if (type === 'countries') {
                 const lh = window.LocationFlagHelpers;
                 img.classList.add('event-filter-icon--country');
@@ -336,6 +344,8 @@ export class EventContentManager {
                     mgr.prependEventManagerSearchTokens({ heroName: filterKey });
                 } else if (type === 'factions') {
                     mgr.prependEventManagerSearchTokens({ factionFilename: filterKey });
+                } else if (type === 'npcs') {
+                    mgr.prependEventManagerSearchTokens({ npcName: filterKey });
                 } else if (type === 'countries') {
                     mgr.prependEventManagerSearchTokens({ countryFlagFilename: filterKey });
                 }
@@ -355,6 +365,7 @@ export class EventContentManager {
             eventFiltersList.innerHTML = '';
             
             const heroFilters = event.filters || [];
+            const npcFilters = event.npcs || [];
             const factionFilters = event.factions || [];
             const countryFlagFiles = collectCountryFlagFilesForEvent(event);
 
@@ -377,6 +388,21 @@ export class EventContentManager {
                         filterKey: filter,
                         displayName,
                         type: 'heroes'
+                    }));
+                });
+            }
+
+            if (npcFilters.length > 0) {
+                eventFiltersList.appendChild(
+                    createCategoryFilterHeader('Relevant NPCs:', CATEGORY_ICON_NPCS)
+                );
+                npcFilters.forEach((npc) => {
+                    const name = String(npc || '').trim();
+                    if (!name) return;
+                    eventFiltersList.appendChild(createIconTag({
+                        filterKey: name,
+                        displayName: getHeroDisplayName(name),
+                        type: 'npcs'
                     }));
                 });
             }
@@ -449,7 +475,7 @@ export class EventContentManager {
                 });
             }
             
-            if (heroFilters.length > 0 || resolvedFactionRows.length > 0 || countryFlagFiles.length > 0) {
+            if (heroFilters.length > 0 || npcFilters.length > 0 || resolvedFactionRows.length > 0 || countryFlagFiles.length > 0) {
                 eventFiltersSection.style.display = 'block';
             } else {
                 eventFiltersSection.style.display = 'none';

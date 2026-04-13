@@ -62,6 +62,7 @@ class EventManager {
         this.searchQuery = ''; // Event manager search: filter by title
         this.searchHeroFilters = []; // Hero names (event.filters)
         this.searchFactionFilters = []; // Resolved manifest faction filenames from search tokens (chips use filenames)
+        this.searchNpcFilters = []; // NPC names from manifest (event.npcs)
         /** Tokens from hero/faction search field that did not match manifest (matched against event/variant name). */
         this.searchUnmatchedFilterTokens = [];
         this.searchCountryFilters = []; // Flag PNG filenames (FLAG_FILE_BY_COMMON values, e.g. "France.png")
@@ -80,22 +81,26 @@ class EventManager {
     }
 
     /**
-     * Hero/faction dimension: OR within each list (any hero / any faction). When both hero and faction
-     * filters are set, a row matches if it satisfies heroes OR factions (not both required).
+     * Hero/faction/NPC dimension: OR within each list. When multiple filter kinds are set, a row
+     * matches if it satisfies any of the active kinds (heroes, factions, or NPCs).
      * Country dimension: primary resolved flag or secondaryCountryFlags matches any selected country file.
      */
     _computeSearchAxisMatchesForItem(item) {
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
+        const npcFilters = this.searchNpcFilters || [];
         const countryFilters = this.searchCountryFilters || [];
         const rawUnmatched = this.searchUnmatchedFilterTokens || [];
         const unmatchedLower = rawUnmatched.map((t) => String(t || '').trim().toLowerCase()).filter(Boolean);
         const hasU = unmatchedLower.length > 0;
         const itemHeroes = item?.filters || [];
+        const itemNpcs = item?.npcs || [];
         const itemFactions = item?.factions || [];
         const hasH = heroFilters.length > 0;
         const hasF = factionFilters.length > 0;
+        const hasN = npcFilters.length > 0;
         const heroHit = hasH && heroFilters.some(h => itemHeroes.includes(h));
+        const npcHit = hasN && npcFilters.some((n) => itemNpcs.includes(n));
         const fh = typeof window !== 'undefined' && window.FactionMatchHelpers;
         const factionHit = hasF && factionFilters.some((f) =>
             itemFactions.some((itemF) => (fh && typeof fh.factionIdsMatch === 'function')
@@ -104,12 +109,12 @@ class EventManager {
         const nameLower = (item?.name || '').toLowerCase();
         const unmatchedHit = hasU && unmatchedLower.every((t) => nameLower.includes(t));
         let matchHeroFaction;
-        if (!hasH && !hasF && !hasU) {
+        if (!hasH && !hasF && !hasN && !hasU) {
             matchHeroFaction = true;
         } else {
-            const hOrFHit = (hasH && heroHit) || (hasF && factionHit);
+            const hFnHit = (hasH && heroHit) || (hasF && factionHit) || (hasN && npcHit);
             const parts = [];
-            if (hasH || hasF) parts.push(hOrFHit);
+            if (hasH || hasF || hasN) parts.push(hFnHit);
             if (hasU) parts.push(unmatchedHit);
             matchHeroFaction = parts.some(Boolean);
         }
@@ -139,9 +144,10 @@ class EventManager {
     getSearchMatchAxesForItem(item) {
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
+        const npcFilters = this.searchNpcFilters || [];
         const countryFilters = this.searchCountryFilters || [];
         const hasUnmatched = (this.searchUnmatchedFilterTokens || []).some((t) => String(t || '').trim());
-        const filterActive = heroFilters.length > 0 || factionFilters.length > 0 || hasUnmatched;
+        const filterActive = heroFilters.length > 0 || factionFilters.length > 0 || npcFilters.length > 0 || hasUnmatched;
         const countryActive = countryFilters.length > 0;
         if (!filterActive && !countryActive) {
             return { filterActive: false, countryActive: false, filterHit: false, countryHit: false };
@@ -156,25 +162,31 @@ class EventManager {
     }
 
     /**
-     * Get events filtered by search query and hero/faction/country (for event manager list)
-     * Title: AND with the rest. Heroes vs factions (when both selected): OR. Filter group vs country: OR when both are non-empty.
+     * Get events filtered by search query and hero/faction/NPC/country (for event manager list)
+     * Title: AND with the rest. Hero/faction/NPC group uses OR between kinds. Filter group vs country: OR when both are non-empty.
      */
     getFilteredEvents() {
         const all = this.events;
         const q = (this.searchQuery || '').trim().toLowerCase();
         const heroFilters = this.searchHeroFilters || [];
         const factionFilters = this.searchFactionFilters || [];
+        const npcFilters = this.searchNpcFilters || [];
         const countryFilters = this.searchCountryFilters || [];
         const unmatchedTokens = (this.searchUnmatchedFilterTokens || []).map((t) => String(t || '').trim()).filter(Boolean);
-        if (!q && heroFilters.length === 0 && factionFilters.length === 0 && countryFilters.length === 0 && unmatchedTokens.length === 0) {
+        if (!q && heroFilters.length === 0 && factionFilters.length === 0 && npcFilters.length === 0 && countryFilters.length === 0 && unmatchedTokens.length === 0) {
             return all;
         }
-        const filterGroupActive = heroFilters.length > 0 || factionFilters.length > 0 || unmatchedTokens.length > 0;
+        const filterGroupActive = heroFilters.length > 0 || factionFilters.length > 0 || npcFilters.length > 0 || unmatchedTokens.length > 0;
         const countryGroupActive = countryFilters.length > 0;
 
+        const titleTokens = q ? q.split(/\s+/).filter((t) => t.length > 0) : [];
         const matchesItem = (item) => {
             const name = (item?.name || '').toLowerCase();
-            const matchTitle = !q || name.includes(q);
+            const matchTitle =
+                !q
+                || (titleTokens.length > 0
+                    ? titleTokens.every((t) => name.includes(t))
+                    : name.includes(q));
             const { matchHeroFaction, matchCountry } = this._computeSearchAxisMatchesForItem(item);
             let dimPass = true;
             if (filterGroupActive && countryGroupActive) {
@@ -222,6 +234,7 @@ class EventManager {
     get seaports() { return this.dataService?.seaports || []; }
     get heroes() { return this.dataService?.heroes || []; }
     get factions() { return this.dataService?.factions || []; }
+    get npcs() { return this.dataService?.npcs || []; }
     get displayNames() { return this.dataService?.displayNames || {}; }
 
     /**
@@ -536,6 +549,7 @@ class EventManager {
         this.searchQuery = '';
         this.searchHeroFilters = [];
         this.searchFactionFilters = [];
+        this.searchNpcFilters = [];
         this.searchUnmatchedFilterTokens = [];
         this.searchCountryFilters = [];
 
@@ -547,6 +561,7 @@ class EventManager {
             lon: 0,
             filters: [],
             factions: [],
+            npcs: [],
             image: ''
         };
 
@@ -634,9 +649,9 @@ class EventManager {
 
     /**
      * Prepend one hero / faction / country token to the Event Manager search inputs (deduped) and apply search.
-     * Only pass one of heroName, factionFilename, countryFlagFilename per call.
+     * Only pass one of heroName, factionFilename, npcName, countryFlagFilename per call.
      */
-    prependEventManagerSearchTokens({ heroName, factionFilename, countryFlagFilename } = {}) {
+    prependEventManagerSearchTokens({ heroName, factionFilename, npcName, countryFlagFilename } = {}) {
         const filtersInput = document.getElementById('eventsSearchFilters');
         const countryInput = document.getElementById('eventsSearchCountry');
         const useSel = document.getElementById('eventsUseFilterSelectionCheckbox');
@@ -674,6 +689,10 @@ class EventManager {
         if (factionFilename) {
             const tok = this.getFactionDisplayTokenForSearch(factionFilename);
             if (tok) filtersInput.value = withTrailingCommaSpace(prependToCommaList(filtersInput.value, tok));
+        }
+        if (npcName) {
+            const n = String(npcName).trim();
+            if (n) filtersInput.value = withTrailingCommaSpace(prependToCommaList(filtersInput.value, n));
         }
         if (countryFlagFilename && countryInput) {
             const common = this.flagFilenameToCommonCountryName(countryFlagFilename)

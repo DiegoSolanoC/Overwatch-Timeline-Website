@@ -364,67 +364,77 @@ export class EventNavigationManager {
 
         const targetEvent = allEvents[targetIndex];
 
-        // Helper function to find marker and show event
+        const updateSlideNavButtons = () => {
+            setTimeout(() => {
+                const prevBtn = document.getElementById('eventPrevBtn');
+                const nextBtn = document.getElementById('eventNextBtn');
+                if (prevBtn && nextBtn) {
+                    const evs = this.getAllEvents();
+                    const currentIndex = this.getCurrentEventIndex();
+                    prevBtn.disabled = currentIndex <= 0 || evs.length === 0;
+                    nextBtn.disabled = currentIndex >= evs.length - 1 || evs.length === 0;
+                }
+            }, 0);
+        };
+
+        /** Timeline: zoom + marker when available; Codex: slide only (no globe). */
         const findAndShowEvent = () => {
-            // Find the marker for this event
+            let eventMarker = null;
             if (window.globeController && window.globeController.globeView) {
                 const markers = window.globeController.sceneModel.getMarkers();
-                const eventMarker = CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
+                eventMarker = CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
 
-                if (eventMarker) {
-                    // Check if this is a multi-event
+                if (eventMarker && window.globeController.interactionController) {
                     const isMultiEvent = targetEvent.variants && targetEvent.variants.length > 0;
                     const displayEvent = isMultiEvent ? targetEvent.variants[0] : targetEvent;
-
-                    const eventName = displayEvent.name || eventMarker.userData.eventName;
-                    const eventDescription = displayEvent.description;
-
-                    // Get image path using helper
-                    const imagePath = getEventImagePath(displayEvent, eventName);
-
-                    // Zoom to marker or reset to default view (for Moon/Mars/Station) and show event slide
-                    if (window.globeController.interactionController) {
-                        const locationType = getLocationType(eventMarker, displayEvent);
-                        handleLocationTypeCamera(window.globeController.interactionController, eventMarker, locationType);
-                    }
-
-                    this.eventSlideManager.showEventSlide(
-                        eventName,
-                        imagePath,
-                        eventDescription,
-                        eventMarker,
-                        targetEvent
-                    );
-
-                    // Update navigation button states after navigation
-                    // Use setTimeout to ensure currentEventData is set by showEventSlide
-                    setTimeout(() => {
-                        const prevBtn = document.getElementById('eventPrevBtn');
-                        const nextBtn = document.getElementById('eventNextBtn');
-                        if (prevBtn && nextBtn) {
-                            const allEvents = this.getAllEvents();
-                            const currentIndex = this.getCurrentEventIndex();
-                            prevBtn.disabled = currentIndex <= 0 || allEvents.length === 0;
-                            nextBtn.disabled = currentIndex >= allEvents.length - 1 || allEvents.length === 0;
-                        }
-                    }, 0);
+                    const locationType = getLocationType(eventMarker, displayEvent);
+                    handleLocationTypeCamera(window.globeController.interactionController, eventMarker, locationType);
                 }
             }
+
+            const isMultiEvent = targetEvent.variants && targetEvent.variants.length > 0;
+            const displayEvent = isMultiEvent ? targetEvent.variants[0] : targetEvent;
+            const eventName = displayEvent.name || targetEvent.name
+                || (eventMarker && eventMarker.userData && eventMarker.userData.eventName)
+                || '';
+            const eventDescription = displayEvent.description;
+            const imagePath = getEventImagePath(displayEvent, eventName);
+
+            const esm = this.eventSlideManager
+                || window.globeController?.uiView?.eventSlideManager
+                || window.__codexEventSlideBridge?.eventSlideManager;
+            if (esm) {
+                esm.showEventSlide(
+                    eventName,
+                    imagePath,
+                    eventDescription,
+                    eventMarker,
+                    targetEvent
+                );
+            }
+            updateSlideNavButtons();
         };
 
         // Check if event is on current page, if not switch to correct page
-        if (this.dataModel && window.globeController) {
+        if (this.dataModel) {
             const eventsPerPage = this.dataModel.eventsPerPage || 10;
             const targetPage = Math.floor(targetIndex / eventsPerPage) + 1;
             const currentPage = this.dataModel.getCurrentEventPage();
 
             if (targetPage !== currentPage) {
-                // Page change needed - wait for markers to refresh
                 this.dataModel.setCurrentEventPage(targetPage);
                 clearEventPageSliderSuppressFromGlobe();
 
-                // Refresh markers and pagination, then find and show event
-                // Note: refreshEventMarkers() doesn't return a promise, so we need to wait
+                const ui = window.globeController?.uiView || window.__codexEventSlideBridge?.uiView;
+                if (ui && typeof ui.updatePaginationUI === 'function') {
+                    ui.updatePaginationUI();
+                }
+
+                if (!window.globeController) {
+                    setTimeout(() => findAndShowEvent(), 0);
+                    return;
+                }
+
                 if (window.globeController.globeView) {
                     window.globeController.globeView.refreshEventMarkers();
                 }
@@ -437,43 +447,36 @@ export class EventNavigationManager {
                         }
                     });
                 }
-                
-                // Wait for markers to refresh before finding the marker
-                // The refresh animation takes time, so we retry finding the marker
+
                 let retryCount = 0;
-                const maxRetries = 15; // Increased retries for slower systems
-                const retryInterval = 100; // 100ms between retries
-                
+                const maxRetries = 15;
+                const retryInterval = 100;
+
                 const tryFindMarker = () => {
                     if (!window.globeController || !window.globeController.sceneModel) {
-                        // Globe not ready yet, retry
                         if (retryCount < maxRetries) {
                             retryCount++;
                             setTimeout(tryFindMarker, retryInterval);
                         }
                         return;
                     }
-                    
+
                     const markers = window.globeController.sceneModel.getMarkers();
                     const eventMarker = CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
-                    
+
                     if (eventMarker) {
-                        // Found marker, show event
                         findAndShowEvent();
                     } else if (retryCount < maxRetries) {
-                        // Marker not found yet, retry
                         retryCount++;
                         setTimeout(tryFindMarker, retryInterval);
                     } else {
-                        // Marker not found after retries, try anyway (might be a different issue)
                         console.warn(`[EventNavigationManager] Marker not found for event "${targetEvent.name}" after ${maxRetries} retries`);
                         findAndShowEvent();
                     }
                 };
-                
-                // Start trying after a short delay to allow refresh to begin
+
                 setTimeout(tryFindMarker, 150);
-                return; // Exit early, findAndShowEvent will be called after refresh
+                return;
             }
         }
 
@@ -1354,10 +1357,9 @@ export class EventNavigationManager {
             }
         };
 
-        // Initial update
-        updateNumberButtons();
-
-        // Add click and hover handlers to each button
+        // Clone each slot to attach listeners on the nodes that stay in the DOM, then load thumbnails.
+        // If we called updateNumberButtons() before this loop, img onload/onerror would be bound to nodes
+        // that cloneButton replaces; clones copy --loading but not those handlers (first page stuck loading).
         numberButtons.forEach((btn, index) => {
             const position = index + 1; // 1-10
 
@@ -1486,38 +1488,59 @@ export class EventNavigationManager {
                 if (eventIndex < currentPageEvents.length) {
                     const targetEvent = currentPageEvents[eventIndex];
 
-                    // Find the marker for this event
+                    const currentPageNum = this.dataModel.getCurrentEventPage();
+                    const eps = this.dataModel.eventsPerPage || 10;
+                    const globalIx = (currentPageNum - 1) * eps + eventIndex;
+                    const variantIndexForSlide = getPaginationThumbVariantIndex(targetEvent, globalIx);
+
+                    const esm = this.eventSlideManager
+                        || window.globeController?.uiView?.eventSlideManager
+                        || window.__codexEventSlideBridge?.eventSlideManager;
+
                     if (window.globeController && window.globeController.globeView) {
                         const markers = window.globeController.sceneModel.getMarkers();
-                        const currentPageNum = this.dataModel.getCurrentEventPage();
-                        const eps = this.dataModel.eventsPerPage || 10;
-                        const globalIx = (currentPageNum - 1) * eps + eventIndex;
                         const eventMarker = findMarkerForPaginationThumb(
                             window.globeController.sceneModel,
                             markers,
                             targetEvent,
                             globalIx
                         );
-                        const variantIndexForSlide = getPaginationThumbVariantIndex(targetEvent, globalIx);
 
-                        // Don't allow clicking locked events
                         if (eventMarker && eventMarker.userData && eventMarker.userData.isLocked) {
                             return;
                         }
 
-                        if (eventMarker && window.globeController.interactionController) {
+                        if (eventMarker && window.globeController.interactionController && esm) {
                             handleNumberButtonClick({
                                 targetEvent,
                                 eventMarker,
-                                eventSlideManager: this.eventSlideManager,
+                                eventSlideManager: esm,
                                 interactionController: window.globeController.interactionController,
                                 variantIndex: variantIndexForSlide
                             });
+                        } else if (!eventMarker && esm) {
+                            handleNumberButtonClick({
+                                targetEvent,
+                                eventMarker: null,
+                                eventSlideManager: esm,
+                                interactionController: null,
+                                variantIndex: variantIndexForSlide
+                            });
                         }
+                    } else if (esm) {
+                        handleNumberButtonClick({
+                            targetEvent,
+                            eventMarker: null,
+                            eventSlideManager: esm,
+                            interactionController: null,
+                            variantIndex: variantIndexForSlide
+                        });
                     }
                 }
             });
         });
+
+        updateNumberButtons();
 
         // Return update function so it can be called when page changes
         return updateNumberButtons;

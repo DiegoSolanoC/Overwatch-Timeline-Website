@@ -61,6 +61,7 @@ export class EventSlideManager {
             originalCityDisplayName: '',
             originalFilters: [],
             originalFactions: [],
+            originalNpcs: [],
             originalSources: [],
             originalHeadlines: [],
             originalSecondaryCountryFlags: [],
@@ -340,6 +341,7 @@ export class EventSlideManager {
         const cityInput = document.getElementById('eventSlideEditCityDisplayName');
         const filtersInput = document.getElementById('eventSlideEditFilters');
         const factionsInput = document.getElementById('eventSlideEditFactions');
+        const npcsInput = document.getElementById('eventSlideEditNpcs');
         const headlinesInput = document.getElementById('eventSlideEditHeadlines');
 
         const newName = (eventSlideTitle.innerText ?? eventSlideTitle.textContent ?? '').trim();
@@ -367,6 +369,14 @@ export class EventSlideManager {
             return found ? found.displayName : token;
         });
 
+        const npcTokens = (npcsInput?.value || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        const manifestNpcs = window.eventManager?.npcs || [];
+        const npcCanon = new Map(manifestNpcs.map((n) => [String(n).toLowerCase(), n]));
+        const newNpcs = npcTokens.map((t) => npcCanon.get(t.toLowerCase()) || t);
+
         const headlinesLines = (headlinesInput?.value || '')
             .split('\n')
             .map((s) => s.trim())
@@ -387,6 +397,7 @@ export class EventSlideManager {
         target.cityDisplayName = newCity || undefined;
         target.filters = newFilters;
         target.factions = newFactions;
+        target.npcs = newNpcs.length > 0 ? newNpcs : [];
         target.secondaryCountryFlags = secondaryParsed.length > 0 ? secondaryParsed : undefined;
         target.sources = newSources.length > 0 ? newSources : undefined;
         target.headlines = headlinesLines.length > 0 ? headlinesLines : undefined;
@@ -400,6 +411,7 @@ export class EventSlideManager {
             description: root.description || '',
             filters: Array.isArray(root.filters) ? [...root.filters] : [],
             factions: Array.isArray(root.factions) ? [...root.factions] : [],
+            npcs: Array.isArray(root.npcs) ? [...root.npcs] : [],
             sources: root.sources ? JSON.parse(JSON.stringify(root.sources)) : undefined,
             headlines: Array.isArray(root.headlines) ? [...root.headlines] : undefined,
             locationType: root.locationType || 'earth',
@@ -416,6 +428,7 @@ export class EventSlideManager {
             description: '',
             filters: [],
             factions: [],
+            npcs: [],
             sources: undefined,
             headlines: undefined,
             locationType: lt,
@@ -432,6 +445,7 @@ export class EventSlideManager {
         delete root.description;
         delete root.filters;
         delete root.factions;
+        delete root.npcs;
         delete root.sources;
         delete root.headlines;
         delete root.lat;
@@ -452,6 +466,7 @@ export class EventSlideManager {
         root.description = v.description || '';
         root.filters = Array.isArray(v.filters) ? [...v.filters] : [];
         root.factions = Array.isArray(v.factions) ? [...v.factions] : [];
+        root.npcs = Array.isArray(v.npcs) ? [...v.npcs] : [];
         root.sources = v.sources ? JSON.parse(JSON.stringify(v.sources)) : undefined;
         root.headlines = Array.isArray(v.headlines) ? [...v.headlines] : undefined;
         root.locationType = v.locationType || root.locationType || 'earth';
@@ -568,6 +583,7 @@ export class EventSlideManager {
                 description: '',
                 filters: [],
                 factions: [],
+                npcs: [],
                 sources: undefined,
                 headlines: undefined,
                 locationType: lt,
@@ -634,6 +650,7 @@ export class EventSlideManager {
         const eraNameInput = document.getElementById('eventSlideEditEraName');
         const filtersInput = document.getElementById('eventSlideEditFilters');
         const factionsInput = document.getElementById('eventSlideEditFactions');
+        const npcsInput = document.getElementById('eventSlideEditNpcs');
         const headlinesInput = document.getElementById('eventSlideEditHeadlines');
         const sourcesList = document.getElementById('eventSlideEditSources');
 
@@ -658,6 +675,7 @@ export class EventSlideManager {
                 ? formSvc.factionsArrayToFormDisplayString(target.factions || [], manifest)
                 : (target.factions || []).map((f) => String(f).replace(/^\d+/, '').trim()).join(', ');
         }
+        if (npcsInput) npcsInput.value = (target.npcs || []).join(', ');
         const secondaryEl = document.getElementById('eventSlideEditSecondaryCountries');
         if (secondaryEl) {
             const formSvc = window.eventManager?.formService || window.EventFormService;
@@ -818,6 +836,10 @@ export class EventSlideManager {
                     <input class="event-slide-inline-editor__input" id="eventSlideEditFactions" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" />
                 </div>
                 <div class="event-slide-inline-editor__row">
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditNpcs">NPCs (comma-separated)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditNpcs" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" />
+                </div>
+                <div class="event-slide-inline-editor__row">
                     <label class="event-slide-inline-editor__label" for="eventSlideEditSecondaryCountries">Secondary countries (comma-separated)</label>
                     <input class="event-slide-inline-editor__input" id="eventSlideEditSecondaryCountries" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Also match country filter (optional)" />
                 </div>
@@ -847,16 +869,30 @@ export class EventSlideManager {
         }
 
         const editorEl = document.getElementById('eventSlideInlineEditor');
-        if (editorEl && !document.getElementById('eventSlideEditSecondaryCountries')) {
+        if (editorEl && !document.getElementById('eventSlideEditNpcs')) {
             const factionsRow = document.getElementById('eventSlideEditFactions')?.closest('.event-slide-inline-editor__row');
             if (factionsRow) {
+                const row = document.createElement('div');
+                row.className = 'event-slide-inline-editor__row';
+                row.innerHTML = `
+                    <label class="event-slide-inline-editor__label" for="eventSlideEditNpcs">NPCs (comma-separated)</label>
+                    <input class="event-slide-inline-editor__input" id="eventSlideEditNpcs" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" />
+                `;
+                factionsRow.after(row);
+            }
+        }
+        if (editorEl && !document.getElementById('eventSlideEditSecondaryCountries')) {
+            const npcsRow = document.getElementById('eventSlideEditNpcs')?.closest('.event-slide-inline-editor__row');
+            const factionsRow = document.getElementById('eventSlideEditFactions')?.closest('.event-slide-inline-editor__row');
+            const anchor = npcsRow || factionsRow;
+            if (anchor) {
                 const row = document.createElement('div');
                 row.className = 'event-slide-inline-editor__row';
                 row.innerHTML = `
                     <label class="event-slide-inline-editor__label" for="eventSlideEditSecondaryCountries">Secondary countries (comma-separated)</label>
                     <input class="event-slide-inline-editor__input" id="eventSlideEditSecondaryCountries" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="Also match country filter (optional)" />
                 `;
-                factionsRow.after(row);
+                anchor.after(row);
             }
         }
 
@@ -890,6 +926,7 @@ export class EventSlideManager {
         const eraNameInput = document.getElementById('eventSlideEditEraName');
         const filtersInput = document.getElementById('eventSlideEditFilters');
         const factionsInput = document.getElementById('eventSlideEditFactions');
+        const npcsInput = document.getElementById('eventSlideEditNpcs');
         const secondaryCountriesInput = document.getElementById('eventSlideEditSecondaryCountries');
         const headlinesInput = document.getElementById('eventSlideEditHeadlines');
         const sourcesList = document.getElementById('eventSlideEditSources');
@@ -955,6 +992,7 @@ export class EventSlideManager {
         eraNameInput?.addEventListener('input', markDirty, { passive: true });
         filtersInput?.addEventListener('input', markDirty, { passive: true });
         factionsInput?.addEventListener('input', markDirty, { passive: true });
+        npcsInput?.addEventListener('input', markDirty, { passive: true });
         secondaryCountriesInput?.addEventListener('input', markDirty, { passive: true });
         headlinesInput?.addEventListener('input', markDirty, { passive: true });
 
@@ -1024,6 +1062,7 @@ export class EventSlideManager {
             this._inlineDescEdit.originalCityDisplayName = target.cityDisplayName || '';
             this._inlineDescEdit.originalFilters = Array.isArray(target.filters) ? [...target.filters] : [];
             this._inlineDescEdit.originalFactions = Array.isArray(target.factions) ? [...target.factions] : [];
+            this._inlineDescEdit.originalNpcs = Array.isArray(target.npcs) ? [...target.npcs] : [];
             this._inlineDescEdit.originalSources = Array.isArray(target.sources) ? JSON.parse(JSON.stringify(target.sources)) : [];
             this._inlineDescEdit.originalHeadlines = Array.isArray(target.headlines) ? [...target.headlines] : [];
             this._inlineDescEdit.originalSecondaryCountryFlags = Array.isArray(target.secondaryCountryFlags)
@@ -1056,11 +1095,14 @@ export class EventSlideManager {
             // Reset setup flag each time we enter edit mode so options stay in sync.
             if (filtersInput) filtersInput.dataset.autocompleteSetup = 'false';
             if (factionsInput) factionsInput.dataset.autocompleteSetup = 'false';
+            const npcsInputAuto = document.getElementById('eventSlideEditNpcs');
+            if (npcsInputAuto) npcsInputAuto.dataset.autocompleteSetup = 'false';
             const secondaryCountriesInputEl = document.getElementById('eventSlideEditSecondaryCountries');
             if (secondaryCountriesInputEl) secondaryCountriesInputEl.dataset.autocompleteSetup = 'false';
             const auto = window.eventManager?.formService?.autocompleteService || window.EventFormService?.autocompleteService;
             if (auto && typeof auto.setupAutocomplete === 'function') {
                 const heroes = window.eventManager?.heroes || window.globeController?.dataModel?.heroes || [];
+                const npcList = window.eventManager?.npcs || [];
                 const factionList = window.eventManager?.factions?.length
                     ? window.eventManager.factions
                     : (window.globeController?.dataModel?.factions || []);
@@ -1070,6 +1112,7 @@ export class EventSlideManager {
                     : [];
                 if (filtersInput) auto.setupAutocomplete(filtersInput, heroes, 'heroes');
                 if (factionsInput) auto.setupAutocomplete(factionsInput, factionList, 'factions');
+                if (npcsInputAuto && npcList.length > 0) auto.setupAutocomplete(npcsInputAuto, npcList, 'npcs');
                 if (secondaryCountriesInputEl && countryOptions.length > 0) {
                     auto.setupAutocomplete(secondaryCountriesInputEl, countryOptions, 'countries');
                 }
@@ -1203,6 +1246,7 @@ export class EventSlideManager {
         this._inlineDescEdit.originalCityDisplayName = '';
         this._inlineDescEdit.originalFilters = [];
         this._inlineDescEdit.originalFactions = [];
+        this._inlineDescEdit.originalNpcs = [];
         this._inlineDescEdit.originalSources = [];
         this._inlineDescEdit.originalHeadlines = [];
         this._inlineDescEdit.originalSecondaryCountryFlags = [];
@@ -1386,13 +1430,19 @@ export class EventSlideManager {
             this.currentEventMarker = marker;
             this.currentEventData = eventData;
             this.currentVariantIndex = initialVariantIndex;
-            this.uiView.currentEventMarker = marker;
-            this.uiView.currentEventData = eventData;
-            this.uiView.currentVariantIndex = initialVariantIndex;
-            this.previousAutoRotateState = this.sceneModel.getAutoRotateEnabled();
-            this.sceneModel.setAutoRotateEnabled(true);
-            this.sceneModel.setAutoRotate(false);
-            this.sceneModel.eventMarker = marker;
+            if (this.uiView) {
+                this.uiView.currentEventMarker = marker;
+                this.uiView.currentEventData = eventData;
+                this.uiView.currentVariantIndex = initialVariantIndex;
+            }
+            if (window.globeController && this.sceneModel) {
+                this.previousAutoRotateState = this.sceneModel.getAutoRotateEnabled();
+                this.sceneModel.setAutoRotateEnabled(true);
+                this.sceneModel.setAutoRotate(false);
+                this.sceneModel.eventMarker = marker;
+            } else {
+                this.previousAutoRotateState = null;
+            }
         }
 
         if (eventSlide) {
@@ -1464,17 +1514,18 @@ export class EventSlideManager {
             // Get current variant or main event
             const currentEvent = isMultiEvent ? eventData.variants[this.currentVariantIndex] : eventData;
 
-            // Handle variant markers using helper
-            const handleVariantMarkers = window.EventSlideShowHelpers?.handleVariantMarkers;
-            if (handleVariantMarkers) {
-                handleVariantMarkers(this.uiView, this.currentEventData, eventData);
-            } else {
-                // Minimal fallback
-                if (this.currentEventData && this.currentEventData !== eventData && this.currentEventData.variants?.length > 0) {
-                    this.uiView.hideVariantMarkers(this.currentEventData);
-                }
-                if (eventData?.variants?.length > 0) {
-                    this.uiView.showVariantMarkers(eventData);
+            // Handle variant markers using helper (globe only — no markers in Codex)
+            if (window.globeController && this.uiView) {
+                const handleVariantMarkers = window.EventSlideShowHelpers?.handleVariantMarkers;
+                if (handleVariantMarkers) {
+                    handleVariantMarkers(this.uiView, this.currentEventData, eventData);
+                } else {
+                    if (this.currentEventData && this.currentEventData !== eventData && this.currentEventData.variants?.length > 0) {
+                        this.uiView.hideVariantMarkers(this.currentEventData);
+                    }
+                    if (eventData?.variants?.length > 0) {
+                        this.uiView.showVariantMarkers(eventData);
+                    }
                 }
             }
 
@@ -1645,10 +1696,18 @@ export class EventSlideManager {
         }
 
         // Re-enable page navigation buttons when event slide is closed
-        this.uiView.disablePageNavigationButtons(false);
+        if (this.uiView && typeof this.uiView.disablePageNavigationButtons === 'function') {
+            this.uiView.disablePageNavigationButtons(false);
+        }
 
         // Hide variant markers for the current event (if it was a multi-event)
-        if (this.currentEventData && this.currentEventData.variants && this.currentEventData.variants.length > 0) {
+        if (
+            window.globeController &&
+            this.uiView &&
+            this.currentEventData &&
+            this.currentEventData.variants &&
+            this.currentEventData.variants.length > 0
+        ) {
             this.uiView.hideVariantMarkers(this.currentEventData);
         }
 
@@ -1657,10 +1716,9 @@ export class EventSlideManager {
         this.currentEventData = null;
         this.currentEventMarker = null;
         const syncState = window.EventSlideStateHelpers?.syncStateWithUIView;
-        if (syncState) {
+        if (syncState && this.uiView) {
             syncState(this.uiView, { currentEventData: null, currentEventMarker: null });
-        } else {
-            // Fallback
+        } else if (this.uiView) {
             this.uiView.currentEventData = null;
             this.uiView.currentEventMarker = null;
         }
@@ -1668,53 +1726,52 @@ export class EventSlideManager {
         // Only zoom out and restore camera position if we actually zoomed to an event
         // (i.e., if originalCameraPosition was set from zoomToMarker)
         // Read from uiView since zoomToMarker sets it there
-        if (hadEventMarker && this.uiView.originalCameraPosition) {
+        if (hadEventMarker && this.uiView && this.uiView.originalCameraPosition && window.globeController) {
             this.uiView.zoomOutFromEvent();
         } else {
-            // Clear any stored original position if no event was open
             this.originalCameraPosition = null;
             this.originalGlobeRotation = null;
-            this.uiView.originalCameraPosition = null;
-            this.uiView.originalGlobeRotation = null;
-        }
-
-        // Restore auto-rotate state using helper
-        const restoreAutoRotateState = window.EventSlideStateHelpers?.restoreAutoRotateState;
-        if (restoreAutoRotateState) {
-            restoreAutoRotateState(this.sceneModel, this.previousAutoRotateState);
-            this.previousAutoRotateState = null;
-        } else {
-            // Fallback
-            this.sceneModel.eventMarker = null;
-            if (this.previousAutoRotateState !== null) {
-                this.sceneModel.setAutoRotateEnabled(this.previousAutoRotateState);
-                if (this.previousAutoRotateState) {
-                    this.sceneModel.setAutoRotate(true);
-                }
-                this.previousAutoRotateState = null;
+            if (this.uiView) {
+                this.uiView.originalCameraPosition = null;
+                this.uiView.originalGlobeRotation = null;
             }
         }
 
-        // Update ImageOverlayManager state (not UIView directly)
-        this.uiView.imageOverlayManager.imageOverlayVisible = false;
-        this.uiView.imageOverlayManager.imageToggleState = false;
+        if (window.globeController && this.sceneModel) {
+            const restoreAutoRotateState = window.EventSlideStateHelpers?.restoreAutoRotateState;
+            if (restoreAutoRotateState) {
+                restoreAutoRotateState(this.sceneModel, this.previousAutoRotateState);
+            } else {
+                this.sceneModel.eventMarker = null;
+                if (this.previousAutoRotateState !== null) {
+                    this.sceneModel.setAutoRotateEnabled(this.previousAutoRotateState);
+                    if (this.previousAutoRotateState) {
+                        this.sceneModel.setAutoRotate(true);
+                    }
+                }
+            }
+        }
+        this.previousAutoRotateState = null;
 
-        // Clear any pending timeouts
-        if (this.uiView.imageOverlayManager.imageAutoHideTimeout) {
-            clearTimeout(this.uiView.imageOverlayManager.imageAutoHideTimeout);
-            this.uiView.imageOverlayManager.imageAutoHideTimeout = null;
+        if (this.uiView && this.uiView.imageOverlayManager) {
+            this.uiView.imageOverlayManager.imageOverlayVisible = false;
+            this.uiView.imageOverlayManager.imageToggleState = false;
+            if (this.uiView.imageOverlayManager.imageAutoHideTimeout) {
+                clearTimeout(this.uiView.imageOverlayManager.imageAutoHideTimeout);
+                this.uiView.imageOverlayManager.imageAutoHideTimeout = null;
+            }
         }
 
-        // Reset stillness tracking using helper
         const resetStillnessTracking = window.EventSlideStateHelpers?.resetStillnessTracking;
-        if (resetStillnessTracking) {
-            resetStillnessTracking(this.uiView);
-        } else {
-            // Fallback
-            this.uiView.lastCameraPosition = null;
-            this.uiView.lastGlobeRotation = null;
-            this.uiView.stillnessStartTime = null;
-            this.uiView.wasDragging = false;
+        if (this.uiView) {
+            if (resetStillnessTracking) {
+                resetStillnessTracking(this.uiView);
+            } else {
+                this.uiView.lastCameraPosition = null;
+                this.uiView.lastGlobeRotation = null;
+                this.uiView.stillnessStartTime = null;
+                this.uiView.wasDragging = false;
+            }
         }
     }
 

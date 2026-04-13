@@ -211,9 +211,15 @@ export class EventMarkerManager {
      * @returns {Promise<void>|undefined}
      */
     refreshEventMarkers(animate = true, options = {}) {
-        // Check if globe is initialized before proceeding
         const globe = this.sceneModel.getGlobe();
         if (!globe) {
+            if (this.sceneModel.getMapViewEnabled?.()) {
+                return delayThenSyncPagination(this, {
+                    ...options,
+                    domLiteFromRefresh: true,
+                    domLiteAnimate: animate
+                });
+            }
             console.warn('EventMarkerManager: Cannot refresh event markers - globe not initialized yet');
             return Promise.resolve();
         }
@@ -257,6 +263,9 @@ export class EventMarkerManager {
             if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
                 window.globeController.updatePlaneVisibility();
             }
+            if (window.globeController && typeof window.globeController.rebindOpenEventMarkerAfterRefresh === 'function') {
+                window.globeController.rebindOpenEventMarkerAfterRefresh();
+            }
         });
     }
 
@@ -270,7 +279,15 @@ export class EventMarkerManager {
         const activeFilters = this.sceneModel.activeFilters;
         const globe = this.sceneModel.getGlobe();
 
-        if (!globe) return Promise.resolve();
+        if (!globe) {
+            if (this.sceneModel.getMapViewEnabled?.()) {
+                if (activeFilters.size === 0) {
+                    this.unlockAllEvents();
+                }
+                return delayThenSyncPagination(this, options);
+            }
+            return Promise.resolve();
+        }
 
         // If no filters active, unlock all and refresh number button states
         if (activeFilters.size === 0) {

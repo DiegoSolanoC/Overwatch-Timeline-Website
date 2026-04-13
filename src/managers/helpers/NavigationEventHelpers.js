@@ -37,14 +37,14 @@ export function handleNumberButtonClick({
         displayEvent = targetEvent.variants[0];
     }
 
-    const eventName = displayEvent.name || eventMarker.userData.eventName;
+    const eventName = displayEvent.name || (eventMarker && eventMarker.userData && eventMarker.userData.eventName) || '';
     const eventDescription = displayEvent.description;
 
     // Get image path using helper
     const imagePath = getEventImagePath(displayEvent, eventName);
 
     // Zoom to marker or reset to default view (for Moon/Mars/Station) and show event slide
-    if (interactionController) {
+    if (interactionController && eventMarker) {
         const locationType = getLocationType(eventMarker, displayEvent);
         handleLocationTypeCamera(interactionController, eventMarker, locationType);
     }

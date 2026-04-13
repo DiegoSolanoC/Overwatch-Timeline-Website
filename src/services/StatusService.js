@@ -3,6 +3,16 @@
  */
 class StatusService {
     update(message, type = 'info') {
+        const inlineHost = document.getElementById('globeInlineOverlayStatusContent');
+        if (inlineHost) {
+            inlineHost.innerHTML = '';
+            const item = document.createElement('div');
+            item.className = `test-status-item ${type}`;
+            item.textContent = message;
+            inlineHost.appendChild(item);
+            return;
+        }
+
         const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const overlayActive = loadingOverlay && loadingOverlay.classList.contains('active');

@@ -11,19 +11,19 @@ class ProgressService {
 
     updateGlobeComponentsProgress(completed) {
         this.globeComponentsProgress.completed = completed;
-        const progressBar = document.getElementById('loadingProgressBar');
-        if (progressBar) {
-            const percentage = (completed / this.globeComponentsProgress.total) * 100;
-            progressBar.style.width = percentage + '%';
-        }
+        const percentage = (completed / this.globeComponentsProgress.total) * 100;
+        const mainBar = document.getElementById('loadingProgressBar');
+        if (mainBar) mainBar.style.width = `${percentage}%`;
+        const inlineBar = document.getElementById('globeInlineLoadingProgressBar');
+        if (inlineBar) inlineBar.style.width = `${percentage}%`;
     }
 
     resetGlobeComponentsProgress() {
         this.globeComponentsProgress.completed = 0;
-        const progressBar = document.getElementById('loadingProgressBar');
-        if (progressBar) {
-            progressBar.style.width = '0%';
-        }
+        const mainBar = document.getElementById('loadingProgressBar');
+        if (mainBar) mainBar.style.width = '0%';
+        const inlineBar = document.getElementById('globeInlineLoadingProgressBar');
+        if (inlineBar) inlineBar.style.width = '0%';
     }
 }
 

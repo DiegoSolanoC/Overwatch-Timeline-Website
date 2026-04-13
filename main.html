@@ -146,7 +146,7 @@
                         <input type="text" id="eventsSearchInput" class="events-search-input events-search-input--title" placeholder="By title..." autocomplete="off" />
                         <label for="eventsSearchFilters" class="events-search-label">Filters:</label>
                         <div class="events-search-field events-search-field--filters">
-                            <input type="text" id="eventsSearchFilters" class="events-search-input" placeholder="Hero or faction, comma-separated..." autocomplete="off" />
+                            <input type="text" id="eventsSearchFilters" class="events-search-input" placeholder="Hero, faction, or NPC (comma-separated)..." autocomplete="off" />
                             <div id="eventsSearchFiltersSuggestions" class="events-search-suggestions" style="display: none;"></div>
                         </div>
                         <label for="eventsSearchCountry" class="events-search-label">Country:</label>
@@ -201,28 +201,28 @@
     <script src="src/services/StationFollowService.js?v=8"></script>
     
     <!-- Load component loader for globe/menu/features -->
-    <script type="module" src="src/app/component-loader.js?v=60"></script>
+    <script type="module" src="src/app/component-loader.js?v=62"></script>
     
     <!-- Load services -->
     <script src="src/services/SoundEffectsManager.js?v=8"></script>
     <script src="src/services/GlitchTextService.js?v=10"></script>
     <script src="src/utils/FactionMatchHelpers.js?v=3"></script>
-    <script src="src/services/EventDataService.js?v=8"></script>
+    <script src="src/services/EventDataService.js?v=9"></script>
     <script src="src/services/LocationService.js?v=8"></script>
     <script src="src/data/flagFileByCommonName.js?v=8"></script>
     <script src="src/utils/LocationFlagHelpers.js?v=9"></script>
     <script src="src/utils/EventTimelineHelpers.js?v=9"></script>
-    <script src="src/services/EventRenderService.js?v=15"></script>
-    <script src="src/services/EventEditService.js?v=9"></script>
+    <script src="src/services/EventRenderService.js?v=16"></script>
+    <script src="src/services/EventEditService.js?v=10"></script>
     <script src="src/services/NewsTickerService.js?v=8"></script>
     <!-- EventFormService dependencies - load before EventFormService -->
     <script src="src/services/LocationFieldManager.js?v=8"></script>
     <script src="src/services/SourceFieldManager.js?v=8"></script>
     <script src="src/services/HeadlinesFieldManager.js?v=8"></script>
-    <script src="src/services/FormAutocompleteService.js?v=9"></script>
-    <script src="src/services/EventFormService.js?v=9"></script>
+    <script src="src/services/FormAutocompleteService.js?v=10"></script>
+    <script src="src/services/EventFormService.js?v=10"></script>
     <script src="src/services/EventDragDropService.js?v=8"></script>
-    <script src="src/services/EventListenerService.js?v=12"></script>
+    <script src="src/services/EventListenerService.js?v=13"></script>
     <script src="src/services/EventInteractionService.js?v=10"></script>
     <script src="src/services/EventInitService.js?v=8"></script>
     <script src="src/services/CityLookupService.js?v=9"></script>
@@ -242,15 +242,15 @@
     <script src="src/services/helpers/MusicManagerInitHelpers.js?v=10"></script>
     <script src="src/services/MusicManager.js?v=12"></script>
     <!-- Filter services - load dependencies before FilterService -->
-    <script src="src/services/FilterStateManager.js?v=9"></script>
+    <script src="src/services/FilterStateManager.js?v=10"></script>
     <script src="src/services/FilterImageService.js?v=8"></script>
     <!-- FilterService helpers - load before FilterService -->
-    <script type="module" src="src/services/helpers/FilterButtonHelpers.js?v=8"></script>
-    <script type="module" src="src/services/helpers/FilterButtonSetupHelpers.js?v=9"></script>
-    <script type="module" src="src/services/helpers/FilterManifestHelpers.js?v=8"></script>
-    <script type="module" src="src/services/helpers/FilterTabHelpers.js?v=8"></script>
-    <script type="module" src="src/services/helpers/FilterCountHelpers.js?v=8"></script>
-    <script src="src/services/FilterService.js?v=11"></script>
+    <script type="module" src="src/services/helpers/FilterButtonHelpers.js?v=9"></script>
+    <script type="module" src="src/services/helpers/FilterButtonSetupHelpers.js?v=10"></script>
+    <script type="module" src="src/services/helpers/FilterManifestHelpers.js?v=9"></script>
+    <script type="module" src="src/services/helpers/FilterTabHelpers.js?v=9"></script>
+    <script type="module" src="src/services/helpers/FilterCountHelpers.js?v=9"></script>
+    <script src="src/services/FilterService.js?v=12"></script>
     <script src="src/services/SidebarService.js?v=8"></script>
     <script src="src/services/AppKeyboardShortcutsService.js?v=11"></script>
     <script src="src/services/PanelResizeService.js?v=9"></script>
@@ -259,7 +259,7 @@
     <script src="script.js?v=8"></script>
     
     <!-- Shared page initialization (sidebar visibility, loader, zoom controls) -->
-    <script src="src/app/page-init.js?v=8"></script>
+    <script src="src/app/page-init.js?v=10"></script>
 </body>
 </html>
 

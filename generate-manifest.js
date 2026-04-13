@@ -6,6 +6,7 @@ const path = require('path');
 
 const heroesFolder = './assets/images/heroes';
 const factionsFolder = './assets/images/factions';
+const npcsFolder = './assets/images/npcs';
 const musicFolder = './assets/audio/music';
 
 /** Locale-aware sort so "51" orders like a number among hero names */
@@ -78,6 +79,7 @@ function getMusicFiles(folderPath) {
 
 const heroes = getHeroesFromFolder(heroesFolder);
 const factions = getFactionsFromFolder(factionsFolder);
+const npcs = getHeroesFromFolder(npcsFolder);
 const music = getMusicFiles(musicFolder);
 
 const manifest = {
@@ -87,9 +89,10 @@ const manifest = {
         number: f.number,
         displayName: f.displayName
     })),
+    npcs,
     music
 };
 
 fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2));
 console.log('manifest.json written from disk assets.');
-console.log(`  heroes: ${heroes.length}, factions: ${factions.length}, music: ${music.length}`);
+console.log(`  heroes: ${heroes.length}, factions: ${factions.length}, npcs: ${npcs.length}, music: ${music.length}`);

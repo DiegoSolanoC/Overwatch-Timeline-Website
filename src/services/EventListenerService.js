@@ -352,11 +352,17 @@ class EventListenerService {
 
         const buildFilterIndex = () => {
             const heroes = this.eventManager.heroes || [];
+            const npcs = this.eventManager.npcs || [];
             const factions = this.eventManager.factions || [];
             const heroByLower = new Map();
             heroes.forEach(h => {
                 const key = (h || '').toString().toLowerCase();
                 if (key) heroByLower.set(key, h);
+            });
+            const npcByLower = new Map();
+            npcs.forEach((n) => {
+                const key = (n || '').toString().toLowerCase();
+                if (key) npcByLower.set(key, n);
             });
             const factionEntries = (factions || []).map(f => {
                 const filename = typeof f === 'object' && f !== null && f.filename != null ? f.filename : f;
@@ -375,7 +381,7 @@ class EventListenerService {
                     displayLower: displayName.toLowerCase(),
                 };
             });
-            return { heroes, heroByLower, factionEntries };
+            return { heroes, npcs, heroByLower, npcByLower, factionEntries };
         };
 
         let filterIndex = buildFilterIndex();
@@ -465,11 +471,25 @@ class EventListenerService {
             return { before, current, lastComma };
         };
 
+        const countrySubstringRank = (commonLower, needle) => {
+            if (!needle || !commonLower.includes(needle)) return Infinity;
+            if (commonLower.startsWith(needle)) return 0;
+            return 1 + commonLower.indexOf(needle);
+        };
+
         const getCountryCandidates = (prefixLower) => {
             flagIndex = buildFlagIndex();
             const entries = flagIndex;
             if (!prefixLower) return [];
-            return entries.filter((e) => e.commonLower.startsWith(prefixLower)).slice(0, 10);
+            return entries
+                .filter((e) => e.commonLower.includes(prefixLower))
+                .sort(
+                    (a, b) =>
+                        countrySubstringRank(a.commonLower, prefixLower)
+                        - countrySubstringRank(b.commonLower, prefixLower)
+                        || a.common.length - b.common.length
+                )
+                .slice(0, 10);
         };
 
         const hideCountrySuggestions = () => {
@@ -545,19 +565,23 @@ class EventListenerService {
 
         const parseFilterTokens = (text) => {
             // Rebuild index lazily if data arrived after listeners were set up
-            if (!filterIndex || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)) {
+            if (!filterIndex
+                || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)
+                || (filterIndex.npcs?.length === 0 && (this.eventManager.npcs || []).length > 0)) {
                 filterIndex = buildFilterIndex();
             }
-            const heroes = filterIndex.heroes || [];
             const heroByLower = filterIndex.heroByLower || new Map();
+            const npcByLower = filterIndex.npcByLower || new Map();
             const factionEntries = filterIndex.factionEntries || [];
 
             const tokens = (text || '').split(',').map(t => t.trim()).filter(t => t.length > 0);
             const matchedHeroes = [];
             const matchedFactions = [];
+            const matchedNpcs = [];
             const unmatchedTokens = [];
             const seenHero = new Set();
             const seenFaction = new Set();
+            const seenNpc = new Set();
             const seenUnmatched = new Set();
 
             tokens.forEach(token => {
@@ -567,6 +591,12 @@ class EventListenerService {
                     if (heroName && !seenHero.has(heroName)) {
                         seenHero.add(heroName);
                         matchedHeroes.push(heroName);
+                    }
+                } else if (npcByLower.has(lower)) {
+                    const npcName = npcByLower.get(lower);
+                    if (npcName && !seenNpc.has(npcName)) {
+                        seenNpc.add(npcName);
+                        matchedNpcs.push(npcName);
                     }
                 } else {
                     const fh = typeof window !== 'undefined' && window.FactionMatchHelpers;
@@ -591,7 +621,7 @@ class EventListenerService {
                 }
             });
 
-            return { matchedHeroes, matchedFactions, unmatchedTokens };
+            return { matchedHeroes, matchedFactions, matchedNpcs, unmatchedTokens };
         };
 
         const getSelectedFilterKeys = () => {
@@ -613,7 +643,9 @@ class EventListenerService {
 
         const selectionKeysToFilterText = (keys) => {
             // Rebuild index if data arrived after init
-            if (!filterIndex || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)) {
+            if (!filterIndex
+                || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)
+                || (filterIndex.npcs?.length === 0 && (this.eventManager.npcs || []).length > 0)) {
                 filterIndex = buildFilterIndex();
             }
             const factionEntries = filterIndex.factionEntries || [];
@@ -622,6 +654,7 @@ class EventListenerService {
                 if (!fe?.filenameLower) return;
                 factionByFilenameLower.set(fe.filenameLower, fe.displayName || fe.filename);
             });
+            const npcByLower = filterIndex.npcByLower || new Map();
 
             const tokens = [];
             (keys || []).forEach((k) => {
@@ -631,6 +664,8 @@ class EventListenerService {
                 // If it matches a known faction filename, prefer using its displayName token.
                 if (factionByFilenameLower.has(lower)) {
                     tokens.push(factionByFilenameLower.get(lower));
+                } else if (npcByLower.has(lower)) {
+                    tokens.push(npcByLower.get(lower));
                 } else {
                     // For heroes, raw is already the hero name; for unknown tokens, keep raw.
                     tokens.push(raw);
@@ -648,6 +683,12 @@ class EventListenerService {
             return { before, current, lastComma };
         };
 
+        const tokenSubstringRank = (hayLower, needle) => {
+            if (!needle || !hayLower.includes(needle)) return Infinity;
+            if (hayLower.startsWith(needle)) return 0;
+            return 1 + hayLower.indexOf(needle);
+        };
+
         const getTokenCandidates = (prefixLower) => {
             if (!filterIndex) filterIndex = buildFilterIndex();
             const results = [];
@@ -655,33 +696,62 @@ class EventListenerService {
             (filterIndex.heroes || []).forEach(h => {
                 const label = (h || '').toString();
                 if (!label) return;
-                if (label.toLowerCase().startsWith(prefixLower)) {
+                const ll = label.toLowerCase();
+                if (ll.includes(prefixLower)) {
                     results.push({
                         kind: 'hero',
                         label,
                         detail: 'Hero',
                         insert: label,
-                        heroKey: label
+                        heroKey: label,
+                        _rank: tokenSubstringRank(ll, prefixLower)
+                    });
+                }
+            });
+            (filterIndex.npcs || []).forEach((n) => {
+                const label = (n || '').toString();
+                if (!label) return;
+                const ll = label.toLowerCase();
+                if (ll.includes(prefixLower)) {
+                    results.push({
+                        kind: 'npc',
+                        label,
+                        detail: 'NPC',
+                        insert: label,
+                        npcKey: label,
+                        _rank: tokenSubstringRank(ll, prefixLower)
                     });
                 }
             });
             // Factions: primary label = readable name; muted detail = "Faction" (same pattern as heroes)
             (filterIndex.factionEntries || []).forEach(f => {
                 if (!f.displayName && !f.filename) return;
-                const match = f.displayLower.startsWith(prefixLower) || f.filenameLower.startsWith(prefixLower);
+                const match =
+                    f.displayLower.includes(prefixLower)
+                    || f.filenameLower.includes(prefixLower);
                 if (match) {
                     const label = f.displayName || defaultFactionDisplayName(f.filename) || f.filename;
+                    const rank = Math.min(
+                        tokenSubstringRank(f.displayLower || '', prefixLower),
+                        tokenSubstringRank(f.filenameLower || '', prefixLower)
+                    );
                     results.push({
                         kind: 'faction',
                         label,
                         detail: 'Faction',
                         insert: label,
-                        factionFilename: f.filename
+                        factionFilename: f.filename,
+                        _rank: rank
                     });
                 }
             });
-            // Sort by label length then alpha
-            results.sort((a, b) => (a.label.length - b.label.length) || a.label.localeCompare(b.label));
+            results.sort(
+                (a, b) =>
+                    (a._rank - b._rank)
+                    || (a.label.length - b.label.length)
+                    || a.label.localeCompare(b.label)
+            );
+            results.forEach((r) => { delete r._rank; });
             return results;
         };
 
@@ -713,6 +783,8 @@ class EventListenerService {
                 img.alt = '';
                 if (item.kind === 'faction' && item.factionFilename) {
                     img.src = `assets/images/factions/${encodeURIComponent(item.factionFilename)}.png`;
+                } else if (item.kind === 'npc' && item.npcKey) {
+                    img.src = `assets/images/npcs/${encodeURIComponent(item.npcKey)}.png`;
                 } else {
                     const hk = item.heroKey || item.label;
                     img.src = `assets/images/heroes/${encodeURIComponent(hk)}.png`;
@@ -749,7 +821,9 @@ class EventListenerService {
                 return;
             }
             // Rebuild index if data arrived after init
-            if (!filterIndex || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)) {
+            if (!filterIndex
+                || (filterIndex.heroes?.length === 0 && (this.eventManager.heroes || []).length > 0)
+                || (filterIndex.npcs?.length === 0 && (this.eventManager.npcs || []).length > 0)) {
                 filterIndex = buildFilterIndex();
             }
             const { before, current } = getCurrentTokenInfo();
@@ -773,9 +847,10 @@ class EventListenerService {
         const applySearch = () => {
             this.eventManager.searchQuery = (searchInput && searchInput.value) ? searchInput.value.trim() : '';
             const filterText = (filtersInput && filtersInput.value) ? filtersInput.value.trim() : '';
-            const { matchedHeroes, matchedFactions, unmatchedTokens } = parseFilterTokens(filterText);
+            const { matchedHeroes, matchedFactions, matchedNpcs, unmatchedTokens } = parseFilterTokens(filterText);
             this.eventManager.searchHeroFilters = matchedHeroes;
             this.eventManager.searchFactionFilters = matchedFactions;
+            this.eventManager.searchNpcFilters = matchedNpcs || [];
             this.eventManager.searchUnmatchedFilterTokens = unmatchedTokens || [];
             if (countryInput) {
                 const countryText = (countryInput.value || '').trim();
@@ -992,6 +1067,7 @@ class EventListenerService {
                 this.eventManager.searchQuery = '';
                 this.eventManager.searchHeroFilters = [];
                 this.eventManager.searchFactionFilters = [];
+                this.eventManager.searchNpcFilters = [];
                 this.eventManager.searchUnmatchedFilterTokens = [];
                 this.eventManager.searchCountryFilters = [];
                 if (this.eventManager.applySearchAndRender) {

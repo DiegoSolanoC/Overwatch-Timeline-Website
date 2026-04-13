@@ -15,6 +15,16 @@ let globeComponentsProgress = {
  * @param {string} type - Message type ('info', 'success', 'error')
  */
 export function updateStatus(message, type = 'info') {
+    const inlineStatusHost = document.getElementById('globeInlineOverlayStatusContent');
+    if (inlineStatusHost) {
+        inlineStatusHost.innerHTML = '';
+        const item = document.createElement('div');
+        item.className = `test-status-item ${type}`;
+        item.textContent = message;
+        inlineStatusHost.appendChild(item);
+        return;
+    }
+
     // Check if we're on main.html with overlay status
     const isMainPage = window.location.pathname.includes('main.html') || window.location.href.includes('main.html');
     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -51,13 +61,17 @@ export function updateStatus(message, type = 'info') {
  * Update globe components progress
  * @param {number} completed - Number of completed components
  */
+function applyGlobeProgressWidth(percentage) {
+    const mainBar = document.getElementById('loadingProgressBar');
+    if (mainBar) mainBar.style.width = `${percentage}%`;
+    const inlineBar = document.getElementById('globeInlineLoadingProgressBar');
+    if (inlineBar) inlineBar.style.width = `${percentage}%`;
+}
+
 export function updateGlobeComponentsProgress(completed) {
     globeComponentsProgress.completed = completed;
-    const progressBar = document.getElementById('loadingProgressBar');
-    if (progressBar) {
-        const percentage = (completed / globeComponentsProgress.total) * 100;
-        progressBar.style.width = percentage + '%';
-    }
+    const percentage = (completed / globeComponentsProgress.total) * 100;
+    applyGlobeProgressWidth(percentage);
 }
 
 /**
@@ -65,10 +79,7 @@ export function updateGlobeComponentsProgress(completed) {
  */
 export function resetGlobeComponentsProgress() {
     globeComponentsProgress.completed = 0;
-    const progressBar = document.getElementById('loadingProgressBar');
-    if (progressBar) {
-        progressBar.style.width = '0%';
-    }
+    applyGlobeProgressWidth(0);
 }
 
 /**

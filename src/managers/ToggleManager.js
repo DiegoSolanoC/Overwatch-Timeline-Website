@@ -13,6 +13,18 @@ export class ToggleManager {
     setupAutoRotateToggle() {
         const toggleBtn = document.getElementById('autoRotateToggle');
         if (!toggleBtn) return;
+
+        if (typeof toggleBtn._rotateToggleTeardown === 'function') {
+            try {
+                toggleBtn._rotateToggleTeardown();
+            } catch (_) { /* ignore */ }
+        }
+        const rotateAc = new AbortController();
+        const rotateSignal = rotateAc.signal;
+        toggleBtn._rotateToggleTeardown = () => {
+            rotateAc.abort();
+            toggleBtn._rotateToggleTeardown = null;
+        };
         
         const rotateIcon = document.getElementById('rotateIcon');
         const sceneModel = this.sceneModel;
@@ -33,8 +45,16 @@ export class ToggleManager {
                 event.stopPropagation();
                 event.preventDefault();
             }
+
+            const inCodex = typeof document !== 'undefined' && document.body.classList.contains('codex-mode-active');
+            const noGlobe = typeof window !== 'undefined' && !window.globeController;
+            if (inCodex || noGlobe) {
+                if (typeof window.runGlobeComponents === 'function') {
+                    void window.runGlobeComponents(false);
+                }
+                return;
+            }
             
-            // Play rotation toggle sound
             if (window.SoundEffectsManager) {
                 window.SoundEffectsManager.play('rotationToggle');
             }
@@ -68,33 +88,29 @@ export class ToggleManager {
             }
         };
         
-        // Prevent button from interfering with globe controls (mouse)
         toggleBtn.addEventListener('mousedown', (event) => {
             event.stopPropagation();
-        });
+        }, { signal: rotateSignal });
         
         toggleBtn.addEventListener('mouseup', (event) => {
             event.stopPropagation();
-        });
+        }, { signal: rotateSignal });
         
-        // Handle touch events for mobile
         let touchStartTime = 0;
         toggleBtn.addEventListener('touchstart', (event) => {
             event.stopPropagation();
             touchStartTime = Date.now();
-        });
+        }, { signal: rotateSignal });
         
         toggleBtn.addEventListener('touchend', (event) => {
             event.stopPropagation();
             event.preventDefault();
-            // Only trigger if it was a quick tap (not a drag)
             if (Date.now() - touchStartTime < 300) {
                 handleToggle(event);
             }
-        });
+        }, { signal: rotateSignal });
         
-        // Handle click events (desktop and fallback)
-        toggleBtn.addEventListener('click', handleToggle);
+        toggleBtn.addEventListener('click', handleToggle, { signal: rotateSignal });
     }
 
     /**
@@ -133,8 +149,10 @@ export class ToggleManager {
             const visible = !sceneModel.getHyperloopVisible();
             sceneModel.setHyperloopVisible(visible);
 
-            window.globeController?.eventMarkerManager?.refreshEventMarkers?.(false);
             const gc = window.globeController;
+            if (gc?.transportView && typeof gc.transportView.updateHyperloopVisibility === 'function') {
+                gc.transportView.updateHyperloopVisibility();
+            }
             if (gc?.sceneModel?.getMapViewEnabled?.() && gc.transportController?.setSatellitesMapViewEnabled) {
                 gc.transportController.setSatellitesMapViewEnabled(true);
             }
@@ -151,9 +169,28 @@ export class ToggleManager {
             if (hyperloopIcon) {
                 hyperloopIcon.innerHTML = '<img src="assets/images/icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
             }
-            
-            if (onToggle) {
-                onToggle();
+
+            const refreshP = gc?.eventMarkerManager?.refreshEventMarkers?.(false);
+            const finishTransportSurfaceSwitch = () => {
+                // refreshEventMarkers already ends with updatePlaneVisibility + rebind; do not call
+                // updatePlaneVisibility again here (would interrupt orbit panel squash animation).
+                // updateHyperloopVisibility must run AFTER new markers exist so event dots + pin lines get visibility.
+                // updateSatellites applies satellite.visible immediately (otherwise ISS stays false until next rAF and
+                // station markers parented to ISS never draw).
+                gc?.transportView?.updateHyperloopVisibility?.();
+                if (!gc?.sceneModel?.getMapViewEnabled?.()) {
+                    gc?.transportController?.updateSatellites?.();
+                }
+                gc?.rebindOpenEventMarkerAfterRefresh?.();
+                gc?.requestMapLiteSync?.();
+                if (onToggle) {
+                    onToggle();
+                }
+            };
+            if (refreshP && typeof refreshP.then === 'function') {
+                refreshP.then(finishTransportSurfaceSwitch);
+            } else {
+                finishTransportSurfaceSwitch();
             }
         };
         
@@ -366,6 +403,36 @@ export class ToggleManager {
             };
         };
 
+        if (typeof toggleBtn._mapToggleTeardown === 'function') {
+            try {
+                toggleBtn._mapToggleTeardown();
+            } catch (_) { /* ignore */ }
+        }
+
+        const mapToggleAbort = new AbortController();
+        const mapSignal = mapToggleAbort.signal;
+
+        if (toggleBtn._mapToggleResizeObserver) {
+            try {
+                toggleBtn._mapToggleResizeObserver.disconnect();
+            } catch (_) { /* ignore */ }
+            toggleBtn._mapToggleResizeObserver = null;
+        }
+
+        stopRotateBarFollow();
+
+        toggleBtn._mapToggleTeardown = () => {
+            mapToggleAbort.abort();
+            stopRotateBarFollow();
+            if (toggleBtn._mapToggleResizeObserver) {
+                try {
+                    toggleBtn._mapToggleResizeObserver.disconnect();
+                } catch (_) { /* ignore */ }
+                toggleBtn._mapToggleResizeObserver = null;
+            }
+            toggleBtn._mapToggleTeardown = null;
+        };
+
         if (sceneModel.getMapViewEnabled && sceneModel.getMapViewEnabled()) {
             toggleBtn.classList.add('active');
         }
@@ -428,31 +495,25 @@ export class ToggleManager {
             }
         } catch (_) { /* ignore */ }
 
-        if (typeof ResizeObserver !== 'undefined' && !toggleBtn.dataset.rotateBarResizeObserver) {
-            toggleBtn.dataset.rotateBarResizeObserver = '1';
+        if (typeof ResizeObserver !== 'undefined') {
             const ro = new ResizeObserver(() => {
                 if (!isMobileGlobeControls() && document.body.classList.contains('rotate-subbar-open')) {
                     positionRotateBarUnderToggle();
                 }
             });
             ro.observe(toggleBtn);
+            toggleBtn._mapToggleResizeObserver = ro;
         }
 
-        if (!toggleBtn.dataset.rotateSubbarWindowLoad) {
-            toggleBtn.dataset.rotateSubbarWindowLoad = '1';
-            window.addEventListener('load', () => {
-                if (!isMobileGlobeControls() && document.body.classList.contains('rotate-subbar-open')) {
-                    bumpRotateBarLayout();
-                }
-            });
-        }
+        window.addEventListener('load', () => {
+            if (!isMobileGlobeControls() && document.body.classList.contains('rotate-subbar-open')) {
+                bumpRotateBarLayout();
+            }
+        }, { signal: mapSignal });
 
-        if (!toggleBtn.dataset.rotateSubbarResizeSetup) {
-            toggleBtn.dataset.rotateSubbarResizeSetup = 'true';
-            window.addEventListener('resize', () => {
-                renderState();
-            });
-        }
+        window.addEventListener('resize', () => {
+            renderState();
+        }, { signal: mapSignal });
 
         const handleToggle = (event) => {
             if (event) {
@@ -460,7 +521,15 @@ export class ToggleManager {
                 event.preventDefault();
             }
 
-            // Play map switch sound
+            const inCodex = typeof document !== 'undefined' && document.body.classList.contains('codex-mode-active');
+            const noGlobe = typeof window !== 'undefined' && !window.globeController;
+            if (inCodex || noGlobe) {
+                if (typeof window.runGlobeComponents === 'function') {
+                    void window.runGlobeComponents(false);
+                }
+                return;
+            }
+
             if (window.SoundEffectsManager) {
                 window.SoundEffectsManager.play('switchMap');
             }
@@ -487,24 +556,22 @@ export class ToggleManager {
             renderState();
         };
 
-        // Prevent button from interfering with globe controls (mouse)
-        toggleBtn.addEventListener('mousedown', (event) => event.stopPropagation());
-        toggleBtn.addEventListener('mouseup', (event) => event.stopPropagation());
+        toggleBtn.addEventListener('mousedown', (event) => event.stopPropagation(), { signal: mapSignal });
+        toggleBtn.addEventListener('mouseup', (event) => event.stopPropagation(), { signal: mapSignal });
 
-        // Touch handling
         let touchStartTime = 0;
         toggleBtn.addEventListener('touchstart', (event) => {
             event.stopPropagation();
             touchStartTime = Date.now();
-        });
+        }, { signal: mapSignal });
         toggleBtn.addEventListener('touchend', (event) => {
             event.stopPropagation();
             event.preventDefault();
             if (Date.now() - touchStartTime < 300) {
                 handleToggle(event);
             }
-        });
+        }, { signal: mapSignal });
 
-        toggleBtn.addEventListener('click', handleToggle);
+        toggleBtn.addEventListener('click', handleToggle, { signal: mapSignal });
     }
 }

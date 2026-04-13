@@ -76,6 +76,35 @@ function writeEventsJson(events, res) {
     }
 }
 
+function writeCodexStateJson(body, res) {
+    let nodes = null;
+    let edges = [];
+    if (Array.isArray(body)) {
+        nodes = body;
+    } else if (body && typeof body === 'object') {
+        if (Array.isArray(body.nodes)) nodes = body.nodes;
+        else if (Array.isArray(body.labels)) nodes = body.labels;
+        if (Array.isArray(body.edges)) edges = body.edges;
+    }
+    if (!Array.isArray(nodes)) {
+        sendJson(res, 400, { error: 'Expected { nodes: [...], edges?: [...] } or { labels: [...] }' });
+        return;
+    }
+
+    const outPath = path.join(__dirname, 'data', 'codex-labels.json');
+    const payload = { v: 2, nodes, edges };
+    const json = JSON.stringify(payload, null, 2) + '\n';
+    const tmpPath = outPath + '.tmp';
+    try {
+        fs.writeFileSync(tmpPath, json, 'utf8');
+        fs.renameSync(tmpPath, outPath);
+        sendJson(res, 200, { ok: true, nodesCount: nodes.length, edgesCount: edges.length });
+    } catch (e) {
+        try { if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath); } catch (_) {}
+        sendJson(res, 500, { ok: false, error: 'Write failed' });
+    }
+}
+
 const server = http.createServer((req, res) => {
     // Parse URL and decode it to handle spaces and special characters
     const parsedUrl = url.parse(req.url, true);
@@ -102,6 +131,35 @@ const server = http.createServer((req, res) => {
             readJsonBody(req, res, (body) => {
                 const events = Array.isArray(body) ? body : body?.events;
                 writeEventsJson(events, res);
+            });
+            return;
+        }
+
+        sendJson(res, 405, { error: 'Method not allowed' });
+        return;
+    }
+
+    if (decodedPath === '/api/codex') {
+        if (req.method === 'GET') {
+            const p = path.join(__dirname, 'data', 'codex-labels.json');
+            try {
+                const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+                if (Array.isArray(data)) {
+                    sendJson(res, 200, { v: 1, labels: data, nodes: data, edges: [] });
+                    return;
+                }
+                const nodes = Array.isArray(data.nodes) ? data.nodes : (Array.isArray(data.labels) ? data.labels : []);
+                const edges = Array.isArray(data.edges) ? data.edges : [];
+                sendJson(res, 200, { v: data.v || 2, nodes, edges, labels: nodes });
+            } catch (e) {
+                sendJson(res, 200, { v: 2, nodes: [], edges: [], labels: [] });
+            }
+            return;
+        }
+
+        if (req.method === 'POST' || req.method === 'PUT') {
+            readJsonBody(req, res, (body) => {
+                writeCodexStateJson(body, res);
             });
             return;
         }
@@ -185,6 +243,7 @@ server.listen(PORT, () => {
     console.log(`  - http://localhost:${PORT}/test      → test.html`);
     console.log(`  - http://localhost:${PORT}/test.html → test.html`);
     console.log(`  - http://localhost:${PORT}/api/events → GET/POST events.json`);
+    console.log(`  - http://localhost:${PORT}/api/codex → GET/POST codex-labels.json`);
     console.log(`\nPress Ctrl+C to stop the server\n`);
 });
 

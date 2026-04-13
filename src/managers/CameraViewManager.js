@@ -257,6 +257,11 @@ export class CameraViewManager {
             } else {
                 camera.lookAt(0, 0, 0);
             }
+
+            const gc = typeof window !== 'undefined' ? window.globeController : null;
+            if (isMapView && gc && typeof gc.syncMapLiteWebGlImmediate === 'function') {
+                gc.syncMapLiteWebGlImmediate();
+            }
             
             if (progress < 1) {
                 self._cameraEaseRafId = requestAnimationFrame(animate);

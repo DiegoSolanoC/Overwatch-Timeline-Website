@@ -67,17 +67,23 @@ export function initializeEventSlideState(eventSlideManager, marker, eventData, 
             currentEventData: eventData, 
             currentVariantIndex: initialVariantIndex 
         });
-    } else {
+    } else if (uiView) {
         uiView.currentEventMarker = marker;
         uiView.currentEventData = eventData;
         uiView.currentVariantIndex = initialVariantIndex;
     }
+
+    const globeReady = typeof window !== 'undefined' && !!window.globeController;
+    if (!globeReady) {
+        eventSlideManager.previousAutoRotateState = null;
+        return;
+    }
     
-    // Setup auto-rotate for event
+    // Setup auto-rotate for event (globe / timeline only)
     const setupEventAutoRotate = window.EventSlideStateHelpers?.setupEventAutoRotate;
     if (setupEventAutoRotate) {
         eventSlideManager.previousAutoRotateState = setupEventAutoRotate(eventSlideManager.sceneModel, marker);
-    } else {
+    } else if (eventSlideManager.sceneModel) {
         eventSlideManager.previousAutoRotateState = eventSlideManager.sceneModel.getAutoRotateEnabled();
         eventSlideManager.sceneModel.setAutoRotateEnabled(true);
         eventSlideManager.sceneModel.setAutoRotate(false);

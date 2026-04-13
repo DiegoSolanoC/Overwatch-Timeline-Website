@@ -1,6 +1,7 @@
 /**
  * Map2DLiteLayer — DOM/CSS flat Earth map for map view (no WebGL render).
- * Earth markers on the equirectangular layer; moon/mars thumbnails + markers track WebGL plane rigs.
+ * Earth markers on the equirectangular layer. Moon/Mars/Orbit panels are laid out in DOM from camera frustum math
+ * and each rig’s local Y scale (squash animation only); map mode does not depend on WebGL rig world positions.
  */
 import {
     shouldEventBeLocked,
@@ -99,6 +100,15 @@ const CELESTIAL_DOM_PANEL_VISUAL_SCALE = 1.12;
 /** Cap effective scale so panels do not dominate the view at extreme map zoom. */
 const MAP2D_CELESTIAL_PANEL_MAX_ZOOM_MULT = 3;
 
+/** Narrow viewports: shrink Moon/Mars/Orbit DOM hosts so the map stays usable. */
+function map2dLiteCelestialMobileSizeFactor() {
+    if (typeof window === 'undefined') return 1;
+    const w = window.innerWidth;
+    if (w <= 480) return 0.52;
+    if (w <= 768) return 0.66;
+    return 1;
+}
+
 /** Match {@link PlaneManager#updatePlanePositions} map-view panel depth offset. */
 const MAP_VIEW_CELESTIAL_Z_OFFSET = 0.18;
 
@@ -158,15 +168,15 @@ const MAP2D_CELESTIAL_DOM_EDGE_PX = 12;
 const MAP2D_CELESTIAL_STACK_GAP_PX = 10;
 
 /**
- * Base pixel size from camera frustum (0.4 world plane), same basis as {@link PlaneManager#updatePlanePositions}.
+ * Base pixel size from camera frustum (0.4 world plane), same basis as map branch of {@link PlaneManager#updatePlanePositions}.
  * {@link Map2DLiteLayer#layoutCelestialPanelsFromCamera} then applies map {@link Map2DLiteLayer#_scale} + visual trim.
  * @param {THREE.Camera} camera
  * @param {THREE.WebGLRenderer} renderer
- * @param {THREE.Object3D} rig - for animated squash on Y
+ * @param {number} [squashY=1] - celestial scale rig Y (open/close squash); does not use rig world position
  * @returns {{ width: number, height: number } | null}
  */
-function computeCelestialDomPanelSizePx(camera, renderer, rig) {
-    if (!camera || !renderer?.domElement || !rig) return null;
+function computeCelestialDomPanelSizePx(camera, renderer, squashY = 1) {
+    if (!camera || !renderer?.domElement) return null;
 
     const canvas = renderer.domElement;
     const rect = canvas.getBoundingClientRect();
@@ -179,7 +189,7 @@ function computeCelestialDomPanelSizePx(camera, renderer, rig) {
     const halfViewH = Math.tan(fovRad / 2) * distance;
     const halfViewW = halfViewH * aspect;
 
-    const sy = rig.scale?.y ?? 1;
+    const sy = squashY;
     return {
         width: Math.max(4, CELESTIAL_PLANE_WORLD * viewportW / (2 * halfViewW)),
         height: Math.max(4, CELESTIAL_PLANE_WORLD * viewportH / (2 * halfViewH) * Math.max(sy, 0.02))
@@ -562,43 +572,46 @@ export class Map2DLiteLayer {
     }
 
     /**
-     * Moon / Mars / Orbit DOM panels: vertical **stack** on the **center-right** (WebGL-style column), inset from the right edge.
-     * Size follows map camera FOV/depth; placement avoids 3D projection (unreliable when WebGL does not render).
+     * Moon / Mars / Orbit DOM panels: vertical stack center-right, inset from the right edge.
+     * Uses camera + canvas frustum only for pixel size; reads each rig’s scale.y for squash/opacity (same as WebGL panels).
+     * Does not use rig world matrices — map sync no longer runs {@link PlaneManager#updatePlanePositions}.
      */
     layoutCelestialPanelsFromCamera() {
         if (!this.isVisible() || !this._moonHost || !this._marsHost || !this._orbitHost || !this.container) return;
 
         const camera = this.sceneModel?.getCamera?.();
         const renderer = this.sceneModel?.getRenderer?.();
+        if (!camera || !renderer?.domElement) return;
+
         const moonRig = this.sceneModel?.getMoonRig?.() || this.sceneModel?.moonRig;
         const marsRig = this.sceneModel?.getMarsRig?.() || this.sceneModel?.marsRig;
         const orbitRig = this.sceneModel?.getOrbitRig?.() || this.sceneModel?.orbitRig;
-        if (!camera || !renderer || !moonRig || !marsRig || !orbitRig) return;
+        const moonSy = moonRig?.scale?.y ?? 1;
+        const marsSy = marsRig?.scale?.y ?? 1;
+        const orbitSy = orbitRig?.scale?.y ?? 1;
 
         const { hasMoon, hasMars, hasOrbit } = currentPageCelestialFlags(this.dataModel);
 
         const edge = MAP2D_CELESTIAL_DOM_EDGE_PX;
         const gap = MAP2D_CELESTIAL_STACK_GAP_PX;
 
-        const moonSizeRaw = computeCelestialDomPanelSizePx(camera, renderer, moonRig);
-        const marsSizeRaw = computeCelestialDomPanelSizePx(camera, renderer, marsRig);
-        const orbitSizeRaw = computeCelestialDomPanelSizePx(camera, renderer, orbitRig);
+        const moonSizeRaw = computeCelestialDomPanelSizePx(camera, renderer, moonSy);
+        const marsSizeRaw = computeCelestialDomPanelSizePx(camera, renderer, marsSy);
+        const orbitSizeRaw = computeCelestialDomPanelSizePx(camera, renderer, orbitSy);
         if (!moonSizeRaw || !marsSizeRaw || !orbitSizeRaw) return;
 
         const minS = Math.max(1e-6, this._minScale);
         /* Match marker sizing: dots use diameter × _scale; panels are not inside scaled world, so × min(_scale, cap·min). */
         const panelMapScale = Math.min(this._scale, minS * MAP2D_CELESTIAL_PANEL_MAX_ZOOM_MULT);
+        const mobileFac = map2dLiteCelestialMobileSizeFactor();
         const applyMapScaleToPanel = (raw) => ({
-            width: Math.max(4, Math.round(raw.width * panelMapScale * CELESTIAL_DOM_PANEL_VISUAL_SCALE)),
-            height: Math.max(4, Math.round(raw.height * panelMapScale * CELESTIAL_DOM_PANEL_VISUAL_SCALE))
+            width: Math.max(4, Math.round(raw.width * panelMapScale * CELESTIAL_DOM_PANEL_VISUAL_SCALE * mobileFac)),
+            height: Math.max(4, Math.round(raw.height * panelMapScale * CELESTIAL_DOM_PANEL_VISUAL_SCALE * mobileFac))
         });
         const moonSize = applyMapScaleToPanel(moonSizeRaw);
         const marsSize = applyMapScaleToPanel(marsSizeRaw);
         const orbitSize = applyMapScaleToPanel(orbitSizeRaw);
 
-        const moonSy = moonRig.scale?.y ?? 1;
-        const marsSy = marsRig.scale?.y ?? 1;
-        const orbitSy = orbitRig.scale?.y ?? 1;
         const showMoon = hasMoon && moonSy > 0.02;
         const showMars = hasMars && marsSy > 0.02;
         const showOrbit = hasOrbit && orbitSy > 0.02;
@@ -620,11 +633,11 @@ export class Map2DLiteLayer {
             stackTop = Math.max(edge, vh - stackH - edge);
         }
 
-        const place = (host, rig, show, size, topPx) => {
+        const place = (host, squashY, show, size, topPx) => {
             host.style.left = 'auto';
             host.style.right = `${edge}px`;
             host.style.bottom = 'auto';
-            const sy = rig.scale?.y ?? 1;
+            const sy = squashY ?? 1;
             if (!show) {
                 host.style.display = 'none';
                 host.classList.remove('map-2d-lite__celestial-host--enter');
@@ -647,11 +660,11 @@ export class Map2DLiteLayer {
         };
 
         let y = stackTop;
-        place(this._moonHost, moonRig, showMoon, moonSize, y);
+        place(this._moonHost, moonSy, showMoon, moonSize, y);
         if (showMoon) y += moonSize.height + (showMars || showOrbit ? gap : 0);
-        place(this._marsHost, marsRig, showMars, marsSize, y);
+        place(this._marsHost, marsSy, showMars, marsSize, y);
         if (showMars) y += marsSize.height + (showOrbit ? gap : 0);
-        place(this._orbitHost, orbitRig, showOrbit, orbitSize, y);
+        place(this._orbitHost, orbitSy, showOrbit, orbitSize, y);
 
         const mw = this._moonHost.style.display === 'none' ? -1 : Math.round(this._moonHost.clientWidth);
         const mrsw = this._marsHost.style.display === 'none' ? -1 : Math.round(this._marsHost.clientWidth);
@@ -891,6 +904,9 @@ export class Map2DLiteLayer {
     _applyTransform() {
         if (!this.world) return;
         this.world.style.transform = `translate(${this._tx}px, ${this._ty}px) scale(${this._scale})`;
+        if (typeof window !== 'undefined' && window.globeController?.requestMapLiteSync) {
+            window.globeController.requestMapLiteSync();
+        }
     }
 
     _clampPan() {

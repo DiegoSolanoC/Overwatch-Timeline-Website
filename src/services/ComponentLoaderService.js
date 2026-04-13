@@ -259,7 +259,9 @@ class ComponentLoaderService {
         });
     }
 
-    async unloadGlobeBase() {
+    async unloadGlobeBase(options = {}) {
+        const preserveEventsUi = options && options.preserveEventsUi === true;
+
         if (!this.loadedComponents.globeBase) {
             this.statusService.update('Globe base not loaded', 'info');
             return;
@@ -275,7 +277,8 @@ class ComponentLoaderService {
                 unloadControls: () => this.unloadControls(),
                 unloadEvents: () => this.unloadEvents(),
                 statusService: this.statusService,
-                loadedComponents: this.loadedComponents
+                loadedComponents: this.loadedComponents,
+                preserveEventsUi
             });
         }, createUnloadParams(this, 'Globe Base', 'loadGlobeBaseBtn', (value) => { this.loadedComponents.globeBase = value; }));
     }

@@ -40,6 +40,18 @@ export function setupEventUIComponents({ updateStatus }) {
         baseClass: 'header-hub-btn header-hub-btn--icon',
         headerOrder: 10
     });
+
+    createGlobeControlButton({
+        id: 'codexToggle',
+        className: '',
+        title: 'Open Codex',
+        label: 'Codex',
+        iconPath: 'assets/images/icons/Codex%20Icon.png',
+        iconAlt: 'Codex',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 15
+    });
     
     // Add event pagination
     getOrCreateElement('eventPagination', () => {

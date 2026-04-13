@@ -21,6 +21,7 @@ import { initializeMusicManager, createBackgroundMusicElement } from './helpers/
 import { clearEventManager, removeAllEventMarkers } from './helpers/EventCleanupHelpers.js';
 import { removeElementById, removeElementBySelector, removeElementsByIds } from './helpers/ComponentUnloadHelpers.js';
 import { setupEventUIComponents, loadEventSoundEffects, initializeFilterPanel, setupEventListenersDelayed } from './helpers/EventsLoadHelpers.js';
+import { isTimelineInlineLoadActive, showGlobeInlineLoader } from './helpers/GlobeInlineLoadHelpers.js';
 import { createOrchestratorDelegations } from './helpers/ComponentOrchestratorDelegationHelpers.js';
 
 // Track which components are loaded
@@ -35,6 +36,10 @@ const loadedComponents = {
     glossary: false,
     biography: false
 };
+
+if (typeof window !== 'undefined') {
+    window.loadedComponents = loadedComponents;
+}
 
 // Local variable for isRunOperation (delegates to LoadingOverlayManager)
 // We keep a local variable for direct access but sync with the manager
@@ -91,11 +96,13 @@ async function loadPalette() {
         setupPaletteToggle();
         
         loadedComponents.palette = true;
-    }, 'Palette', 'loadPaletteBtn', isRunOperation);
+    }, 'Palette', 'loadPaletteBtn', getRunOperation());
 }
 
 /** Unload Globe Base (earth, starfield, scene, markers). */
-async function unloadGlobeBase() {
+async function unloadGlobeBase(options = {}) {
+    const preserveEventsUi = options && options.preserveEventsUi === true;
+
     if (!loadedComponents.globeBase) {
         updateStatus('Globe base not loaded', 'info');
         return;
@@ -119,9 +126,13 @@ async function unloadGlobeBase() {
             await unloadTransport();
         }
         if (loadedComponents.controls) {
-            await unloadControls();
+            if (!preserveEventsUi) {
+                await unloadControls();
+            } else {
+                loadedComponents.controls = false;
+            }
         }
-        if (loadedComponents.events) {
+        if (!preserveEventsUi && loadedComponents.events) {
             await unloadEvents();
         }
         
@@ -141,8 +152,8 @@ async function loadGlobeBase() {
         return;
     }
     
-    // Only show overlay if not in a run operation (run operations handle their own overlay)
-    if (!isRunOperation) {
+    // Use LoadingOverlayManager (not the module-local flag): orchestrator sets this during runGlobeComponents.
+    if (!getRunOperation() && !isTimelineInlineLoadActive()) {
         showLoadingOverlay();
     }
     setButtonState('loadGlobeBaseBtn', 'loading');
@@ -153,6 +164,9 @@ async function loadGlobeBase() {
         const container = document.getElementById('globe-container');
         if (container) {
             setupGlobeContainer(container);
+            if (isTimelineInlineLoadActive()) {
+                showGlobeInlineLoader(container);
+            }
         }
         
         // Import and initialize GlobeController using helpers
@@ -163,7 +177,7 @@ async function loadGlobeBase() {
         removeEventMarkersIfNeeded(controller, loadedComponents.events);
         
         // Make globe container visible now that it's loaded (unless in a run operation)
-        if (!isRunOperation && container) {
+        if (!getRunOperation() && container) {
             makeGlobeContainerVisible(container);
         }
         
@@ -248,7 +262,11 @@ async function loadTransport() {
         // Setup transport toggle
         if (controller.uiView) {
             controller.uiView.setupHyperloopToggle(() => {
-                controller.transportView.updateHyperloopVisibility();
+                if (typeof controller.onHyperloopToggled === 'function') {
+                    controller.onHyperloopToggled();
+                } else {
+                    controller.transportView.updateHyperloopVisibility();
+                }
             });
             controller.uiView.setupWeatherEffectsToggle(() => {
                 if (controller.globeView) {
@@ -268,7 +286,7 @@ async function loadTransport() {
         }
         
         loadedComponents.transport = true;
-    }, 'Transport', 'loadTransportBtn', isRunOperation);
+    }, 'Transport', 'loadTransportBtn', getRunOperation());
 }
 
 /** Unload Controls (rotation toggle, interaction, sound). */
@@ -353,7 +371,7 @@ async function loadControls() {
         loadSoundEffect('rotationToggle', 'assets/audio/sfx/Rotation Toggle.mp3', 'Loading rotation sound effect...');
         
         loadedComponents.controls = true;
-    }, 'Controls', 'loadControlsBtn', isRunOperation);
+    }, 'Controls', 'loadControlsBtn', getRunOperation());
 }
 
 /** Unload Music (toggle, panel, audio). */
@@ -427,7 +445,7 @@ async function loadMusic() {
         initializeMusicManager(false, 50);
         
         loadedComponents.music = true;
-    }, 'Music', 'loadMusicBtn', isRunOperation);
+    }, 'Music', 'loadMusicBtn', getRunOperation());
 }
 
 /**
@@ -451,6 +469,7 @@ async function unloadEvents() {
         removeElementsByIds([
             { id: 'filtersToggle', message: 'Filter button removed' },
             { id: 'eventsManageToggle', message: 'Event manager button removed' },
+            { id: 'codexToggle', message: 'Codex button removed' },
             { id: 'eventPagination', message: 'Event pagination removed' },
             { id: 'filtersPanel', message: null, checkParent: true }
         ]);
@@ -496,7 +515,7 @@ async function loadEvents() {
         syncEventsWithGlobe(window.globeController, window.eventManager);
         
         loadedComponents.events = true;
-    }, 'Events', 'loadEventsBtn', isRunOperation);
+    }, 'Events', 'loadEventsBtn', getRunOperation());
 }
 
 /**
@@ -553,7 +572,7 @@ async function loadMenu() {
         updateStatus('✓ Menu button listeners set up', 'success');
         
         loadedComponents.menu = true;
-    }, 'Menu', 'loadMenuBtn', isRunOperation);
+    }, 'Menu', 'loadMenuBtn', getRunOperation());
 }
 
 // Initialize ComponentOrchestrator with loaders and unloaders
@@ -636,6 +655,8 @@ window.killGlossaryComponents = killGlossaryComponents;
 window.runBiographyComponents = runBiographyComponents;
 window.killBiographyComponents = killBiographyComponents;
 
+window.unloadGlobeBase = unloadGlobeBase;
+
 // Header hub mode switch API
 // - Switches between "globe" and "menu" modes
 // - Glossary/Biography are not implemented yet; selecting them returns to main menu
@@ -656,6 +677,10 @@ window.appModeSwitch = async function appModeSwitch(targetMode) {
         // Unload current mode assets (universal features stay loaded)
         if (current === 'globe') {
             await window.killGlobeComponents?.();
+        } else if (current === 'codex') {
+            if (effectiveNext !== 'globe') {
+                await window.killGlobeComponents?.();
+            }
         } else if (current === 'glossary') {
             await window.killGlossaryComponents?.();
             await window.restoreMainMenu?.();

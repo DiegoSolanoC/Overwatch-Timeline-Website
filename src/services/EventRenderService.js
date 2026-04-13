@@ -307,6 +307,7 @@ class EventRenderService {
                 (this.eventManager.searchQuery && this.eventManager.searchQuery.trim()) ||
                 (this.eventManager.searchHeroFilters && this.eventManager.searchHeroFilters.length > 0) ||
                 (this.eventManager.searchFactionFilters && this.eventManager.searchFactionFilters.length > 0) ||
+                (this.eventManager.searchNpcFilters && this.eventManager.searchNpcFilters.length > 0) ||
                 (this.eventManager.searchUnmatchedFilterTokens && this.eventManager.searchUnmatchedFilterTokens.length > 0) ||
                 (this.eventManager.searchCountryFilters && this.eventManager.searchCountryFilters.length > 0)
             );
@@ -777,6 +778,21 @@ class EventRenderService {
         `;
 
         const thumbBlock = item.querySelector('.event-item__thumb-block');
+
+        if (thumbBlock) {
+            thumbBlock.addEventListener('pointerenter', () => {
+                const cx = typeof window !== 'undefined' ? window.CodexCanvasService : null;
+                if (cx && typeof cx.applyCodexEventThumbnailFilterHover === 'function') {
+                    cx.applyCodexEventThumbnailFilterHover(event, displayEvent);
+                }
+            });
+            thumbBlock.addEventListener('pointerleave', () => {
+                const cx = typeof window !== 'undefined' ? window.CodexCanvasService : null;
+                if (cx && typeof cx.clearCodexEventThumbnailFilterHover === 'function') {
+                    cx.clearCodexEventThumbnailFilterHover();
+                }
+            });
+        }
 
         if (thumbBlock && !isGitHubPages) {
             const openLabel = (displayEvent && displayEvent.name)

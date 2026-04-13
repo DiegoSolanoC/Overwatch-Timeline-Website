@@ -9,10 +9,12 @@ class FilterService {
         this.initialized = false;
         this.heroes = [];
         this.factions = [];
-        this.currentFilterType = 'heroes'; // 'heroes' or 'factions'
+        this.npcs = [];
+        this.currentFilterType = 'heroes'; // 'heroes' | 'factions' | 'npcs'
         this.buttonCache = {
             heroes: null,
             factions: null,
+            npcs: null,
             music: null
         };
         
@@ -38,9 +40,9 @@ class FilterService {
                 if (SM && SM.prototype && typeof SM.prototype.getCounts === 'function') {
                     return SM.prototype.getCounts.call(this);
                 }
-                let heroCount = 0, factionCount = 0;
+                let heroCount = 0, factionCount = 0, npcCount = 0;
                 this.selectedFilters.forEach((f) => (/^\d+/.test(f) ? factionCount++ : heroCount++));
-                return { heroCount, factionCount };
+                return { heroCount, factionCount, npcCount };
             }
             applyToScene(sceneModel) {
                 if (sceneModel) sceneModel.activeFilters = new Set(this.selectedFilters);
@@ -86,6 +88,7 @@ class FilterService {
         this.confirmFiltersBtn = null;
         this.heroesTab = null;
         this.factionsTab = null;
+        this.npcsTab = null;
     }
     
     init() {
@@ -104,6 +107,7 @@ class FilterService {
         this.confirmFiltersBtn = document.getElementById('confirmFiltersBtn');
         this.heroesTab = document.getElementById('heroesTab');
         this.factionsTab = document.getElementById('factionsTab');
+        this.npcsTab = document.getElementById('npcsTab');
         
         console.log('Initializing filters panel...');
         console.log('Filters button:', this.filtersButton);
@@ -178,6 +182,7 @@ class FilterService {
         // Rebuild filter chips from manifest; cached nodes keep stale dataset.filterKey after manifest edits
         this.buttonCache.heroes = null;
         this.buttonCache.factions = null;
+        this.buttonCache.npcs = null;
 
         const helper = window.FilterManifestHelpers?.loadManifest;
         if (helper) {
@@ -189,6 +194,7 @@ class FilterService {
             );
             this.heroes = result.heroes;
             this.factions = result.factions;
+            this.npcs = result.npcs || [];
         } else {
             // Fallback implementation
             try {
@@ -202,6 +208,7 @@ class FilterService {
                 });
                 const manifest = await response.json();
                 this.heroes = manifest.heroes ? manifest.heroes.sort() : [];
+                this.npcs = manifest.npcs ? [...manifest.npcs].sort() : [];
                 this.factions = manifest.factions ? manifest.factions.map(f => ({
                     filename: f.filename,
                     number: f.number,
@@ -212,10 +219,14 @@ class FilterService {
                 if (this.factions.length > 0) {
                     setTimeout(() => this.preloadImages(this.factions, 'factions', 'assets/images/factions'), 500);
                 }
+                if (this.npcs.length > 0) {
+                    setTimeout(() => this.preloadImages(this.npcs, 'npcs', 'assets/images/npcs'), 650);
+                }
             } catch (error) {
                 console.error('Error loading manifest.json:', error);
                 this.heroes = [];
                 this.factions = [];
+                this.npcs = [];
                 this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
             }
         }
@@ -246,7 +257,8 @@ class FilterService {
             // Fallback implementation
             const heroesCount = document.getElementById('heroesCount');
             const factionsCount = document.getElementById('factionsCount');
-            const { heroCount, factionCount } = this.stateManager.getCounts();
+            const { heroCount, factionCount, npcCount = 0 } = this.stateManager.getCounts();
+            const npcsCount = document.getElementById('npcsCount');
             
             if (heroesCount) {
                 if (heroCount > 0) {
@@ -262,6 +274,14 @@ class FilterService {
                     factionsCount.style.display = 'inline';
                 } else {
                     factionsCount.style.display = 'none';
+                }
+            }
+            if (npcsCount) {
+                if (npcCount > 0) {
+                    npcsCount.textContent = npcCount;
+                    npcsCount.style.display = 'inline';
+                } else {
+                    npcsCount.style.display = 'none';
                 }
             }
         }
@@ -299,7 +319,7 @@ class FilterService {
                 items, type, folder, 
                 this.filtersGrid, this.buttonCache, 
                 this.stateManager, this.imageService, this.soundManager,
-                this.heroes, this.factions,
+                this.heroes, this.factions, this.npcs,
                 (items, type, folder) => this.preloadImages(items, type, folder),
                 () => this.updateFilterCounts()
             );
@@ -311,8 +331,8 @@ class FilterService {
         const helper = window.FilterTabHelpers?.setupTabs;
         if (helper) {
             helper(
-                this.heroesTab, this.factionsTab,
-                this.heroes, this.factions,
+                this.heroesTab, this.factionsTab, this.npcsTab,
+                this.heroes, this.factions, this.npcs,
                 (items, type, folder) => {
                     this.currentFilterType = type;
                     this.createFilterButtons(items, type, folder);
@@ -333,6 +353,10 @@ class FilterService {
                         this.factionsTab.classList.remove('active');
                         this.factionsTab.setAttribute('aria-selected', 'false');
                     }
+                    if (this.npcsTab) {
+                        this.npcsTab.classList.remove('active');
+                        this.npcsTab.setAttribute('aria-selected', 'false');
+                    }
                     this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
                     this.updateFilterCounts();
                 });
@@ -349,7 +373,31 @@ class FilterService {
                         this.heroesTab.classList.remove('active');
                         this.heroesTab.setAttribute('aria-selected', 'false');
                     }
+                    if (this.npcsTab) {
+                        this.npcsTab.classList.remove('active');
+                        this.npcsTab.setAttribute('aria-selected', 'false');
+                    }
                     this.createFilterButtons(this.factions, 'factions', 'assets/images/factions');
+                    this.updateFilterCounts();
+                });
+            }
+            if (this.npcsTab) {
+                this.npcsTab.addEventListener('click', () => {
+                    if (!this.npcsTab.classList.contains('active') && window.SoundEffectsManager) {
+                        window.SoundEffectsManager.play('switchMap');
+                    }
+                    this.currentFilterType = 'npcs';
+                    this.npcsTab.classList.add('active');
+                    this.npcsTab.setAttribute('aria-selected', 'true');
+                    if (this.heroesTab) {
+                        this.heroesTab.classList.remove('active');
+                        this.heroesTab.setAttribute('aria-selected', 'false');
+                    }
+                    if (this.factionsTab) {
+                        this.factionsTab.classList.remove('active');
+                        this.factionsTab.setAttribute('aria-selected', 'false');
+                    }
+                    this.createFilterButtons(this.npcs, 'npcs', 'assets/images/npcs');
                     this.updateFilterCounts();
                 });
             }
@@ -389,7 +437,7 @@ class FilterService {
             helper(
                 this.filtersPanel, this.filtersButton,
                 this.stateManager, () => this.getSceneModel(),
-                this.currentFilterType, this.heroes, this.factions,
+                this.currentFilterType, this.heroes, this.factions, this.npcs,
                 (items, type, folder) => this.createFilterButtons(items, type, folder)
             );
         } else {
@@ -398,8 +446,10 @@ class FilterService {
             this.stateManager.resetToConfirmed(sceneModel);
             if (this.currentFilterType === 'heroes') {
                 this.createFilterButtons(this.heroes, 'heroes', 'assets/images/heroes');
-            } else {
+            } else if (this.currentFilterType === 'factions') {
                 this.createFilterButtons(this.factions, 'factions', 'assets/images/factions');
+            } else {
+                this.createFilterButtons(this.npcs, 'npcs', 'assets/images/npcs');
             }
             this.filtersPanel.classList.add('open');
             this.filtersButton?.classList.add('active');
@@ -429,13 +479,15 @@ class FilterService {
             helper(
                 this.filtersPanel, this.filtersButton,
                 () => this.closeOtherPanels(),
-                async (panel, button, stateManager, getSceneModel, currentType, heroes, factions, createFilterButtons) => {
+                async (panel, button, stateManager, getSceneModel, currentType, heroes, factions, npcs, createFilterButtons) => {
                     const sceneModel = getSceneModel();
                     stateManager.resetToConfirmed(sceneModel);
                     if (currentType === 'heroes') {
                         await createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
-                    } else {
+                    } else if (currentType === 'factions') {
                         await createFilterButtons(factions, 'factions', 'assets/images/factions');
+                    } else {
+                        await createFilterButtons(npcs, 'npcs', 'assets/images/npcs');
                     }
                     panel.classList.add('open');
                     button?.classList.add('active');
@@ -446,7 +498,7 @@ class FilterService {
                     button?.classList.remove('active');
                 },
                 this.stateManager, () => this.getSceneModel(),
-                this.currentFilterType, this.heroes, this.factions,
+                this.currentFilterType, this.heroes, this.factions, this.npcs,
                 (items, type, folder) => this.createFilterButtons(items, type, folder)
             );
         } else {
@@ -488,7 +540,7 @@ class FilterService {
                 () => this.resetToConfirmedFilters(), () => this.closePanel(),
                 this.stateManager, () => this.updateButtonStates(),
                 () => this.getSceneModel(), () => this.currentFilterType,
-                this.heroes, this.factions,
+                this.heroes, this.factions, this.npcs,
                 (items, type, folder) => this.createFilterButtons(items, type, folder)
             );
         } else {

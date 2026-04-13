@@ -169,8 +169,10 @@ export function entityMatchesActiveFilters(entity, activeFilters) {
         return false;
     }
     const heroFilters = entity.filters || [];
+    const npcFilters = entity.npcs || [];
     const factionFilters = entity.factions || [];
     return heroFilters.some((id) => id != null && activeFilters.has(String(id).trim()))
+        || npcFilters.some((id) => id != null && activeFilters.has(String(id).trim()))
         || factionFilters.some((id) => factionIdMatchesActiveFilters(id, activeFilters));
 }
 

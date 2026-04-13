@@ -3,6 +3,8 @@
  * Extracted to reduce complexity
  */
 
+import { clearCodexShellForGlobeInit } from '../CodexModeService.js';
+
 /**
  * Sets up the globe container for initialization
  * @param {Object} statusService - Status service for updates
@@ -10,6 +12,7 @@
  */
 export function setupGlobeContainer(statusService) {
     const container = document.getElementById('globe-container');
+    clearCodexShellForGlobeInit(container);
     if (container) {
         container.style.opacity = '0';
         container.style.pointerEvents = 'none';
@@ -94,15 +97,24 @@ export function disposeGlobeResources(statusService) {
     if (!window.globeController) {
         return;
     }
-    
-    // Stop animations
-    if (window.globeController.animationId) {
-        cancelAnimationFrame(window.globeController.animationId);
-        window.globeController.animationId = null;
+
+    const gc = window.globeController;
+    if (gc._mapLiteSyncRafId != null) {
+        cancelAnimationFrame(gc._mapLiteSyncRafId);
+        gc._mapLiteSyncRafId = null;
+    }
+    if (gc.map2dLite && typeof gc.map2dLite.hide === 'function') {
+        gc.map2dLite.hide();
     }
     
-    if (window.globeController.globeController) {
-        window.globeController.globeController.stopAutoRotate();
+    // Stop animations
+    if (gc.animationId) {
+        cancelAnimationFrame(gc.animationId);
+        gc.animationId = null;
+    }
+    
+    if (gc.globeController) {
+        gc.globeController.stopAutoRotate();
     }
     
     // Hide container

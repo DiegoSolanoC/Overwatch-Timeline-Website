@@ -61,6 +61,111 @@ export class GlobeController {
         this._globeLayoutDirty = false;
         /** @type {import('../ui/Map2DLiteLayer.js').Map2DLiteLayer|null} */
         this.map2dLite = null;
+        /** Coalesced rAF for {@link #syncMapLiteWebGlImmediate} while DOM map is active (main globe loop is paused). */
+        this._mapLiteSyncRafId = null;
+        /** `#globe-container` — needed when leaving map before globe meshes exist. */
+        this._globeContainer = null;
+        /** True right after earth + celestial rigs are created ({@link GlobeView#initGlobe}); rest of world build may still be running. */
+        this._globeWorldBuilt = false;
+    }
+
+    /**
+     * Build WebGL earth, celestial planes, routes, transport, markers (runs once). Map-first loads defer this to rAF
+     * so the DOM map can paint first; desktop runs it synchronously during init.
+     * @param {HTMLElement} container
+     */
+    _ensureGlobeWorldBuilt(container) {
+        if (this._globeWorldBuilt) return;
+
+        this.globeView.initGlobe(() => {
+            if (!this.sceneModel.getMapViewEnabled?.()) {
+                this.animate();
+            } else {
+                this.syncMapLiteWebGlImmediate();
+            }
+        });
+        this._globeWorldBuilt = true;
+
+        setTimeout(() => {
+            const isMobile = window.innerWidth <= 768;
+            const isPortrait = container.clientHeight > container.clientWidth;
+            const isMobilePortrait = isMobile && isPortrait;
+            this.interactionController.updatePlanesPosition(isMobilePortrait);
+        }, 50);
+
+        this.globeView.addStarfield();
+        this.globeView.addShootingStars();
+        this.globeView.addCityMarkers();
+        this.globeView.addSeaportMarkers();
+        this.globeView.addEventMarkers();
+        this.globeView.addEarthCityLights();
+
+        const updateVisibility = () => {
+            this.planeManager.updatePlaneVisibility();
+        };
+        setTimeout(updateVisibility, 100);
+        setTimeout(updateVisibility, 300);
+        setTimeout(updateVisibility, 500);
+
+        const finalSync = () => {
+            if (window.eventManager && window.eventManager.events) {
+                this.dataModel.events = [...window.eventManager.events];
+                this.globeView.refreshEventMarkers();
+                console.log('GlobeController: Final sync -', window.eventManager.events.length, 'events from EventManager');
+            }
+        };
+        finalSync();
+        setTimeout(finalSync, 300);
+        setTimeout(finalSync, 1000);
+
+        this.globeView.addConnectionLines((routeData) => {
+            this.transportModel.addRouteCurve(routeData);
+        });
+        this.globeView.addSecondaryConnectionLines();
+        this.globeView.addSeaportConnectionLines((routeData) => {
+            this.transportModel.addBoatRouteCurve(routeData);
+        });
+
+        this.routeController.buildRouteGraph();
+        this.routeController.buildBoatRouteGraph();
+
+        this.transportController.spawnTrainsRandomly();
+        this.trainSpawnInterval = this.transportController.trainSpawnInterval;
+        this.transportController.spawnPlanesRandomly();
+        this.transportController.spawnBoatsRandomly();
+
+        this.transportController.initializeSatellites();
+        setTimeout(() => {
+            const satellites = this.transportModel.getSatellites();
+            this.globeView.addSatelliteMarkers(satellites);
+        }, 100);
+
+        maybeInstallDevSunYawControl(this);
+
+        if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
+            this.globeView.setGlobeSkyVisible(!this.sceneModel.getMapViewEnabled());
+        }
+
+        if (this.sceneModel.getMapViewEnabled?.()) {
+            this._applyWebglLayersHiddenForActiveMap();
+        }
+    }
+
+    /** When map mode is on, keep WebGL roots invisible (canvas may already be hidden). */
+    _applyWebglLayersHiddenForActiveMap() {
+        const globe = this.sceneModel.getGlobe();
+        const moonRig = this.sceneModel.getMoonRig?.() ?? this.sceneModel.moonRig;
+        const marsRig = this.sceneModel.getMarsRig?.() ?? this.sceneModel.marsRig;
+        const orbitRig = this.sceneModel.getOrbitRig?.() ?? this.sceneModel.orbitRig;
+        if (globe) globe.visible = false;
+        if (moonRig) moonRig.visible = false;
+        if (marsRig) marsRig.visible = false;
+        if (orbitRig) orbitRig.visible = false;
+    }
+
+    /** Used by transport toggle / ToggleService so marker refresh runs (same instance as {@link GlobeView#eventMarkerManager}). */
+    get eventMarkerManager() {
+        return this.globeView?.eventMarkerManager ?? null;
     }
 
     /**
@@ -100,7 +205,9 @@ export class GlobeController {
             return;
         }
 
-        // Initialize scene
+        this._globeContainer = container;
+
+        // Initialize scene (WebGL context + camera; earth mesh comes later via _ensureGlobeWorldBuilt)
         this.sceneModel.initScene(container);
         this.map2dLite = new Map2DLiteLayer({
             container,
@@ -110,104 +217,33 @@ export class GlobeController {
 
         const shouldDefaultToMapView = window.innerWidth <= 768;
 
-        // Initialize globe with texture
-        this.globeView.initGlobe(() => {
-            // Start animation once texture is loaded
-            this.animate();
-        });
-
-        // Position Moon/Mars panels immediately after globe initialization
-        // (planes are created synchronously in initGlobe, before texture load callback)
-        // Use setTimeout to ensure planes are fully added to scene
-        setTimeout(() => {
-            const isMobile = window.innerWidth <= 768;
-            const isPortrait = container.clientHeight > container.clientWidth;
-            const isMobilePortrait = isMobile && isPortrait;
-            console.log('🌍 Initial panel positioning - Window:', window.innerWidth, 'x', window.innerHeight);
-            console.log('🌍 Container:', container.clientWidth, 'x', container.clientHeight);
-            console.log('🌍 Mobile:', isMobile, 'Portrait:', isPortrait, 'Mobile Portrait:', isMobilePortrait);
-            this.interactionController.updatePlanesPosition(isMobilePortrait);
-        }, 50);
-
-        // Add starfield
-        this.globeView.addStarfield();
-        // Add occasional shooting stars (background streaks)
-        this.globeView.addShootingStars();
-
-        // Add markers
-        this.globeView.addCityMarkers();
-        this.globeView.addSeaportMarkers();
-        this.globeView.addEventMarkers();
-        this.globeView.addEarthCityLights();
-
-        if (shouldDefaultToMapView) {
-            this.setMapViewEnabled(true);
-        }
-        if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
-            this.globeView.setGlobeSkyVisible(!this.sceneModel.getMapViewEnabled());
-        }
-
-        // Update plane visibility based on initial page
-        // Use setTimeout to ensure planes are fully created and added to scene
-        // Call multiple times to catch planes when they're ready
-        const updateVisibility = () => {
-            this.planeManager.updatePlaneVisibility();
-        };
-        setTimeout(updateVisibility, 100);
-        setTimeout(updateVisibility, 300);
-        setTimeout(updateVisibility, 500);
-        
-        // ALWAYS sync with EventManager after markers are added (final check)
-        // This ensures events from EventManager are always used, even if EventManager loaded after
-        const finalSync = () => {
-            if (window.eventManager && window.eventManager.events) {
-                this.dataModel.events = [...window.eventManager.events];
-                this.globeView.refreshEventMarkers();
-                console.log('GlobeController: Final sync -', window.eventManager.events.length, 'events from EventManager');
-            }
-        };
-        finalSync(); // Try immediately
-        setTimeout(finalSync, 300); // Try again after a short delay
-        setTimeout(finalSync, 1000); // One more time after 1 second
-
-        // Add connection lines (with callbacks to store route curves)
-        this.globeView.addConnectionLines((routeData) => {
-            this.transportModel.addRouteCurve(routeData);
-        });
-
-        this.globeView.addSecondaryConnectionLines();
-
-        this.globeView.addSeaportConnectionLines((routeData) => {
-            this.transportModel.addBoatRouteCurve(routeData);
-        });
-
-        // Build route graphs
-        this.routeController.buildRouteGraph();
-        this.routeController.buildBoatRouteGraph();
-
-        // Setup controls
         this.interactionController.setupControls(container);
-
-        // If we defaulted into map view on mobile, make sure the camera framing matches.
         if (shouldDefaultToMapView && this.interactionController && typeof this.interactionController.resetCameraToDefault === 'function') {
             this.interactionController.resetCameraToDefault();
         }
 
-        // Setup UI toggles
         this.uiView.setupAutoRotateToggle();
         this.uiView.setupHyperloopToggle(() => {
-            this.transportView.updateHyperloopVisibility();
-        });
-        
-        // Setup event pagination
-        this.uiView.setupEventPagination(() => {
-            // Refresh event markers when page changes; preserve dock thumb stagger (applyFilters runs ~50ms later)
-            this.globeView.refreshEventMarkers(true, { preservePaginationThumbEntrance: true });
+            this.onHyperloopToggled();
         });
 
-        // Defer WebGL resize to animate() (same rAF as render) so the compositor never shows a cleared buffer.
+        this.uiView.setupEventPagination(() => {
+            const gc = window.globeController;
+            if (!gc?.globeView?.refreshEventMarkers) return;
+            gc.globeView.refreshEventMarkers(true, { preservePaginationThumbEntrance: true });
+            if (typeof gc.requestMapLiteSync === 'function') {
+                gc.requestMapLiteSync();
+            }
+        });
+
         window.addEventListener('resize', () => {
             this._globeLayoutDirty = true;
+            const mapOn = this.sceneModel.getMapViewEnabled?.()
+                ? this.sceneModel.getMapViewEnabled()
+                : !!this.sceneModel.isMapView;
+            if (mapOn && this.map2dLite?.isVisible?.()) {
+                this.requestMapLiteSync();
+            }
         });
 
         if (typeof ResizeObserver !== 'undefined') {
@@ -218,33 +254,20 @@ export class GlobeController {
             this._globeResizeObserver.observe(container);
         }
 
-        // Setup page visibility tracking
         this.setupPageVisibilityTracking();
 
-        // Start spawning transport systems
-        this.transportController.spawnTrainsRandomly();
-        this.trainSpawnInterval = this.transportController.trainSpawnInterval;
-        this.transportController.spawnPlanesRandomly();
-        this.transportController.spawnBoatsRandomly();
-        
-        // Transport location markers (airports, train stations, seaports) - currently disabled
-        // const airports = this.dataModel.getAllAirports();
-        // this.transportView.createAirportMarkers(airports);
-        // const cities = this.dataModel.getAllCities();
-        // this.transportView.createTrainStationMarkers(cities);
-        // const seaports = this.dataModel.getAllSeaports();
-        // this.transportView.createSeaportMarkers(seaports);
-        
-        // Initialize satellites
-        this.transportController.initializeSatellites();
-        
-        // Add satellite markers after satellites are created
-        setTimeout(() => {
-            const satellites = this.transportModel.getSatellites();
-            this.globeView.addSatelliteMarkers(satellites);
-        }, 100);
-
-        maybeInstallDevSunYawControl(this);
+        if (shouldDefaultToMapView) {
+            this.setMapViewEnabled(true);
+            if (this.map2dLite?.syncMarkers) {
+                void this.map2dLite.syncMarkers({ mode: 'instant' });
+            }
+            this.syncMapLiteWebGlImmediate();
+            requestAnimationFrame(() => {
+                this._ensureGlobeWorldBuilt(container);
+            });
+        } else {
+            this._ensureGlobeWorldBuilt(container);
+        }
     }
 
     /**
@@ -307,6 +330,44 @@ export class GlobeController {
     }
 
     /**
+     * One-shot sync for DOM map mode: WebGL canvas/camera resize when layout is dirty, DOM map layout, UI.
+     * Does not run {@link PlaneManager#updatePlanePositions} — map celestial thumbnails use camera frustum + rig squash
+     * scale only ({@link Map2DLiteLayer}), not live WebGL rig world positions.
+     * Main {@link #animate} loop does not run while {@link Map2DLiteLayer} is visible — call this from map interactions instead.
+     */
+    syncMapLiteWebGlImmediate() {
+        const mapOn = this.sceneModel.getMapViewEnabled?.()
+            ? this.sceneModel.getMapViewEnabled()
+            : !!this.sceneModel.isMapView;
+        if (!mapOn || !this.map2dLite?.isVisible?.() || this.isCleanedUp) {
+            return;
+        }
+        if (this._globeLayoutDirty && this.interactionController) {
+            this._globeLayoutDirty = false;
+            this.interactionController.onWindowResize();
+        }
+        this.map2dLite.onContainerResize();
+        this.uiView.updateLabelPosition();
+        this.uiView.checkAndAutoShowImage();
+    }
+
+    /**
+     * Coalesce map sync to one rAF (pan/zoom fires many pointer events per frame).
+     */
+    requestMapLiteSync() {
+        if (this.isCleanedUp) return;
+        const mapOn = this.sceneModel.getMapViewEnabled?.()
+            ? this.sceneModel.getMapViewEnabled()
+            : !!this.sceneModel.isMapView;
+        if (!mapOn || !this.map2dLite?.isVisible?.()) return;
+        if (this._mapLiteSyncRafId != null) return;
+        this._mapLiteSyncRafId = requestAnimationFrame(() => {
+            this._mapLiteSyncRafId = null;
+            this.syncMapLiteWebGlImmediate();
+        });
+    }
+
+    /**
      * Main animation loop
      */
     animate() {
@@ -314,14 +375,20 @@ export class GlobeController {
         if (this.isCleanedUp) {
             return;
         }
-        
-        this.animationId = requestAnimationFrame(() => this.animate());
 
         const scene = this.sceneModel.getScene();
         const camera = this.sceneModel.getCamera();
         const renderer = this.sceneModel.getRenderer();
         const globe = this.sceneModel.getGlobe();
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+
+        const domLiteMap = isMapView && this.map2dLite && this.map2dLite.isVisible();
+        if (domLiteMap) {
+            this.syncMapLiteWebGlImmediate();
+            return;
+        }
+
+        this.animationId = requestAnimationFrame(() => this.animate());
 
         if (!scene || !camera || !renderer || !globe || this.isCleanedUp) return;
         
@@ -342,16 +409,6 @@ export class GlobeController {
         if (this._globeLayoutDirty && this.interactionController) {
             this._globeLayoutDirty = false;
             this.interactionController.onWindowResize();
-        }
-
-        const domLiteMap = isMapView && this.map2dLite && this.map2dLite.isVisible();
-        if (domLiteMap) {
-            // Keep WebGL moon/mars rig positions in sync with map camera (DOM overlay reads them for panel layout).
-            this.planeManager.updatePlanePositions(camera);
-            this.map2dLite.onContainerResize();
-            this.uiView.updateLabelPosition();
-            this.uiView.checkAndAutoShowImage();
-            return;
         }
 
         // Update Moon/Mars plane positions to stay on camera's right side
@@ -434,10 +491,18 @@ export class GlobeController {
      * @param {boolean} enabled
      */
     setMapViewEnabled(enabled) {
-        const globe = this.sceneModel.getGlobe();
-        if (!globe) return;
-
         const isEnabled = !!enabled;
+
+        if (!isEnabled && !this.sceneModel.getGlobe()) {
+            if (this._globeContainer) {
+                this._ensureGlobeWorldBuilt(this._globeContainer);
+            } else {
+                console.warn('GlobeController: cannot show globe — container not set');
+                return;
+            }
+        }
+
+        const globe = this.sceneModel.getGlobe();
         this.sceneModel.setMapViewEnabled(isEnabled);
 
         // Expose mode to CSS so we can hide/show mode-specific controls (e.g. auto-rotate).
@@ -447,11 +512,13 @@ export class GlobeController {
         const canvas = renderer && renderer.domElement;
         const moonRig = this.sceneModel.getMoonRig ? this.sceneModel.getMoonRig() : this.sceneModel.moonRig;
         const marsRig = this.sceneModel.getMarsRig ? this.sceneModel.getMarsRig() : this.sceneModel.marsRig;
+        const orbitRig = this.sceneModel.getOrbitRig ? this.sceneModel.getOrbitRig() : this.sceneModel.orbitRig;
 
         if (isEnabled) {
-            globe.visible = false;
+            if (globe) globe.visible = false;
             if (moonRig) moonRig.visible = false;
             if (marsRig) marsRig.visible = false;
+            if (orbitRig) orbitRig.visible = false;
             if (canvas) {
                 canvas.style.visibility = 'hidden';
                 canvas.style.pointerEvents = 'none';
@@ -467,9 +534,10 @@ export class GlobeController {
                 canvas.style.visibility = '';
                 canvas.style.pointerEvents = '';
             }
-            globe.visible = true;
+            if (globe) globe.visible = true;
             if (moonRig) moonRig.visible = true;
             if (marsRig) marsRig.visible = true;
+            if (orbitRig) orbitRig.visible = true;
         }
 
         if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
@@ -530,7 +598,18 @@ export class GlobeController {
             this.planeManager.syncCelestialVisualMeshesForViewMode();
         }
         if (!isEnabled) {
+            if (this._mapLiteSyncRafId != null) {
+                cancelAnimationFrame(this._mapLiteSyncRafId);
+                this._mapLiteSyncRafId = null;
+            }
+            if (this.animationId != null) {
+                cancelAnimationFrame(this.animationId);
+                this.animationId = null;
+            }
             this.planeManager.updatePlaneVisibility();
+            this.animate();
+        } else {
+            this.syncMapLiteWebGlImmediate();
         }
     }
 
@@ -553,11 +632,75 @@ export class GlobeController {
     }
 
     /**
+     * Callback after hyperloop toggle: {@link ToggleManager} runs {@link TransportView#updateHyperloopVisibility},
+     * then {@link EventMarkerManager#refreshEventMarkers} (animated), which ends with plane visibility + rebind.
+     * Kept for component-loader / API parity; no extra work required here.
+     */
+    onHyperloopToggled() {}
+
+    /**
+     * After marker rebuild (e.g. transport on/off, page turn), re-point slide/hover state at the new mesh.
+     * Old markers are detached; without this, {@link UIView#currentEventMarker} stays stale.
+     */
+    rebindOpenEventMarkerAfterRefresh() {
+        const ui = this.uiView;
+        const sm = this.sceneModel;
+        if (!ui?.currentEventMarker?.userData) return;
+
+        const oldMarker = ui.currentEventMarker;
+        const oldUd = oldMarker.userData;
+        if (!oldUd.isEventMarker || !oldUd.event) return;
+        if (oldUd.isMap2dLiteProxy) return;
+
+        const markers = sm.getMarkers?.() || [];
+        const oldVi = oldUd.variantIndex != null ? oldUd.variantIndex : 0;
+        const oldRoot = oldUd.event;
+
+        let replacement = null;
+        for (let i = 0; i < markers.length; i++) {
+            const m = markers[i];
+            const ud = m.userData;
+            if (!ud?.isEventMarker || !ud.event) continue;
+            const sameRoot = ud.event === oldRoot
+                || (oldRoot?.name && ud.event?.name && ud.event.name === oldRoot.name);
+            if (!sameRoot) continue;
+            const vi = ud.variantIndex != null ? ud.variantIndex : 0;
+            if (vi !== oldVi) continue;
+            replacement = m;
+            break;
+        }
+
+        if (!replacement || replacement === oldMarker) {
+            return;
+        }
+
+        const syncState = window.EventSlideStateHelpers?.syncStateWithUIView;
+        if (syncState) {
+            syncState(ui, { currentEventMarker: replacement });
+        } else {
+            ui.currentEventMarker = replacement;
+        }
+        const esm = ui.eventSlideManager;
+        if (esm) {
+            esm.currentEventMarker = replacement;
+        }
+        sm.setActiveMarker?.(replacement);
+        if (sm.eventMarker !== undefined) {
+            sm.eventMarker = replacement;
+        }
+    }
+
+    /**
      * Cleanup and stop animation
      */
     destroy() {
         // Mark as cleaned up to stop animation loop
         this.isCleanedUp = true;
+
+        if (this._mapLiteSyncRafId != null) {
+            cancelAnimationFrame(this._mapLiteSyncRafId);
+            this._mapLiteSyncRafId = null;
+        }
 
         if (this._globeResizeObserver) {
             this._globeResizeObserver.disconnect();

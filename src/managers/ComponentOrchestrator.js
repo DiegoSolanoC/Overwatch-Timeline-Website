@@ -5,6 +5,10 @@
 
 import { showLoadingOverlay, hideLoadingOverlay, setRunOperation, getRunOperation } from './LoadingOverlayManager.js';
 import { updateStatus, updateGlobeComponentsProgress, resetGlobeComponentsProgress } from './StatusManager.js';
+import {
+    beginTimelineInlineLoadIfCodex,
+    endTimelineInlineLoad
+} from '../app/helpers/GlobeInlineLoadHelpers.js';
 
 /**
  * ComponentOrchestrator class
@@ -150,6 +154,8 @@ export class ComponentOrchestrator {
      */
     async runGlobeComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
+
+        const inlineFromCodex = beginTimelineInlineLoadIfCodex();
         
         // Save current mode to localStorage
         localStorage.setItem('currentMode', 'globe');
@@ -169,13 +175,17 @@ export class ComponentOrchestrator {
             updateStatus('→ Hiding menu container...', 'info');
         }
         
-        // Hide globe container initially - we'll show it after everything is loaded
         const globeContainer = document.getElementById('globe-container');
         if (globeContainer) {
-            globeContainer.style.display = 'none';
             globeContainer.style.width = '100%';
             globeContainer.style.height = '100%';
-            updateStatus('→ Preparing globe container...', 'info');
+            if (!inlineFromCodex) {
+                globeContainer.style.display = 'none';
+                updateStatus('→ Preparing globe container...', 'info');
+            } else {
+                globeContainer.style.display = 'block';
+                updateStatus('→ Preparing timeline in view…', 'info');
+            }
         }
         
         updateStatus('🚀 Starting Globe Components auto-load...', 'info');
@@ -185,9 +195,10 @@ export class ComponentOrchestrator {
         // But if called directly (not from button), set them here
         if (!isRunOperation) {
             setRunOperation(true);
-            showLoadingOverlay();
-            // Small delay to ensure overlay is rendered before starting loads
-            await new Promise(r => setTimeout(r, 50));
+            if (!inlineFromCodex) {
+                showLoadingOverlay();
+                await new Promise(r => setTimeout(r, 50));
+            }
         }
         
         try {
@@ -247,6 +258,11 @@ export class ComponentOrchestrator {
             } else {
                 updateStatus('→ Events already loaded, skipping...', 'info');
                 updateGlobeComponentsProgress(4);
+                // Globe may have been rebuilt (e.g. returning from Codex); re-apply markers and data.
+                if (window.globeController && window.eventManager) {
+                    const { syncEventsWithGlobe } = await import('../app/helpers/EventManagerHelpers.js');
+                    syncEventsWithGlobe(window.globeController, window.eventManager);
+                }
             }
             
             updateStatus('✓ Globe Components auto-load complete!', 'success');
@@ -300,6 +316,7 @@ export class ComponentOrchestrator {
             updateStatus(`✗ Error in Globe Components auto-load: ${error.message}`, 'error');
         } finally {
             setRunOperation(false);
+            endTimelineInlineLoad();
             hideLoadingOverlay();
             if (runBtn) {
                 runBtn.disabled = false;

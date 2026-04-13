@@ -67,17 +67,20 @@ class FilterStateManager {
     }
     
     /**
-     * Count filters by type (heroes vs factions).
+     * Count filters by type (heroes, factions, NPCs).
      * Globe chips use manifest faction filenames (e.g. 25Shambali Order); faction tab may use display names after data migration.
      */
     getCounts() {
         let heroCount = 0;
         let factionCount = 0;
+        let npcCount = 0;
 
         const fs = typeof window !== 'undefined' ? window.FilterService : null;
         const heroes = Array.isArray(fs?.heroes) ? fs.heroes : [];
+        const manifestNpcs = Array.isArray(fs?.npcs) ? fs.npcs : [];
         const manifestFactions = Array.isArray(fs?.factions) ? fs.factions : [];
         const heroSet = new Set(heroes.map((h) => String(h)));
+        const npcSet = new Set(manifestNpcs.map((n) => String(n)));
         const factionFilenameSet = new Set(manifestFactions.map((f) => f?.filename).filter(Boolean));
         const fh = typeof window !== 'undefined' ? window.FactionMatchHelpers : null;
         const factionNormSet = new Set();
@@ -94,6 +97,10 @@ class FilterStateManager {
             const f = String(filter ?? '');
             if (heroSet.has(f)) {
                 heroCount++;
+                return;
+            }
+            if (npcSet.has(f)) {
+                npcCount++;
                 return;
             }
             if (factionFilenameSet.has(f)) {
@@ -114,7 +121,7 @@ class FilterStateManager {
             }
         });
 
-        return { heroCount, factionCount };
+        return { heroCount, factionCount, npcCount };
     }
     
     /**

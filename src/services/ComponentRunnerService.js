@@ -52,10 +52,20 @@ class ComponentRunnerService {
     }
 
     async runGlobeComponents(isAutoLoad = false) {
+        let inlineFromCodex = false;
+        let endInlineLoad = () => {};
+        try {
+            const mod = await import('../app/helpers/GlobeInlineLoadHelpers.js');
+            inlineFromCodex = mod.beginTimelineInlineLoadIfCodex();
+            endInlineLoad = mod.endTimelineInlineLoad;
+        } catch (_) { /* ignore */ }
+
         if (!this.overlayService.isRunOperation) {
             this.overlayService.setRunOperation(true);
-            this.overlayService.show();
-            await new Promise(r => setTimeout(r, 50));
+            if (!inlineFromCodex) {
+                this.overlayService.show();
+                await new Promise(r => setTimeout(r, 50));
+            }
         }
         
         if (!isAutoLoad && window.SoundEffectsManager) {
@@ -93,10 +103,15 @@ class ComponentRunnerService {
         
         const globeContainer = document.getElementById('globe-container');
         if (globeContainer) {
-            globeContainer.style.display = 'none';
             globeContainer.style.width = '100%';
             globeContainer.style.height = '100%';
-            this.statusService.update('→ Preparing globe container...', 'info');
+            if (!inlineFromCodex) {
+                globeContainer.style.display = 'none';
+                this.statusService.update('→ Preparing globe container...', 'info');
+            } else {
+                globeContainer.style.display = 'block';
+                this.statusService.update('→ Preparing timeline in view…', 'info');
+            }
         }
         
         this.statusService.update('🚀 Starting Globe Components auto-load...', 'info');
@@ -157,6 +172,10 @@ class ComponentRunnerService {
             } else {
                 this.statusService.update('→ Events already loaded, skipping...', 'info');
                 this.progressService.updateGlobeComponentsProgress(4);
+                if (window.globeController && window.eventManager) {
+                    const { syncEventsWithGlobe } = await import('../app/helpers/EventManagerHelpers.js');
+                    syncEventsWithGlobe(window.globeController, window.eventManager);
+                }
             }
             
             this.statusService.update('✓ Globe Components auto-load complete!', 'success');
@@ -204,6 +223,9 @@ class ComponentRunnerService {
             this.statusService.update(`✗ Error in Globe Components auto-load: ${error.message}`, 'error');
         } finally {
             this.overlayService.setRunOperation(false);
+            try {
+                endInlineLoad();
+            } catch (_) { /* ignore */ }
             this.overlayService.hide();
             if (runBtn) {
                 runBtn.disabled = false;

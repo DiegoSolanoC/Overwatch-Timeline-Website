@@ -593,7 +593,8 @@ body.color-palette-gray .events-manage-title {
 }
 
 .filter-autocomplete-item-icon--hero,
-.filter-autocomplete-item-icon--faction {
+.filter-autocomplete-item-icon--faction,
+.filter-autocomplete-item-icon--npc {
     width: 28px;
     height: 28px;
 }

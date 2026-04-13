@@ -43,6 +43,10 @@ export async function unloadPaletteLogic({ removeElementById, paletteService, st
 export async function loadGlobeBaseLogic({ setupGlobeContainer, removeEventMarkersIfNeeded, makeGlobeContainerVisible, statusService, isRunOperation, loadedComponents }) {
     // Setup container using helper
     const container = setupGlobeContainer(statusService);
+
+    if (typeof window !== 'undefined' && window.TimelineInlineLoad?.isTimelineInlineLoadActive?.() && container) {
+        window.TimelineInlineLoad.showGlobeInlineLoader(container);
+    }
     
     statusService.update('Loading GlobeController module...', 'info');
     const { GlobeController } = await import('../../controllers/GlobeController.js');
@@ -66,7 +70,7 @@ export async function loadGlobeBaseLogic({ setupGlobeContainer, removeEventMarke
 /**
  * Unload globe base component
  */
-export async function unloadGlobeBaseLogic({ disposeGlobeResources, unloadTransport, unloadControls, unloadEvents, statusService, loadedComponents }) {
+export async function unloadGlobeBaseLogic({ disposeGlobeResources, unloadTransport, unloadControls, unloadEvents, statusService, loadedComponents, preserveEventsUi = false }) {
     // Dispose Three.js resources using helper
     disposeGlobeResources(statusService);
     
@@ -75,9 +79,15 @@ export async function unloadGlobeBaseLogic({ disposeGlobeResources, unloadTransp
         await unloadTransport();
     }
     if (loadedComponents.controls) {
-        await unloadControls();
+        if (!preserveEventsUi) {
+            await unloadControls();
+        } else {
+            // Keep Map/Globe, rotation, and exit in the DOM (Codex) but force controls to reload
+            // when the timeline is restored so listeners bind to the new GlobeController.
+            loadedComponents.controls = false;
+        }
     }
-    if (loadedComponents.events) {
+    if (!preserveEventsUi && loadedComponents.events) {
         await unloadEvents();
     }
 }
@@ -123,7 +133,11 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
     
     if (controller.uiView) {
         controller.uiView.setupHyperloopToggle(() => {
-            controller.transportView.updateHyperloopVisibility();
+            if (typeof controller.onHyperloopToggled === 'function') {
+                controller.onHyperloopToggled();
+            } else {
+                controller.transportView.updateHyperloopVisibility();
+            }
         });
         controller.uiView.setupWeatherEffectsToggle(() => {
             if (controller.globeView) {
@@ -298,6 +312,18 @@ export async function loadEventsLogic({ initializeEventManager, createGlobeContr
         baseClass: 'header-hub-btn header-hub-btn--icon',
         headerOrder: 10
     }, statusService);
+
+    createGlobeControlButton({
+        id: 'codexToggle',
+        className: '',
+        title: 'Open Codex',
+        label: 'Codex',
+        iconPath: 'assets/images/icons/Codex%20Icon.png',
+        iconAlt: 'Codex',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 15
+    }, statusService);
     
     // Create event pagination using helper
     createEventPagination(statusService);
@@ -333,6 +359,7 @@ export async function unloadEventsLogic({ removeElementsByIds, statusService }) 
     removeElementsByIds([
         { id: 'filtersToggle', message: 'Filter button removed' },
         { id: 'eventsManageToggle', message: 'Event manager button removed' },
+        { id: 'codexToggle', message: 'Codex button removed' },
         { id: 'eventPagination', message: 'Event pagination removed' },
         { id: 'filtersPanel', message: null, checkParent: true }
     ], statusService);

@@ -108,7 +108,7 @@
         "Torbjörn"
       ],
       "factions": [
-        "10Ironclad"
+        "Ironclad Guild"
       ],
       "sources": [
         {
@@ -120,10 +120,13 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "yearStart": 2019,
+      "eraName": "The Age of Progress",
       "lat": 57.7072326,
       "lon": 11.9670171,
-      "eraName": "The Age of Progress",
-      "yearStart": 2019
+      "npcs": [
+        "Ingrid"
+      ]
     },
     {
       "name": "Medical Miracles",
@@ -433,14 +436,18 @@
         "Super coral grows out of control, massive island like structures rise from the sea",
         "Borda Algae  can now be found in nearly all major bodies of fresh water according to study"
       ],
-      "lat": 41.1579,
-      "lon": -8.6291,
       "secondaryCountryFlags": [
         "Venezuela.png"
       ],
       "yearStart": 2020,
       "yearEnd": 2040,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "lat": 41.1579,
+      "lon": -8.6291,
+      "npcs": [
+        "Hector",
+        "Claudio"
+      ]
     },
     {
       "name": "Solar Threading",
@@ -597,8 +604,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "Omnica",
-        "Crisis"
+        "Omnica Corporation",
+        "The Anubis Omnic Crisis"
       ],
       "sources": [
         {
@@ -610,11 +617,14 @@
         "Omnica Coorporation starts to roll out its first robotic helped Omnic units",
         "Construciton of Omnium factories is approved for several cities world wide"
       ],
-      "lat": 42.3315509,
-      "lon": -83.0466403,
       "yearStart": 2030,
       "yearEnd": 2050,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "lat": 42.3315509,
+      "lon": -83.0466403,
+      "npcs": [
+        "Liao"
+      ]
     },
     {
       "name": "Elizabeth Caledonia is Born",
@@ -635,10 +645,13 @@
       "headlines": [
         "Arbalest annual profits report above expectations"
       ],
+      "yearStart": 2037,
+      "eraName": "The Age of Progress",
       "lat": 29.7057858,
       "lon": -95.4588299,
-      "eraName": "The Age of Progress",
-      "yearStart": 2037
+      "npcs": [
+        "B.O.B"
+      ]
     },
     {
       "name": "Hanzo Shimada is Born",
@@ -1209,7 +1222,7 @@
         "Winston"
       ],
       "factions": [
-        "07Lucheng"
+        "Lucheng Interstellar"
       ],
       "sources": [
         {
@@ -1220,13 +1233,16 @@
       "headlines": [
         "Lucheng secures deal to ship a primate colony into Space for genetic research"
       ],
-      "lat": -0.5,
-      "lon": 18,
       "secondaryCountryFlags": [
         "Horizon Lunar Colony.png"
       ],
+      "yearStart": 2047,
       "eraName": "The Age of Progress",
-      "yearStart": 2047
+      "lat": -0.5,
+      "lon": 18,
+      "npcs": [
+        "Harold"
+      ]
     },
     {
       "name": "The Ironclad Guild",
@@ -1287,8 +1303,8 @@
         "Echo"
       ],
       "factions": [
-        "Omnica",
-        "Shambali"
+        "Omnica Corporation",
+        "Shambali Order"
       ],
       "sources": [
         {
@@ -1300,14 +1316,18 @@
         "Omnica's newest product is... A sentient being?",
         "Dr. Mina Liao commits career suicide, claiming her newest creation is alive"
       ],
-      "lat": 42.3315509,
-      "lon": -83.0466403,
       "secondaryCountryFlags": [
         "Singapore.png"
       ],
       "yearStart": 2040,
       "yearEnd": 2050,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "lat": 42.3315509,
+      "lon": -83.0466403,
+      "npcs": [
+        "Liao",
+        "Aurora"
+      ]
     },
     {
       "name": "New Horizons",
@@ -1320,7 +1340,7 @@
         "Sigma"
       ],
       "factions": [
-        "Lucheng"
+        "Lucheng Interstellar"
       ],
       "sources": [
         {
@@ -1332,14 +1352,14 @@
         "The Horizon Lunar Colony  is finally finished",
         "Scientists from across the world to visit the new Lunar base"
       ],
-      "x": 60,
-      "y": 70,
-      "secondaryCountryFlags": [
-        "Moon.png"
-      ],
       "yearStart": 2040,
       "yearEnd": 2050,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "x": 60,
+      "y": 70,
+      "npcs": [
+        "Harold"
+      ]
     },
     {
       "locationType": "earth",
@@ -1350,7 +1370,7 @@
           "description": "After gaining personhood, Aurora was let go into the world. She was a curious soul who wondered from place to place, learning about humanity, their history and the way people across the planet behave. But deep down, Aurora always had questions about her own existence.\n\nBeing born alone, unlike anybody else in the world, was a heavy thought in her mind, and that existentialism led her to a path of meditation. She traveled through the Himalayan mountains and found the ancient monk temple of Shambali, where she hoped to find peace with herself.",
           "filters": [],
           "factions": [
-            "Shambali"
+            "Shambali Order"
           ],
           "sources": [
             {
@@ -1367,17 +1387,20 @@
           ],
           "image": "",
           "locationType": "earth",
+          "cityDisplayName": "Shambali Monastery, Nepal",
           "lat": 28.3949,
           "lon": 84.124,
-          "cityDisplayName": "Shambali Monastery, Nepal"
+          "npcs": [
+            "Aurora"
+          ]
         },
         {
           "name": "Collaterate Damage",
           "description": "Following Aurora's trials and the many controversies they had found themselves in, from accusations of fraud and many protests from locals who were affected by the Omniums, as well as critics of Aurora's research, Omnica found itself with no other option than bankruptcy.\n\nThe Company shut down all operations, but decided to keep ownership of their Omnium factories. Full decommissioning of the factories proved to be a logistical nightmare, and many people at the Company remained hopeful that one day they would be able to use them again, so in the end Omnica left the world with giant empty shells, ghostly facilities that went unused for years.\n\nBy humans, anyway.",
           "filters": [],
           "factions": [
-            "05Omnica",
-            "06Crisis"
+            "Omnica Corporation",
+            "The Anubis Omnic Crisis"
           ],
           "headlines": [
             "Omnica Corporation goes bankrupt after years of empty promises",
@@ -1385,9 +1408,12 @@
           ],
           "image": "",
           "locationType": "earth",
+          "cityDisplayName": "Detroit, United States",
           "lat": 42.3315509,
           "lon": -83.0466403,
-          "cityDisplayName": "Detroit, United States"
+          "npcs": [
+            "Liao"
+          ]
         }
       ],
       "lat": 28.3949,
@@ -1418,11 +1444,14 @@
         "Reports of election meddling plague most of Europe",
         "Reports of illegal activities surge across Italy, authorities refuse to investigate further"
       ],
-      "lat": 45.4371908,
-      "lon": 12.3345898,
       "yearStart": 2040,
       "yearEnd": 2050,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "lat": 45.4371908,
+      "lon": 12.3345898,
+      "npcs": [
+        "Antonio"
+      ]
     },
     {
       "name": "Niran Pruksamanee is Born",
@@ -1613,10 +1642,13 @@
       "headlines": [
         "Renowned Italian family involved in criminal underworld"
       ],
+      "yearStart": 2050,
+      "eraName": "The Age of Progress",
       "lat": 41.8933203,
       "lon": 12.4829321,
-      "eraName": "The Age of Progress",
-      "yearStart": 2050
+      "npcs": [
+        "Antonio"
+      ]
     },
     {
       "name": "Lúcio Correia Dos Santos",
@@ -1835,7 +1867,7 @@
       "image": "",
       "filters": [],
       "factions": [
-        "Crisis"
+        "The Anubis Omnic Crisis"
       ],
       "sources": [
         {
@@ -1847,15 +1879,19 @@
         "Omnics defeated at Portugal's sea wall",
         "Spain forms an alliance with Portugal to face the Omnics  together"
       ],
-      "lat": 41.1579,
-      "lon": -8.6291,
       "secondaryCountryFlags": [
         "Spain.png",
         "Gibraltar.png"
       ],
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 41.1579,
+      "lon": -8.6291,
+      "npcs": [
+        "Hector",
+        "Claudio"
+      ]
     },
     {
       "name": "To Hell With Them",
@@ -1895,7 +1931,7 @@
         "Sojourn"
       ],
       "factions": [
-        "Crisis"
+        "The Anubis Omnic Crisis"
       ],
       "sources": [
         {
@@ -1907,11 +1943,14 @@
         "Man alledgely equips Moose with rifles to fight back Omnics",
         "Vivian \"Sojourn\" Chase is promoted to commander following Ontario rescue operations"
       ],
-      "lat": 43.6532,
-      "lon": -79.3832,
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 43.6532,
+      "lon": -79.3832,
+      "npcs": [
+        "Liao"
+      ]
     },
     {
       "name": "Launching Into the Skies",
@@ -2042,8 +2081,8 @@
       "image": "",
       "filters": [],
       "factions": [
-        "Volskaya",
-        "Crisis"
+        "Volskaya Industries",
+        "The Anubis Omnic Crisis"
       ],
       "sources": [
         {
@@ -2055,11 +2094,14 @@
         "Voslkaya Mechs fight Omic army back",
         "Russia stays strong against the Warbots with giant Robots of their own"
       ],
-      "lat": 55.625578,
-      "lon": 37.6063916,
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 55.625578,
+      "lon": 37.6063916,
+      "npcs": [
+        "Katya"
+      ]
     },
     {
       "name": "The Proposal",
@@ -2330,7 +2372,7 @@
           ],
           "factions": [
             "Overwatch",
-            "Crisis"
+            "The Anubis Omnic Crisis"
           ],
           "sources": [
             {
@@ -2344,9 +2386,13 @@
           ],
           "image": "",
           "locationType": "earth",
+          "cityDisplayName": "Zurich, Switzerland",
           "lat": 47.3744489,
           "lon": 8.5410422,
-          "cityDisplayName": "Zurich, Switzerland"
+          "npcs": [
+            "Hector",
+            "Claudio"
+          ]
         },
         {
           "name": "Early Missions",
@@ -2384,11 +2430,11 @@
           ]
         }
       ],
-      "lat": 47.3744489,
-      "lon": 8.5410422,
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 47.3744489,
+      "lon": 8.5410422
     },
     {
       "name": "The Road of Bones",
@@ -2431,12 +2477,10 @@
         "Torbjörn"
       ],
       "factions": [
-        "Omnica",
-        "Crisis",
+        "Omnica Corporation",
+        "The Anubis Omnic Crisis",
         "Overwatch"
       ],
-      "lat": 41.8755616,
-      "lon": -87.6244212,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -2448,7 +2492,12 @@
       ],
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 41.8755616,
+      "lon": -87.6244212,
+      "npcs": [
+        "Liao"
+      ]
     },
     {
       "name": "In Partnership",
@@ -2466,7 +2515,7 @@
       ],
       "factions": [
         "Overwatch",
-        "Crisis"
+        "The Anubis Omnic Crisis"
       ],
       "sources": [
         {
@@ -2477,14 +2526,17 @@
       "headlines": [
         "Detroit Omnium sucessfully decomissioned"
       ],
-      "lat": 42.3315509,
-      "lon": -83.0466403,
       "secondaryCountryFlags": [
         "Canada.png"
       ],
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 42.3315509,
+      "lon": -83.0466403,
+      "npcs": [
+        "Liao"
+      ]
     },
     {
       "locationType": "earth",
@@ -2640,11 +2692,9 @@
         "Torbjörn"
       ],
       "factions": [
-        "Ironclad",
-        "Crisis"
+        "Ironclad Guild",
+        "The Anubis Omnic Crisis"
       ],
-      "lat": 57.7072326,
-      "lon": 11.9670171,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -2657,7 +2707,12 @@
       ],
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "npcs": [
+        "Ingrid"
+      ]
     },
     {
       "name": "The Savior",
@@ -2694,13 +2749,11 @@
       "image": "",
       "filters": [],
       "factions": [
-        "Omnica",
-        "Shambali",
-        "Crisis",
+        "Omnica Corporation",
+        "Shambali Order",
+        "The Anubis Omnic Crisis",
         "Overwatch"
       ],
-      "lat": 28.3949,
-      "lon": 84.124,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -2717,7 +2770,13 @@
       ],
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 28.3949,
+      "lon": 84.124,
+      "npcs": [
+        "Aurora",
+        "Liao"
+      ]
     },
     {
       "name": "Sloan Cameron is Born",
@@ -2767,13 +2826,11 @@
             "Torbjörn"
           ],
           "factions": [
-            "Crisis",
+            "The Anubis Omnic Crisis",
             "Overwatch"
           ],
           "image": "",
           "locationType": "earth",
-          "lat": 30.0443879,
-          "lon": 31.2357257,
           "cityDisplayName": "Cairo, Egypt",
           "sources": [
             {
@@ -2788,6 +2845,11 @@
           "headlines": [
             "Overwatch breaks into Anubis facility",
             "Is the Crisis finally over? War rages on across the world"
+          ],
+          "lat": 30.0443879,
+          "lon": 31.2357257,
+          "npcs": [
+            "Liao"
           ]
         },
         {
@@ -2797,13 +2859,11 @@
             "Torbjörn"
           ],
           "factions": [
-            "00Overwatch",
-            "06Crisis"
+            "Overwatch",
+            "The Anubis Omnic Crisis"
           ],
           "image": "",
           "locationType": "earth",
-          "lat": 30.0443879,
-          "lon": 31.2357257,
           "cityDisplayName": "Cairo, Egypt",
           "sources": [
             {
@@ -2818,6 +2878,11 @@
           "headlines": [
             "Overwatch scientists refuse to destroy Anubis Program",
             "Controversial AI prison begins construction"
+          ],
+          "lat": 30.0443879,
+          "lon": 31.2357257,
+          "npcs": [
+            "Liao"
           ]
         }
       ],
@@ -2983,8 +3048,6 @@
         "Ashe"
       ],
       "factions": [],
-      "lat": 29.7057858,
-      "lon": -95.4588299,
       "sources": [
         {
           "text": "Deadlock Rebels",
@@ -2997,7 +3060,12 @@
       ],
       "yearStart": 2053,
       "yearEnd": 2060,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "lat": 29.7057858,
+      "lon": -95.4588299,
+      "npcs": [
+        "B.O.B"
+      ]
     },
     {
       "name": "New Leadership",
@@ -3075,18 +3143,21 @@
         "Torbjörn"
       ],
       "factions": [
-        "08Ironclad"
+        "Ironclad Guild"
       ],
-      "lat": 57.7072326,
-      "lon": 11.9670171,
       "sources": [
         {
           "text": "Overwatch Website Brigitte",
           "url": "https://overwatch.blizzard.com/en-us/heroes/brigitte/"
         }
       ],
+      "yearStart": 2053,
       "eraName": "The Golden Age",
-      "yearStart": 2053
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "npcs": [
+        "Ingrid"
+      ]
     },
     {
       "name": "Watching the Globe",
@@ -3098,8 +3169,6 @@
       "factions": [
         "Overwatch"
       ],
-      "lat": 36.1408,
-      "lon": -5.3536,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -3120,7 +3189,13 @@
       ],
       "yearStart": 2053,
       "yearEnd": 2060,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "lat": 36.1408,
+      "lon": -5.3536,
+      "npcs": [
+        "Hector",
+        "Claudio"
+      ]
     },
     {
       "name": "One with the Iris",
@@ -3133,10 +3208,8 @@
         "Zenyatta"
       ],
       "factions": [
-        "Shambali"
+        "Shambali Order"
       ],
-      "lat": 28.3949,
-      "lon": 84.124,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -3145,7 +3218,12 @@
       ],
       "yearStart": 2053,
       "yearEnd": 2060,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "lat": 28.3949,
+      "lon": 84.124,
+      "npcs": [
+        "Mondatta"
+      ]
     },
     {
       "name": "Undercover",

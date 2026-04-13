@@ -181,7 +181,20 @@ window.addEventListener('DOMContentLoaded', function () {
         setTimeout(async function () {
             if (typeof window.runGlobeComponents === 'function') {
                 try {
+                    const savedMode = (localStorage.getItem('currentMode') || 'globe').toString().toLowerCase();
                     await window.runGlobeComponents(true);
+                    if (savedMode === 'codex') {
+                        updateLoadingStatus('Opening Codex…');
+                        try {
+                            const svc = window.CodexModeService;
+                            if (svc && typeof svc.enterCodexMode === 'function') {
+                                await svc.enterCodexMode();
+                                console.log(`${logPrefix} ✓ Restored Codex from last session`);
+                            }
+                        } catch (codexErr) {
+                            console.warn(`${logPrefix} Could not restore Codex:`, codexErr);
+                        }
+                    }
                     console.log(`${logPrefix} ✓ Global Timeline auto-loaded`);
                     updateLoadingStatus('Complete!');
 
@@ -206,8 +219,26 @@ window.addEventListener('DOMContentLoaded', function () {
                 setTimeout(async function () {
                     if (typeof window.runGlobeComponents === 'function') {
                         updateLoadingStatus('Loading Global Timeline...');
-                        await window.runGlobeComponents(true);
-                        updateLoadingStatus('Complete!');
+                        try {
+                            const savedModeRetry = (localStorage.getItem('currentMode') || 'globe').toString().toLowerCase();
+                            await window.runGlobeComponents(true);
+                            if (savedModeRetry === 'codex') {
+                                updateLoadingStatus('Opening Codex…');
+                                try {
+                                    const svcR = window.CodexModeService;
+                                    if (svcR && typeof svcR.enterCodexMode === 'function') {
+                                        await svcR.enterCodexMode();
+                                        console.log(`${logPrefix} ✓ Restored Codex from last session`);
+                                    }
+                                } catch (codexErr) {
+                                    console.warn(`${logPrefix} Could not restore Codex:`, codexErr);
+                                }
+                            }
+                            updateLoadingStatus('Complete!');
+                        } catch (globeErr) {
+                            console.error(`${logPrefix} Error auto-loading Global Timeline:`, globeErr);
+                            updateLoadingStatus('Error loading Global Timeline');
+                        }
                         setTimeout(function () {
                             if (loadingOverlay) {
                                 loadingOverlay.classList.remove('active');
@@ -263,6 +294,11 @@ function setupHeaderHub() {
             if (timelineBtn) timelineBtn.classList.add('header-hub-btn--active');
         }
 
+        if (effective === 'codex') {
+            const codexBtn = document.getElementById('codexToggle');
+            if (codexBtn) codexBtn.classList.add('header-hub-btn--active');
+        }
+
         // Home/Exit should only appear while a mode's assets are actually loaded.
         // Right now only Timeline (globe) has assets, so it should only show there.
         const rightHub = document.getElementById('headerHubRight');
@@ -307,6 +343,25 @@ function setupHeaderHub() {
 
     hubs.forEach((hub) => hub.addEventListener('click', onHubClick));
 
+    const leftHubForCodex = document.getElementById('headerHub');
+    if (leftHubForCodex && !leftHubForCodex.dataset.codexDelegateAttached) {
+        leftHubForCodex.dataset.codexDelegateAttached = '1';
+        leftHubForCodex.addEventListener(
+            'click',
+            function (e) {
+                const btn = e.target && e.target.closest ? e.target.closest('#codexToggle') : null;
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const svc = window.CodexModeService;
+                if (svc && typeof svc.enterCodexMode === 'function') {
+                    void svc.enterCodexMode();
+                }
+            },
+            true
+        );
+    }
+
     // Initial state
     const currentMode = (localStorage.getItem('currentMode') || 'menu').toString().toLowerCase();
     setActive(currentMode);
@@ -334,6 +389,10 @@ function setupZoomControls() {
     const zoomOutBtn = document.getElementById('zoomOutBtn');
     const zoomControls = document.getElementById('zoomControls');
 
+    function isCodexModeActive() {
+        return typeof document !== 'undefined' && document.body.classList.contains('codex-mode-active');
+    }
+
     function updateZoomControlsVisibility() {
         if (!zoomControls) return;
 
@@ -347,7 +406,9 @@ function setupZoomControls() {
             window.getComputedStyle(testContainer).display !== 'none' &&
             parseFloat(window.getComputedStyle(testContainer).opacity) > 0;
 
-        if (globeLoaded && !menuVisible) {
+        const codexActive = isCodexModeActive();
+
+        if (codexActive || (globeLoaded && !menuVisible)) {
             zoomControls.classList.add('visible');
         } else {
             zoomControls.classList.remove('visible');
@@ -361,7 +422,12 @@ function setupZoomControls() {
             e.preventDefault();
             e.stopPropagation();
 
-            if (window.globeController && window.globeController.interactionController) {
+            if (isCodexModeActive()) {
+                const cx = window.CodexCanvasService;
+                if (cx && typeof cx.zoomIn === 'function') {
+                    cx.zoomIn();
+                }
+            } else if (window.globeController && window.globeController.interactionController) {
                 window.globeController.interactionController.zoomIn();
             }
         });
@@ -371,7 +437,12 @@ function setupZoomControls() {
                 e.preventDefault();
                 e.stopPropagation();
 
-                if (window.globeController && window.globeController.interactionController) {
+                if (isCodexModeActive()) {
+                    const cx = window.CodexCanvasService;
+                    if (cx && typeof cx.resetView === 'function') {
+                        cx.resetView();
+                    }
+                } else if (window.globeController && window.globeController.interactionController) {
                     window.globeController.interactionController.resetToDefault();
                 }
             });
@@ -381,7 +452,12 @@ function setupZoomControls() {
             e.preventDefault();
             e.stopPropagation();
 
-            if (window.globeController && window.globeController.interactionController) {
+            if (isCodexModeActive()) {
+                const cx = window.CodexCanvasService;
+                if (cx && typeof cx.zoomOut === 'function') {
+                    cx.zoomOut();
+                }
+            } else if (window.globeController && window.globeController.interactionController) {
                 window.globeController.interactionController.zoomOut();
             }
         });
@@ -395,6 +471,11 @@ function setupZoomControls() {
         if (testContainer) {
             observer.observe(testContainer, { attributes: true, attributeFilter: ['style'] });
         }
+        if (document.body) {
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        window.addEventListener('appmodechange', updateZoomControlsVisibility);
 
         setInterval(updateZoomControlsVisibility, 500);
     }

@@ -36,7 +36,7 @@ export function sliderValueForPageCenter(page1Based, totalPages) {
 /** Allow the dock page slider to sync after scrubbing ends or when page changes elsewhere (e.g. event slide prev/next). */
 export function clearEventPageSliderSuppressFromGlobe() {
     try {
-        const ui = window.globeController?.uiView;
+        const ui = window.globeController?.uiView || window.__codexEventSlideBridge?.uiView;
         if (ui) {
             ui._suppressEventPageSliderSync = false;
             ui._eventPageSliderPointerActive = false;
@@ -105,11 +105,10 @@ export function resolveWrappedPageSkippingEmptyFilterPages(dataModel, currentPag
  * Update news ticker with headlines from globe's current page
  */
 function updateNewsTickerFromGlobe() {
-    if (window.globeController && window.globeController.dataModel && window.newsTickerService) {
-        const currentPageEvents = window.globeController.dataModel.getEventsForCurrentPage();
-        if (window.newsTickerService.updateTicker) {
-            window.newsTickerService.updateTicker(currentPageEvents);
-        }
+    const dm = window.globeController?.dataModel || window.__codexEventSlideBridge?.dataModel;
+    if (dm && window.newsTickerService?.updateTicker) {
+        const currentPageEvents = dm.getEventsForCurrentPage();
+        window.newsTickerService.updateTicker(currentPageEvents);
     }
 }
 

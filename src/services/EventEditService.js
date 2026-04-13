@@ -192,6 +192,7 @@ class EventEditService {
                     description: variant.description || '',
                     filters: variantData.filters,
                     factions: variantData.factions,
+                    npcs: Array.isArray(variant.npcs) ? variant.npcs : [],
                     sources: variant.sources && variant.sources.length > 0 ? variant.sources : undefined,
                     headlines: headlines,
                     image: '', // Auto-detect
@@ -264,6 +265,7 @@ class EventEditService {
                 image: '', // Auto-detect
                 filters: mainData.filters,
                 factions: mainData.factions,
+                npcs: Array.isArray(v0?.npcs) ? v0.npcs : [],
                 sources: mainSources.length > 0 ? mainSources : undefined,
                 headlines: mainHeadlines && mainHeadlines.length > 0 ? mainHeadlines : undefined
             };

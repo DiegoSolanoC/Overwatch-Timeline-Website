@@ -53,15 +53,30 @@ export function getCelestialMaterialTint(palette = 'blue') {
 }
 
 /**
- * @param {THREE.MeshStandardMaterial} material
+ * Moon / Mars / orbit panels use {@link THREE.MeshBasicMaterial} so the directional sun does not blow them out;
+ * tint + accent emulate a self-lit glow. Standard materials (if any) keep emissive fields.
+ * @param {THREE.Material} material
  * @param {'blue'|'gray'|'crimson'|'nulled'} palette
  */
 export function applyCelestialMaterialTint(material, palette = 'blue') {
     if (!material) return;
     const t = getCelestialMaterialTint(palette);
-    material.color.setHex(t.color);
-    material.emissive.setHex(t.emissive);
-    material.emissiveIntensity = t.emissiveIntensity;
+    if (material.type === 'MeshBasicMaterial') {
+        const baseTint = new THREE.Color(t.color);
+        const accent = new THREE.Color(t.emissive);
+        const c = baseTint.lerp(accent, 0.42);
+        c.multiplyScalar(1.08 + t.emissiveIntensity * 0.28);
+        material.color.copy(c);
+        material.userData = material.userData || {};
+        material.userData.celestialGlowRgb = { r: c.r, g: c.g, b: c.b };
+        material.needsUpdate = true;
+        return;
+    }
+    if (material.color) material.color.setHex(t.color);
+    if (material.emissive) material.emissive.setHex(t.emissive);
+    if (material.emissiveIntensity !== undefined) {
+        material.emissiveIntensity = t.emissiveIntensity;
+    }
     material.needsUpdate = true;
 }
 
@@ -94,15 +109,14 @@ export function createCelestialPlane({
         tex.magFilter = THREE.LinearFilter;
     });
 
-    const material = new THREE.MeshStandardMaterial({
+    // Basic = not lit by scene lights (avoids white-out when the sun faces the panels); color carries self-lit glow.
+    const material = new THREE.MeshBasicMaterial({
         map: texture,
         side: THREE.DoubleSide,
         transparent: true,
         opacity: 0.75,
         alphaTest: 0.1,
-        emissiveMap: texture,
-        metalness: 0.0,
-        roughness: 0.5
+        fog: false
     });
     applyCelestialMaterialTint(material, paletteKey);
 

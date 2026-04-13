@@ -125,8 +125,10 @@ class ToggleService {
             const visible = !sceneModel.getHyperloopVisible();
             sceneModel.setHyperloopVisible(visible);
 
-            window.globeController?.eventMarkerManager?.refreshEventMarkers?.(false);
             const gc = window.globeController;
+            if (gc?.transportView && typeof gc.transportView.updateHyperloopVisibility === 'function') {
+                gc.transportView.updateHyperloopVisibility();
+            }
             if (gc?.sceneModel?.getMapViewEnabled?.() && gc.transportController?.setSatellitesMapViewEnabled) {
                 gc.transportController.setSatellitesMapViewEnabled(true);
             }
@@ -143,9 +145,23 @@ class ToggleService {
             if (hyperloopIcon) {
                 hyperloopIcon.innerHTML = '<img src="assets/images/icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
             }
-            
-            if (onToggle) {
-                onToggle();
+
+            const refreshP = gc?.eventMarkerManager?.refreshEventMarkers?.(false);
+            const finishTransportSurfaceSwitch = () => {
+                gc?.transportView?.updateHyperloopVisibility?.();
+                if (!gc?.sceneModel?.getMapViewEnabled?.()) {
+                    gc?.transportController?.updateSatellites?.();
+                }
+                gc?.rebindOpenEventMarkerAfterRefresh?.();
+                gc?.requestMapLiteSync?.();
+                if (onToggle) {
+                    onToggle();
+                }
+            };
+            if (refreshP && typeof refreshP.then === 'function') {
+                refreshP.then(finishTransportSurfaceSwitch);
+            } else {
+                finishTransportSurfaceSwitch();
             }
         };
         

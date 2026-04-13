@@ -64,8 +64,35 @@
         return mode.toString().toLowerCase() === 'globe' && !!window.globeController;
     }
 
+    function isCodexModeActive() {
+        return typeof document !== 'undefined' && document.body && document.body.classList.contains('codex-mode-active');
+    }
+
+    /** Globe timeline or Codex: same events UI / dataModel (bridge), but no WebGL globe. */
+    function canUseTimelinePaginationShortcuts() {
+        if (isGlobeTimelineMode()) return true;
+        if (!isCodexModeActive()) return false;
+        return !!(codexOrGlobeDataModel() && codexOrGlobeUiView());
+    }
+
+    function codexOrGlobeDataModel() {
+        var gc = window.globeController;
+        if (gc && gc.dataModel) return gc.dataModel;
+        var br = window.__codexEventSlideBridge;
+        if (br && br.dataModel) return br.dataModel;
+        return null;
+    }
+
+    function codexOrGlobeUiView() {
+        var gc = window.globeController;
+        if (gc && gc.uiView) return gc.uiView;
+        var br = window.__codexEventSlideBridge;
+        if (br && br.uiView) return br.uiView;
+        return null;
+    }
+
     function canNavigateGlobePages() {
-        var dm = window.globeController && window.globeController.dataModel;
+        var dm = codexOrGlobeDataModel();
         return dm && typeof dm.getTotalEventPages === 'function' && dm.getTotalEventPages() > 1;
     }
 
@@ -90,7 +117,7 @@
     }
 
     function getPaginationOnChange() {
-        var ui = window.globeController && window.globeController.uiView;
+        var ui = codexOrGlobeUiView();
         if (ui && typeof ui._paginationOnPageChange === 'function') return ui._paginationOnPageChange;
         var gv = window.globeController && window.globeController.globeView;
         if (gv && typeof gv.refreshEventMarkers === 'function') {
@@ -103,9 +130,8 @@
 
     function runGlobePagePrev() {
         if (!canNavigateGlobePages()) return false;
-        var gc = window.globeController;
-        var dm = gc && gc.dataModel;
-        var ui = gc && gc.uiView;
+        var dm = codexOrGlobeDataModel();
+        var ui = codexOrGlobeUiView();
         var h = window.NavigationPaginationHelpers;
         if (!dm || !ui || typeof ui.updatePaginationUI !== 'function' || !h) return false;
         h.handlePrevPageClick(dm, ui.updatePaginationUI, getPaginationOnChange());
@@ -114,9 +140,8 @@
 
     function runGlobePageNext() {
         if (!canNavigateGlobePages()) return false;
-        var gc = window.globeController;
-        var dm = gc && gc.dataModel;
-        var ui = gc && gc.uiView;
+        var dm = codexOrGlobeDataModel();
+        var ui = codexOrGlobeUiView();
         var h = window.NavigationPaginationHelpers;
         if (!dm || !ui || typeof ui.updatePaginationUI !== 'function' || !h) return false;
         h.handleNextPageClick(dm, ui.updatePaginationUI, getPaginationOnChange());
@@ -280,9 +305,10 @@
 
     function hideEventSlideIfOpen() {
         try {
-            if (window.globeController && window.globeController.uiView && typeof window.globeController.uiView.hideEventSlide === 'function') {
+            var uiHide = codexOrGlobeUiView();
+            if (uiHide && typeof uiHide.hideEventSlide === 'function') {
                 clearHackedOverlays();
-                window.globeController.uiView.hideEventSlide();
+                uiHide.hideEventSlide();
                 return true;
             }
         } catch (_) {}
@@ -474,7 +500,7 @@
                 if (triggerEventSlidePrev()) consumeEvent(e);
             } else if (isEventsManageOpen()) {
                 if (triggerEventsManagePrev()) consumeEvent(e);
-            } else if (isGlobeTimelineMode()) {
+            } else if (canUseTimelinePaginationShortcuts()) {
                 if (triggerPrevPageButtonOrHelpers()) consumeEvent(e);
             }
             return;
@@ -484,7 +510,7 @@
                 if (triggerEventSlideNext()) consumeEvent(e);
             } else if (isEventsManageOpen()) {
                 if (triggerEventsManageNext()) consumeEvent(e);
-            } else if (isGlobeTimelineMode()) {
+            } else if (canUseTimelinePaginationShortcuts()) {
                 if (triggerNextPageButtonOrHelpers()) consumeEvent(e);
             }
             return;
@@ -525,7 +551,7 @@
             }
         }
 
-        if (digit && isGlobeTimelineMode() && !isEventsManageOpen()) {
+        if (digit && canUseTimelinePaginationShortcuts() && !isEventsManageOpen()) {
             if (triggerNumberButton(digit)) consumeEvent(e);
         }
     }

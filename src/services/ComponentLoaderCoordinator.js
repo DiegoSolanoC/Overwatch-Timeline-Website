@@ -40,7 +40,7 @@ class ComponentLoaderCoordinator {
         window.loadPalette = () => this.loaderService.loadPalette();
         window.unloadPalette = () => this.loaderService.unloadPalette();
         window.loadGlobeBase = () => this.loaderService.loadGlobeBase();
-        window.unloadGlobeBase = () => this.loaderService.unloadGlobeBase();
+        window.unloadGlobeBase = (opts) => this.loaderService.unloadGlobeBase(opts);
         window.loadTransport = () => this.loaderService.loadTransport();
         window.unloadTransport = () => this.loaderService.unloadTransport();
         window.loadControls = () => this.loaderService.loadControls();

@@ -750,12 +750,13 @@ body.color-palette-gray .event-item-title {
     }
 }
 
+/* Match pagination dock thumbs (.event-number-btn__img-wrap--loading): GIF fills the slot via cover */
 #eventsList .event-item .event-item__thumb-media .event-item-preview-image.event-item-preview-image--loading {
-    background-color: rgba(0, 0, 0, 0.45);
+    background-color: #fff;
     background-image: url('../../assets/images/misc/loading.gif');
     background-repeat: no-repeat;
     background-position: center center;
-    background-size: clamp(32px, 28%, 56px) auto;
+    background-size: cover;
 }
 
 #eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key {

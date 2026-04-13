@@ -76,6 +76,28 @@ export class PlaneManager {
     }
 
     /**
+     * Celestial panels use MeshBasicMaterial + userData.celestialGlowRgb; pulse open/close by brightening color.
+     * Legacy MeshStandardMaterial still uses emissiveIntensity.
+     * @param {THREE.Material} material
+     * @param {number} emissiveLikeIntensity - same range as old emissive pulse (~0.3 settled … 2 peak)
+     */
+    _setCelestialPanelGlow(material, emissiveLikeIntensity) {
+        if (!material || !THREE) return;
+        const rgb = material.userData?.celestialGlowRgb;
+        if (material.type === 'MeshBasicMaterial' && rgb) {
+            const t = Math.max(0, Math.min(1, (emissiveLikeIntensity - 0.3) / (2.0 - 0.3)));
+            const mult = 1.0 + t * 0.55;
+            material.color.setRGB(rgb.r * mult, rgb.g * mult, rgb.b * mult);
+            material.needsUpdate = true;
+            return;
+        }
+        if (material.emissiveIntensity !== undefined) {
+            material.emissiveIntensity = emissiveLikeIntensity;
+            material.needsUpdate = true;
+        }
+    }
+
+    /**
      * Update Moon/Mars plane positions to stay on camera's right side
      * @param {THREE.Camera} camera - The camera object
      */
@@ -181,6 +203,13 @@ export class PlaneManager {
             marsTarget.lookAt(this._camPos);
             if (orbitTarget) orbitTarget.lookAt(this._camPos);
         }
+
+        const orbitPlane = this.sceneModel.getOrbitPlane ? this.sceneModel.getOrbitPlane() : this.sceneModel.orbitPlane;
+        const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
+        const globeCelestialScale = isMapView ? 1 : w <= 480 ? 0.58 : w <= 768 ? 0.7 : 1;
+        moonPlane.scale.setScalar(globeCelestialScale);
+        marsPlane.scale.setScalar(globeCelestialScale);
+        if (orbitPlane) orbitPlane.scale.setScalar(globeCelestialScale);
     }
     
     /**
@@ -310,10 +339,10 @@ export class PlaneManager {
             scaleHost.scale.set(1, targetScaleY, 1);
             this._applyCelestialScaleVisibility(plane, scaleHost, show, false);
             if (plane.material) {
-                plane.material.emissiveIntensity = 0.3;
-                plane.material.needsUpdate = true;
+                this._setCelestialPanelGlow(plane.material, 0.3);
             }
             scaleHost.updateMatrix();
+            this._syncDomLiteCelestialPanelsFromPlaneAnimation();
             return;
         }
 
@@ -353,11 +382,11 @@ export class PlaneManager {
             const currentIntensity = settledIntensity + (peakIntensity - settledIntensity) * glowProgress;
 
             if (plane.material) {
-                plane.material.emissiveIntensity = currentIntensity;
-                plane.material.needsUpdate = true;
+                this._setCelestialPanelGlow(plane.material, currentIntensity);
             }
 
             scaleHost.updateMatrix();
+            this._syncDomLiteCelestialPanelsFromPlaneAnimation();
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
@@ -366,18 +395,27 @@ export class PlaneManager {
                 this._applyCelestialScaleVisibility(plane, scaleHost, show, false);
 
                 if (plane.material) {
-                    plane.material.emissiveIntensity = settledIntensity;
-                    plane.material.needsUpdate = true;
+                    this._setCelestialPanelGlow(plane.material, settledIntensity);
                 }
 
                 if (plane.userData) {
                     plane.userData.isAnimating = false;
                 }
                 scaleHost.updateMatrix();
+                this._syncDomLiteCelestialPanelsFromPlaneAnimation();
             }
         };
 
         requestAnimationFrame(animate);
+    }
+
+    /** DOM map reads rig scale for celestial thumbnails; main globe rAF is paused in map mode. */
+    _syncDomLiteCelestialPanelsFromPlaneAnimation() {
+        if (!this._isMapView()) return;
+        const gc = typeof window !== 'undefined' ? window.globeController : null;
+        if (gc && typeof gc.syncMapLiteWebGlImmediate === 'function') {
+            gc.syncMapLiteWebGlImmediate();
+        }
     }
 
     /**

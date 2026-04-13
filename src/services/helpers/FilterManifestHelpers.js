@@ -20,6 +20,7 @@ export async function loadManifest(createFilterButtons, updateFilterCounts, prel
         const manifest = await response.json();
         
         const heroes = manifest.heroes ? manifest.heroes.sort() : [];
+        const npcs = manifest.npcs ? [...manifest.npcs].sort() : [];
         const processedFactions = manifest.factions ? manifest.factions.map(f => ({
             filename: f.filename,
             number: f.number,
@@ -36,8 +37,13 @@ export async function loadManifest(createFilterButtons, updateFilterCounts, prel
                 preloadImages(processedFactions, 'factions', 'assets/images/factions');
             }, 500);
         }
+        if (npcs.length > 0) {
+            setTimeout(() => {
+                preloadImages(npcs, 'npcs', 'assets/images/npcs');
+            }, 650);
+        }
         
-        return { heroes, factions: processedFactions };
+        return { heroes, factions: processedFactions, npcs };
     } catch (error) {
         console.error('Error loading manifest.json:', error);
         console.log('Falling back to empty lists. Run generate-manifest.js to create manifest.json');
@@ -45,7 +51,7 @@ export async function loadManifest(createFilterButtons, updateFilterCounts, prel
         const heroes = [];
         const factions = [];
         createFilterButtons(heroes, 'heroes', 'assets/images/heroes');
-        return { heroes, factions };
+        return { heroes, factions, npcs: [] };
     }
 }
 

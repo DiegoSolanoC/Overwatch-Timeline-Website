@@ -5,6 +5,7 @@
 
 import { updateStatus } from '../../managers/StatusManager.js';
 import { setButtonState } from '../../managers/ButtonStateManager.js';
+import { clearCodexShellForGlobeInit } from '../../services/CodexModeService.js';
 
 /**
  * Sets up globe container for initialization (invisible but functional)
@@ -12,6 +13,8 @@ import { setButtonState } from '../../managers/ButtonStateManager.js';
  */
 export function setupGlobeContainer(container) {
     if (!container) return;
+
+    clearCodexShellForGlobeInit(container);
     
     // Make it invisible but still allow rendering (opacity 0, not display none)
     // This allows Three.js to properly initialize the renderer
@@ -63,15 +66,24 @@ export function hideGlobeContainer(container) {
  */
 export function stopGlobeAnimations() {
     if (!window.globeController) return;
+
+    const gc = window.globeController;
+    if (gc._mapLiteSyncRafId != null) {
+        cancelAnimationFrame(gc._mapLiteSyncRafId);
+        gc._mapLiteSyncRafId = null;
+    }
+    if (gc.map2dLite && typeof gc.map2dLite.hide === 'function') {
+        gc.map2dLite.hide();
+    }
     
-    if (window.globeController.animationId) {
-        cancelAnimationFrame(window.globeController.animationId);
-        window.globeController.animationId = null;
+    if (gc.animationId) {
+        cancelAnimationFrame(gc.animationId);
+        gc.animationId = null;
     }
     
     // Stop any ongoing animations
-    if (window.globeController.globeController) {
-        window.globeController.globeController.stopAutoRotate();
+    if (gc.globeController) {
+        gc.globeController.stopAutoRotate();
     }
 }
 
@@ -151,6 +163,9 @@ export async function initializeGlobeController(GlobeController) {
     updateStatus('Initializing GlobeController...', 'info');
     const controller = new GlobeController();
     window.globeController = controller;
+    try {
+        delete window.__codexEventSlideBridge;
+    } catch (_) { /* ignore */ }
     
     updateStatus('Initializing globe scene...', 'info');
     await controller.init();

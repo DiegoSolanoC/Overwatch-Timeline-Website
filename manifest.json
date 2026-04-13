@@ -224,6 +224,25 @@
       "displayName": "Talon Empire"
     }
   ],
+  "npcs": [
+    "Antonio",
+    "Aurora",
+    "B.O.B",
+    "Claudio",
+    "Efi",
+    "Harold",
+    "Hector",
+    "Iggy",
+    "Ingrid",
+    "Kace",
+    "Katya",
+    "Liao",
+    "Maximillien",
+    "Mondatta",
+    "Sanjay",
+    "Susannah",
+    "Toshiro"
+  ],
   "music": [
     {
       "filename": "A New Era.mp3",

@@ -1,6 +1,6 @@
 /**
  * FormAutocompleteService - Comma-token autocomplete for edit modal & inline slide editor
- * Matches event-manager search: prefix (startsWith) filtering, hero/faction/country icons in suggestions.
+ * Substring match (includes) on hero/faction/country names; prefix matches rank first.
  */
 
 class FormAutocompleteService {
@@ -11,7 +11,7 @@ class FormAutocompleteService {
     /**
      * @param {HTMLElement} input
      * @param {Array} options - heroes: string[]; factions: { filename, displayName }[]; countries: string[] (common names)
-     * @param {string} type - 'heroes' | 'factions' | 'countries'
+     * @param {string} type - 'heroes' | 'factions' | 'npcs' | 'countries'
      */
     setupAutocomplete(input, options, type) {
         if (input.dataset.autocompleteSetup === 'true') {
@@ -43,6 +43,14 @@ class FormAutocompleteService {
             return set;
         };
 
+        const substringRank = (haystack, needle) => {
+            const h = String(haystack || '').toLowerCase();
+            const n = String(needle || '').toLowerCase();
+            if (!n || !h.includes(n)) return Infinity;
+            if (h.startsWith(n)) return 0;
+            return 1 + h.indexOf(n);
+        };
+
         const buildMatches = (value) => {
             const segment = getCurrentSegment(value);
             if (!segment) return [];
@@ -52,10 +60,17 @@ class FormAutocompleteService {
 
             if (type === 'heroes') {
                 const heroes = Array.isArray(options) ? options : [];
-                return heroes.filter((h) => {
-                    const name = String(h || '');
-                    return name.toLowerCase().startsWith(prefix) && !existing.has(name.toLowerCase());
-                }).slice(0, max);
+                return heroes
+                    .filter((h) => {
+                        const name = String(h || '');
+                        return name.toLowerCase().includes(prefix) && !existing.has(name.toLowerCase());
+                    })
+                    .sort(
+                        (a, b) =>
+                            substringRank(a, prefix) - substringRank(b, prefix)
+                            || String(a).length - String(b).length
+                    )
+                    .slice(0, max);
             }
 
             if (type === 'factions') {
@@ -63,25 +78,65 @@ class FormAutocompleteService {
                 if (facs.length > 0 && typeof facs[0] === 'string') {
                     facs = facs.map((dn) => ({ displayName: dn, filename: dn }));
                 }
-                return facs.filter((f) => {
-                    if (!f || f.displayName == null) return false;
-                    const dn = String(f.displayName).trim();
-                    return dn.toLowerCase().startsWith(prefix) && !existing.has(dn.toLowerCase());
-                }).slice(0, max);
+                return facs
+                    .filter((f) => {
+                        if (!f || f.displayName == null) return false;
+                        const dn = String(f.displayName).trim();
+                        const fn = String(f.filename || '').trim();
+                        const hit =
+                            dn.toLowerCase().includes(prefix)
+                            || fn.toLowerCase().includes(prefix);
+                        return hit && !existing.has(dn.toLowerCase());
+                    })
+                    .sort((a, b) => {
+                        const ra = Math.min(
+                            substringRank(a.displayName, prefix),
+                            substringRank(a.filename, prefix)
+                        );
+                        const rb = Math.min(
+                            substringRank(b.displayName, prefix),
+                            substringRank(b.filename, prefix)
+                        );
+                        if (ra !== rb) return ra - rb;
+                        return String(a.displayName).length - String(b.displayName).length;
+                    })
+                    .slice(0, max);
+            }
+
+            if (type === 'npcs') {
+                const npcs = Array.isArray(options) ? options : [];
+                return npcs
+                    .filter((n) => {
+                        const name = String(n || '');
+                        return name.toLowerCase().includes(prefix) && !existing.has(name.toLowerCase());
+                    })
+                    .sort(
+                        (a, b) =>
+                            substringRank(a, prefix) - substringRank(b, prefix)
+                            || String(a).length - String(b).length
+                    )
+                    .slice(0, max);
             }
 
             if (type === 'countries') {
                 const names = Array.isArray(options) ? options : [];
-                return names.filter((opt) => {
-                    const o = String(opt || '');
-                    return o.toLowerCase().startsWith(prefix) && !existing.has(o.toLowerCase());
-                }).slice(0, max);
+                return names
+                    .filter((opt) => {
+                        const o = String(opt || '');
+                        return o.toLowerCase().includes(prefix) && !existing.has(o.toLowerCase());
+                    })
+                    .sort(
+                        (a, b) =>
+                            substringRank(a, prefix) - substringRank(b, prefix)
+                            || String(a).length - String(b).length
+                    )
+                    .slice(0, max);
             }
 
             return [];
         };
 
-        const appendPickRow = (listEl, matchHeroName, matchFaction, matchCountry, onPick) => {
+        const appendPickRow = (listEl, matchHeroName, matchFaction, matchNpcName, matchCountry, onPick) => {
             const row = document.createElement('button');
             row.type = 'button';
             row.className = 'filter-autocomplete-item';
@@ -105,6 +160,11 @@ class FormAutocompleteService {
                 detailText = 'Faction';
                 img.src = `assets/images/factions/${encodeURIComponent(matchFaction.filename)}.png`;
                 img.className += ' filter-autocomplete-item-icon--faction';
+            } else if (matchNpcName != null) {
+                labelText = matchNpcName;
+                detailText = 'NPC';
+                img.src = `assets/images/npcs/${encodeURIComponent(matchNpcName)}.png`;
+                img.className += ' filter-autocomplete-item-icon--npc';
             } else if (matchCountry != null) {
                 labelText = matchCountry;
                 detailText = 'Country';
@@ -167,15 +227,19 @@ class FormAutocompleteService {
 
             if (type === 'heroes') {
                 matches.forEach((h) => {
-                    appendPickRow(autocompleteList, h, null, null, () => applyPick(h));
+                    appendPickRow(autocompleteList, h, null, null, null, () => applyPick(h));
                 });
             } else if (type === 'factions') {
                 matches.forEach((f) => {
-                    appendPickRow(autocompleteList, null, f, null, () => applyPick(f.displayName));
+                    appendPickRow(autocompleteList, null, f, null, null, () => applyPick(f.displayName));
+                });
+            } else if (type === 'npcs') {
+                matches.forEach((n) => {
+                    appendPickRow(autocompleteList, null, null, n, null, () => applyPick(n));
                 });
             } else if (type === 'countries') {
                 matches.forEach((name) => {
-                    appendPickRow(autocompleteList, null, null, name, () => applyPick(name));
+                    appendPickRow(autocompleteList, null, null, null, name, () => applyPick(name));
                 });
             }
 

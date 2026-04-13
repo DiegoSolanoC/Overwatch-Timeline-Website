@@ -12,6 +12,7 @@ class EventDataService {
         this.seaports = [];
         this.heroes = [];
         this.factions = [];
+        this.npcs = [];
         this.displayNames = {};
         this.locationCache = new Map();
     }
@@ -111,7 +112,8 @@ class EventDataService {
             this.heroes = manifest.heroes || [];
             // Store full faction objects (with filename, displayName, number)
             this.factions = manifest.factions || [];
-            this.updateStatus(`EventDataService: Processed ${this.heroes.length} heroes, ${this.factions.length} factions`, 'success');
+            this.npcs = manifest.npcs || [];
+            this.updateStatus(`EventDataService: Processed ${this.heroes.length} heroes, ${this.factions.length} factions, ${this.npcs.length} NPCs`, 'success');
         } else {
             console.error('Error loading manifest:', manifestResult.reason);
             this.updateStatus('EventDataService: Error loading manifest.json', 'error');
