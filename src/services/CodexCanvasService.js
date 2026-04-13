@@ -2784,6 +2784,99 @@ function codexNodesLookLikeModernSavedShape(nodeArr) {
     );
 }
 
+/**
+ * Parse raw save/API payload → node list, deduped edges, migration flags (shared by load + import).
+ * @param {unknown} sourceObj
+ * @returns {{ nodes: unknown[], edges: { fromId: string, toId: string }[], migratedNow: boolean }}
+ */
+function parseMigrateAndDedupeCodexSource(sourceObj) {
+    const src = sourceObj && typeof sourceObj === 'object' ? sourceObj : { v: CODEX_SAVE_VERSION, nodes: [], edges: [] };
+    let { nodes, edges, v } = parseLoadedCodexPayload(src);
+    let migratedNow = false;
+    if (v < CODEX_JUNCTION_LAYOUT_MIN_VERSION) {
+        if (codexNodesLookLikeModernSavedShape(nodes)) {
+            migratedNow = true;
+        } else {
+            nodes = [];
+            edges = [];
+            migratedNow = true;
+        }
+    } else if (v < CODEX_SAVE_VERSION) {
+        migratedNow = true;
+        const m = migrateCodexLayoutCoordsForExpandedWorld(nodes, edges);
+        nodes = m.nodes;
+        edges = m.edges;
+    }
+    const dedupedEdges = dedupeCodexEdgesByNodePair(
+        Array.isArray(edges) ? edges.map(normalizeEdgeRecord).filter(Boolean) : []
+    );
+    return { nodes, edges: dedupedEdges, migratedNow };
+}
+
+/** One saved node record → DOM (used by initial load and JSON import). */
+function placeLoadedCodexNodeRecord(L) {
+    if (!L || typeof L !== 'object') return;
+    const placeKind =
+        L.kind === 'junction'
+            ? 'junction'
+            : L.kind === 'faction'
+                ? 'faction'
+                : L.kind === 'country'
+                    ? 'country'
+                    : L.kind === 'npc'
+                        ? 'npc'
+                        : 'hero';
+    const opts = {
+        fromSaved: true,
+        skipRedraw: true,
+        id: L.id,
+        scale: resolveCodexNodeScale(placeKind, L.scale)
+    };
+    if (L.kind === 'hero' && L.heroName) {
+        placeCodexNode(L.x, L.y, 'hero', L.heroName, null, opts);
+    } else if (L.kind === 'npc' && L.npcName) {
+        placeCodexNode(L.x, L.y, 'npc', L.npcName, null, opts);
+    } else if (L.kind === 'faction' && L.factionFilename) {
+        placeCodexNode(L.x, L.y, 'faction', null, {
+            filename: L.factionFilename,
+            displayName: L.factionDisplay || L.factionFilename
+        }, opts);
+    } else if (L.kind === 'country' && normalizeCodexCountryKey(L.countryKey)) {
+        placeCodexNode(L.x, L.y, 'country', null, null, {
+            ...opts,
+            countryKey: normalizeCodexCountryKey(L.countryKey)
+        });
+    } else if (L.kind === 'junction') {
+        placeCodexNode(L.x, L.y, 'junction', null, null, opts);
+    }
+}
+
+/** Chunked placement + optional status line (load overlay / large imports). */
+async function placeCodexNodeRecordsInChunks(nodes) {
+    const overlayLine =
+        typeof window !== 'undefined' && typeof window.__codexSetLoadingOverlayLine === 'function'
+            ? window.__codexSetLoadingOverlayLine
+            : null;
+    if (overlayLine && nodes.length) {
+        overlayLine(`Placing ${nodes.length} nodes…`);
+    }
+    await yieldCodexBrowserPaint();
+
+    const CODEX_LOAD_NODE_CHUNK = 22;
+    for (let start = 0; start < nodes.length; start += CODEX_LOAD_NODE_CHUNK) {
+        const end = Math.min(start + CODEX_LOAD_NODE_CHUNK, nodes.length);
+        for (let i = start; i < end; i++) {
+            placeLoadedCodexNodeRecord(nodes[i]);
+        }
+        if (overlayLine && nodes.length > CODEX_LOAD_NODE_CHUNK) {
+            overlayLine(`Placing nodes… ${end} / ${nodes.length}`);
+        }
+        if (end < nodes.length) {
+            await yieldBetweenCodexLoadChunks();
+        }
+    }
+}
+
 function migrateCodexLayoutCoordsForExpandedWorld(nodes, edges) {
     const sx = CODEX_WORLD_EXPAND_SHIFT_X;
     const sy = CODEX_WORLD_EXPAND_SHIFT_Y;
@@ -2898,27 +2991,8 @@ async function loadCodexState() {
         }
     };
 
-    let { nodes, edges, v } = parseLoadedCodexPayload(sourceObj);
-    let migratedNow = false;
-    if (v < CODEX_JUNCTION_LAYOUT_MIN_VERSION) {
-        if (codexNodesLookLikeModernSavedShape(nodes)) {
-            /* e.g. data/codex-labels.json stamped v:2 by server POST — layout is already current; do not clear. */
-            migratedNow = true;
-        } else {
-            nodes = [];
-            edges = [];
-            migratedNow = true;
-        }
-    } else if (v < CODEX_SAVE_VERSION) {
-        migratedNow = true;
-        const m = migrateCodexLayoutCoordsForExpandedWorld(nodes, edges);
-        nodes = m.nodes;
-        edges = m.edges;
-    }
-
-    codexEdges = dedupeCodexEdgesByNodePair(
-        Array.isArray(edges) ? edges.map(normalizeEdgeRecord).filter(Boolean) : []
-    );
+    const { nodes, edges, migratedNow } = parseMigrateAndDedupeCodexSource(sourceObj);
+    codexEdges = edges;
     codexUnsavedEdgeKeys.clear();
     codexViewZoom = CODEX_ZOOM_INITIAL;
     if (!nodes.length) {
@@ -2936,64 +3010,7 @@ async function loadCodexState() {
         return;
     }
 
-    const placeOneLoadedNode = (L) => {
-        const placeKind =
-            L.kind === 'junction'
-                ? 'junction'
-                : L.kind === 'faction'
-                    ? 'faction'
-                    : L.kind === 'country'
-                        ? 'country'
-                        : L.kind === 'npc'
-                            ? 'npc'
-                            : 'hero';
-        const opts = {
-            fromSaved: true,
-            skipRedraw: true,
-            id: L.id,
-            scale: resolveCodexNodeScale(placeKind, L.scale)
-        };
-        if (L.kind === 'hero' && L.heroName) {
-            placeCodexNode(L.x, L.y, 'hero', L.heroName, null, opts);
-        } else if (L.kind === 'npc' && L.npcName) {
-            placeCodexNode(L.x, L.y, 'npc', L.npcName, null, opts);
-        } else if (L.kind === 'faction' && L.factionFilename) {
-            placeCodexNode(L.x, L.y, 'faction', null, {
-                filename: L.factionFilename,
-                displayName: L.factionDisplay || L.factionFilename
-            }, opts);
-        } else if (L.kind === 'country' && normalizeCodexCountryKey(L.countryKey)) {
-            placeCodexNode(L.x, L.y, 'country', null, null, {
-                ...opts,
-                countryKey: normalizeCodexCountryKey(L.countryKey)
-            });
-        } else if (L.kind === 'junction') {
-            placeCodexNode(L.x, L.y, 'junction', null, null, opts);
-        }
-    };
-
-    const overlayLine =
-        typeof window !== 'undefined' && typeof window.__codexSetLoadingOverlayLine === 'function'
-            ? window.__codexSetLoadingOverlayLine
-            : null;
-    if (overlayLine) {
-        overlayLine(`Placing ${nodes.length} saved nodes on the board…`);
-    }
-    await yieldCodexBrowserPaint();
-
-    const CODEX_LOAD_NODE_CHUNK = 22;
-    for (let start = 0; start < nodes.length; start += CODEX_LOAD_NODE_CHUNK) {
-        const end = Math.min(start + CODEX_LOAD_NODE_CHUNK, nodes.length);
-        for (let i = start; i < end; i++) {
-            placeOneLoadedNode(nodes[i]);
-        }
-        if (overlayLine && nodes.length > CODEX_LOAD_NODE_CHUNK) {
-            overlayLine(`Placing nodes… ${end} / ${nodes.length}`);
-        }
-        if (end < nodes.length) {
-            await yieldBetweenCodexLoadChunks();
-        }
-    }
+    await placeCodexNodeRecordsInChunks(nodes);
 
     centerCodexViewOnNodes();
     applyCodexWorldTransformStyle();
@@ -3020,6 +3037,128 @@ async function loadCodexState() {
     }
     updateCodexToolbar();
     mirrorCanonicalToLocalStorage();
+}
+
+function stripCodexBoardForFullReplace() {
+    if (!root) return;
+    removePicker();
+    networkLinkSourceId = null;
+    cancelPointerPending();
+    cancelBackgroundPanPointerPending();
+    selectCodexNode(null);
+    codexBulkNodeDeleteArmedAt = 0;
+    const world = codexWorldEl || root;
+    world.querySelectorAll('.codex-node').forEach((n) => n.remove());
+    codexStopCordAnimRafOnly();
+    codexCordPacketState.clear();
+}
+
+/**
+ * Replace the board from user JSON (GitHub Pages backup / restore). Same shape as `data/codex-labels.json`.
+ * @param {string} jsonText
+ * @param {{ skipConfirm?: boolean }} [opts]
+ */
+async function importCodexLayoutFromJsonText(jsonText, opts = {}) {
+    if (!root) return;
+    if (!opts.skipConfirm) {
+        const ok = window.confirm(
+            'Replace the entire Codex with this file? All current nodes and links on the board will be removed.'
+        );
+        if (!ok) return;
+    }
+
+    let parsed;
+    try {
+        parsed = JSON.parse(jsonText);
+    } catch (_) {
+        if (typeof window.updateStatus === 'function') {
+            window.updateStatus('Codex import: file is not valid JSON.', 'error');
+        }
+        return;
+    }
+
+    const { nodes, edges, migratedNow } = parseMigrateAndDedupeCodexSource(parsed);
+    stripCodexBoardForFullReplace();
+    codexEdges = edges;
+    codexUnsavedEdgeKeys.clear();
+    cordDoubleRightLastTs.clear();
+    clearPendingCodexDeleteState();
+    codexViewZoom = CODEX_ZOOM_INITIAL;
+    if (!nodes.length) {
+        centerCodexViewOnWorldCenter();
+    } else {
+        codexViewPanX = 0;
+        codexViewPanY = 0;
+    }
+    applyCodexWorldTransformStyle();
+
+    if (!nodes.length) {
+        redrawCodexEdges();
+        markCodexLayoutDirty();
+        try {
+            const { nodes: nPersist, edges: ePersist } = serializeCodexState();
+            localStorage.setItem(
+                CODEX_STORAGE_KEY,
+                JSON.stringify({ v: CODEX_SAVE_VERSION, nodes: nPersist, edges: ePersist })
+            );
+        } catch (_) {
+            /* ignore */
+        }
+        updateCodexToolbar();
+        if (typeof window.updateStatus === 'function') {
+            window.updateStatus('Codex import: board cleared (empty layout).', 'success');
+        }
+        return;
+    }
+
+    await placeCodexNodeRecordsInChunks(nodes);
+    centerCodexViewOnNodes();
+    applyCodexWorldTransformStyle();
+    syncCodexNodeDomCullFromView();
+    requestAnimationFrame(() => redrawCodexEdges());
+    markCodexLayoutDirty();
+    try {
+        const { nodes: nPersist, edges: ePersist } = serializeCodexState();
+        localStorage.setItem(
+            CODEX_STORAGE_KEY,
+            JSON.stringify({ v: CODEX_SAVE_VERSION, nodes: nPersist, edges: ePersist })
+        );
+    } catch (_) {
+        /* ignore */
+    }
+    if (migratedNow && typeof window.updateStatus === 'function') {
+        window.updateStatus(
+            'Codex import: layout was upgraded from an older format — use Save Codex to persist.',
+            'info'
+        );
+    } else if (typeof window.updateStatus === 'function') {
+        window.updateStatus(
+            `Codex import: ${nodes.length} nodes, ${codexEdges.length} links. Use Save Codex on the dev server to write the repo file.`,
+            'success'
+        );
+    }
+    updateCodexToolbar();
+}
+
+function exportCodexLayoutJsonDownload() {
+    if (!root) return;
+    const { nodes, edges } = serializeCodexState();
+    const payload = { v: CODEX_SAVE_VERSION, nodes, edges };
+    const text = `${JSON.stringify(payload, null, 2)}\n`;
+    const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.href = url;
+    a.download = `codex-layout-${stamp}.json`;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    if (typeof window.updateStatus === 'function') {
+        window.updateStatus(`Codex export: ${nodes.length} nodes, ${edges.length} links.`, 'success');
+    }
 }
 
 function applyCodexWorldTransformStyle() {
@@ -3722,8 +3861,77 @@ function ensureCodexToolbar() {
     ensureCodexToolbarSelectAllRow(bar);
     ensureCodexToolbarSelectionPreviewRow(bar);
     ensureCodexToolbarScaleInput(bar);
+    ensureCodexToolbarImportExportRow(bar);
     ensureCodexVisualPrefsPanel();
     updateCodexToolbar();
+}
+
+function ensureCodexToolbarImportExportRow(bar) {
+    if (!bar || bar.querySelector('.codex-toolbar__row--import-export')) return;
+    const row = document.createElement('div');
+    row.className = 'codex-toolbar__row codex-toolbar__row--import-export';
+
+    const exportBtn = document.createElement('button');
+    exportBtn.type = 'button';
+    exportBtn.className = 'codex-toolbar__import-export-btn codex-toolbar__export-json';
+    exportBtn.textContent = 'Export JSON';
+    exportBtn.title = 'Download nodes and links as JSON (backup or share). Same format as data/codex-labels.json.';
+    exportBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        exportCodexLayoutJsonDownload();
+    });
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'application/json,.json';
+    fileInput.className = 'codex-toolbar__import-json-input';
+    fileInput.setAttribute('aria-hidden', 'true');
+    fileInput.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
+
+    const importBtn = document.createElement('button');
+    importBtn.type = 'button';
+    importBtn.className = 'codex-toolbar__import-export-btn codex-toolbar__import-json';
+    importBtn.textContent = 'Import JSON';
+    importBtn.title = 'Load nodes and links from a JSON file (replaces the current board).';
+    importBtn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+        const f = fileInput.files && fileInput.files[0];
+        fileInput.value = '';
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            const text = typeof reader.result === 'string' ? reader.result : '';
+            importCodexLayoutFromJsonText(text).catch((e) => {
+                console.warn('Codex import failed', e);
+                if (typeof window.updateStatus === 'function') {
+                    window.updateStatus('Codex import failed — see console.', 'error');
+                }
+            });
+        };
+        reader.onerror = () => {
+            if (typeof window.updateStatus === 'function') {
+                window.updateStatus('Codex import: could not read file.', 'error');
+            }
+        };
+        reader.readAsText(f, 'utf-8');
+    });
+
+    row.appendChild(exportBtn);
+    row.appendChild(importBtn);
+    row.appendChild(fileInput);
+
+    const footer = bar.querySelector('.codex-toolbar__row--footer');
+    if (footer) {
+        bar.insertBefore(row, footer);
+    } else {
+        bar.appendChild(row);
+    }
 }
 
 function ensureHitLayer() {
@@ -4724,6 +4932,8 @@ if (typeof window !== 'undefined') {
         resetView: codexResetView,
         selectAll: selectAllCodexNodes,
         applyCodexEventThumbnailFilterHover,
-        clearCodexEventThumbnailFilterHover
+        clearCodexEventThumbnailFilterHover,
+        exportCodexJson: exportCodexLayoutJsonDownload,
+        importCodexJsonText: importCodexLayoutFromJsonText
     };
 }
