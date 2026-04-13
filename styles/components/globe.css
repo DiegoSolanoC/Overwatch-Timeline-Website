@@ -356,6 +356,28 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     background: rgba(255, 255, 255, 0.08);
 }
 
+.codex-toolbar__select-all {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.22);
+    color: rgba(255, 255, 255, 0.88);
+    cursor: pointer;
+}
+
+.codex-toolbar__select-all:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.codex-toolbar__select-all:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .codex-toolbar__scale-btn {
     width: 48px;
     height: 44px;
@@ -684,6 +706,13 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     background: transparent;
     border: none;
     box-sizing: border-box;
+}
+
+/* Large boards: skip rendering/paint for nodes outside the view (class toggled in CodexCanvasService). */
+.codex-node--cv-offscreen {
+    content-visibility: auto;
+    contain-intrinsic-size: 160px 160px;
+    pointer-events: none;
 }
 
 .codex-node__coord-label {
@@ -1072,7 +1101,8 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     width: 90%;
 }
 
-.loading-status-overlay #globeInlineOverlayStatusContent {
+.loading-status-overlay #globeInlineOverlayStatusContent,
+.loading-status-overlay #codexEntryInlineOverlayStatusContent {
     width: 100%;
     min-height: 40px;
     display: flex;

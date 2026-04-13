@@ -78,6 +78,8 @@ body:has(footer.timeline-loaded):has(#paginationDock) #globe-container {
 .loading-overlay.active {
     opacity: 1;
     visibility: visible;
+    /* Block interaction while visible; otherwise clicks hit the frozen globe underneath. */
+    pointer-events: auto;
 }
 
 .loading-status-overlay {

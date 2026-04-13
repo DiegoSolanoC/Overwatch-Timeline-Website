@@ -32,6 +32,8 @@ export function showLoadingOverlay() {
         loadingOverlay.style.opacity = '1';
         loadingOverlay.style.visibility = 'visible';
         loadingOverlay.classList.add('active');
+        /* Sync layout so the overlay is committed before the next long synchronous task runs. */
+        void loadingOverlay.getBoundingClientRect();
         console.log('[Loading Overlay] Showing overlay');
     } else {
         console.warn('[Loading Overlay] Overlay element not found!');
@@ -41,19 +43,17 @@ export function showLoadingOverlay() {
 /**
  * Hide loading overlay
  * Don't hide overlay if we're in a run operation (let the run function handle it)
+ * @param {{ force?: boolean }} [opts] — `force: true` always hides (e.g. Codex mode transition)
  */
-export function hideLoadingOverlay() {
-    // Don't hide overlay if we're in a run operation (let the run function handle it)
-    if (isRunOperation) {
+export function hideLoadingOverlay(opts = {}) {
+    if (!opts.force && isRunOperation) {
         console.log('[Loading Overlay] Skipping hide - run operation in progress');
         return;
     }
-    
-    // Works for both test.html and main.html
+
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) {
         loadingOverlay.classList.remove('active');
-        // Reset inline styles to allow CSS transition
         loadingOverlay.style.opacity = '';
         loadingOverlay.style.visibility = '';
         console.log('[Loading Overlay] Hiding overlay');

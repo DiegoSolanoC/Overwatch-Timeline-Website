@@ -3734,18 +3734,21 @@
       "image": "",
       "filters": [],
       "factions": [
-        "Max's Vault"
+        "Livre Tournois"
       ],
-      "lat": 43.7402961,
-      "lon": 7.426559,
       "sources": [
         {
           "text": "Pocket King"
         }
       ],
+      "npcs": [
+        "Maximillien"
+      ],
       "yearStart": 2063,
       "yearEnd": 2068,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "lat": 43.7402961,
+      "lon": 7.426559
     },
     {
       "name": "The Red Promise",
@@ -4248,20 +4251,23 @@
         "Doomfist"
       ],
       "factions": [
-        "03Talon",
-        "18Max's Vault"
+        "Talon",
+        "Livre Tournois"
       ],
-      "lat": 43.7402961,
-      "lon": 7.426559,
       "sources": [
         {
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age",
+      "npcs": [
+        "Maximillien"
+      ],
       "yearStart": 2060,
-      "yearEnd": 2068
+      "yearEnd": 2068,
+      "eraName": "The Golden Age",
+      "lat": 43.7402961,
+      "lon": 7.426559
     },
     {
       "locationType": "earth",
@@ -4945,21 +4951,24 @@
             "Mercy"
           ],
           "factions": [
-            "Max's Vault",
+            "Livre Tournois",
             "Talon",
             "Overwatch"
           ],
           "image": "",
           "locationType": "earth",
-          "lat": 23.135305,
-          "lon": -82.3589631,
           "cityDisplayName": "Havana, Cuba",
           "sources": [
             {
               "text": "Overwatch Declassified",
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
-          ]
+          ],
+          "npcs": [
+            "Maximillien"
+          ],
+          "lat": 23.135305,
+          "lon": -82.3589631
         },
         {
           "name": "Doomed to Fail",
@@ -4979,10 +4988,10 @@
           "cityDisplayName": "Cairo, Egypt"
         }
       ],
-      "lat": 23.135305,
-      "lon": -82.3589631,
       "yearStart": 2070,
-      "eraName": "The Fall of Overwatch"
+      "eraName": "The Fall of Overwatch",
+      "lat": 23.135305,
+      "lon": -82.3589631
     },
     {
       "locationType": "earth",
@@ -6154,14 +6163,17 @@
             "Reaper"
           ],
           "factions": [
-            "Max's Vault",
+            "Livre Tournois",
             "Talon"
           ],
           "image": "",
           "locationType": "earth",
+          "cityDisplayName": "Monte-Carlo, Monaco",
+          "npcs": [
+            "Maximillien"
+          ],
           "lat": 43.7402961,
-          "lon": 7.426559,
-          "cityDisplayName": "Monte-Carlo, Monaco"
+          "lon": 7.426559
         },
         {
           "name": "Masquerade",
@@ -6183,10 +6195,10 @@
           "cityDisplayName": "Venice, Italy"
         }
       ],
-      "lat": 43.7402961,
-      "lon": 7.426559,
       "yearStart": 2078,
-      "eraName": "The Age of Conflict"
+      "eraName": "The Age of Conflict",
+      "lat": 43.7402961,
+      "lon": 7.426559
     },
     {
       "name": "Idina Unit OR15A Goes Online",
@@ -7134,12 +7146,15 @@
       "factions": [
         "Talon",
         "Colloseo Gladiatori",
-        "Max's Vault"
+        "Livre Tournois"
       ],
+      "yearStart": 2080,
+      "eraName": "The Null Sector Invasion",
       "lat": 43.7402961,
       "lon": 7.426559,
-      "yearStart": 2080,
-      "eraName": "The Null Sector Invasion"
+      "npcs": [
+        "Maximillien"
+      ]
     },
     {
       "name": "The Hunt Begins",
@@ -7151,13 +7166,16 @@
         "Freja"
       ],
       "factions": [
-        "Max's Vault",
-        "Junkers"
+        "Livre Tournois",
+        "Junker Monarchy"
       ],
+      "yearStart": 2080,
+      "eraName": "The Null Sector Invasion",
       "lat": 55.6867243,
       "lon": 12.5700724,
-      "yearStart": 2080,
-      "eraName": "The Null Sector Invasion"
+      "npcs": [
+        "Maximillien"
+      ]
     },
     {
       "name": "Elemental Kin",
@@ -7272,13 +7290,16 @@
         "Freja"
       ],
       "factions": [
-        "18Max's Vault",
-        "03Talon"
+        "Livre Tournois",
+        "Talon"
       ],
+      "yearStart": 2080,
+      "eraName": "The Null Sector Invasion",
       "lat": 43.7402961,
       "lon": 7.426559,
-      "eraName": "The Null Sector Invasion",
-      "yearStart": 2080
+      "npcs": [
+        "Maximillien"
+      ]
     },
     {
       "locationType": "earth",
@@ -7359,15 +7380,18 @@
             "Mauga"
           ],
           "factions": [
-            "03Talon",
-            "34Talon Empire",
-            "18Max's Vault"
+            "Talon",
+            "Talon Empire",
+            "Livre Tournois"
           ],
           "image": "",
           "locationType": "earth",
+          "cityDisplayName": "Rome, Italy",
           "lat": 41.8933203,
           "lon": 12.4829321,
-          "cityDisplayName": "Rome, Italy"
+          "npcs": [
+            "Maximillien"
+          ]
         },
         {
           "name": "Vengance Comes",
@@ -7398,10 +7422,10 @@
           "cityDisplayName": "Serenza, Italy"
         }
       ],
-      "lat": 41.8933203,
-      "lon": 12.4829321,
+      "yearStart": 2080,
       "eraName": "The Reign of Talon",
-      "yearStart": 2080
+      "lat": 41.8933203,
+      "lon": 12.4829321
     },
     {
       "name": "From the Ashes",

@@ -92,7 +92,8 @@ function writeCodexStateJson(body, res) {
     }
 
     const outPath = path.join(__dirname, 'data', 'codex-labels.json');
-    const payload = { v: 2, nodes, edges };
+    const vOut = typeof body.v === 'number' && body.v >= 4 ? body.v : 4;
+    const payload = { v: vOut, nodes, edges };
     const json = JSON.stringify(payload, null, 2) + '\n';
     const tmpPath = outPath + '.tmp';
     try {

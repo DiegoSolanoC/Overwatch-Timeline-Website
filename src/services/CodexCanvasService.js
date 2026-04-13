@@ -24,6 +24,9 @@ const CODEX_JUNCTION_PREVIEW_DATA_URI =
         + '</svg>'
     );
 const MAX_SUGGEST = 8;
+/**
+ * Offline / fallback cache only. On load we always try the canonical JSON first (`GET /api/codex` on dev, `data/codex-labels.json` on static hosts); this key is used when that fetch fails.
+ */
 const CODEX_STORAGE_KEY = 'timelineCodexLabels';
 const CODEX_DEBUG_UI_PREF_KEY = 'timelineCodexShowDebugging';
 /** @deprecated read for migration only */
@@ -116,6 +119,20 @@ const CODEX_PACKET_SPEED_MAX = 0.38;
 /** Large scrollable Codex board (world pixel space for nodes and edges). */
 const CODEX_WORLD_W = 16384;
 const CODEX_WORLD_H = 12288;
+/** Below this, redraw all edges/masks (culling has its own overhead). */
+const CODEX_VIEWPORT_CULL_MIN_NODES = 48;
+const CODEX_VIEWPORT_CULL_MIN_EDGES = 64;
+/** Below this, skip `.codex-node--cv-offscreen` toggling (cheap for tiny boards). */
+const CODEX_NODE_DOM_CULL_MIN_NODES = 12;
+/**
+ * Extra screen px added on top of {@link CODEX_EDGE_CULL_MARGIN_PX} for DOM culling only —
+ * keeps nodes “on” slightly before they enter view while panning.
+ */
+const CODEX_NODE_DOM_CULL_MARGIN_EXTRA_PX = 160;
+/** Screen px → world margin so cords don’t pop at the viewport edge. */
+const CODEX_EDGE_CULL_MARGIN_PX = 300;
+/** Extra world px around drawn cord bbox for alpha-mask images (nodes the cord may pass under). */
+const CODEX_MASK_PAD_WORLD_FROM_EDGES = 200;
 /** Previous board size — saves older than {@link CODEX_SAVE_VERSION} are shifted into the larger world. */
 const CODEX_LEGACY_WORLD_W = 8192;
 const CODEX_LEGACY_WORLD_H = 6144;
@@ -219,6 +236,8 @@ const codexCordPacketState = new Map();
 let codexViewPanX = 0;
 let codexViewPanY = 0;
 let codexViewZoom = CODEX_ZOOM_INITIAL;
+/** Coalesce {@link redrawCodexEdges} during high-frequency pointer moves (drag). */
+let codexEdgesRedrawRaf = 0;
 
 /** @type {{ d0: number, z0: number }|null} */
 let codexPinchState = null;
@@ -242,6 +261,7 @@ let onWindowResizeRedraw = null;
 /** @type {((e: KeyboardEvent) => void)|null} */
 let onCodexGlobalKeydown = null;
 
+/** True only when the repo Node server is expected to expose `GET/POST /api/codex` (default port 8000). */
 function isCodexFileApiAvailable() {
     try {
         const ds = window.EventDataService;
@@ -249,10 +269,47 @@ function isCodexFileApiAvailable() {
         const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
         const isDevServerPort = String(window.location.port || '') === '8000';
         const isLoopbackHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        return isHttp && (isDevServerPort || isLoopbackHost);
+        return isHttp && isDevServerPort && isLoopbackHost;
     } catch (_) {
         return false;
     }
+}
+
+/**
+ * Canonical Codex snapshot: try `/api/codex` on the Node dev server, then always try static `data/codex-labels.json`
+ * (Live Server, Vite, GitHub Pages, etc.).
+ * @returns {Promise<{ ok: true, data: unknown } | { ok: false }>}
+ */
+async function fetchCanonicalCodexJson() {
+    const isHttp = typeof window !== 'undefined'
+        && (window.location.protocol === 'http:' || window.location.protocol === 'https:');
+    if (!isHttp) return { ok: false };
+
+    if (isCodexFileApiAvailable()) {
+        try {
+            const r = await fetch(`/api/codex?v=${Date.now()}`);
+            if (r.ok) {
+                const ct = r.headers.get('content-type') || '';
+                if (ct.includes('json')) {
+                    const data = await r.json();
+                    return { ok: true, data };
+                }
+            }
+        } catch (_) {
+            /* ignore */
+        }
+    }
+
+    try {
+        const r = await fetch(`data/codex-labels.json?v=${Date.now()}`);
+        if (r.ok) {
+            const data = await r.json();
+            return { ok: true, data };
+        }
+    } catch (_) {
+        /* ignore */
+    }
+    return { ok: false };
 }
 
 function generateNodeId() {
@@ -451,18 +508,91 @@ function getCodexBodyLayoutPerViewportPx() {
     return 1;
 }
 
-/** Screen → world px (same model as `translate(pan) scale(z)` on `.codex-world`, origin top-left of root). */
+/**
+ * Screen → root layout px, then world (same model as `translate(pan) scale(z)` on `.codex-world`).
+ * Must match {@link openPickerAtRootPoint}: body scale turns viewport deltas into layout px.
+ */
 function clientToWorldCodex(clientX, clientY) {
     if (!root) return { x: 0, y: 0 };
     const rr = root.getBoundingClientRect();
+    const s = getCodexBodyLayoutPerViewportPx();
+    const lx = (clientX - rr.left) / s;
+    const ly = (clientY - rr.top) / s;
     if (!codexWorldEl) {
-        return { x: clientX - rr.left, y: clientY - rr.top };
+        return { x: lx, y: ly };
     }
     const z = Math.max(0.05, codexViewZoom);
     return {
-        x: (clientX - rr.left - codexViewPanX) / z,
-        y: (clientY - rr.top - codexViewPanY) / z
+        x: (lx - codexViewPanX) / z,
+        y: (ly - codexViewPanY) / z
     };
+}
+
+/** Expanded world-space AABB of what’s visible in the Codex viewport (same space as node `left`/`top`). */
+function getCodexVisibleWorldBoundsExpanded(marginPx) {
+    if (!root) {
+        return { minX: 0, minY: 0, maxX: CODEX_WORLD_W, maxY: CODEX_WORLD_H };
+    }
+    const rw = root.clientWidth || 1;
+    const rh = root.clientHeight || 1;
+    if (!codexWorldEl) {
+        const m = marginPx;
+        return { minX: -m, minY: -m, maxX: rw + m, maxY: rh + m };
+    }
+    const z = Math.max(0.05, codexViewZoom);
+    const m = marginPx / z;
+    return {
+        minX: (-codexViewPanX) / z - m,
+        maxX: (rw - codexViewPanX) / z + m,
+        minY: (-codexViewPanY) / z - m,
+        maxY: (rh - codexViewPanY) / z + m
+    };
+}
+
+function codexSegmentAabbIntersectsRect(ax, ay, bx, by, r) {
+    const minX = Math.min(ax, bx);
+    const maxX = Math.max(ax, bx);
+    const minY = Math.min(ay, by);
+    const maxY = Math.max(ay, by);
+    if (maxX < r.minX || minX > r.maxX || maxY < r.minY || minY > r.maxY) return false;
+    return true;
+}
+
+function codexEdgePolyIntersectsRect(pts, r) {
+    for (let i = 0; i < pts.length - 1; i += 1) {
+        const p0 = pts[i];
+        const p1 = pts[i + 1];
+        if (codexSegmentAabbIntersectsRect(p0.x, p0.y, p1.x, p1.y, r)) return true;
+    }
+    return false;
+}
+
+function codexUnionBoundsFromEdgePolys(edgePolys, pad) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (let e = 0; e < edgePolys.length; e += 1) {
+        const pts = edgePolys[e].pts;
+        for (let i = 0; i < pts.length; i += 1) {
+            const p = pts[i];
+            minX = Math.min(minX, p.x);
+            maxX = Math.max(maxX, p.x);
+            minY = Math.min(minY, p.y);
+            maxY = Math.max(maxY, p.y);
+        }
+    }
+    if (!Number.isFinite(minX)) return null;
+    return {
+        minX: minX - pad,
+        minY: minY - pad,
+        maxX: maxX + pad,
+        maxY: maxY + pad
+    };
+}
+
+function codexPointInWorldRect(x, y, r) {
+    return x >= r.minX && x <= r.maxX && y >= r.minY && y <= r.maxY;
 }
 
 /** Keep node top-left inside the board (world or root) for the given scale. */
@@ -517,9 +647,11 @@ function ensureCodexNodeCoordLabel(el) {
     return lab;
 }
 
-function syncCodexNodeCoordLabels() {
-    if (!root) return;
-    root.querySelectorAll('.codex-node').forEach((nodeEl) => {
+/** @param {NodeListOf<Element>|Element[]|undefined} [nodeList] */
+function syncCodexNodeCoordLabels(nodeList) {
+    if (!root || !codexDebugUiVisible) return;
+    const list = nodeList || root.querySelectorAll('.codex-node');
+    list.forEach((nodeEl) => {
         if (!root.contains(nodeEl)) return;
         const lab = ensureCodexNodeCoordLabel(nodeEl);
         const { x, y } = getNodeCenterWorldPx(nodeEl);
@@ -692,6 +824,12 @@ function getNodeFrameWorldRect(el) {
     };
 }
 
+function nodeFrameIntersectsRect(el, r) {
+    const fr = getNodeFrameWorldRect(el);
+    if (!fr || fr.width < 1 || fr.height < 1) return false;
+    return !(fr.left + fr.width < r.minX || fr.left > r.maxX || fr.top + fr.height < r.minY || fr.top > r.maxY);
+}
+
 function buildPolylineForEdge(edge) {
     if (!root) return null;
     const a = root.querySelector(`[data-codex-node-id="${escapeForAttrSelector(edge.fromId)}"]`);
@@ -772,8 +910,9 @@ function codexWaypointIsSimpleCorner(nodeId) {
  * Skipped at multi-way junctions (splits/merges); only simple in-degree-1 / out-degree-1 corners.
  * @param {SVGGElement} parentG
  * @param {string} ns
+ * @param {{ minX: number, minY: number, maxX: number, maxY: number }|null} worldCullRect — skip elbows whose junction center lies outside (large boards).
  */
-function appendCodexJunctionElbowParallelograms(parentG, ns) {
+function appendCodexJunctionElbowParallelograms(parentG, ns, worldCullRect = null) {
     if (!root || !codexEdges.length) return;
     const seen = new Set();
     const arm = CODEX_ELBOW_PARALLELOGRAM_ARM_PX;
@@ -787,6 +926,7 @@ function appendCodexJunctionElbowParallelograms(parentG, ns) {
         const elA = codexNodeElById(eIn.fromId);
         if (!elA) continue;
         const cJ = getNodeCenterWorldPx(elJ);
+        if (worldCullRect && !codexPointInWorldRect(cJ.x, cJ.y, worldCullRect)) continue;
         const cA = getNodeCenterWorldPx(elA);
         const dxIn = cJ.x - cA.x;
         const dyIn = cJ.y - cA.y;
@@ -995,11 +1135,12 @@ function updateCodexToolbar() {
     const btnDrag = codexToolbarEl.querySelector('.codex-toolbar__mode-drag');
     const btnNet = codexToolbarEl.querySelector('.codex-toolbar__mode-network');
     const netHint = codexToolbarEl.querySelector('.codex-toolbar__network-hint');
+    const selectAllBtn = codexToolbarEl.querySelector('.codex-toolbar__select-all');
 
     if (saveBtn) {
         saveBtn.disabled = !codexLayoutDirty;
         saveBtn.title = codexLayoutDirty
-            ? 'Save Codex nodes and links (browser + data/codex-labels.json on dev server)'
+            ? 'Save Codex (browser cache + data/codex-labels.json on dev server). Load always uses that JSON first; GitHub Pages uses data/codex-labels.json from the site.'
             : 'No unsaved Codex changes';
     }
     if (hint) hint.style.display = codexLayoutDirty ? 'inline' : 'none';
@@ -1009,14 +1150,26 @@ function updateCodexToolbar() {
     if (shrinkBtn) {
         shrinkBtn.disabled = !hasSel;
         shrinkBtn.title = hasSel
-            ? (selectedNodes.length > 1 ? 'Shrink selected Codex nodes' : 'Shrink selected Codex node')
-            : 'Select a Codex node first';
+            ? (selectedNodes.length > 1
+                ? 'Shrink selected nodes (size). Header +/− zooms the board.'
+                : 'Shrink selected node (size). Header +/− zooms the board.')
+            : 'Select a node — or use Select all. Header +/− zooms the board.';
     }
     if (growBtn) {
         growBtn.disabled = !hasSel;
         growBtn.title = hasSel
-            ? (selectedNodes.length > 1 ? 'Grow selected Codex nodes' : 'Grow selected Codex node')
-            : 'Select a Codex node first';
+            ? (selectedNodes.length > 1
+                ? 'Grow selected nodes (size). Header +/− zooms the board.'
+                : 'Grow selected node (size). Header +/− zooms the board.')
+            : 'Select a node — or use Select all. Header +/− zooms the board.';
+    }
+
+    if (selectAllBtn && root) {
+        const totalNodes = root.querySelectorAll('.codex-node').length;
+        selectAllBtn.disabled = totalNodes === 0;
+        selectAllBtn.title = totalNodes === 0
+            ? 'No nodes on the board'
+            : `Select all ${totalNodes} nodes. Use toolbar − / + to change node size; header + / − zooms the whole board.`;
     }
 
     const scaleInput = codexToolbarEl.querySelector('.codex-toolbar__scale-input');
@@ -1230,6 +1383,22 @@ function selectCodexNodesPair(elA, elB, primaryEl) {
     updateCodexToolbar();
 }
 
+/** Select every node on the board (drag-style multi-select). Header +/− zoom the view; toolbar − / + resize nodes. */
+function selectAllCodexNodes() {
+    if (!root) return;
+    pruneStaleCodexSelection();
+    const els = [...root.querySelectorAll('.codex-node')];
+    if (!els.length) return;
+    networkLinkSourceId = null;
+    codexSelectedNodeEls.clear();
+    els.forEach((el) => codexSelectedNodeEls.add(el));
+    codexPrimarySelectedNodeEl = els[els.length - 1];
+    applyCodexSelectionToDom();
+    clearPendingCodexDeleteState();
+    redrawCodexEdges();
+    updateCodexToolbar();
+}
+
 /** Toolbar mode buttons + clearing network pick state when entering network. */
 function applyCodexToolbarInteractionMode(mode) {
     if (mode === 'network') {
@@ -1265,10 +1434,6 @@ function applyNodeScale(el, scale, skipRedraw) {
         }
     }
     if (!skipRedraw) redrawCodexEdges();
-}
-
-function codexHasNodesSelectedForZoomRedirect() {
-    return getSelectedCodexNodesInRoot().length > 0;
 }
 
 function nudgeSelectedNodeScale(factor) {
@@ -1341,6 +1506,30 @@ function bindCodexToolbarScaleInput(input) {
     });
 }
 
+function ensureCodexToolbarSelectAllRow(bar) {
+    if (!bar || bar.querySelector('.codex-toolbar__select-all')) return;
+    const row = document.createElement('div');
+    row.className = 'codex-toolbar__row codex-toolbar__row--select-all';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'codex-toolbar__select-all';
+    btn.textContent = 'Select all';
+    btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        selectAllCodexNodes();
+    });
+    row.appendChild(btn);
+    const netHint = bar.querySelector('.codex-toolbar__network-hint');
+    if (netHint) {
+        bar.insertBefore(row, netHint);
+    } else {
+        const rowScale = bar.querySelector('.codex-toolbar__row--scale');
+        if (rowScale) bar.insertBefore(row, rowScale);
+        else bar.appendChild(row);
+    }
+}
+
 function ensureCodexToolbarScaleInput(bar) {
     const row = bar?.querySelector('.codex-toolbar__shrink')?.parentElement;
     if (!row || row.querySelector('.codex-toolbar__scale-input')) return;
@@ -1402,8 +1591,9 @@ const CODEX_EDGES_NODE_ALPHA_MASK_ID = 'codex-edges-node-alpha-mask';
 
 /**
  * Mask cords by node alpha art: PNG white keeps strokes visible, black hides them under the hex.
+ * @param {{ minX: number, minY: number, maxX: number, maxY: number }|null} maskWorldRect — if set, only nodes intersecting this world AABB (faster large graphs).
  */
-function appendCodexEdgeNodeMask(defs, ns, vw, vh) {
+function appendCodexEdgeNodeMask(defs, ns, vw, vh, maskWorldRect = null) {
     const mask = document.createElementNS(ns, 'mask');
     mask.setAttribute('id', CODEX_EDGES_NODE_ALPHA_MASK_ID);
     mask.setAttribute('maskUnits', 'userSpaceOnUse');
@@ -1419,6 +1609,7 @@ function appendCodexEdgeNodeMask(defs, ns, vw, vh) {
     mask.appendChild(base);
     if (root) {
         root.querySelectorAll('.codex-node').forEach((el) => {
+            if (maskWorldRect && !nodeFrameIntersectsRect(el, maskWorldRect)) return;
             const r = getNodeFrameWorldRect(el);
             if (!r || r.width < 1 || r.height < 1) return;
             const cx = r.left + r.width / 2;
@@ -2127,9 +2318,58 @@ function ensureCodexCordAnimationLoop() {
     codexCordAnimRafId = requestAnimationFrame(codexCordAnimationTick);
 }
 
+/** Batches edge redraws to one per animation frame during node drag and view zoom. */
+function scheduleRedrawCodexEdges() {
+    if (codexEdgesRedrawRaf) return;
+    codexEdgesRedrawRaf = requestAnimationFrame(() => {
+        codexEdgesRedrawRaf = 0;
+        redrawCodexEdges();
+    });
+}
+
+/** Skip full paint for far-off nodes when the board is large (paired with CSS `content-visibility`). */
+/** @param {NodeListOf<Element>|Element[]|undefined} [nodeList] */
+function syncCodexNodeOffscreenContentVisibility(visibleRect, nodeList) {
+    if (!root) return;
+    if (!visibleRect || codexActiveDragNodeIds.size > 0) {
+        root.querySelectorAll('.codex-node--cv-offscreen').forEach((el) => {
+            el.classList.remove('codex-node--cv-offscreen');
+        });
+        return;
+    }
+    const list = nodeList || root.querySelectorAll('.codex-node');
+    list.forEach((el) => {
+        if (nodeFrameIntersectsRect(el, visibleRect)) el.classList.remove('codex-node--cv-offscreen');
+        else el.classList.add('codex-node--cv-offscreen');
+    });
+}
+
+/** World rect for which nodes should stay “visually on”; cheap O(n) — safe to call while panning (no SVG rebuild). */
+/** @param {NodeListOf<Element>|Element[]|undefined} [nodeList] */
+function syncCodexNodeDomCullFromView(nodeList) {
+    if (!root) return;
+    const list = nodeList || root.querySelectorAll('.codex-node');
+    const nodeCount = list.length;
+    const use =
+        codexActiveDragNodeIds.size === 0
+        && nodeCount >= CODEX_NODE_DOM_CULL_MIN_NODES;
+    const rect = use
+        ? getCodexVisibleWorldBoundsExpanded(CODEX_EDGE_CULL_MARGIN_PX + CODEX_NODE_DOM_CULL_MARGIN_EXTRA_PX)
+        : null;
+    syncCodexNodeOffscreenContentVisibility(rect, list);
+}
+
 function redrawCodexEdges() {
     const svg = root?.querySelector('.codex-edges-layer');
     if (!svg || !root) return;
+
+    if (codexEdgesRedrawRaf) {
+        cancelAnimationFrame(codexEdgesRedrawRaf);
+        codexEdgesRedrawRaf = 0;
+    }
+
+    const nodeList = root.querySelectorAll('.codex-node');
+    const nodeCount = nodeList.length;
 
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
@@ -2140,6 +2380,60 @@ function redrawCodexEdges() {
     svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
     svg.setAttribute('width', String(vw));
     svg.setAttribute('height', String(vh));
+    const useViewportCull =
+        codexActiveDragNodeIds.size === 0
+        && (nodeCount >= CODEX_VIEWPORT_CULL_MIN_NODES || codexEdges.length >= CODEX_VIEWPORT_CULL_MIN_EDGES);
+    const visibleRect = getCodexVisibleWorldBoundsExpanded(CODEX_EDGE_CULL_MARGIN_PX);
+
+    /* No links: skip glow filters, alpha mask, and packet defs — was dominating load when many nodes exist. */
+    if (codexEdges.length === 0) {
+        const defs = document.createElementNS(ns, 'defs');
+        svg.appendChild(defs);
+        const hitPickRoot = document.createElementNS(ns, 'g');
+        hitPickRoot.classList.add('codex-edges-hit-pick');
+        svg.appendChild(hitPickRoot);
+        const contentRoot = document.createElementNS(ns, 'g');
+        contentRoot.classList.add('codex-edges-masked');
+        svg.appendChild(contentRoot);
+        const degLabelsG = document.createElementNS(ns, 'g');
+        degLabelsG.classList.add('codex-edge-degree-labels');
+        degLabelsG.setAttribute('pointer-events', 'none');
+        svg.appendChild(degLabelsG);
+        if (codexActiveDragNodeIds.size === 0) {
+            syncCodexNodeCoordLabels(nodeList);
+        }
+        syncCodexCordPacketState([]);
+        codexStopCordAnimRafOnly();
+        syncCodexNodeDomCullFromView(nodeList);
+        return;
+    }
+
+    /** @type {{ edge: typeof codexEdges[0], pts: { x: number, y: number }[] }[]} */
+    const edgePolysFull = [];
+    codexEdges.forEach((edge) => {
+        const pts = buildPolylineForEdge(edge);
+        if (pts && pts.length >= 2) edgePolysFull.push({ edge, pts });
+    });
+
+    const edgePolys = useViewportCull
+        ? edgePolysFull.filter(({ pts }) => codexEdgePolyIntersectsRect(pts, visibleRect))
+        : edgePolysFull;
+
+    let maskWorldRect = null;
+    if (useViewportCull) {
+        if (edgePolys.length > 0) {
+            maskWorldRect = codexUnionBoundsFromEdgePolys(edgePolys, CODEX_MASK_PAD_WORLD_FROM_EDGES);
+        } else {
+            const z = codexWorldEl ? Math.max(0.05, codexViewZoom) : 1;
+            const pad = 360 / z;
+            maskWorldRect = {
+                minX: visibleRect.minX - pad,
+                minY: visibleRect.minY - pad,
+                maxX: visibleRect.maxX + pad,
+                maxY: visibleRect.maxY + pad
+            };
+        }
+    }
 
     const defs = document.createElementNS(ns, 'defs');
     const cordFilt = {
@@ -2159,7 +2453,7 @@ function redrawCodexEdges() {
         viewW: vw,
         viewH: vh
     });
-    appendCodexEdgeNodeMask(defs, ns, vw, vh);
+    appendCodexEdgeNodeMask(defs, ns, vw, vh, maskWorldRect);
     svg.appendChild(defs);
 
     /** Thick cord picks live here (unmasked) so panning still works on top of cords. */
@@ -2172,14 +2466,7 @@ function redrawCodexEdges() {
     contentRoot.setAttribute('mask', `url(#${CODEX_EDGES_NODE_ALPHA_MASK_ID})`);
     svg.appendChild(contentRoot);
 
-    /** @type {{ edge: typeof codexEdges[0], pts: { x: number, y: number }[] }[]} */
-    const edgePolys = [];
-    codexEdges.forEach((edge) => {
-        const pts = buildPolylineForEdge(edge);
-        if (pts && pts.length >= 2) edgePolys.push({ edge, pts });
-    });
-
-    appendCodexJunctionElbowParallelograms(contentRoot, ns);
+    appendCodexJunctionElbowParallelograms(contentRoot, ns, useViewportCull ? visibleRect : null);
 
     edgePolys.forEach(({ edge, pts }) => {
         const { fromId, toId } = edge;
@@ -2305,7 +2592,7 @@ function redrawCodexEdges() {
 
     /* Coord labels touch layout (offset sizes); skip while nodes move every frame — sync on pointerup. */
     if (codexActiveDragNodeIds.size === 0) {
-        syncCodexNodeCoordLabels();
+        syncCodexNodeCoordLabels(nodeList);
     }
 
     syncCodexCordPacketState(edgePolys);
@@ -2317,6 +2604,8 @@ function redrawCodexEdges() {
         contentRoot.appendChild(pktG);
         ensureCodexCordAnimationLoop();
     }
+
+    syncCodexNodeDomCullFromView(nodeList);
 }
 
 function handleNetworkNodeActivate(el) {
@@ -2481,6 +2770,20 @@ function parseLoadedCodexPayload(parsed) {
     return { nodes: nodes || [], edges, v };
 }
 
+/** True when nodes look like the current object format (wrong `v` in file — e.g. server wrote v:2 — should not wipe). */
+function codexNodesLookLikeModernSavedShape(nodeArr) {
+    if (!Array.isArray(nodeArr) || nodeArr.length === 0) return false;
+    return nodeArr.every(
+        (n) =>
+            n
+            && typeof n === 'object'
+            && typeof n.kind === 'string'
+            && typeof n.id === 'string'
+            && Number.isFinite(Number(n.x))
+            && Number.isFinite(Number(n.y))
+    );
+}
+
 function migrateCodexLayoutCoordsForExpandedWorld(nodes, edges) {
     const sx = CODEX_WORLD_EXPAND_SHIFT_X;
     const sy = CODEX_WORLD_EXPAND_SHIFT_Y;
@@ -2499,12 +2802,13 @@ function migrateCodexLayoutCoordsForExpandedWorld(nodes, edges) {
 /** Frame world center in the Codex viewport (zoom must be set first). */
 function centerCodexViewOnWorldCenter() {
     if (!root || !codexWorldEl) return;
-    const rr = root.getBoundingClientRect();
+    const rw = root.clientWidth || 1;
+    const rh = root.clientHeight || 1;
     const z = Math.max(0.05, codexViewZoom);
     const cx = CODEX_WORLD_W / 2;
     const cy = CODEX_WORLD_H / 2;
-    codexViewPanX = rr.width / 2 - cx * z;
-    codexViewPanY = rr.height / 2 - cy * z;
+    codexViewPanX = rw / 2 - cx * z;
+    codexViewPanY = rh / 2 - cy * z;
 }
 
 /** Frame the bounding box of all placed nodes (after load / reset view feel). */
@@ -2529,39 +2833,51 @@ function centerCodexViewOnNodes() {
     if (!Number.isFinite(minX)) return;
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
-    const rr = root.getBoundingClientRect();
+    const rw = root.clientWidth || 1;
+    const rh = root.clientHeight || 1;
     const z = Math.max(0.05, codexViewZoom);
-    codexViewPanX = rr.width / 2 - cx * z;
-    codexViewPanY = rr.height / 2 - cy * z;
+    codexViewPanX = rw / 2 - cx * z;
+    codexViewPanY = rh / 2 - cy * z;
+}
+
+/** Yield so the loading overlay can paint before large DOM batches (see CodexModeService). */
+function yieldCodexBrowserPaint() {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                setTimeout(resolve, 0);
+            });
+        });
+    });
+}
+
+/** Between load chunks: prefer idle time so the main thread can paint / handle input. */
+function yieldBetweenCodexLoadChunks() {
+    return new Promise((resolve) => {
+        if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(() => resolve(), { timeout: 120 });
+        } else {
+            requestAnimationFrame(resolve);
+        }
+    });
 }
 
 async function loadCodexState() {
     if (!root) return;
-    let storedObj = null;
-    try {
-        const raw = localStorage.getItem(CODEX_STORAGE_KEY);
-        if (raw) storedObj = JSON.parse(raw);
-    } catch (_) {
-        storedObj = null;
-    }
 
-    const storedParsed = storedObj ? parseLoadedCodexPayload(storedObj) : { nodes: [], edges: [], v: CODEX_SAVE_VERSION };
-    const hadMeaningfulLocal = storedParsed.nodes.length > 0;
+    let sourceObj = null;
+    let loadedFromCanonical = false;
 
-    let sourceObj = storedObj;
-    let sourceWasApiOnly = false;
-    if (!hadMeaningfulLocal && isCodexFileApiAvailable()) {
+    const canonical = await fetchCanonicalCodexJson();
+    if (canonical.ok) {
+        sourceObj = canonical.data;
+        loadedFromCanonical = true;
+    } else {
         try {
-            const r = await fetch(`/api/codex?v=${Date.now()}`);
-            if (r.ok) {
-                const d = await r.json();
-                if (parseLoadedCodexPayload(d).nodes.length > 0) {
-                    sourceObj = d;
-                    sourceWasApiOnly = true;
-                }
-            }
+            const raw = localStorage.getItem(CODEX_STORAGE_KEY);
+            if (raw) sourceObj = JSON.parse(raw);
         } catch (_) {
-            /* ignore */
+            sourceObj = null;
         }
     }
 
@@ -2569,12 +2885,30 @@ async function loadCodexState() {
         sourceObj = { v: CODEX_SAVE_VERSION, nodes: [], edges: [] };
     }
 
+    const mirrorCanonicalToLocalStorage = () => {
+        if (!loadedFromCanonical) return;
+        try {
+            const { nodes: nPersist, edges: ePersist } = serializeCodexState();
+            localStorage.setItem(
+                CODEX_STORAGE_KEY,
+                JSON.stringify({ v: CODEX_SAVE_VERSION, nodes: nPersist, edges: ePersist })
+            );
+        } catch (_) {
+            /* ignore */
+        }
+    };
+
     let { nodes, edges, v } = parseLoadedCodexPayload(sourceObj);
     let migratedNow = false;
     if (v < CODEX_JUNCTION_LAYOUT_MIN_VERSION) {
-        nodes = [];
-        edges = [];
-        migratedNow = true;
+        if (codexNodesLookLikeModernSavedShape(nodes)) {
+            /* e.g. data/codex-labels.json stamped v:2 by server POST — layout is already current; do not clear. */
+            migratedNow = true;
+        } else {
+            nodes = [];
+            edges = [];
+            migratedNow = true;
+        }
     } else if (v < CODEX_SAVE_VERSION) {
         migratedNow = true;
         const m = migrateCodexLayoutCoordsForExpandedWorld(nodes, edges);
@@ -2598,11 +2932,11 @@ async function loadCodexState() {
         redrawCodexEdges();
         codexLayoutDirty = false;
         updateCodexToolbar();
+        mirrorCanonicalToLocalStorage();
         return;
     }
 
-    for (let i = 0; i < nodes.length; i++) {
-        const L = nodes[i];
+    const placeOneLoadedNode = (L) => {
         const placeKind =
             L.kind === 'junction'
                 ? 'junction'
@@ -2615,6 +2949,7 @@ async function loadCodexState() {
                             : 'hero';
         const opts = {
             fromSaved: true,
+            skipRedraw: true,
             id: L.id,
             scale: resolveCodexNodeScale(placeKind, L.scale)
         };
@@ -2635,10 +2970,34 @@ async function loadCodexState() {
         } else if (L.kind === 'junction') {
             placeCodexNode(L.x, L.y, 'junction', null, null, opts);
         }
+    };
+
+    const overlayLine =
+        typeof window !== 'undefined' && typeof window.__codexSetLoadingOverlayLine === 'function'
+            ? window.__codexSetLoadingOverlayLine
+            : null;
+    if (overlayLine) {
+        overlayLine(`Placing ${nodes.length} saved nodes on the board…`);
+    }
+    await yieldCodexBrowserPaint();
+
+    const CODEX_LOAD_NODE_CHUNK = 22;
+    for (let start = 0; start < nodes.length; start += CODEX_LOAD_NODE_CHUNK) {
+        const end = Math.min(start + CODEX_LOAD_NODE_CHUNK, nodes.length);
+        for (let i = start; i < end; i++) {
+            placeOneLoadedNode(nodes[i]);
+        }
+        if (overlayLine && nodes.length > CODEX_LOAD_NODE_CHUNK) {
+            overlayLine(`Placing nodes… ${end} / ${nodes.length}`);
+        }
+        if (end < nodes.length) {
+            await yieldBetweenCodexLoadChunks();
+        }
     }
 
     centerCodexViewOnNodes();
     applyCodexWorldTransformStyle();
+    syncCodexNodeDomCullFromView();
 
     if (migratedNow) {
         try {
@@ -2650,7 +3009,7 @@ async function loadCodexState() {
         } catch (_) {
             /* ignore */
         }
-        if (sourceWasApiOnly) {
+        if (loadedFromCanonical) {
             markCodexLayoutDirty();
         }
     }
@@ -2660,6 +3019,7 @@ async function loadCodexState() {
         codexLayoutDirty = false;
     }
     updateCodexToolbar();
+    mirrorCanonicalToLocalStorage();
 }
 
 function applyCodexWorldTransformStyle() {
@@ -2670,17 +3030,20 @@ function applyCodexWorldTransformStyle() {
 
 function applyCodexViewTransform() {
     applyCodexWorldTransformStyle();
-    redrawCodexEdges();
+    scheduleRedrawCodexEdges();
 }
 
 /** Keep world point under (clientX, clientY) fixed while changing zoom (wheel / pinch / buttons). */
 function applyCodexZoomWithAnchor(clientX, clientY, newZoom) {
     if (!root) return;
+    const rr = root.getBoundingClientRect();
+    const s = getCodexBodyLayoutPerViewportPx();
+    const lx = (clientX - rr.left) / s;
+    const ly = (clientY - rr.top) / s;
     const w = clientToWorldCodex(clientX, clientY);
     codexViewZoom = Math.max(CODEX_ZOOM_MIN, Math.min(CODEX_ZOOM_MAX, newZoom));
-    const rr = root.getBoundingClientRect();
-    codexViewPanX = clientX - rr.left - w.x * codexViewZoom;
-    codexViewPanY = clientY - rr.top - w.y * codexViewZoom;
+    codexViewPanX = lx - w.x * codexViewZoom;
+    codexViewPanY = ly - w.y * codexViewZoom;
     applyCodexViewTransform();
 }
 
@@ -2696,19 +3059,11 @@ function getCodexViewCenterClient() {
 }
 
 function codexZoomInFromUi() {
-    if (codexHasNodesSelectedForZoomRedirect()) {
-        nudgeSelectedNodeScale(CODEX_ZOOM_FACTOR);
-        return;
-    }
     const { cx, cy } = getCodexViewCenterClient();
     codexZoomByFactorAt(CODEX_ZOOM_FACTOR, cx, cy);
 }
 
 function codexZoomOutFromUi() {
-    if (codexHasNodesSelectedForZoomRedirect()) {
-        nudgeSelectedNodeScale(1 / CODEX_ZOOM_FACTOR);
-        return;
-    }
     const { cx, cy } = getCodexViewCenterClient();
     codexZoomByFactorAt(1 / CODEX_ZOOM_FACTOR, cx, cy);
 }
@@ -2871,11 +3226,13 @@ function beginActualBackgroundPan(prep, firstMoveEv) {
         hitLayerEl.setPointerCapture(pointerId);
     } catch (_) { /* ignore */ }
 
+    const layoutPerVp = getCodexBodyLayoutPerViewportPx();
     const applyClient = (clientX, clientY) => {
-        codexViewPanX = origPanX + (clientX - startCX);
-        codexViewPanY = origPanY + (clientY - startCY);
+        codexViewPanX = origPanX + (clientX - startCX) / layoutPerVp;
+        codexViewPanY = origPanY + (clientY - startCY) / layoutPerVp;
         /* Cords live under .codex-world; pan is CSS translate only — no full SVG rebuild per move. */
         applyCodexWorldTransformStyle();
+        syncCodexNodeDomCullFromView();
     };
 
     applyClient(firstMoveEv.clientX, firstMoveEv.clientY);
@@ -3314,12 +3671,12 @@ function ensureCodexToolbar() {
         shrink.type = 'button';
         shrink.className = 'codex-toolbar__scale-btn codex-toolbar__shrink';
         shrink.textContent = '−';
-        shrink.title = 'Shrink selected Codex node';
+        shrink.title = 'Shrink selected node size (portrait hex). Header +/− zooms the whole board.';
         const grow = document.createElement('button');
         grow.type = 'button';
         grow.className = 'codex-toolbar__scale-btn codex-toolbar__grow';
         grow.textContent = '+';
-        grow.title = 'Grow selected Codex node';
+        grow.title = 'Grow selected node size (portrait hex). Header +/− zooms the whole board.';
         shrink.addEventListener('click', (ev) => {
             ev.preventDefault();
             ev.stopPropagation();
@@ -3362,6 +3719,7 @@ function ensureCodexToolbar() {
         root.appendChild(bar);
     }
     codexToolbarEl = bar;
+    ensureCodexToolbarSelectAllRow(bar);
     ensureCodexToolbarSelectionPreviewRow(bar);
     ensureCodexToolbarScaleInput(bar);
     ensureCodexVisualPrefsPanel();
@@ -3863,8 +4221,9 @@ function beginActualNodeDrag(prep, firstMoveEv) {
             nx = pw.x - grabOffX;
             ny = pw.y - grabOffY;
         } else {
-            nx = (clientX - layerLeft) - grabOffX;
-            ny = (clientY - layerTop) - grabOffY;
+            const s = getCodexBodyLayoutPerViewportPx();
+            nx = (clientX - layerLeft) / s - grabOffX;
+            ny = (clientY - layerTop) / s - grabOffY;
         }
         let tx = nx - anchor.baseLeft;
         let ty = ny - anchor.baseTop;
@@ -3877,7 +4236,7 @@ function beginActualNodeDrag(prep, firstMoveEv) {
         dragNodes.forEach((nodeEl) => {
             nodeEl.style.transform = tStr;
         });
-        redrawCodexEdges();
+        scheduleRedrawCodexEdges();
     };
 
     applyClient(firstMoveEv.clientX, firstMoveEv.clientY);
@@ -4039,12 +4398,13 @@ function bindCodexNodeInteraction(el) {
         } else {
             const layer = hitLayerEl || root;
             const lr = layer.getBoundingClientRect();
+            const s = getCodexBodyLayoutPerViewportPx();
             layerLeft = lr.left;
             layerTop = lr.top;
             maxX = Math.max(0, root.clientWidth - w);
             maxY = Math.max(0, root.clientHeight - h);
-            grabOffX = (e.clientX - lr.left) - baseLeft;
-            grabOffY = (e.clientY - lr.top) - baseTop;
+            grabOffX = (e.clientX - lr.left) / s - baseLeft;
+            grabOffY = (e.clientY - lr.top) / s - baseTop;
         }
 
         pointerPending = {
@@ -4120,6 +4480,8 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
     const img = document.createElement('img');
     img.className = 'codex-node__img';
     img.draggable = false;
+    img.loading = 'lazy';
+    img.decoding = 'async';
     if (kind === 'hero') {
         img.src = `assets/images/heroes/${encodeURIComponent(heroName)}.png`;
         img.alt = heroName || 'Hero';
@@ -4150,6 +4512,8 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
     frame.src = `${CODEX_FRAME_PATH}${frameVariant}.png`;
     frame.alt = '';
     frame.draggable = false;
+    frame.loading = 'lazy';
+    frame.decoding = 'async';
     frame.setAttribute('aria-hidden', 'true');
 
     const portraitFit = document.createElement('div');
@@ -4174,7 +4538,8 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
 }
 
 /**
- * @param {{ fromSaved?: boolean, id?: string, scale?: number, countryKey?: string }} [opts]
+ * @param {{ fromSaved?: boolean, id?: string, scale?: number, countryKey?: string, skipRedraw?: boolean }} [opts]
+ * Use `skipRedraw: true` when placing many nodes in one task; caller must call {@link redrawCodexEdges} once after.
  */
 function placeCodexNode(x, y, kind, heroName, faction, opts = {}) {
     if (!root) return;
@@ -4190,16 +4555,17 @@ function placeCodexNode(x, y, kind, heroName, faction, opts = {}) {
         markCodexLayoutDirty();
         selectCodexNode(el);
     }
-    redrawCodexEdges();
+    if (!opts.skipRedraw) redrawCodexEdges();
 }
 
 /**
  * @param {HTMLElement} rootElement - #codex-view-root
  */
+/** @returns {Promise<void>} Resolves when saved Codex layout has been applied (or empty load). */
 export function initCodexCanvas(rootElement) {
     destroyCodexCanvas();
     root = rootElement;
-    if (!root) return;
+    if (!root) return Promise.resolve();
 
     loadCodexDebugUiPref();
     loadCodexVisualPrefs();
@@ -4252,8 +4618,9 @@ export function initCodexCanvas(rootElement) {
             py = wpt.y;
         } else {
             const r = hitLayerEl.getBoundingClientRect();
-            px = e.clientX - r.left;
-            py = e.clientY - r.top;
+            const s = getCodexBodyLayoutPerViewportPx();
+            px = (e.clientX - r.left) / s;
+            py = (e.clientY - r.top) / s;
         }
 
         openPickerAtRootPoint(px, py, e.clientX, e.clientY);
@@ -4292,7 +4659,10 @@ export function initCodexCanvas(rootElement) {
     window.addEventListener('resize', onWindowResizeRedraw);
 
     ensureCodexToolbar();
-    void loadCodexState();
+    return (async () => {
+        await yieldCodexBrowserPaint();
+        await loadCodexState();
+    })();
 }
 
 export function destroyCodexCanvas() {
@@ -4352,6 +4722,7 @@ if (typeof window !== 'undefined') {
         zoomIn: codexZoomInFromUi,
         zoomOut: codexZoomOutFromUi,
         resetView: codexResetView,
+        selectAll: selectAllCodexNodes,
         applyCodexEventThumbnailFilterHover,
         clearCodexEventThumbnailFilterHover
     };
