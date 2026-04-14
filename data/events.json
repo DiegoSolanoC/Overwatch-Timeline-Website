@@ -3446,6 +3446,21 @@
       "eraName": "The Golden Age"
     },
     {
+      "name": "Sierra Woods is Born",
+      "description": "",
+      "locationType": "earth",
+      "filters": [
+        "Sierra"
+      ],
+      "factions": [],
+      "npcs": [],
+      "image": "",
+      "cityDisplayName": "Panola Mountain, United States",
+      "yearStart": 2056,
+      "lat": 33.6353873,
+      "lon": -84.170196
+    },
+    {
       "name": "Hana Song is Born",
       "locationType": "earth",
       "cityDisplayName": "Busan, South Korea",
@@ -3632,6 +3647,25 @@
       "eraName": "The Golden Age",
       "yearStart": 2056,
       "yearEnd": 2060
+    },
+    {
+      "name": "On the Run",
+      "description": "",
+      "locationType": "earth",
+      "filters": [
+        "Sierra"
+      ],
+      "factions": [],
+      "npcs": [
+        "Kendra"
+      ],
+      "image": "",
+      "yearStart": 2056,
+      "yearEnd": 2069,
+      "eraName": "The Golden Age",
+      "lat": 33.6353873,
+      "lon": -84.170196,
+      "cityDisplayName": "Panola Mountain, United States"
     },
     {
       "name": "The Scourge of Numbani",
@@ -4883,6 +4917,24 @@
       "eraName": "The Fall of Overwatch"
     },
     {
+      "name": "Disappeared",
+      "description": "",
+      "locationType": "earth",
+      "filters": [
+        "Sierra"
+      ],
+      "factions": [],
+      "npcs": [
+        "Kendra"
+      ],
+      "image": "",
+      "cityDisplayName": "Panola Mountain, United States",
+      "yearStart": 2070,
+      "eraName": "The Fall of Overwatch",
+      "lat": 33.6353873,
+      "lon": -84.170196
+    },
+    {
       "name": "Fighting the System",
       "locationType": "earth",
       "cityDisplayName": "Paris, France",
@@ -5163,24 +5215,48 @@
       "eraName": "The Fall of Overwatch"
     },
     {
-      "name": "Code of Violence",
       "locationType": "earth",
       "cityDisplayName": "New Mexico, United States",
-      "description": "",
       "image": "",
-      "filters": [
-        "Reaper",
-        "Sombra",
-        "Sigma",
-        "Widowmaker",
-        "Doomfist",
-        "Moira"
+      "variants": [
+        {
+          "name": "Code of Violence",
+          "description": "",
+          "filters": [
+            "Reaper",
+            "Sombra",
+            "Sigma",
+            "Widowmaker",
+            "Doomfist",
+            "Moira"
+          ],
+          "factions": [
+            "Talon"
+          ],
+          "npcs": [],
+          "locationType": "earth",
+          "lat": 35.6876096,
+          "lon": -105.938456,
+          "cityDisplayName": "New Mexico, United States"
+        },
+        {
+          "name": "Released",
+          "description": "",
+          "filters": [
+            "Sigma",
+            "Moira",
+            "Sombra"
+          ],
+          "factions": [
+            "Talon"
+          ],
+          "npcs": [],
+          "locationType": "earth",
+          "cityDisplayName": "Oasis University, Iraq",
+          "lat": 29.5918,
+          "lon": 52.5836
+        }
       ],
-      "factions": [
-        "Talon"
-      ],
-      "lat": 35.6876096,
-      "lon": -105.938456,
       "yearStart": 2070,
       "yearEnd": 2072,
       "eraName": "The Age of Conflict"
@@ -7112,6 +7188,23 @@
       "lon": 52.5836,
       "eraName": "The Null Sector Invasion",
       "yearStart": 2079
+    },
+    {
+      "name": "New Heights",
+      "description": "",
+      "locationType": "earth",
+      "filters": [
+        "Sierra"
+      ],
+      "factions": [
+        "Helix Securities"
+      ],
+      "npcs": [],
+      "image": "",
+      "cityDisplayName": "Watchpoint Grand Mesa, United States",
+      "eraName": "The Reign of Talon",
+      "lat": 39.1131257,
+      "lon": -108.0127646
     },
     {
       "name": "Futures Past",

@@ -222,11 +222,48 @@
       "filename": "33Talon Empire",
       "number": 33,
       "displayName": "Talon Empire"
+    },
+    {
+      "filename": "34Search & Rescue",
+      "number": 34,
+      "displayName": "Search & Rescue"
+    },
+    {
+      "filename": "35IJC",
+      "number": 35,
+      "displayName": "IJC"
+    },
+    {
+      "filename": "36The Gwishin",
+      "number": 36,
+      "displayName": "The Gwishin"
+    },
+    {
+      "filename": "36The Sombra Collective",
+      "number": 36,
+      "displayName": "The Sombra Collective"
+    },
+    {
+      "filename": "37 Yamagami Blades",
+      "number": 37,
+      "displayName": "Yamagami Blades"
+    },
+    {
+      "filename": "38Pacific Energy Solutions",
+      "number": 38,
+      "displayName": "Pacific Energy Solutions"
+    },
+    {
+      "filename": "39Heliotech Industries",
+      "number": 39,
+      "displayName": "Heliotech Industries"
     }
   ],
   "npcs": [
+    "Adawe",
     "Antonio",
     "Asa",
+    "Athena",
     "Aurora",
     "B.O.B",
     "Bars",
@@ -236,6 +273,7 @@
     "Claudio",
     "D.mon",
     "Efi",
+    "Emily",
     "Geiger",
     "Gerard",
     "Harold",
@@ -243,8 +281,10 @@
     "Iggy",
     "Ingrid",
     "Jackdaw",
+    "Jiayi",
     "Kace",
     "Katya",
+    "Kendra",
     "King",
     "Lanet",
     "Liao",
