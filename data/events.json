@@ -3342,6 +3342,21 @@
       "yearEnd": 2060
     },
     {
+      "name": "Sierra Turner Woods is Born",
+      "description": "On April 17th of 2054, Sierra Turner Woods is Born",
+      "locationType": "earth",
+      "filters": [
+        "Sierra"
+      ],
+      "factions": [],
+      "npcs": [],
+      "image": "",
+      "cityDisplayName": "Appalachian Virginia, United States",
+      "yearStart": 2054,
+      "lat": 36.9034309,
+      "lon": -82.7853107
+    },
+    {
       "name": "Findlay Docherty is Born",
       "locationType": "earth",
       "cityDisplayName": "Glasgow, United Kingdom",
@@ -3444,21 +3459,6 @@
       ],
       "yearStart": 2056,
       "eraName": "The Golden Age"
-    },
-    {
-      "name": "Sierra Woods is Born",
-      "description": "",
-      "locationType": "earth",
-      "filters": [
-        "Sierra"
-      ],
-      "factions": [],
-      "npcs": [],
-      "image": "",
-      "cityDisplayName": "Panola Mountain, United States",
-      "yearStart": 2056,
-      "lat": 33.6353873,
-      "lon": -84.170196
     },
     {
       "name": "Hana Song is Born",
@@ -3660,12 +3660,12 @@
         "Kendra"
       ],
       "image": "",
+      "cityDisplayName": "Appalachian Virginia, United States",
       "yearStart": 2056,
       "yearEnd": 2069,
       "eraName": "The Golden Age",
-      "lat": 33.6353873,
-      "lon": -84.170196,
-      "cityDisplayName": "Panola Mountain, United States"
+      "lat": 36.9034309,
+      "lon": -82.7853107
     },
     {
       "name": "The Scourge of Numbani",
