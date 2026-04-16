@@ -101,14 +101,7 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
     // Add transport toggle using helper
     createGlobeControlButton({
         id: 'hyperloopToggle',
-        className: 'active',
-        title: 'Toggle Transport Systems',
-        label: 'Vehicles',
-        iconPath: 'assets/images/icons/Train Icon.png',
-        iconAlt: 'Transport',
-        iconSpanId: 'hyperloopIcon',
-        parentId: 'headerHubRight',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
+        className: 'active hyperloop-btn dock-globe-rail__btn',
         headerOrder: 40,
         mobileParentId: 'dockGlobeRailLeft',
         mobileBaseClass: 'globe-control-btn',
@@ -117,18 +110,20 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
 
     createGlobeControlButton({
         id: 'weatherEffectsToggle',
-        className: 'active',
-        title: 'Toggle weather',
-        label: 'Weather',
-        iconPath: 'assets/images/icons/Weather Icon.png',
-        iconAlt: 'Weather',
-        iconSpanId: 'weatherEffectsIcon',
-        parentId: 'headerHubRight',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
+        className: 'active weather-effects-btn dock-globe-rail__btn',
         headerOrder: 45,
         mobileParentId: 'dockGlobeRailLeft',
         mobileBaseClass: 'globe-control-btn',
         mobileClassName: 'weather-effects-btn dock-globe-rail__btn'
+    }, statusService);
+
+    createGlobeControlButton({
+        id: 'lightingToggle',
+        className: 'active lighting-btn dock-globe-rail__btn',
+        headerOrder: 48,
+        mobileParentId: 'dockGlobeRailLeft',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'lighting-btn dock-globe-rail__btn'
     }, statusService);
     
     if (controller.uiView) {
@@ -142,6 +137,11 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
         controller.uiView.setupWeatherEffectsToggle(() => {
             if (controller.globeView) {
                 controller.globeView.setWeatherEffectsVisible(controller.sceneModel.getGlobeWeatherEffectsVisible());
+            }
+        });
+        controller.uiView.setupLightingToggle(() => {
+            if (controller.globeView) {
+                controller.globeView.setGlobeLightingVisible(controller.sceneModel.getGlobeLightingVisible());
             }
         });
         statusService.update('✓ Transport & weather toggles initialized', 'success');
@@ -170,6 +170,24 @@ export async function unloadTransportLogic({ removeElementById, statusService })
 export async function loadControlsLogic({ createGlobeControlButton, createExitButton, loadSoundEffect, overlayService, statusService }) {
     const controller = window.globeController;
     
+    // Add map view toggle using helper
+    createGlobeControlButton({
+        id: 'mapViewToggle',
+        className: '',
+        title: 'Toggle Map View',
+        label: 'Map',
+        iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+        iconAlt: 'Globe',
+        iconSpanId: 'mapViewToggleIcon',
+        parentId: 'dockGlobeRailLeft',
+        baseClass: 'globe-control-btn',
+        className: 'dock-globe-rail__btn',
+        headerOrder: 30,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
+    }, statusService);
+
     // Add rotation toggle using helper
     createGlobeControlButton({
         id: 'autoRotateToggle',
@@ -179,28 +197,9 @@ export async function loadControlsLogic({ createGlobeControlButton, createExitBu
         iconPath: 'assets/images/icons/Rotation Icon.png',
         iconAlt: 'Rotate',
         iconSpanId: 'rotateIcon',
-        parentId: 'headerRotateSubBarInner',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 40,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
-    }, statusService);
-
-    createGlobeControlButton({
-        id: 'mapViewToggle',
-        className: '',
-        title: 'Toggle Map View',
-        label: 'Map',
-        iconPath: 'assets/images/icons/Switch to Globe Icon.png',
-        iconAlt: 'Globe',
-        iconSpanId: 'mapViewToggleIcon',
-        parentId: 'headerHubMapStack',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 30,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
+        parentId: 'dockGlobeRailLeft',
+        baseClass: 'globe-control-btn',
+        className: 'dock-globe-rail__btn'
     }, statusService);
     
     // Add exit button using helper

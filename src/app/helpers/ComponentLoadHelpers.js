@@ -306,7 +306,7 @@ export function createGlobeControlButton({
     iconWrap.appendChild(img);
     button.appendChild(iconWrap);
 
-    if (isHeaderHubBtn && label) {
+    if (label) {
         const labelEl = document.createElement('span');
         labelEl.className = 'header-hub-btn-label';
         labelEl.textContent = String(label);
@@ -348,6 +348,9 @@ export function createGlobeControlButton({
         if (resolvedParentId === 'headerHubMapStack') {
             _sortHeaderHubLeft(_getHeaderHubLeft());
         }
+        if (resolvedParentId === 'dockGlobeRailLeft') {
+            _sortGlobeRail(parent);
+        }
 
         updateStatus(`✓ ${title} button added`, 'success');
     } else {
@@ -355,4 +358,18 @@ export function createGlobeControlButton({
     }
     
     return button;
+}
+
+/**
+ * Sorts buttons in the left globe rail by headerOrder dataset
+ */
+function _sortGlobeRail(rail) {
+    if (!rail) return;
+    const buttons = Array.from(rail.children);
+    buttons.sort((a, b) => {
+        const orderA = parseInt(a.dataset.headerOrder || '999', 10);
+        const orderB = parseInt(b.dataset.headerOrder || '999', 10);
+        return orderA - orderB;
+    });
+    buttons.forEach(btn => rail.appendChild(btn));
 }

@@ -119,10 +119,22 @@ class MusicManager {
         if (!badge) return;
 
         const scale = this._getBodyScale();
-        const rect = btn.getBoundingClientRect();
+        const musicRect = btn.getBoundingClientRect();
         const gap = 2;
-        const cx = (rect.left + rect.width / 2) / scale;
-        const top = (rect.bottom + gap) / scale;
+
+        // If the Home button exists, center the badge between Music and Home
+        const homeBtn = document.getElementById('homeBtn');
+        let cx;
+        if (homeBtn) {
+            const homeRect = homeBtn.getBoundingClientRect();
+            const leftEdge = musicRect.left;
+            const rightEdge = homeRect.right;
+            cx = ((leftEdge + rightEdge) / 2) / scale;
+        } else {
+            cx = (musicRect.left + musicRect.width / 2) / scale;
+        }
+
+        const top = (musicRect.bottom + gap) / scale;
 
         const vw = Math.max(1, (window.innerWidth || 1) / scale);
         const margin = 8;

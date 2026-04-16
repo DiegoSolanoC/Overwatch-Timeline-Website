@@ -45,6 +45,8 @@ export class SceneModel {
         this.hyperloopVisible = true;
         /** Aurora shell + cloud layer; when false, meshes hide and reload randomizes like a fresh page when re-enabled. */
         this.globeWeatherEffectsVisible = true;
+        /** Lighting toggle state: Sun, ambient contrast, and city lights (light dots). */
+        this.globeLightingVisible = true;
         this.eventMarker = null; // Current event marker for recentering
         this.activeFilters = new Set(); // Currently active filter selections
         this.isMapView = false; // Earth view mode: globe (false) or flat map (true)
@@ -530,6 +532,20 @@ export class SceneModel {
      */
     getGLTFLoader() {
         return this.gltfLoader;
+    }
+
+    /**
+     * @param {boolean} visible
+     */
+    setGlobeLightingVisible(visible) {
+        this.globeLightingVisible = !!visible;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    getGlobeLightingVisible() {
+        return this.globeLightingVisible !== false;
     }
 }
 

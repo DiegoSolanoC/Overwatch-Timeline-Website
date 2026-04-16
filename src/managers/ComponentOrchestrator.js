@@ -124,11 +124,16 @@ export class ComponentOrchestrator {
             }
 
             if (!this.loadedComponents.palette) {
-                updateStatus('→ Loading Palette...', 'info');
+                updateStatus('⬛ Loading Palette...', 'info');
                 await this.loaders.palette();
                 await new Promise(r => setTimeout(r, 300));
             } else {
-                updateStatus('→ Palette already loaded, skipping...', 'info');
+                updateStatus('⬛ Palette already loaded, skipping...', 'info');
+            }
+
+            // Always ensure header nav buttons exist (Events, Codex, Map, Filters)
+            if (this.loaders.headerNav) {
+                this.loaders.headerNav();
             }
             
             updateStatus('✓ Universal Features auto-load complete!', 'success');

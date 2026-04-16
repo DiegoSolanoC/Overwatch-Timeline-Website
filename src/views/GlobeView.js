@@ -770,6 +770,37 @@ export class GlobeView {
     }
 
     /**
+     * Toggle combined globe lighting: Sun background, ambient contrast, and city lights dots.
+     * @param {boolean} visible
+     */
+    setGlobeLightingVisible(visible) {
+        const v = !!visible;
+        
+        // 1. Sun background (sprite + light source)
+        const sunBg = this.sceneModel.getSunBackground();
+        if (sunBg) {
+            if (sunBg.sprite) sunBg.sprite.visible = v;
+            if (sunBg.light) sunBg.light.visible = v;
+        }
+
+        // 2. City lights dots
+        if (this._earthCityLights) {
+            this._earthCityLights.visible = v;
+        }
+        if (this._earthCityAccentLights) {
+            this._earthCityAccentLights.forEach(light => {
+                light.visible = v;
+            });
+        }
+
+        // 3. Earth ambient contrast (if sun is off, we need more ambient light to see globe)
+        const earthAmb = this.sceneModel.earthAmbientLayer1;
+        if (earthAmb) {
+            earthAmb.intensity = v ? 0.002 : 0.72;
+        }
+    }
+
+    /**
      * Flat map is DOM-only; keep globe-side overlays in sync when toggling modes.
      * @param {boolean} mapEnabled
      */

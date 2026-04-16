@@ -23,9 +23,9 @@ export function setupEventUIComponents({ updateStatus }) {
         label: 'Filters',
         iconPath: 'assets/images/icons/Filter Icon.png',
         iconAlt: 'Filters',
-        parentId: 'headerHub',
+        parentId: 'headerHubRight',
         baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 20
+        headerOrder: 5 // Keep it to the left of Palette/Music in the right hub
     });
     
     // Add event manager button
@@ -51,6 +51,19 @@ export function setupEventUIComponents({ updateStatus }) {
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
         headerOrder: 15
+    });
+
+    createGlobeControlButton({
+        id: 'headerMapViewToggle',
+        className: '',
+        title: 'Toggle Map View',
+        label: 'Map',
+        iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+        iconAlt: 'Map',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        iconSpanId: 'headerMapViewToggleIcon',
+        headerOrder: 20
     });
     
     // Add event pagination

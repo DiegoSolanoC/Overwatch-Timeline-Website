@@ -1322,11 +1322,16 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
     position: absolute;
     bottom: 20px;
     left: 20px;
-    width: 80px;
-    height: 65px;
-    background: rgba(13, 71, 161, 0.9);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
+    width: clamp(72px, 8.5vw, 88px);
+    height: 60px;
+    background: rgba(13, 71, 161, 0.35);
+    border-style: solid;
+    border-width: 2px 2px 2px 6px;
+    border-color: rgba(255, 255, 255, 0.93);
+    border-radius: 4px;
+    padding: 0 16px; /* Increased horizontal padding */
+    transform: skewX(-11deg);
+    gap: 10px; /* Space between icon and text */
     color: white;
     font-family: var(--font-control-bold, var(--font-default));
     font-size: 16px;
@@ -1337,38 +1342,75 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.45);
     user-select: none;
     line-height: 1;
 }
 
-/* Mobile-only: pairs above the dock. Desktop keeps map/rotate/transport/weather in the header. */
-@media (min-width: 769px) {
-    .dock-globe-rail {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-    }
+.globe-control-btn:hover {
+    transform: skewX(-11deg) translateY(-3px) scale(1.04);
+    background: rgba(13, 71, 161, 0.55);
+    border-color: #fff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+
+.globe-control-btn span,
+.globe-control-btn img,
+.globe-control-btn i,
+.globe-control-btn [id$="Icon"],
+.globe-control-btn .header-hub-btn-label {
+    transform: skewX(11deg) !important; /* Force EVERYTHING inside to stay upright */
+    display: inline-block;
+}
+
+/* Standardize icon container size and prevent distortion */
+.globe-control-btn [id$="Icon"] {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 28px !important; /* Slightly smaller for better balance */
+    height: 28px !important;
+    flex-shrink: 0;
+    margin-right: 2px;
+}
+
+.globe-control-btn [id$="Icon"] img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.globe-control-btn .header-hub-btn-label {
+    transform: skewX(11deg) !important; /* Keep text straight */
+    white-space: nowrap;
+    margin-left: 2px;
+}
+
+/* Mobile-only dock rail pairs. Desktop now unhides these to match mobile look for specific buttons. */
+
+.dock-globe-rail {
+    --dock-globe-rail-gap: 10px;
+    position: fixed;
+    bottom: calc(var(--footer-height, 65px) + 24px);
+    z-index: 115;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    pointer-events: none;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
     .dock-globe-rail {
-        --dock-globe-rail-gap: 10px;
-        position: fixed;
         bottom: calc(var(--footer-height, 65px) + 24px);
-        z-index: 115;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        gap: 8px;
-        align-items: center;
-        justify-content: flex-start;
-        pointer-events: none;
-        width: max-content;
-        max-width: calc(100vw - 24px);
-        box-sizing: border-box;
     }
+}
 
     body:has(#paginationDock) .dock-globe-rail {
         bottom: calc(
@@ -1393,13 +1435,28 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
         left: auto !important;
         right: auto !important;
         bottom: auto !important;
-        transform: none !important;
-        width: 52px;
-        height: 44px;
+        transform: skewX(-11deg) !important;
+        width: 125px !important; /* Unified width for all 5 buttons */
+        height: 52px;
         flex-shrink: 0;
         margin: 0;
+        padding: 0 8px !important; /* Centered content */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
         pointer-events: auto;
-        font-size: 14px;
+        font-size: 13px; /* Slightly smaller to fit fixed width comfortably */
+        border-style: solid !important;
+        border-width: 2px 2px 2px 6px !important;
+        border-color: rgba(255, 255, 255, 0.93) !important;
+        background: rgba(13, 71, 161, 0.35) !important;
+    }
+
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn:hover {
+        transform: skewX(-11deg) translateY(-3px) scale(1.04) !important;
+        background: rgba(13, 71, 161, 0.55) !important;
+        border-color: #fff !important;
     }
 
     body.map-view-enabled .dock-globe-rail--right > .globe-control-btn#autoRotateToggle {
@@ -1407,7 +1464,6 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
         visibility: hidden !important;
         pointer-events: none !important;
     }
-}
 
 /* Color Palette Button (bottom right) - now handled by .bottom-right-btn */
 
@@ -1431,17 +1487,79 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
 
 /* (intentionally no white-glow hover for panel toggle buttons; glow belongs to panel option buttons) */
 
+/* Labels for globe-control buttons (used in dock rails on desktop) */
+.globe-control-btn .header-hub-btn-label {
+    margin-left: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+/* Expand button width on desktop if it has a label */
+@media (min-width: 769px) {
+    .globe-control-btn:has(.header-hub-btn-label) {
+        width: auto;
+        min-width: 120px;
+        padding: 0 16px;
+        justify-content: flex-start;
+    }
+}
+
 .globe-control-btn:active {
     transform: scale(0.95);
 }
 
-.globe-control-btn.active {
-    background: rgba(27, 94, 32, 0.9); /* Darker green shade for background */
-    border-color: rgba(76, 175, 80, 0.8); /* Keep label green tone for border */
+/* Toggle Feedback Flashes (Maximum specificity to override dock rail and hover states) */
+.globe-control-btn.flash-green,
+.globe-control-btn.flash-green:hover,
+.dock-globe-rail > .globe-control-btn.flash-green,
+.dock-globe-rail > .globe-control-btn.flash-green:hover {
+    background: rgba(46, 125, 50, 0.95) !important;
+    border-color: rgba(76, 175, 80, 0.9) !important;
+    box-shadow: 0 0 25px rgba(76, 175, 80, 0.7) !important;
 }
 
-.globe-control-btn.active:hover {
-    background: rgba(27, 94, 32, 1); /* Darker green shade on hover */
+.globe-control-btn.flash-red,
+.globe-control-btn.flash-red:hover,
+.dock-globe-rail > .globe-control-btn.flash-red,
+.dock-globe-rail > .globe-control-btn.flash-red:hover {
+    background: rgba(198, 40, 40, 0.95) !important;
+    border-color: rgba(239, 83, 80, 0.9) !important;
+    box-shadow: 0 0 25px rgba(239, 83, 80, 0.7) !important;
+}
+
+.globe-control-btn.flash-orange,
+.globe-control-btn.flash-orange:hover,
+.dock-globe-rail > .globe-control-btn.flash-orange,
+.dock-globe-rail > .globe-control-btn.flash-orange:hover {
+    background: rgba(239, 108, 0, 0.95) !important;
+    border-color: rgba(255, 152, 0, 0.9) !important;
+    box-shadow: 0 0 25px rgba(255, 152, 0, 0.7) !important;
+}
+
+.globe-control-btn.active {
+    /* Subtle indicator that feature is ON, but no heavy background */
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.globe-control-btn.toggle-off,
+.dock-globe-rail > .globe-control-btn.toggle-off {
+    border-color: rgba(183, 28, 28, 0.55) !important; /* Desaturated, grayish-red border */
+}
+
+/* Visual lockout for features not available in Map mode */
+.globe-control-btn.globe-locked {
+    opacity: 0.25 !important;
+    pointer-events: none !important;
+    filter: grayscale(0.8);
+    cursor: default;
+}
+
+#mapViewToggle.toggle-off {
+    border-color: rgba(255, 255, 255, 0.93) !important;
 }
 
 /* Event Pagination Controls */
@@ -2070,9 +2188,10 @@ body.color-palette-nulled .palette-option-btn.active {
 }
 
 /* Weather PNG reads smaller than train/rotation in the same cell (more padding in asset) */
+
 @media (max-width: 768px) {
     .globe-control-btn.weather-effects-btn #weatherEffectsIcon img {
-        transform: scale(1.14);
+        transform: skewX(11deg) scale(1.14);
         transform-origin: center center;
     }
 }

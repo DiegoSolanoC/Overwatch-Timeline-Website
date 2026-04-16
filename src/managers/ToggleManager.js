@@ -6,6 +6,26 @@ export class ToggleManager {
     constructor(sceneModel) {
         this.sceneModel = sceneModel;
     }
+
+    /**
+     * Flash a button with a temporary color feedback
+     * @param {HTMLElement} element 
+     * @param {string} flashClass ('flash-green', 'flash-red', 'flash-orange')
+     */
+    flashButton(element, flashClass) {
+        if (!element) return;
+        
+        // Remove existing flash classes to restart animation if clicked rapidly
+        element.classList.remove('flash-green', 'flash-red', 'flash-orange');
+        
+        // Use a tiny delay to ensure DOM recognizes the class removal
+        requestAnimationFrame(() => {
+            element.classList.add(flashClass);
+            setTimeout(() => {
+                element.classList.remove(flashClass);
+            }, 600);
+        });
+    }
     
     /**
      * Setup auto-rotate toggle
@@ -30,8 +50,10 @@ export class ToggleManager {
         const sceneModel = this.sceneModel;
         
         // Set initial state
-        if (sceneModel.getAutoRotateEnabled()) {
-            toggleBtn.classList.add('active');
+        if (!sceneModel.getAutoRotateEnabled()) {
+            toggleBtn.classList.add('toggle-off');
+        } else {
+            toggleBtn.classList.remove('toggle-off');
         }
         
         // Ensure rotation icon always uses local image file
@@ -62,23 +84,20 @@ export class ToggleManager {
             const enabled = !sceneModel.getAutoRotateEnabled();
             sceneModel.setAutoRotateEnabled(enabled);
             
+            // Flash feedback
+            this.flashButton(toggleBtn, enabled ? 'flash-green' : 'flash-red');
+
             if (enabled) {
-                toggleBtn.classList.add('active');
+                toggleBtn.classList.remove('toggle-off');
                 sceneModel.setAutoRotate(true);
-                // Clear any pending timeout
-                const timeout = sceneModel.autoRotateTimeout;
-                if (timeout) {
-                    clearTimeout(timeout);
-                    sceneModel.autoRotateTimeout = null;
+                if (window.globeController) {
+                    window.globeController.setAutoRotate(true);
                 }
             } else {
-                toggleBtn.classList.remove('active');
+                toggleBtn.classList.add('toggle-off');
                 sceneModel.setAutoRotate(false);
-                // Clear any pending timeout
-                const timeout = sceneModel.autoRotateTimeout;
-                if (timeout) {
-                    clearTimeout(timeout);
-                    sceneModel.autoRotateTimeout = null;
+                if (window.globeController) {
+                    window.globeController.setAutoRotate(false);
                 }
             }
             
@@ -125,8 +144,10 @@ export class ToggleManager {
         const sceneModel = this.sceneModel;
         
         // Set initial state
-        if (sceneModel.getHyperloopVisible()) {
-            toggleBtn.classList.add('active');
+        if (!sceneModel.getHyperloopVisible()) {
+            toggleBtn.classList.add('toggle-off');
+        } else {
+            toggleBtn.classList.remove('toggle-off');
         }
         
         // Ensure hyperloop icon always uses local image file
@@ -149,19 +170,22 @@ export class ToggleManager {
             const visible = !sceneModel.getHyperloopVisible();
             sceneModel.setHyperloopVisible(visible);
 
+            // Flash feedback
+            this.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+
+            if (visible) {
+                toggleBtn.classList.remove('toggle-off');
+            } else {
+                toggleBtn.classList.add('toggle-off');
+            }
+
             const gc = window.globeController;
             if (gc?.transportView && typeof gc.transportView.updateHyperloopVisibility === 'function') {
                 gc.transportView.updateHyperloopVisibility();
             }
             if (gc?.sceneModel?.getMapViewEnabled?.() && gc.transportController?.setSatellitesMapViewEnabled) {
                 gc.transportController.setSatellitesMapViewEnabled(true);
-            }
-
-            if (visible) {
-                toggleBtn.classList.add('active');
-                console.log('🚄 Transport systems ENABLED (Trains, Planes)');
             } else {
-                toggleBtn.classList.remove('active');
                 console.log('⏸️ Transport systems DISABLED — simulation paused, vehicle meshes hidden, trails cleared, no new spawns');
             }
             
@@ -234,8 +258,10 @@ export class ToggleManager {
         const weatherIcon = document.getElementById('weatherEffectsIcon');
         const sceneModel = this.sceneModel;
 
-        if (sceneModel.getGlobeWeatherEffectsVisible()) {
-            toggleBtn.classList.add('active');
+        if (!sceneModel.getGlobeWeatherEffectsVisible()) {
+            toggleBtn.classList.add('toggle-off');
+        } else {
+            toggleBtn.classList.remove('toggle-off');
         }
 
         const weatherImg =
@@ -257,14 +283,92 @@ export class ToggleManager {
             const visible = !sceneModel.getGlobeWeatherEffectsVisible();
             sceneModel.setGlobeWeatherEffectsVisible(visible);
 
+            // Flash feedback
+            this.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+
             if (visible) {
-                toggleBtn.classList.add('active');
+                sceneModel.setGlobeWeatherEffectsVisible(true);
+                toggleBtn.classList.remove('toggle-off');
             } else {
-                toggleBtn.classList.remove('active');
+                sceneModel.setGlobeWeatherEffectsVisible(false);
+                toggleBtn.classList.add('toggle-off');
             }
 
-            if (weatherIcon) {
-                weatherIcon.innerHTML = weatherImg;
+            if (onToggle) {
+                onToggle();
+            }
+        };
+
+        toggleBtn.addEventListener('mousedown', (event) => {
+            event.stopPropagation();
+        });
+
+        toggleBtn.addEventListener('mouseup', (event) => {
+            event.stopPropagation();
+        });
+
+        let touchStartTime = 0;
+        toggleBtn.addEventListener('touchstart', (event) => {
+            event.stopPropagation();
+            touchStartTime = Date.now();
+        });
+
+        toggleBtn.addEventListener('touchend', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            if (Date.now() - touchStartTime < 300) {
+                handleToggle(event);
+            }
+        });
+
+        toggleBtn.addEventListener('click', handleToggle);
+    }
+
+    /**
+     * Setup lighting toggle (Sun + City Lights + Ambient)
+     * @param {Function} [onToggle] - Callback after state updates
+     */
+    setupLightingToggle(onToggle) {
+        const toggleBtn = document.getElementById('lightingToggle');
+        if (!toggleBtn) return;
+
+        const lightingIcon = document.getElementById('lightingIcon');
+        const sceneModel = this.sceneModel;
+
+        if (!sceneModel.getGlobeLightingVisible()) {
+            toggleBtn.classList.add('toggle-off');
+        } else {
+            toggleBtn.classList.remove('toggle-off');
+        }
+
+        const lightingImg =
+            '<img src="assets/images/icons/Lighting Icon.png" alt="Lighting" style="width: 100%; height: 100%; object-fit: contain;">';
+        if (lightingIcon) {
+            lightingIcon.innerHTML = lightingImg;
+        }
+
+        const handleToggle = (event) => {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+
+            if (window.SoundEffectsManager) {
+                window.SoundEffectsManager.play('light');
+            }
+
+            const visible = !sceneModel.getGlobeLightingVisible();
+            sceneModel.setGlobeLightingVisible(visible);
+
+            // Flash feedback
+            this.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+
+            if (visible) {
+                sceneModel.setGlobeLightingVisible(true);
+                toggleBtn.classList.remove('toggle-off');
+            } else {
+                sceneModel.setGlobeLightingVisible(false);
+                toggleBtn.classList.add('toggle-off');
             }
 
             if (onToggle) {
@@ -302,9 +406,11 @@ export class ToggleManager {
      */
     setupMapViewToggle() {
         const toggleBtn = document.getElementById('mapViewToggle');
-        if (!toggleBtn) return;
+        const headerToggleBtn = document.getElementById('headerMapViewToggle');
+        if (!toggleBtn && !headerToggleBtn) return;
 
-        const mapIcon = document.getElementById('mapViewToggleIcon');
+        const mapIcon = toggleBtn ? document.getElementById('mapViewToggleIcon') : null;
+        const headerMapIcon = headerToggleBtn ? document.getElementById('headerMapViewToggleIcon') : null;
         const sceneModel = this.sceneModel;
         const rotateBar = document.getElementById('headerRotateSubBar');
 
@@ -434,7 +540,7 @@ export class ToggleManager {
         };
 
         if (sceneModel.getMapViewEnabled && sceneModel.getMapViewEnabled()) {
-            toggleBtn.classList.add('active');
+            // No class logic
         }
 
         const getIconPath = (enabled) => enabled
@@ -442,31 +548,42 @@ export class ToggleManager {
             : 'assets/images/icons/Switch to Globe Icon.png';
 
         const renderState = () => {
-            if (!mapIcon) return;
             const enabled = (sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView);
             const src = getIconPath(enabled);
             const alt = enabled ? 'Map' : 'Globe';
-            mapIcon.innerHTML = `<img src="${src}" alt="${alt}" style="width: 100%; height: 100%; object-fit: contain;">`;
+            const imgHtml = `<img src="${src}" alt="${alt}" style="width: 100%; height: 100%; object-fit: contain;">`;
 
-            const img = mapIcon.querySelector('img');
-            if (img && !isMobileGlobeControls()) {
-                const onImgReady = () => {
-                    if (!document.body.classList.contains('rotate-subbar-open')) return;
-                    bumpRotateBarLayout();
-                };
-                if (img.complete) {
-                    requestAnimationFrame(onImgReady);
-                } else {
-                    img.addEventListener('load', onImgReady, { once: true });
+            if (mapIcon) mapIcon.innerHTML = imgHtml;
+            if (headerMapIcon) headerMapIcon.innerHTML = imgHtml;
+
+            const setupImgLoad = (iconWrapper) => {
+                const img = iconWrapper.querySelector('img');
+                if (img && !isMobileGlobeControls()) {
+                    const onImgReady = () => {
+                        if (!document.body.classList.contains('rotate-subbar-open')) return;
+                        bumpRotateBarLayout();
+                    };
+                    if (img.complete) {
+                        requestAnimationFrame(onImgReady);
+                    } else {
+                        img.addEventListener('load', onImgReady, { once: true });
+                    }
                 }
+            };
+
+            if (mapIcon) setupImgLoad(mapIcon);
+
+            if (toggleBtn) {
+                const labelEl = toggleBtn.querySelector('.header-hub-btn-label');
+                if (labelEl) labelEl.textContent = enabled ? 'Map' : 'Globe';
+                toggleBtn.title = enabled ? 'Click to switch to Globe' : 'Click to switch to Map';
             }
 
-            const labelEl = toggleBtn.querySelector('.header-hub-btn-label');
-            if (labelEl) {
-                labelEl.textContent = enabled ? 'Map' : 'Globe';
+            if (headerToggleBtn) {
+                const labelEl = headerToggleBtn.querySelector('.header-hub-btn-label');
+                if (labelEl) labelEl.textContent = enabled ? 'Map' : 'Globe';
+                headerToggleBtn.title = enabled ? 'Click to switch to Globe' : 'Click to switch to Map';
             }
-
-            toggleBtn.title = enabled ? 'Click to switch to Globe' : 'Click to switch to Map';
 
             if (isMobileGlobeControls()) {
                 document.body.classList.remove('rotate-subbar-open');
@@ -481,6 +598,9 @@ export class ToggleManager {
             } else {
                 stopRotateBarFollow();
             }
+
+            // Sync globe feature locks when map state changes
+            this.syncGlobeLocks();
         };
 
         renderState();
@@ -535,16 +655,15 @@ export class ToggleManager {
             }
 
             const enabled = !(sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView);
+            
+            // Flash feedback (Orange for state switch)
+            if (toggleBtn && event.currentTarget === toggleBtn) this.flashButton(toggleBtn, 'flash-orange');
+            if (headerToggleBtn && event.currentTarget === headerToggleBtn) this.flashButton(headerToggleBtn, 'flash-orange');
+
             if (sceneModel.setMapViewEnabled) {
                 sceneModel.setMapViewEnabled(enabled);
             } else {
                 sceneModel.isMapView = enabled;
-            }
-
-            if (enabled) {
-                toggleBtn.classList.add('active');
-            } else {
-                toggleBtn.classList.remove('active');
             }
 
             // Apply mode switch via controller (also refreshes markers)
@@ -556,22 +675,58 @@ export class ToggleManager {
             renderState();
         };
 
-        toggleBtn.addEventListener('mousedown', (event) => event.stopPropagation(), { signal: mapSignal });
-        toggleBtn.addEventListener('mouseup', (event) => event.stopPropagation(), { signal: mapSignal });
+        const attachListeners = (btn) => {
+            if (!btn) return;
+            btn.addEventListener('mousedown', (event) => event.stopPropagation(), { signal: mapSignal });
+            btn.addEventListener('mouseup', (event) => event.stopPropagation(), { signal: mapSignal });
 
-        let touchStartTime = 0;
-        toggleBtn.addEventListener('touchstart', (event) => {
-            event.stopPropagation();
-            touchStartTime = Date.now();
-        }, { signal: mapSignal });
-        toggleBtn.addEventListener('touchend', (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-            if (Date.now() - touchStartTime < 300) {
-                handleToggle(event);
+            let touchStartTime = 0;
+            btn.addEventListener('touchstart', (event) => {
+                event.stopPropagation();
+                touchStartTime = Date.now();
+            }, { signal: mapSignal });
+            btn.addEventListener('touchend', (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                if (Date.now() - touchStartTime < 300) {
+                    handleToggle(event);
+                }
+            }, { signal: mapSignal });
+
+            btn.addEventListener('click', handleToggle, { signal: mapSignal });
+        };
+
+        if (toggleBtn) attachListeners(toggleBtn);
+        if (headerToggleBtn) attachListeners(headerToggleBtn);
+    }
+
+    /**
+     * Sync the locked state of globe-only features based on Map View
+     */
+    syncGlobeLocks() {
+        if (!this.sceneModel) return;
+        
+        const isMap = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
+        const globeButtons = [
+            document.getElementById('hyperloopToggle'),
+            document.getElementById('weatherEffectsToggle'),
+            document.getElementById('lightingToggle'),
+            document.getElementById('autoRotateToggle')
+        ];
+
+        globeButtons.forEach(btn => {
+            if (!btn) return;
+            if (isMap) {
+                btn.classList.add('globe-locked');
+                btn.disabled = true;
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.25';
+            } else {
+                btn.classList.remove('globe-locked');
+                btn.disabled = false;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '';
             }
-        }, { signal: mapSignal });
-
-        toggleBtn.addEventListener('click', handleToggle, { signal: mapSignal });
+        });
     }
 }

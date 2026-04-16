@@ -314,6 +314,13 @@ export class UIView {
     }
 
     /**
+     * @param {Function} [onToggle]
+     */
+    setupLightingToggle(onToggle) {
+        this.toggleManager.setupLightingToggle(onToggle);
+    }
+
+    /**
      * Setup globe <-> map view toggle
      */
     setupMapViewToggle() {

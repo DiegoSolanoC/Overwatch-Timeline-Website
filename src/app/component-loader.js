@@ -99,6 +99,135 @@ async function loadPalette() {
     }, 'Palette', 'loadPaletteBtn', getRunOperation());
 }
 
+/**
+ * Load header navigation buttons as universal features.
+ * These appear on startup regardless of whether the globe or events are loaded.
+ * createGlobeControlButton is idempotent — it skips if the ID already exists.
+ */
+function loadHeaderNavButtons() {
+    // Events Manager button
+    createGlobeControlButton({
+        id: 'eventsManageToggle',
+        className: '',
+        title: 'Manage Events',
+        label: 'Events',
+        iconPath: 'assets/images/icons/Event Manager Icon.png',
+        iconAlt: 'Event Manager',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 10
+    });
+
+    // Bootstrap: load the globe when Events is clicked and globe isn't loaded yet
+    const eventsBtn = document.getElementById('eventsManageToggle');
+    if (eventsBtn) {
+        eventsBtn.addEventListener('click', function bootstrapEventsToggle(e) {
+            if (window.globeController) return; // Real handler active
+            e.stopPropagation();
+            e.preventDefault();
+            if (typeof window.runGlobeComponents === 'function') {
+                void window.runGlobeComponents(false);
+            }
+        }, true);
+    }
+
+    // Codex button
+    createGlobeControlButton({
+        id: 'codexToggle',
+        className: '',
+        title: 'Open Codex',
+        label: 'Codex',
+        iconPath: 'assets/images/icons/Codex%20Icon.png',
+        iconAlt: 'Codex',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 15
+    });
+
+    // Map / Globe toggle (second access point in header)
+    createGlobeControlButton({
+        id: 'headerMapViewToggle',
+        className: '',
+        title: 'Toggle Map View',
+        label: 'Map',
+        iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+        iconAlt: 'Map',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        iconSpanId: 'headerMapViewToggleIcon',
+        headerOrder: 20
+    });
+
+    // Bootstrap handler: if globe not yet loaded, clicking Map triggers runGlobeComponents.
+    // Once controls load and setupMapViewToggle() runs, the real handler takes over cleanly.
+    const headerMapBtn = document.getElementById('headerMapViewToggle');
+    if (headerMapBtn) {
+        headerMapBtn.addEventListener('click', function bootstrapMapToggle(e) {
+            if (window.globeController) return; // Real handler is active — do nothing
+            e.stopPropagation();
+            e.preventDefault();
+            if (typeof window.runGlobeComponents === 'function') {
+                void window.runGlobeComponents(false);
+            }
+        }, true); // Capture phase so it fires before the real setupMapViewToggle handler
+    }
+
+    // Filters button (right side)
+    createGlobeControlButton({
+        id: 'filtersToggle',
+        className: '',
+        title: 'Open Filters',
+        label: 'Filters',
+        iconPath: 'assets/images/icons/Filter Icon.png',
+        iconAlt: 'Filters',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        headerOrder: 5
+    });
+
+    // Home button — right hub, after Music (order 60), returns to blank startup state
+    createGlobeControlButton({
+        id: 'homeBtn',
+        className: '',
+        title: 'Return to Home',
+        label: 'Home',
+        iconPath: 'assets/images/icons/Home Button.png',
+        iconAlt: 'Home',
+        parentId: 'headerHubRight',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        iconSpanId: 'homeBtnIcon',
+        headerOrder: 70
+    });
+
+    // Wire up Home button click — unloads globe or codex, returns to clean state
+    const homeButton = document.getElementById('homeBtn');
+    if (homeButton) {
+        homeButton.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            // Exit Codex if active
+            const inCodex = document.body.classList.contains('codex-mode-active');
+            if (inCodex) {
+                const svc = window.CodexModeService;
+                if (svc && typeof svc.exitCodexMode === 'function') {
+                    await svc.exitCodexMode();
+                }
+            }
+
+            // Kill globe if loaded
+            if (window.globeController && typeof window.killGlobeComponents === 'function') {
+                await window.killGlobeComponents();
+            }
+
+            // Clear stored mode so a refresh also starts clean
+            localStorage.removeItem('currentMode');
+        });
+    }
+
+    updateStatus('✓ Header nav buttons loaded', 'success');
+}
+
 /** Unload Globe Base (earth, starfield, scene, markers). */
 async function unloadGlobeBase(options = {}) {
     const preserveEventsUi = options && options.preserveEventsUi === true;
@@ -228,16 +357,32 @@ async function loadTransport() {
         
         // Add transport toggle (if not already present)
         createGlobeControlButton({
+            id: 'mapViewToggle',
+            className: 'dock-globe-rail__btn',
+            title: 'Toggle Map View',
+            label: 'Map',
+            iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+            iconAlt: 'Globe',
+            parentId: 'dockGlobeRailLeft',
+            baseClass: 'globe-control-btn',
+            iconSpanId: 'mapViewToggleIcon',
+            headerOrder: 10,
+            mobileParentId: 'dockGlobeRailRight',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'dock-globe-rail__btn'
+        });
+
+        createGlobeControlButton({
             id: 'hyperloopToggle',
-            className: 'active',
-            title: 'Toggle Transport Systems',
+            className: 'active hyperloop-btn dock-globe-rail__btn',
+            title: 'Toggle hyperloop',
             label: 'Vehicles',
             iconPath: 'assets/images/icons/Train Icon.png',
             iconAlt: 'Transport',
-            parentId: 'headerHubRight',
-            baseClass: 'header-hub-btn header-hub-btn--icon',
+            parentId: 'dockGlobeRailLeft',
+            baseClass: 'globe-control-btn',
             iconSpanId: 'hyperloopIcon',
-            headerOrder: 40,
+            headerOrder: 20,
             mobileParentId: 'dockGlobeRailLeft',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'hyperloop-btn dock-globe-rail__btn'
@@ -245,18 +390,50 @@ async function loadTransport() {
 
         createGlobeControlButton({
             id: 'weatherEffectsToggle',
-            className: 'active',
+            className: 'active weather-effects-btn dock-globe-rail__btn',
             title: 'Toggle weather',
             label: 'Weather',
             iconPath: 'assets/images/icons/Weather Icon.png',
             iconAlt: 'Weather',
-            parentId: 'headerHubRight',
-            baseClass: 'header-hub-btn header-hub-btn--icon',
+            parentId: 'dockGlobeRailLeft',
+            baseClass: 'globe-control-btn',
             iconSpanId: 'weatherEffectsIcon',
-            headerOrder: 45,
+            headerOrder: 30,
             mobileParentId: 'dockGlobeRailLeft',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'weather-effects-btn dock-globe-rail__btn'
+        });
+
+        createGlobeControlButton({
+            id: 'lightingToggle',
+            className: 'active lighting-btn dock-globe-rail__btn',
+            title: 'Toggle Lighting',
+            label: 'Lighting',
+            iconPath: 'assets/images/icons/Lighting Icon.png',
+            iconAlt: 'Lighting',
+            parentId: 'dockGlobeRailLeft',
+            baseClass: 'globe-control-btn',
+            iconSpanId: 'lightingIcon',
+            headerOrder: 40,
+            mobileParentId: 'dockGlobeRailLeft',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'lighting-btn dock-globe-rail__btn'
+        });
+
+        createGlobeControlButton({
+            id: 'autoRotateToggle',
+            className: 'dock-globe-rail__btn',
+            title: 'Toggle Auto-Rotation',
+            label: 'Rotation',
+            iconPath: 'assets/images/icons/Rotation Icon.png',
+            iconAlt: 'Rotate',
+            parentId: 'dockGlobeRailLeft',
+            baseClass: 'globe-control-btn',
+            iconSpanId: 'rotateIcon',
+            headerOrder: 50,
+            mobileParentId: 'dockGlobeRailRight',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'dock-globe-rail__btn'
         });
         
         // Setup transport toggle
@@ -273,12 +450,18 @@ async function loadTransport() {
                     controller.globeView.setWeatherEffectsVisible(controller.sceneModel.getGlobeWeatherEffectsVisible());
                 }
             });
+            controller.uiView.setupLightingToggle(() => {
+                if (controller.globeView) {
+                    controller.globeView.setGlobeLightingVisible(controller.sceneModel.getGlobeLightingVisible());
+                }
+            });
             updateStatus('✓ Transport & weather toggles initialized', 'success');
         }
         
         // Load transport sound effect
         loadSoundEffect('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3', 'Loading transport sound effect...');
         loadSoundEffect('weather', 'assets/audio/sfx/Weather.mp3', 'Loading weather sound effect...');
+        loadSoundEffect('light', 'assets/audio/sfx/light.mp3', 'Loading lighting sound effect...');
         
         // Ensure transport systems are visible
         if (controller.transportView) {
@@ -323,32 +506,32 @@ async function loadControls() {
 
         // Desktop: rotate in header subbar, map in #headerHubMapStack. Mobile: both on #dockGlobeRailRight (rotation left of map).
         createGlobeControlButton({
-            id: 'autoRotateToggle',
-            className: 'header-subbar-btn',
-            title: 'Toggle Auto-Rotation',
-            label: 'Rotation',
-            iconPath: 'assets/images/icons/Rotation Icon.png',
-            iconAlt: 'Rotate',
-            parentId: 'headerRotateSubBarInner',
-            baseClass: 'header-hub-btn header-hub-btn--icon',
-            iconSpanId: 'rotateIcon',
-            headerOrder: 40,
+            id: 'mapViewToggle',
+            className: 'dock-globe-rail__btn',
+            title: 'Toggle Map View',
+            label: 'Map',
+            iconPath: 'assets/images/icons/Switch to Globe Icon.png',
+            iconAlt: 'Globe',
+            parentId: 'dockGlobeRailLeft',
+            baseClass: 'globe-control-btn',
+            iconSpanId: 'mapViewToggleIcon',
+            headerOrder: 10,
             mobileParentId: 'dockGlobeRailRight',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'dock-globe-rail__btn'
         });
 
         createGlobeControlButton({
-            id: 'mapViewToggle',
-            className: '',
-            title: 'Toggle Map View',
-            label: 'Map',
-            iconPath: 'assets/images/icons/Switch to Globe Icon.png',
-            iconAlt: 'Globe',
-            parentId: 'headerHubMapStack',
-            baseClass: 'header-hub-btn header-hub-btn--icon',
-            iconSpanId: 'mapViewToggleIcon',
-            headerOrder: 30,
+            id: 'autoRotateToggle',
+            className: 'dock-globe-rail__btn',
+            title: 'Toggle Auto-Rotation',
+            label: 'Rotation',
+            iconPath: 'assets/images/icons/Rotation Icon.png',
+            iconAlt: 'Rotate',
+            parentId: 'dockGlobeRailLeft',
+            baseClass: 'globe-control-btn',
+            iconSpanId: 'rotateIcon',
+            headerOrder: 50,
             mobileParentId: 'dockGlobeRailRight',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'dock-globe-rail__btn'
@@ -581,6 +764,7 @@ const componentOrchestrator = new ComponentOrchestrator(
     {
         palette: loadPalette,
         music: loadMusic,
+        headerNav: loadHeaderNavButtons,
         menu: loadMenu,
         globeBase: loadGlobeBase,
         transport: loadTransport,

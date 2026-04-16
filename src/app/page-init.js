@@ -150,105 +150,38 @@ window.addEventListener('DOMContentLoaded', function () {
 
     // Wait a bit for component-loader to initialize and publish globals.
     setTimeout(async function () {
-        console.log(`${logPrefix} Auto-loading Universal Features and Global Timeline...`);
-        updateLoadingStatus('Loading Universal Features...');
+        console.log(`${logPrefix} Auto-loading Universal Features...`);
+        updateLoadingStatus('Loading...');
 
-        // Auto-load Universal Features (Palette + Music)
+        // Always clear any saved mode on fresh load — start blank
+        localStorage.removeItem('currentMode');
+
+        // Auto-load Universal Features (Palette + Music + Header)
         if (typeof window.runUniversalFeatures === 'function') {
             try {
-                // Keep the overlay visible across the full boot chain so we don't
-                // flash a "header + universal buttons only" state between loads.
-                await window.runUniversalFeatures({ keepOverlay: true });
+                await window.runUniversalFeatures({ keepOverlay: false });
                 console.log(`${logPrefix} ✓ Universal Features auto-loaded`);
-                updateLoadingStatus('Loading Global Timeline...');
             } catch (error) {
                 console.error(`${logPrefix} Error auto-loading Universal Features:`, error);
-                updateLoadingStatus('Error loading Universal Features');
+                updateLoadingStatus('Error loading features');
             }
         } else {
             console.warn(`${logPrefix} runUniversalFeatures not available yet, retrying...`);
             setTimeout(async function () {
                 if (typeof window.runUniversalFeatures === 'function') {
-                    updateLoadingStatus('Loading Universal Features...');
-                    await window.runUniversalFeatures({ keepOverlay: true });
-                    updateLoadingStatus('Loading Global Timeline...');
+                    await window.runUniversalFeatures({ keepOverlay: false });
                 }
             }, 1000);
         }
 
-        // Auto-load Global Timeline Components immediately after Universal Features.
-        // Overlay stays visible throughout due to keepOverlay above.
-        setTimeout(async function () {
-            if (typeof window.runGlobeComponents === 'function') {
-                try {
-                    const savedMode = (localStorage.getItem('currentMode') || 'globe').toString().toLowerCase();
-                    await window.runGlobeComponents(true);
-                    if (savedMode === 'codex') {
-                        updateLoadingStatus('Opening Codex…');
-                        try {
-                            const svc = window.CodexModeService;
-                            if (svc && typeof svc.enterCodexMode === 'function') {
-                                await svc.enterCodexMode();
-                                console.log(`${logPrefix} ✓ Restored Codex from last session`);
-                            }
-                        } catch (codexErr) {
-                            console.warn(`${logPrefix} Could not restore Codex:`, codexErr);
-                        }
-                    }
-                    console.log(`${logPrefix} ✓ Global Timeline auto-loaded`);
-                    updateLoadingStatus('Complete!');
-
-                    // Fade out loading overlay after a brief delay
-                    setTimeout(function () {
-                        if (loadingOverlay) {
-                            loadingOverlay.classList.remove('active');
-                        }
-                    }, 300);
-                } catch (error) {
-                    console.error(`${logPrefix} Error auto-loading Global Timeline:`, error);
-                    updateLoadingStatus('Error loading Global Timeline');
-                    // Still fade out after error
-                    setTimeout(function () {
-                        if (loadingOverlay) {
-                            loadingOverlay.classList.remove('active');
-                        }
-                    }, 1000);
-                }
-            } else {
-                console.warn(`${logPrefix} runGlobeComponents not available yet, retrying...`);
-                setTimeout(async function () {
-                    if (typeof window.runGlobeComponents === 'function') {
-                        updateLoadingStatus('Loading Global Timeline...');
-                        try {
-                            const savedModeRetry = (localStorage.getItem('currentMode') || 'globe').toString().toLowerCase();
-                            await window.runGlobeComponents(true);
-                            if (savedModeRetry === 'codex') {
-                                updateLoadingStatus('Opening Codex…');
-                                try {
-                                    const svcR = window.CodexModeService;
-                                    if (svcR && typeof svcR.enterCodexMode === 'function') {
-                                        await svcR.enterCodexMode();
-                                        console.log(`${logPrefix} ✓ Restored Codex from last session`);
-                                    }
-                                } catch (codexErr) {
-                                    console.warn(`${logPrefix} Could not restore Codex:`, codexErr);
-                                }
-                            }
-                            updateLoadingStatus('Complete!');
-                        } catch (globeErr) {
-                            console.error(`${logPrefix} Error auto-loading Global Timeline:`, globeErr);
-                            updateLoadingStatus('Error loading Global Timeline');
-                        }
-                        setTimeout(function () {
-                            if (loadingOverlay) {
-                                loadingOverlay.classList.remove('active');
-                            }
-                        }, 300);
-                    }
-                }, 1000);
+        // Fade out loading overlay — globe is NOT auto-loaded
+        setTimeout(function () {
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('active');
             }
-        }, 0);
-    }, 500); // Small delay to ensure test-loader.js is loaded
+        }, 300);
+
+    }, 500); // Small delay to ensure component-loader.js is loaded
 
     // Cleanup on page unload to prevent memory leaks and freezing
     window.addEventListener('beforeunload', () => {
