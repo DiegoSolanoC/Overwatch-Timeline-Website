@@ -565,10 +565,13 @@
       "headlines": [
         "Climate Change worsens inspite of a decade worth of ecological effords"
       ],
+      "yearStart": 2036,
+      "eraName": "The Age of Progress",
       "lat": 34.261004,
       "lon": 108.9423363,
-      "eraName": "The Age of Progress",
-      "yearStart": 2036
+      "npcs": [
+        "Jiayi"
+      ]
     },
     {
       "name": "Wuxing University",
@@ -1527,7 +1530,7 @@
       "name": "To Build a Better Soldier",
       "locationType": "earth",
       "cityDisplayName": "Camp Hale, United States",
-      "description": "Following her return from the Lunar Colony, Victoria Naughton was chosen to spearhead America's Soldier Enhancement program. The Australian marine evolutionary biologist focused on gene therapy, looking to enhance the mental progression, speed and strength of the test subjects, which caught the attention of the government, and with that came more funding. Her research with the apes at the Lunar Colony showed promising results, which led to the approval of the codename: Project Naughton, and an expanded laboratory in Camp Hale. The project was highly classified and didn't see human testing until years later during the crisis, as the moral questions and public preference for cybernetics prevented Naughton from reaching results faster.",
+      "description": "Following her return from the Lunar Colony, Victoria Naughton was chosen to spearhead America's Soldier Enhancement program. The Australian marine evolutionary biologist focused on gene therapy, looking to enhance the mental progression, speed and strength of the test subjects, which caught the attention of the government, and with that came more funding. \n\n\n\nHer research with the apes at the Lunar Colony showed promising results, which led to the approval of the codename: Project Naughton, and an expanded laboratory in Camp Hale. The project was highly classified and didn't see human testing until years later during the crisis, as the moral questions and public preference for cybernetics prevented Naughton from reaching results faster.",
       "image": "",
       "filters": [
         "Soldier 76",
@@ -1543,14 +1546,15 @@
       "headlines": [
         "US Military hires Dr. Naughton for secret project following her return from the Moon"
       ],
-      "lat": 39.475518,
-      "lon": -106.1177077,
       "secondaryCountryFlags": [
         "Australia.png"
       ],
       "yearStart": 2040,
       "yearEnd": 2050,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "lat": 39.475518,
+      "lon": -106.1177077,
+      "npcs": []
     },
     {
       "name": "Playing God",
@@ -2112,7 +2116,7 @@
       "filters": [],
       "factions": [
         "Overwatch",
-        "Crisis"
+        "The Anubis Omnic Crisis"
       ],
       "sources": [
         {
@@ -2124,14 +2128,17 @@
         "UN Approves unified strike unti plan",
         "Overwatch Initiative passes United Nations hearings, scouting for candidates begins shortly after"
       ],
-      "lat": 46.2017559,
-      "lon": 6.1466014,
       "secondaryCountryFlags": [
         "Nigeria.png"
       ],
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 46.2017559,
+      "lon": 6.1466014,
+      "npcs": [
+        "Adawe"
+      ]
     },
     {
       "name": "Eye of Horus",
@@ -2229,14 +2236,14 @@
       "name": "Super Soldiers",
       "locationType": "earth",
       "cityDisplayName": "Wheeler County, United States",
-      "description": "The Soldier Enhancement Program had been kept secret for a long time due to the many human rights violations going on with its research, and in spite of years of progress, Naughton lacked the ethical green light to move on to human subjects. That all changed when the Crisis started.\n\nThe United States turned into multiple warzones overnight, and any measures they took to stop the bloodshed seemed only temporary. In desperation, the government decided to go public with the Soldier Enhancement Program. In spite of concerns, the program gathered plenty of public support due to the dire circumstances of the Crisis, and recruitment for human trials began, though at this time the concept was purely fictional.\n\nAt least two hundred military personnel volunteered for the SEP initially, but only a handful would survive the horrors that awaited them in Naughton's labs. As recruits kept coming in, failed attempts piled up, with about sixty percent of them dying throughout the program. Anubis was also keenly aware of the situation and targeted the labs on multiple occasions. The initial lab at Camp Hale was destroyed within weeks of the announcement, and the team had to hop from one facility to another. In the end, the successful soldiers would be deployed around the country and quickly turn the tides in many battles where they showed up.\n\nThe two most notorious successes of the program were Soldier 24: Gabriel Reyes, and Soldier 76: Jack Morrison. The reputation of these two men was legendary even before Overwatch, the golden-haired hero who appeared out of nowhere and saved the day. And although Reyes was quieter and usually took less flashy missions, he was nonetheless just as effective and valuable, and even while he was still being actively tested on, he found time to communicate and coordinate with troops actively in battle.",
+      "description": "The Soldier Enhancement Program had been kept secret for a long time due to the many human rights violations going on with its research, and in spite of years of progress, Naughton lacked the ethical green light to move on to human subjects. That all changed when the Crisis started.\n\nThe United States turned into multiple warzones overnight, and any measures they took to stop the bloodshed seemed only temporary. In desperation, the government decided to go public with the Soldier Enhancement Program. In spite of concerns, the program gathered plenty of public support due to the dire circumstances of the Crisis, and recruitment for human trials began, though at this time the concept was purely fictional. After the initial sucess with Soldier 00, Kendra Banks, the program moved forward on test trials wtih the rest of the volunteers.\n\nAt least two hundred military personnel volunteered for the SEP initially, but only a handful would survive the horrors that awaited them in Naughton's labs, about sixty percent of the subjects died throughout the program. Anubis was also keenly aware of the situation and targeted the labs on multiple occasions. The initial lab at Camp Hale was destroyed within weeks of the announcement, and the team had to hop from one facility to another. In the end, the successful soldiers would be deployed around the country and quickly turn the tides in many battles where they showed up.\n\nThe two most notorious successes of the program were Soldier 24: Gabriel Reyes, and Soldier 76: Jack Morrison. The reputation of these two men was legendary even before Overwatch, the golden-haired hero who appeared out of nowhere and saved the day. And although Reyes was quieter and usually took less flashy missions, he was nonetheless just as effective and valuable, and even while he was still being actively tested on, he found time to communicate and coordinate with troops actively in battle.",
       "image": "",
       "filters": [
         "Soldier 76",
         "Reaper"
       ],
       "factions": [
-        "Crisis"
+        "The Anubis Omnic Crisis"
       ],
       "sources": [
         {
@@ -2248,11 +2255,14 @@
         "United States Government to begin recruitment for Super Soldier trials",
         "National Heroes Jack Morrison and Gabriel Reyes to be deployed across battle scared cities"
       ],
-      "lat": 35.3921902,
-      "lon": -100.2632764,
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
+      "eraName": "The Omnic Crisis",
+      "lat": 35.3921902,
+      "lon": -100.2632764,
+      "npcs": [
+        "Kendra"
+      ]
     },
     {
       "name": "Honor and Glory",
@@ -2387,12 +2397,13 @@
           "image": "",
           "locationType": "earth",
           "cityDisplayName": "Zurich, Switzerland",
-          "lat": 47.3744489,
-          "lon": 8.5410422,
           "npcs": [
             "Hector",
-            "Claudio"
-          ]
+            "Claudio",
+            "Adawe"
+          ],
+          "lat": 47.3744489,
+          "lon": 8.5410422
         },
         {
           "name": "Early Missions",
@@ -2405,8 +2416,8 @@
             "Torbjörn"
           ],
           "factions": [
-            "00Overwatch",
-            "12Crisis"
+            "Overwatch",
+            "The Anubis Omnic Crisis"
           ],
           "sources": [
             {
@@ -2420,21 +2431,24 @@
           ],
           "image": "",
           "locationType": "earth",
-          "lat": 35.0115754,
-          "lon": 135.7681441,
           "cityDisplayName": "Kyoto, Japan",
           "secondaryCountryFlags": [
             "China.png",
             "Mongolia.png",
             "Pakistan.png"
+          ],
+          "lat": 35.0115754,
+          "lon": 135.7681441,
+          "npcs": [
+            "Adawe"
           ]
         }
       ],
+      "lat": 47.3744489,
+      "lon": 8.5410422,
       "yearStart": 2051,
       "yearEnd": 2053,
-      "eraName": "The Omnic Crisis",
-      "lat": 47.3744489,
-      "lon": 8.5410422
+      "eraName": "The Omnic Crisis"
     },
     {
       "name": "The Road of Bones",
@@ -2490,14 +2504,15 @@
       "headlines": [
         "Mina Liao Joins Overwatch Initiaitve"
       ],
+      "npcs": [
+        "Liao",
+        "Adawe"
+      ],
       "yearStart": 2051,
       "yearEnd": 2053,
       "eraName": "The Omnic Crisis",
       "lat": 41.8755616,
-      "lon": -87.6244212,
-      "npcs": [
-        "Liao"
-      ]
+      "lon": -87.6244212
     },
     {
       "name": "In Partnership",
@@ -2529,14 +2544,15 @@
       "secondaryCountryFlags": [
         "Canada.png"
       ],
+      "npcs": [
+        "Liao",
+        "Adawe"
+      ],
       "yearStart": 2051,
       "yearEnd": 2053,
       "eraName": "The Omnic Crisis",
       "lat": 42.3315509,
-      "lon": -83.0466403,
-      "npcs": [
-        "Liao"
-      ]
+      "lon": -83.0466403
     },
     {
       "locationType": "earth",
@@ -2768,15 +2784,16 @@
         "Omnic troops stop fighting world wide",
         "Warbot drops gun and helps human troops"
       ],
+      "npcs": [
+        "Aurora",
+        "Liao",
+        "Adawe"
+      ],
       "yearStart": 2051,
       "yearEnd": 2053,
       "eraName": "The Omnic Crisis",
       "lat": 28.3949,
-      "lon": 84.124,
-      "npcs": [
-        "Aurora",
-        "Liao"
-      ]
+      "lon": 84.124
     },
     {
       "name": "Sloan Cameron is Born",
@@ -3018,8 +3035,6 @@
         "Numbani",
         "Overwatch"
       ],
-      "lat": 12.0022,
-      "lon": 8.5919,
       "sources": [
         {
           "text": "Overwatch Declassified",
@@ -3036,7 +3051,12 @@
       ],
       "yearStart": 2053,
       "yearEnd": 2060,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "lat": 12.0022,
+      "lon": 8.5919,
+      "npcs": [
+        "Adawe"
+      ]
     },
     {
       "name": "Loyal Guardian",
@@ -3228,28 +3248,31 @@
     {
       "name": "Undercover",
       "locationType": "earth",
-      "cityDisplayName": "París,, France",
-      "description": "",
+      "cityDisplayName": "París, France",
+      "description": "While Morrison had his hands full, expanding across the globe, Reyes was beginning to set up his Blackwatch Division, a small team for covert operations that would allow him to pursue justice outside red tape and protocol. Gérard Lacroix, from the administrative and diplomatic division, would come in to fill the role as Reyes's primary partner. A Parisian diplomat with extensive intelligence work, which quickly drew him into Reyes's orbit. Lacroix himself was recently married to a renowned ballerina, Amélie Lacroix, who gave little thought of her husband's career, as it mostly made for a conversation topic at parties in her eyes. \n\n\n\nTogether, Reyes and Lacroix would prove the merits of Blackwatch and quickly begin a take-down campaign on crime and violence across the world.\n",
       "image": "",
       "filters": [
         "Reaper",
         "Widowmaker"
       ],
       "factions": [
-        "00Overwatch",
-        "01Blackwatch"
+        "Overwatch",
+        "Blackwatch"
       ],
-      "lat": 48.8588897,
-      "lon": 2.320041,
       "sources": [
         {
           "text": "Overwatch Declassified",
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "eraName": "The Golden Age",
+      "npcs": [
+        "Gerard"
+      ],
       "yearStart": 2053,
-      "yearEnd": 2060
+      "yearEnd": 2060,
+      "eraName": "The Golden Age",
+      "lat": 48.8588897,
+      "lon": 2.320041
     },
     {
       "locationType": "earth",
@@ -3257,39 +3280,55 @@
       "variants": [
         {
           "name": "Australian Liberation",
-          "description": "",
+          "description": "After the crisis, most Omnium factories remained mostly intact, quarantined from Anubis' grasp, so most governors elected to keep the facilities around for study and potentially to find a better use for them. Some countries instead chose to leave them untouched, to serve as cultural landmarks of Omnic culture, though even among Omnics this idea was heavily debated with mixed results. In reality, there was a bigger reason why the Omniums remained standing after the Crisis, and that was the dangerous fusion reactors deep in their core.\n\n\n\nIn Australia, the government chose to lend the Outback Omnium and  the surrounding land to the Omnics, as a peace offering. But in doing so, this displaced many indigenous residents, rural communities, solar farmers and survivalists who fought hard during the crisis to keep their homes. Their protests over the decision would go unheard, and lead to the creation of the Australian Liberation Front, an extremist group that sought the complete removal of the Omnic presence from their nation. The ALF grew quickly and caught Overwatch's eyes, but while they monitored them closely, what happened next took everyone by surprise.\n\n\n\nMembers of the ALF manage to break into the Omnium and, in their attempt to seize it, sabotage the fusion core, resulting in a nuclear explosion visible throughout the entirety of Australia, turning the Outback into an irritated wasteland and decimating the Omnic population beyond repair, leaving the survivors to turn feral from the harsh conditions of the Outback. The ALF settled themselves in the ruins of the Omnium, and established an unofficial Monarchy in what would become Junkertown. Overwatch was about to intervene when the government determined the situation to be a lost cause and a public relations nightmare. Overwatch stood down, and the Junkers remained, though closely monitored, living miserable lives in an apocalypse of their own making.",
           "filters": [
             "Roadhog"
           ],
           "factions": [
-            "Junkers"
+            "Junker Monarchy"
           ],
           "image": "",
           "locationType": "earth",
-          "lat": -25,
-          "lon": 135,
           "cityDisplayName": "Junkertown, Australia",
           "sources": [
             {
               "text": "Overwatch Declassified",
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
+          ],
+          "lat": -25,
+          "lon": 135,
+          "npcs": [
+            "Mason"
           ]
         },
         {
           "name": "Outcasted",
-          "description": "",
+          "description": "As politics settled among the chaos of the Junkers, King Mason Howl would be crowned the leader of the city. Howl was a ruthless self centric king who quickly turned his back against his people when questioned. The Stones were a family of settlers that ran town watch and negotiated trade, but one day the King decided to vanish the entire family.\n\n\n\nLiving in the wasteland, young Dez Stone would quickly learn to fight to survive, as one by one every member of her family perished to the wasteland, and the feral Omnics lurking in the Outback.",
           "filters": [
             "Junker Queen"
           ],
           "factions": [
-            "16Junkers"
+            "Junker Monarchy"
           ],
           "image": "",
           "locationType": "earth",
+          "cityDisplayName": "Outback Wasteland, Australia",
+          "npcs": [
+            "Mason"
+          ],
+          "sources": [
+            {
+              "text": "Overwatch Website, Junker Queen",
+              "url": "https://overwatch.blizzard.com/en-us/heroes/junker-queen/"
+            },
+            {
+              "text": "The Wastelander",
+              "url": "https://www.youtube.com/watch?v=8-nXN9ZMl8o"
+            }
+          ],
           "lat": -20.7274568,
-          "lon": 139.49896,
-          "cityDisplayName": "Outback Wasteland, Australia"
+          "lon": 139.49896
         }
       ],
       "lat": -25,
@@ -3302,32 +3341,44 @@
       "name": "Anima Weaponry",
       "locationType": "earth",
       "cityDisplayName": "Hanamura, Japan",
-      "description": "",
+      "description": "The ancient Shimada clan remained strong even after the crisis. A family of criminals that had a choke hold over Tokyo, but unlike many of the rival clans, they had gained the trust and even loyalty of the locals, seeing themselves as rulers and ruled. As such, inspired by their shady nature, the people of the Kanezaka region respected the clan as protectors, and the Shimada in turn kept opposing clans away, preventing them from hurting their people.\n\n\n\nA big part of the Shimada's success was owned by the blacksmith Toshiro Yamagami, creator of the Anima blades. Toshiro was a weapon smith in possession of unique avatar technology, capable of imbuing traditional weaponry with an ethereal, malleable energy. These weapons were not only enhanced by the Anima's energy, but with enough discipline, their users would be able to manifest projections spirits at will. Toshiro would serve the clan, designing blades for their family, which in turn used them to suppress the opposition and solidify their cultural position as the rulers of the region.\n\n\n\nWhile the clan forbid Toshiro from making any Anima Avatars after forging dragon blades for the Shimada heirs, Toshiro had one last masterpiece that he kept a secret from the clan. The man had planned to propose to what would be his wife, Asa Yamagami, a skilled sword master, daughter to the shrine maiden of the local Fox shrine. To win her mother's heart, Toshiro crafted Ofuda Talismans imbued with Anima technology, which would bring the Fox spirit to life, and assist the old lady in her Miko duties.",
       "image": "",
       "filters": [
         "Kiriko"
       ],
       "factions": [
-        "21Shimada"
+        "Shimada Clan"
       ],
-      "lat": 35.6762,
-      "lon": 139.6503,
-      "eraName": "The Golden Age",
+      "npcs": [
+        "Toshiro",
+        "Asa"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website, Kiriko",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/kiriko/"
+        }
+      ],
       "yearStart": 2053,
-      "yearEnd": 2060
+      "yearEnd": 2060,
+      "eraName": "The Golden Age",
+      "lat": 35.6762,
+      "lon": 139.6503
     },
     {
       "name": "Miracle Worker",
       "locationType": "earth",
       "cityDisplayName": "Zurich, Switzerland",
-      "description": "",
+      "description": "Like many others around the world, young Angela Zeigler had lost her parents to the Crisis, while they volunteered at a local hospital. This traumatic event would serve to keep her focus on her studies. The girl would go on to become one of the youngest graduates of the medical program at the University of Zurich and quickly rose up to be quite the name in the scientific world, meeting brilliant minds like Siebren de Kuiper while at school. She would later enroll at Chalmers University in Gothenburg, where she focused on nanobiology and developed several breakthroughs in the field and its uses in medicinal science.\n\n\n\nAngela had visited Torbjörn at the hospital following his injury during Operation White Dome, as her family were close friends with the Linholms. During the visit, he was so impressed by her papers on nanobiotics that he sent a recommendation to Morrison to fund her schooling and offer monetary support. On Linholm's advice, Angela had also begun volunteering for Overwatch's medical staff, becoming one of very few civilians allowed to tour Watchpoints. With their funding and guidance, Zeigler was a brilliant mind with an even brighter future lying ahead of her.",
       "image": "",
       "filters": [
         "Mercy",
-        "Sojourn"
+        "Sigma",
+        "Torbjörn",
+        "Soldier 76"
       ],
       "factions": [
-        "00Overwatch"
+        "Overwatch"
       ],
       "sources": [
         {
@@ -3335,15 +3386,21 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
-      "lat": 47.3744489,
-      "lon": 8.5410422,
-      "eraName": "The Golden Age",
+      "npcs": [
+        "Ingrid"
+      ],
+      "secondaryCountryFlags": [
+        "Sweden.png"
+      ],
       "yearStart": 2053,
-      "yearEnd": 2060
+      "yearEnd": 2060,
+      "eraName": "The Golden Age",
+      "lat": 47.3744489,
+      "lon": 8.5410422
     },
     {
       "name": "Sierra Turner Woods is Born",
-      "description": "On April 17th of 2054, Sierra Turner Woods is Born",
+      "description": "Following the Omnic Crisis, most SEP subjects chose to lie low and fade into private lives, Soldier 00 included. Kendra Banks would meet a Virginian park ranger, James Turner, while she was off the grid. They settled down in the secluded Appalachian mountains and soon enough they would have a kid. On April 17th of 2054, Sierra Turner Woods is born.\n\n\n\nSierra was unknowingly the daughter of a super soldier, and seemingly inherited her mother's gifts. Sadly, however, this soon enough would put a target on both of their backs.",
       "locationType": "earth",
       "filters": [
         "Sierra"
@@ -3353,6 +3410,7 @@
       "image": "",
       "cityDisplayName": "Appalachian Virginia, United States",
       "yearStart": 2054,
+      "eraName": "The Golden Age",
       "lat": 36.9034309,
       "lon": -82.7853107
     },
@@ -3459,6 +3517,25 @@
       ],
       "yearStart": 2056,
       "eraName": "The Golden Age"
+    },
+    {
+      "name": "On the Run",
+      "description": "",
+      "locationType": "earth",
+      "filters": [
+        "Sierra"
+      ],
+      "factions": [],
+      "npcs": [
+        "Kendra"
+      ],
+      "image": "",
+      "cityDisplayName": "Appalachian Virginia, United States",
+      "yearStart": 2056,
+      "yearEnd": 2069,
+      "eraName": "The Golden Age",
+      "lat": 36.9034309,
+      "lon": -82.7853107
     },
     {
       "name": "Hana Song is Born",
@@ -3649,25 +3726,6 @@
       "yearEnd": 2060
     },
     {
-      "name": "On the Run",
-      "description": "",
-      "locationType": "earth",
-      "filters": [
-        "Sierra"
-      ],
-      "factions": [],
-      "npcs": [
-        "Kendra"
-      ],
-      "image": "",
-      "cityDisplayName": "Appalachian Virginia, United States",
-      "yearStart": 2056,
-      "yearEnd": 2069,
-      "eraName": "The Golden Age",
-      "lat": 36.9034309,
-      "lon": -82.7853107
-    },
-    {
       "name": "The Scourge of Numbani",
       "locationType": "earth",
       "cityDisplayName": "City State of Numbani",
@@ -3759,6 +3817,33 @@
       "yearStart": 2057,
       "yearEnd": 2068,
       "eraName": "The Golden Age"
+    },
+    {
+      "name": "Survivor",
+      "description": "",
+      "locationType": "earth",
+      "filters": [
+        "Junker Queen"
+      ],
+      "factions": [],
+      "npcs": [],
+      "image": "",
+      "cityDisplayName": "Outback Wasteland, Australia",
+      "sources": [
+        {
+          "text": "Overwatch Website, Junker Queen",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/junker-queen/"
+        },
+        {
+          "text": "Junker Queen Origin Story",
+          "url": "https://www.youtube.com/watch?v=xxtB_MJrycs"
+        }
+      ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
+      "eraName": "The Golden Age",
+      "lat": -20.7274568,
+      "lon": 139.49896
     },
     {
       "name": "Pocket King",
@@ -6995,6 +7080,27 @@
       "yearStart": 2079
     },
     {
+      "name": "Stalemate",
+      "description": "279",
+      "locationType": "earth",
+      "filters": [
+        "Ramattra"
+      ],
+      "factions": [
+        "Null Sector",
+        "Overwatch",
+        "IJC"
+      ],
+      "npcs": [],
+      "image": "",
+      "yearStart": 2079,
+      "yearEnd": 2080,
+      "eraName": "The Null Sector Invasion",
+      "lat": -75.1,
+      "lon": 123.35,
+      "cityDisplayName": "Secret Omnium"
+    },
+    {
       "name": "Water Fighter",
       "locationType": "earth",
       "cityDisplayName": "Chengdu, China",
@@ -7008,6 +7114,24 @@
       ],
       "lat": 30.659867,
       "lon": 104.063315,
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
+    },
+    {
+      "name": "Free the Phreaks",
+      "locationType": "earth",
+      "cityDisplayName": "Aatlis, Morocco",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Hazard"
+      ],
+      "factions": [
+        "30Phreaks",
+        "32Helix Securities"
+      ],
+      "lat": 34.0209,
+      "lon": -6.8416,
       "eraName": "The Null Sector Invasion",
       "yearStart": 2079
     },
@@ -7086,24 +7210,6 @@
       ],
       "lat": 36.1285933,
       "lon": -5.3474761,
-      "eraName": "The Null Sector Invasion",
-      "yearStart": 2079
-    },
-    {
-      "name": "Free the Phreaks",
-      "locationType": "earth",
-      "cityDisplayName": "Aatlis, Morocco",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Hazard"
-      ],
-      "factions": [
-        "30Phreaks",
-        "32Helix Securities"
-      ],
-      "lat": 34.0209,
-      "lon": -6.8416,
       "eraName": "The Null Sector Invasion",
       "yearStart": 2079
     },
@@ -7202,7 +7308,9 @@
       "npcs": [],
       "image": "",
       "cityDisplayName": "Watchpoint Grand Mesa, United States",
-      "eraName": "The Reign of Talon",
+      "yearStart": 2079,
+      "yearEnd": 2080,
+      "eraName": "The Null Sector Invasion",
       "lat": 39.1131257,
       "lon": -108.0127646
     },
@@ -7271,7 +7379,7 @@
       ]
     },
     {
-      "name": "Elemental Kin",
+      "name": "Against the Tide",
       "locationType": "earth",
       "cityDisplayName": "Chengdu, China",
       "description": "",
@@ -7281,13 +7389,14 @@
         "Anran"
       ],
       "factions": [
-        "10Wuxing University",
-        "27Null Sector"
+        "Wuxing University",
+        "Null Sector"
       ],
+      "yearStart": 2080,
+      "eraName": "The Null Sector Invasion",
       "lat": 30.659867,
       "lon": 104.063315,
-      "eraName": "The Null Sector Invasion",
-      "yearStart": 2080
+      "npcs": []
     },
     {
       "name": "The Upper Hand",
@@ -7331,25 +7440,70 @@
       "yearStart": 2080
     },
     {
-      "name": "The Invitation",
-      "locationType": "earth",
-      "cityDisplayName": "Watchpoint Gibraltar",
+      "name": "New Charter",
       "description": "",
-      "image": "",
+      "locationType": "earth",
       "filters": [
-        "Winston",
         "Sojourn",
-        "Wuyang",
-        "Anran"
+        "Tracer"
       ],
       "factions": [
-        "10Wuxing University",
-        "27Null Sector"
+        "IJC",
+        "Overwatch"
       ],
-      "lat": 36.1285933,
-      "lon": -5.3474761,
+      "npcs": [],
+      "image": "",
+      "cityDisplayName": "Zurich, Switzerland",
+      "yearStart": 2079,
+      "yearEnd": 2080,
       "eraName": "The Null Sector Invasion",
-      "yearStart": 2080
+      "lat": 47.3769,
+      "lon": 8.5417
+    },
+    {
+      "locationType": "earth",
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "image": "",
+      "variants": [
+        {
+          "name": "The Invitation",
+          "description": "",
+          "filters": [
+            "Winston",
+            "Sojourn",
+            "Wuyang",
+            "Anran"
+          ],
+          "factions": [
+            "Wuxing University",
+            "Null Sector"
+          ],
+          "npcs": [],
+          "locationType": "earth",
+          "lat": 36.1285933,
+          "lon": -5.3474761,
+          "cityDisplayName": "Watchpoint Gibraltar"
+        },
+        {
+          "name": "Elemental Kin",
+          "description": "",
+          "filters": [
+            "Wuyang",
+            "Anran"
+          ],
+          "factions": [
+            "Overwatch",
+            "Wuxing University"
+          ],
+          "npcs": [],
+          "locationType": "earth",
+          "lat": 30.659867,
+          "lon": 104.063315,
+          "cityDisplayName": "Chengdu, China"
+        }
+      ],
+      "yearStart": 2080,
+      "eraName": "The Null Sector Invasion"
     },
     {
       "name": "Reconciliation",
