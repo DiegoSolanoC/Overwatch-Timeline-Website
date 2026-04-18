@@ -131,45 +131,56 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
-    // Codex button
+    // Global Timeline button (was Map/Globe toggle) - launches globe timeline
     createGlobeControlButton({
-        id: 'codexToggle',
+        id: 'headerGlobalTimelineBtn',
         className: '',
-        title: 'Open Codex',
-        label: 'Codex',
-        iconPath: 'assets/images/icons/Codex%20Icon.png',
-        iconAlt: 'Codex',
+        title: 'Global Timeline',
+        label: 'Global Timeline',
+        iconPath: 'assets/images/icons/Timeline Icon.png',
+        iconAlt: 'Global Timeline',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 15
-    });
-
-    // Map / Globe toggle (second access point in header)
-    createGlobeControlButton({
-        id: 'headerMapViewToggle',
-        className: '',
-        title: 'Toggle Map View',
-        label: 'Map',
-        iconPath: 'assets/images/icons/Switch to Globe Icon.png',
-        iconAlt: 'Map',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        iconSpanId: 'headerMapViewToggleIcon',
+        iconSpanId: 'headerGlobalTimelineIcon',
         headerOrder: 20
     });
 
-    // Bootstrap handler: if globe not yet loaded, clicking Map triggers runGlobeComponents.
-    // Once controls load and setupMapViewToggle() runs, the real handler takes over cleanly.
-    const headerMapBtn = document.getElementById('headerMapViewToggle');
-    if (headerMapBtn) {
-        headerMapBtn.addEventListener('click', function bootstrapMapToggle(e) {
-            if (window.globeController) return; // Real handler is active — do nothing
+    // Bootstrap handler: clicking Global Timeline launches globe components
+    const headerTimelineBtn = document.getElementById('headerGlobalTimelineBtn');
+    if (headerTimelineBtn) {
+        headerTimelineBtn.addEventListener('click', function bootstrapTimeline(e) {
             e.stopPropagation();
             e.preventDefault();
             if (typeof window.runGlobeComponents === 'function') {
                 void window.runGlobeComponents(false);
             }
-        }, true); // Capture phase so it fires before the real setupMapViewToggle handler
+        }, true);
+    }
+
+    // Concept Glossary button (was Codex) - launches codex/glossary mode
+    createGlobeControlButton({
+        id: 'headerConceptGlossaryBtn',
+        className: '',
+        title: 'Concept Glossary',
+        label: 'Concept Glossary',
+        iconPath: 'assets/images/icons/Codex%20Icon.png',
+        iconAlt: 'Concept Glossary',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        iconSpanId: 'headerConceptGlossaryIcon',
+        headerOrder: 15
+    });
+
+    // Bootstrap handler: clicking Concept Glossary launches glossary/codex components
+    const headerGlossaryBtn = document.getElementById('headerConceptGlossaryBtn');
+    if (headerGlossaryBtn) {
+        headerGlossaryBtn.addEventListener('click', function bootstrapGlossary(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (typeof window.runGlossaryComponents === 'function') {
+                void window.runGlossaryComponents(false);
+            }
+        }, true);
     }
 
     // Filters button (right side)
@@ -199,25 +210,30 @@ function loadHeaderNavButtons() {
         headerOrder: 70
     });
 
-    // Wire up Home button click — unloads globe or codex, returns to clean state
+    // Wire up Home button click — unloads globe or glossary/codex, returns to clean state
     const homeButton = document.getElementById('homeBtn');
     if (homeButton) {
         homeButton.addEventListener('click', async function(e) {
             e.stopPropagation();
             e.preventDefault();
 
-            // Exit Codex if active
-            const inCodex = document.body.classList.contains('codex-mode-active');
-            if (inCodex) {
-                const svc = window.CodexModeService;
-                if (svc && typeof svc.exitCodexMode === 'function') {
-                    await svc.exitCodexMode();
+            const currentMode = (localStorage.getItem('currentMode') || 'menu').toLowerCase();
+
+            // Kill Glossary/Codex if active
+            if (currentMode === 'glossary' || document.body.classList.contains('codex-mode-active')) {
+                if (typeof window.killGlossaryComponents === 'function') {
+                    await window.killGlossaryComponents();
                 }
             }
 
             // Kill globe if loaded
             if (window.globeController && typeof window.killGlobeComponents === 'function') {
                 await window.killGlobeComponents();
+            }
+
+            // Restore main menu
+            if (typeof window.restoreMainMenu === 'function') {
+                await window.restoreMainMenu();
             }
 
             // Clear stored mode so a refresh also starts clean
@@ -649,10 +665,11 @@ async function unloadEvents() {
     
     await withUnloadWrapper(async () => {
         // Remove event UI components
+        // Note: headerGlobalTimelineBtn, headerConceptGlossaryBtn, and homeBtn are universal
+        // header features and persist across mode switches
         removeElementsByIds([
             { id: 'filtersToggle', message: 'Filter button removed' },
             { id: 'eventsManageToggle', message: 'Event manager button removed' },
-            { id: 'codexToggle', message: 'Codex button removed' },
             { id: 'eventPagination', message: 'Event pagination removed' },
             { id: 'filtersPanel', message: null, checkParent: true },
             { id: 'paginationDock', message: 'Pagination dock removed' },
@@ -844,8 +861,8 @@ window.killBiographyComponents = killBiographyComponents;
 window.unloadGlobeBase = unloadGlobeBase;
 
 // Header hub mode switch API
-// - Switches between "globe" and "menu" modes
-// - Glossary/Biography are not implemented yet; selecting them returns to main menu
+// - Switches between "globe", "glossary" (codex), and "menu" modes
+// - Biography is not implemented yet; selecting it returns to main menu
 window.appModeSwitch = async function appModeSwitch(targetMode) {
     const requested = (targetMode || '').toString().toLowerCase();
     const normalized = (requested === 'timeline') ? 'globe' : requested;
@@ -853,8 +870,8 @@ window.appModeSwitch = async function appModeSwitch(targetMode) {
         ? normalized
         : 'menu';
 
-    // If "coming soon" modes are requested, route to main menu.
-    const effectiveNext = (next === 'glossary' || next === 'biography') ? 'menu' : next;
+    // Biography is still "coming soon"
+    const effectiveNext = (next === 'biography') ? 'menu' : next;
 
     // Determine current mode. Globe orchestrator stores "globe" etc; menu uses absence.
     const current = (localStorage.getItem('currentMode') || 'menu').toString().toLowerCase();
@@ -863,13 +880,10 @@ window.appModeSwitch = async function appModeSwitch(targetMode) {
         // Unload current mode assets (universal features stay loaded)
         if (current === 'globe') {
             await window.killGlobeComponents?.();
-        } else if (current === 'codex') {
+        } else if (current === 'codex' || current === 'glossary') {
             if (effectiveNext !== 'globe') {
-                await window.killGlobeComponents?.();
+                await window.killGlossaryComponents?.();
             }
-        } else if (current === 'glossary') {
-            await window.killGlossaryComponents?.();
-            await window.restoreMainMenu?.();
         } else if (current === 'biography') {
             await window.killBiographyComponents?.();
             await window.restoreMainMenu?.();
@@ -881,12 +895,14 @@ window.appModeSwitch = async function appModeSwitch(targetMode) {
         // Load target mode assets
         if (effectiveNext === 'globe') {
             await window.runGlobeComponents?.(false);
+        } else if (effectiveNext === 'glossary') {
+            await window.runGlossaryComponents?.(false);
         } else {
             await window.restoreMainMenu?.();
             localStorage.setItem('currentMode', 'menu');
-            if (next === 'glossary' || next === 'biography') {
+            if (next === 'biography') {
                 if (typeof window.updateStatus === 'function') {
-                    window.updateStatus('This mode is coming soon — returning to main menu.', 'info');
+                    window.updateStatus('Biography mode is coming soon — returning to main menu.', 'info');
                 }
             }
         }

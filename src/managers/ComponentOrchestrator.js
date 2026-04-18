@@ -331,19 +331,19 @@ export class ComponentOrchestrator {
 
     /**
      * Run all Glossary Components sequentially
-     * (Placeholder - no actual loads yet)
+     * Enters Codex mode (Concept Glossary)
      */
     async runGlossaryComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
-        
+
         // Save current mode to localStorage
         localStorage.setItem('currentMode', 'glossary');
-        
+
         const runBtn = document.getElementById('runGlossaryBtn');
         if (runBtn) {
             runBtn.disabled = true;
         }
-        
+
         const isRunOperation = getRunOperation();
         // Note: isRunOperation and overlay should already be set by the button click handler
         // But if called directly (not from button), set them here
@@ -352,11 +352,22 @@ export class ComponentOrchestrator {
             showLoadingOverlay();
         }
         updateStatus('🚀 Starting Glossary Components auto-load...', 'info');
-        
+
         try {
-            // Placeholder - no actual loading yet
-            updateStatus('→ Glossary Components loading not yet implemented', 'info');
-            
+            // Hide main menu buttons
+            const mainMenuButtons = document.querySelector('.main-menu-buttons');
+            if (mainMenuButtons) {
+                mainMenuButtons.style.display = 'none';
+                updateStatus('→ Hiding main menu buttons...', 'info');
+            }
+
+            // Enter Codex mode via CodexModeService
+            if (window.CodexModeService && typeof window.CodexModeService.enterCodexMode === 'function') {
+                await window.CodexModeService.enterCodexMode();
+            } else {
+                updateStatus('→ CodexModeService not available', 'error');
+            }
+
             this.loadedComponents.glossary = true;
             updateStatus('✓ Glossary Components auto-load complete!', 'success');
         } catch (error) {
@@ -544,13 +555,35 @@ export class ComponentOrchestrator {
 
     /**
      * Kill all Glossary Components
+     * Exits Codex mode and restores main menu
      */
     async killGlossaryComponents() {
         updateStatus('Killing all Glossary Components...', 'info');
-        
-        // Placeholder - no actual unloading yet
+
+        // Exit Codex mode via globe container unload (preserves events UI if needed)
+        if (window.unloadGlobeBase && typeof window.unloadGlobeBase === 'function') {
+            try {
+                await window.unloadGlobeBase({ preserveEventsUi: false });
+            } catch (err) {
+                console.warn('Error unloading globe base during glossary kill:', err);
+            }
+        }
+
+        // Clear codex shell if present
+        if (window.CodexModeService && typeof window.CodexModeService.clearCodexShellForGlobeInit === 'function') {
+            window.CodexModeService.clearCodexShellForGlobeInit();
+        }
+
+        // Show main menu buttons again
+        const mainMenuButtons = document.querySelector('.main-menu-buttons');
+        if (mainMenuButtons) {
+            mainMenuButtons.style.display = '';
+            updateStatus('→ Showing main menu buttons...', 'info');
+        }
+
+        localStorage.removeItem('currentMode');
         this.loadedComponents.glossary = false;
-        
+
         updateStatus('✓ All Glossary Components killed!', 'success');
     }
 

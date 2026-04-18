@@ -356,10 +356,11 @@ export async function loadEventsLogic({ initializeEventManager, createGlobeContr
  */
 export async function unloadEventsLogic({ removeElementsByIds, statusService }) {
     // Remove event UI components using helper
+    // Note: headerGlobalTimelineBtn, headerConceptGlossaryBtn, and homeBtn are universal
+    // header features and persist across mode switches
     removeElementsByIds([
         { id: 'filtersToggle', message: 'Filter button removed' },
         { id: 'eventsManageToggle', message: 'Event manager button removed' },
-        { id: 'codexToggle', message: 'Codex button removed' },
         { id: 'eventPagination', message: 'Event pagination removed' },
         { id: 'filtersPanel', message: null, checkParent: true },
         { id: 'paginationDock', message: 'Pagination dock removed' },
