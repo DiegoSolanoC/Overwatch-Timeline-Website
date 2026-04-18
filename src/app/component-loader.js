@@ -332,12 +332,12 @@ async function unloadTransport() {
     
     await withUnloadWrapper(async () => {
         // Remove transport toggle button
-        ['hyperloopToggle', 'weatherEffectsToggle'].forEach((id) => {
+        ['hyperloopToggle', 'weatherEffectsToggle', 'lightingToggle'].forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.remove();
         });
-        updateStatus('✓ Transport / weather toggles removed', 'success');
-
+        updateStatus('✓ Transport / weather / lighting toggles removed', 'success');
+        
         loadedComponents.transport = false;
     }, 'Transport', 'loadTransportBtn');
 }
@@ -654,7 +654,9 @@ async function unloadEvents() {
             { id: 'eventsManageToggle', message: 'Event manager button removed' },
             { id: 'codexToggle', message: 'Codex button removed' },
             { id: 'eventPagination', message: 'Event pagination removed' },
-            { id: 'filtersPanel', message: null, checkParent: true }
+            { id: 'filtersPanel', message: null, checkParent: true },
+            { id: 'paginationDock', message: 'Pagination dock removed' },
+            { id: 'paginationDockCollapseStrip', message: 'Pagination dock collapse strip removed' }
         ]);
         
         // Clear event manager and remove markers using helpers

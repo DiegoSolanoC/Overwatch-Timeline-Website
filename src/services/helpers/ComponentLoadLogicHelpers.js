@@ -162,6 +162,7 @@ export async function loadTransportLogic({ createGlobeControlButton, loadSoundEf
 export async function unloadTransportLogic({ removeElementById, statusService }) {
     removeElementById('hyperloopToggle', 'Transport toggle removed', statusService);
     removeElementById('weatherEffectsToggle', 'Weather toggle removed', statusService);
+    removeElementById('lightingToggle', 'Lighting toggle removed', statusService);
 }
 
 /**
@@ -360,9 +361,11 @@ export async function unloadEventsLogic({ removeElementsByIds, statusService }) 
         { id: 'eventsManageToggle', message: 'Event manager button removed' },
         { id: 'codexToggle', message: 'Codex button removed' },
         { id: 'eventPagination', message: 'Event pagination removed' },
-        { id: 'filtersPanel', message: null, checkParent: true }
+        { id: 'filtersPanel', message: null, checkParent: true },
+        { id: 'paginationDock', message: 'Pagination dock removed' },
+        { id: 'paginationDockCollapseStrip', message: 'Pagination dock collapse strip removed' }
     ], statusService);
-    
+
     if (window.eventManager) {
         window.eventManager.listenersSetup = false;
     }

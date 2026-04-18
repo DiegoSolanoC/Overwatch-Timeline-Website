@@ -174,6 +174,16 @@ window.addEventListener('DOMContentLoaded', function () {
             }, 1000);
         }
 
+        // Auto-load Menu Components (Global Timeline, Glossary, Bios buttons)
+        if (typeof window.runMenuComponents === 'function') {
+            try {
+                await window.runMenuComponents();
+                console.log(`${logPrefix} ✓ Menu Components auto-loaded`);
+            } catch (error) {
+                console.error(`${logPrefix} Error auto-loading Menu Components:`, error);
+            }
+        }
+
         // Fade out loading overlay — globe is NOT auto-loaded
         setTimeout(function () {
             if (loadingOverlay) {
