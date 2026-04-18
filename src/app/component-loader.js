@@ -131,24 +131,24 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
-    // Global Timeline button (was Map/Globe toggle) - launches globe timeline
+    // Interactive Globe button (was Map/Globe toggle) - launches globe timeline
     createGlobeControlButton({
-        id: 'headerGlobalTimelineBtn',
+        id: 'headerInteractiveGlobeBtn',
         className: '',
-        title: 'Global Timeline',
-        label: 'Global Timeline',
+        title: 'Interactive Globe',
+        label: 'Interactive Globe',
         iconPath: 'assets/images/icons/Timeline Icon.png',
-        iconAlt: 'Global Timeline',
+        iconAlt: 'Interactive Globe',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
-        iconSpanId: 'headerGlobalTimelineIcon',
+        iconSpanId: 'headerInteractiveGlobeIcon',
         headerOrder: 20
     });
 
-    // Bootstrap handler: clicking Global Timeline launches globe components
-    const headerTimelineBtn = document.getElementById('headerGlobalTimelineBtn');
-    if (headerTimelineBtn) {
-        headerTimelineBtn.addEventListener('click', function bootstrapTimeline(e) {
+    // Bootstrap handler: clicking Interactive Globe launches globe components
+    const headerGlobeBtn = document.getElementById('headerInteractiveGlobeBtn');
+    if (headerGlobeBtn) {
+        headerGlobeBtn.addEventListener('click', function bootstrapGlobe(e) {
             e.stopPropagation();
             e.preventDefault();
             if (typeof window.runGlobeComponents === 'function') {
@@ -157,24 +157,24 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
-    // Concept Glossary button (was Codex) - launches codex/glossary mode
+    // World Codex button (was Codex) - launches codex/glossary mode
     createGlobeControlButton({
-        id: 'headerConceptGlossaryBtn',
+        id: 'headerWorldCodexBtn',
         className: '',
-        title: 'Concept Glossary',
-        label: 'Concept Glossary',
+        title: 'World Codex',
+        label: 'World Codex',
         iconPath: 'assets/images/icons/Codex%20Icon.png',
-        iconAlt: 'Concept Glossary',
+        iconAlt: 'World Codex',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
-        iconSpanId: 'headerConceptGlossaryIcon',
+        iconSpanId: 'headerWorldCodexIcon',
         headerOrder: 15
     });
 
-    // Bootstrap handler: clicking Concept Glossary launches glossary/codex components
-    const headerGlossaryBtn = document.getElementById('headerConceptGlossaryBtn');
-    if (headerGlossaryBtn) {
-        headerGlossaryBtn.addEventListener('click', function bootstrapGlossary(e) {
+    // Bootstrap handler: clicking World Codex launches glossary/codex components
+    const headerCodexBtn = document.getElementById('headerWorldCodexBtn');
+    if (headerCodexBtn) {
+        headerCodexBtn.addEventListener('click', function bootstrapCodex(e) {
             e.stopPropagation();
             e.preventDefault();
             if (typeof window.runGlossaryComponents === 'function') {

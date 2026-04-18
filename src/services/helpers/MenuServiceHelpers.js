@@ -70,31 +70,32 @@ export function createMenuButtonsContainer(statusService) {
     if (statusService) {
         statusService.update('Creating main menu buttons...', 'info');
     }
-    
+
     const menuButtons = document.createElement('div');
     menuButtons.className = 'main-menu-buttons';
-    
-    // Global Timeline button (always shown)
+
+    // Interactive Globe button (always shown)
     const globeBtn = createMenuButton({
         id: 'runGlobeBtn',
-        title: 'Global Timeline',
+        title: 'Interactive Globe',
         imagePath: 'assets/images/menu/Global%20Timeline.png',
-        label: 'Global Timeline',
-        description: 'Revisit the Story of Overwatch in Chronological Order, view through a 3D Globe'
+        label: 'Interactive Globe',
+        description: 'Visualize the story of Overwatch through an interactive map, or a 3D globe'
     });
     menuButtons.appendChild(globeBtn);
-    
-    // Only show Concept Glossary and Character Bios if NOT on GitHub Pages
+
+    // World Codex button (always shown now)
+    const glossaryBtn = createMenuButton({
+        id: 'runGlossaryBtn',
+        title: 'World Codex',
+        imagePath: 'assets/images/menu/Concept%20Glossary.png',
+        label: 'World Codex',
+        description: 'Study how characters and factions of Overwatch connect with each other across history'
+    });
+    menuButtons.appendChild(glossaryBtn);
+
+    // Only show Character Bios if NOT on GitHub Pages (still unimplemented)
     if (!isGitHubPages()) {
-        const glossaryBtn = createMenuButton({
-            id: 'runGlossaryBtn',
-            title: 'Concept Glossary',
-            imagePath: 'assets/images/menu/Concept%20Glossary.png',
-            label: 'Concept Glossary',
-            description: 'Coming Soon...'
-        });
-        menuButtons.appendChild(glossaryBtn);
-        
         const biographyBtn = createMenuButton({
             id: 'runBiographyBtn',
             title: 'Character Bios',
@@ -104,7 +105,7 @@ export function createMenuButtonsContainer(statusService) {
         });
         menuButtons.appendChild(biographyBtn);
     }
-    
+
     return menuButtons;
 }
 

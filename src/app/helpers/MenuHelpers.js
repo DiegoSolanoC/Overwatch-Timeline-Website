@@ -45,45 +45,47 @@ export function createMenuButton({ id, title, imagePath, label, description }) {
 
 /**
  * Creates the main menu buttons container
- * @param {Function} setupGlobeHandler - Handler for Global Timeline button
- * @param {Function} setupGlossaryHandler - Handler for Concept Glossary button (optional)
+ * @param {Function} setupGlobeHandler - Handler for Interactive Globe button
+ * @param {Function} setupGlossaryHandler - Handler for World Codex button (optional)
  * @param {Function} setupBiographyHandler - Handler for Character Bios button (optional)
  * @returns {HTMLElement} - The menu buttons container
  */
 export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null, setupBiographyHandler = null) {
     const menuButtons = document.createElement('div');
     menuButtons.className = 'main-menu-buttons';
-    
-    // Global Timeline button
+
+    // Interactive Globe button
     const globeBtn = createMenuButton({
         id: 'runGlobeBtn',
-        title: 'Global Timeline',
+        title: 'Interactive Globe',
         imagePath: 'assets/images/menu/Global%20Timeline.png',
-        label: 'Global Timeline',
-        description: 'Revisit the Story of Overwatch in Chronological Order, view through a 3D Globe'
+        label: 'Interactive Globe',
+        description: 'Visualize the story of Overwatch through an interactive map, or a 3D globe'
     });
-    
+
     if (setupGlobeHandler) {
         globeBtn.addEventListener('click', setupGlobeHandler);
     }
-    
+
     menuButtons.appendChild(globeBtn);
-    
-    // Only show Concept Glossary and Character Bios if NOT on GitHub Pages
+
+    // World Codex button (always shown now)
+    const glossaryBtn = createMenuButton({
+        id: 'runGlossaryBtn',
+        title: 'World Codex',
+        imagePath: 'assets/images/menu/Concept%20Glossary.png',
+        label: 'World Codex',
+        description: 'Study how characters and factions of Overwatch connect with each other across history'
+    });
+
+    if (setupGlossaryHandler) {
+        glossaryBtn.addEventListener('click', setupGlossaryHandler);
+    }
+
+    menuButtons.appendChild(glossaryBtn);
+
+    // Only show Character Bios if NOT on GitHub Pages (still unimplemented)
     if (!isGitHubPages()) {
-        // Concept Glossary button
-        const glossaryBtn = createMenuButton({
-            id: 'runGlossaryBtn',
-            title: 'Concept Glossary',
-            imagePath: 'assets/images/menu/Concept%20Glossary.png',
-            label: 'Concept Glossary',
-            description: 'Coming Soon...'
-        });
-        
-        if (setupGlossaryHandler) {
-            glossaryBtn.addEventListener('click', setupGlossaryHandler);
-        }
-        
         // Character Bios button
         const biographyBtn = createMenuButton({
             id: 'runBiographyBtn',
@@ -92,15 +94,14 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
             label: 'Character Bios',
             description: 'Coming Soon...'
         });
-        
+
         if (setupBiographyHandler) {
             biographyBtn.addEventListener('click', setupBiographyHandler);
         }
-        
-        menuButtons.appendChild(glossaryBtn);
+
         menuButtons.appendChild(biographyBtn);
     }
-    
+
     return menuButtons;
 }
 
