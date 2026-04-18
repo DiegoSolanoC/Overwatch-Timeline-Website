@@ -1,4 +1,4 @@
-/**
+gr/**
  * ComponentLoadLogicHelpers - Component-specific loading/unloading logic
  * Extracted from ComponentLoaderService to reduce file size
  */

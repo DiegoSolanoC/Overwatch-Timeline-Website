@@ -105,7 +105,7 @@ async function loadPalette() {
  * createGlobeControlButton is idempotent — it skips if the ID already exists.
  */
 function loadHeaderNavButtons() {
-    // Events Manager button
+    // Events Manager button (hidden by default, shown when events are loaded)
     createGlobeControlButton({
         id: 'eventsManageToggle',
         className: '',
@@ -118,9 +118,11 @@ function loadHeaderNavButtons() {
         headerOrder: 10
     });
 
-    // Bootstrap: load the globe when Events is clicked and globe isn't loaded yet
+    // Hide by default - will be shown when EventManager is loaded
     const eventsBtn = document.getElementById('eventsManageToggle');
     if (eventsBtn) {
+        eventsBtn.style.display = 'none';
+        // Bootstrap: load the globe when Events is clicked and globe isn't loaded yet
         eventsBtn.addEventListener('click', function bootstrapEventsToggle(e) {
             if (window.globeController) return; // Real handler active
             e.stopPropagation();
@@ -268,7 +270,7 @@ async function unloadGlobeBase(options = {}) {
         
         // Also unload dependent components
         if (loadedComponents.transport) {
-            await unloadTransport();
+            await unloadToggles();
         }
         if (loadedComponents.controls) {
             if (!preserveEventsUi) {
@@ -339,39 +341,39 @@ async function loadGlobeBase() {
     }
 }
 
-/** Unload Transport (vehicles, connections, toggle, sound). */
-async function unloadTransport() {
+/** Unload Toggles (vehicles, weather, lighting, map toggles). */
+async function unloadToggles() {
     if (!loadedComponents.transport) {
-        updateStatus('Transport not loaded', 'info');
+        updateStatus('Toggles not loaded', 'info');
         return;
     }
-    
+
     await withUnloadWrapper(async () => {
-        // Remove transport toggle button
+        // Remove toggle buttons
         ['hyperloopToggle', 'weatherEffectsToggle', 'lightingToggle'].forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.remove();
         });
-        updateStatus('✓ Transport / weather / lighting toggles removed', 'success');
-        
+        updateStatus('✓ Toggles removed', 'success');
+
         loadedComponents.transport = false;
-    }, 'Transport', 'loadTransportBtn');
+    }, 'Toggles', 'loadTogglesBtn');
 }
 
-async function loadTransport() {
-    if (checkAlreadyLoaded(loadedComponents.transport, 'Transport')) {
+async function loadToggles() {
+    if (checkAlreadyLoaded(loadedComponents.transport, 'Toggles')) {
         return;
     }
     
     // Globe base must be loaded first
-    if (!requireGlobeBase('loadTransportBtn', loadedComponents)) {
+    if (!requireGlobeBase('loadTogglesBtn', loadedComponents)) {
         return;
     }
     
     await withLoadWrapper(async () => {
         const controller = window.globeController;
-        
-        // Add transport toggle (if not already present)
+
+        // Add toggle buttons (if not already present)
         createGlobeControlButton({
             id: 'mapViewToggle',
             className: 'dock-globe-rail__btn',
@@ -452,7 +454,7 @@ async function loadTransport() {
             mobileClassName: 'dock-globe-rail__btn'
         });
         
-        // Setup transport toggle
+        // Setup toggle handlers
         if (controller.uiView) {
             controller.uiView.setupHyperloopToggle(() => {
                 if (typeof controller.onHyperloopToggled === 'function') {
@@ -471,21 +473,21 @@ async function loadTransport() {
                     controller.globeView.setGlobeLightingVisible(controller.sceneModel.getGlobeLightingVisible());
                 }
             });
-            updateStatus('✓ Transport & weather toggles initialized', 'success');
+            updateStatus('✓ Toggles initialized', 'success');
         }
-        
-        // Load transport sound effect
-        loadSoundEffect('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3', 'Loading transport sound effect...');
+
+        // Load toggle sound effects
+        loadSoundEffect('transportToggle', 'assets/audio/sfx/Transport Toggle.mp3', 'Loading toggle sound effect...');
         loadSoundEffect('weather', 'assets/audio/sfx/Weather.mp3', 'Loading weather sound effect...');
         loadSoundEffect('light', 'assets/audio/sfx/light.mp3', 'Loading lighting sound effect...');
-        
-        // Ensure transport systems are visible
+
+        // Ensure systems are visible
         if (controller.transportView) {
             controller.transportView.updateHyperloopVisibility();
         }
-        
+
         loadedComponents.transport = true;
-    }, 'Transport', 'loadTransportBtn', getRunOperation());
+    }, 'Toggles', 'loadTogglesBtn', getRunOperation());
 }
 
 /** Unload Controls (rotation toggle, interaction, sound). */
@@ -786,7 +788,7 @@ const componentOrchestrator = new ComponentOrchestrator(
         headerNav: loadHeaderNavButtons,
         menu: loadMenu,
         globeBase: loadGlobeBase,
-        transport: loadTransport,
+        transport: loadToggles,
         controls: loadControls,
         events: loadEvents
     },
@@ -795,7 +797,7 @@ const componentOrchestrator = new ComponentOrchestrator(
         music: unloadMusic,
         menu: unloadMenu,
         globeBase: unloadGlobeBase,
-        transport: unloadTransport,
+        transport: unloadToggles,
         controls: unloadControls,
         events: unloadEvents
     }
@@ -830,7 +832,7 @@ document.addEventListener('DOMContentLoaded', function() {
         runMenuComponents,
         killMenuComponents,
         loadGlobeBase,
-        loadTransport,
+        loadToggles,
         loadControls,
         loadEvents,
         runGlobeComponents,
