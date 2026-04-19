@@ -282,49 +282,124 @@ export async function unloadMusicLogic({ removeElementsByIds, statusService }) {
 }
 
 /**
+ * Check if Event System Load Out is already active
+ * This determines if we can rely on its initialization instead of duplicating
+ */
+function isEventSystemLoadOutActive() {
+    const testBtn = document.getElementById('testBtn');
+    const isLoaded = testBtn?.dataset.loaded === 'true';
+    const hasEventManager = window.eventManager?.events?.length > 0;
+    const hasListeners = window.eventManager?.listenersSetup === true;
+    // Additional check: verify the UI elements were actually created by Event System
+    const hasFiltersPanel = !!document.getElementById('filtersPanel');
+    const hasPagination = !!document.getElementById('paginationDock');
+    const hasFilterButton = !!document.getElementById('filtersToggle');
+    return isLoaded && hasEventManager && hasListeners && (hasFiltersPanel || hasPagination || hasFilterButton);
+}
+
+/**
  * Load events component
+ * If Event System Load Out is already loaded, skip duplicate UI initialization
+ * and only do Globe-specific setup (codex toggle, 3D sync)
  */
 export async function loadEventsLogic({ initializeEventManager, createGlobeControlButton, createEventPagination, createFiltersPanel, verifyEventPanels, loadEventSoundEffects, initializeFilterPanel, setupEventManagerListeners, syncEventsWithGlobe, loadSoundEffect, statusService }) {
-    // Initialize EventManager using helper
-    await initializeEventManager(statusService);
     
-    // Add filter and event manager buttons using helper (styled as globe dock rail buttons)
-    createGlobeControlButton({
-        id: 'filtersToggle',
-        className: 'dock-globe-rail__btn',
-        title: 'Open Filters',
-        label: 'Filters',
-        iconPath: 'assets/images/icons/Filter Icon.png',
-        iconAlt: 'Filters',
-        parentId: 'dockGlobeRailRight',
-        baseClass: 'globe-control-btn',
-        headerOrder: 5,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
-    }, statusService);
+    // Check if Event System Load Out already did the heavy lifting
+    const eventSystemActive = isEventSystemLoadOutActive();
     
-    // Show filters toggle button (it was hidden initially)
-    const filtersToggleBtn = document.getElementById('filtersToggle');
-    if (filtersToggleBtn) {
-        filtersToggleBtn.style.setProperty('display', 'flex', 'important');
+    if (eventSystemActive) {
+        // Event System already loaded - just ensure buttons are visible
+        if (statusService) {
+            statusService.update('→ Event System already loaded, reusing...', 'info');
+        }
+        
+        // Make sure dock buttons are visible (they may have been hidden)
+        const filtersToggle = document.getElementById('filtersToggle');
+        const eventsManageToggle = document.getElementById('eventsManageToggle');
+        
+        if (filtersToggle) {
+            filtersToggle.style.setProperty('display', 'flex', 'important');
+        }
+        if (eventsManageToggle) {
+            eventsManageToggle.style.setProperty('display', 'flex', 'important');
+        }
+        
+        // Ensure filter panel exists (create if missing, though Event System should have done this)
+        const filtersPanel = document.getElementById('filtersPanel');
+        if (!filtersPanel && createFiltersPanel) {
+            createFiltersPanel(statusService);
+        }
+        
+        // Ensure pagination exists (create if missing)
+        const paginationDock = document.getElementById('paginationDock');
+        if (!paginationDock && createEventPagination) {
+            createEventPagination(statusService);
+        }
+        
+    } else {
+        // Event System NOT loaded - do FULL initialization
+        
+        // Initialize EventManager using helper
+        await initializeEventManager(statusService);
+        
+        // Add filter and event manager buttons using helper (styled as globe dock rail buttons)
+        createGlobeControlButton({
+            id: 'filtersToggle',
+            className: 'dock-globe-rail__btn',
+            title: 'Open Filters',
+            label: 'Filters',
+            iconPath: 'assets/images/icons/Filter Icon.png',
+            iconAlt: 'Filters',
+            parentId: 'dockGlobeRailRight',
+            baseClass: 'globe-control-btn',
+            headerOrder: 5,
+            mobileParentId: 'dockGlobeRailRight',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'dock-globe-rail__btn'
+        }, statusService);
+        
+        // Show filters toggle button (it was hidden initially)
+        const filtersToggleBtn = document.getElementById('filtersToggle');
+        if (filtersToggleBtn) {
+            filtersToggleBtn.style.setProperty('display', 'flex', 'important');
+        }
+        
+        createGlobeControlButton({
+            id: 'eventsManageToggle',
+            className: 'dock-globe-rail__btn',
+            title: 'Manage Events',
+            label: 'Events',
+            iconPath: 'assets/images/icons/Event Manager Icon.png',
+            iconAlt: 'Event Manager',
+            parentId: 'dockGlobeRailRight',
+            baseClass: 'globe-control-btn',
+            headerOrder: 10,
+            mobileParentId: 'dockGlobeRailRight',
+            mobileBaseClass: 'globe-control-btn',
+            mobileClassName: 'dock-globe-rail__btn'
+        }, statusService);
+        
+        // Create event pagination using helper
+        createEventPagination(statusService);
+        
+        // Create filters panel using helper
+        createFiltersPanel(statusService);
+        
+        // Verify event panels exist using helper
+        verifyEventPanels(statusService);
+        
+        // Setup event manager listeners using helper
+        if (window.eventManager) {
+            setupEventManagerListeners(window.eventManager, statusService);
+        }
+        
+        // Initialize filter panel using helper
+        initializeFilterPanel(statusService);
     }
     
-    createGlobeControlButton({
-        id: 'eventsManageToggle',
-        className: 'dock-globe-rail__btn',
-        title: 'Manage Events',
-        label: 'Events',
-        iconPath: 'assets/images/icons/Event Manager Icon.png',
-        iconAlt: 'Event Manager',
-        parentId: 'dockGlobeRailRight',
-        baseClass: 'globe-control-btn',
-        headerOrder: 10,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
-    }, statusService);
-
+    // === GLOBE-SPECIFIC SETUP (always runs regardless of Event System state) ===
+    
+    // Codex toggle - this is Globe-only feature
     createGlobeControlButton({
         id: 'codexToggle',
         className: '',
@@ -337,42 +412,79 @@ export async function loadEventsLogic({ initializeEventManager, createGlobeContr
         headerOrder: 15
     }, statusService);
     
-    // Create event pagination using helper
-    createEventPagination(statusService);
-    
-    // Create filters panel using helper
-    createFiltersPanel(statusService);
-    
-    // Verify event panels exist using helper
-    verifyEventPanels(statusService);
-    
-    // Load event sound effects using helper
-    loadEventSoundEffects(loadSoundEffect, statusService);
-    
-    // Initialize filter panel using helper
-    initializeFilterPanel(statusService);
-    
-    // Setup event manager listeners using helper
-    if (window.eventManager) {
-        setupEventManagerListeners(window.eventManager, statusService);
+    // Load event sound effects (only if not already loaded by Event System)
+    if (!window.ServiceEventSoundHelpers?.loadEventSoundEffects) {
+        loadEventSoundEffects(loadSoundEffect, statusService);
     }
     
     // Final sync with globe (after all UI is set up) using helper
     if (window.globeController && window.eventManager) {
         syncEventsWithGlobe(window.globeController, window.eventManager, statusService);
     }
+    
+    // === FILTER STATE SYNC ===
+    // If Event System is active, sync its filter state with Globe's sceneModel
+    if (eventSystemActive && window.globeController?.sceneModel) {
+        const standaloneFilters = window.standaloneActiveFilters || new Set();
+        const sceneModel = window.globeController.sceneModel;
+        
+        // Make sceneModel use the same filter Set as Event System
+        // This ensures filters apply to both pagination thumbnails AND globe markers
+        sceneModel.activeFilters = standaloneFilters;
+        
+        if (statusService) {
+            statusService.update(`→ Synced ${standaloneFilters.size} filters to Globe`, 'info');
+        }
+        
+        // Apply filters to globe markers immediately
+        if (window.globeController.globeView?.applyFilters) {
+            window.globeController.globeView.applyFilters();
+        }
+    }
 }
 
 /**
  * Unload events component
+ * If Event System Load Out is active, preserve its UI and only clean up Globe-specific elements
  */
 export async function unloadEventsLogic({ removeElementsByIds, statusService }) {
+    // Check if Event System Load Out is still active - if so, DON'T destroy its UI
+    const eventSystemActive = isEventSystemLoadOutActive();
+    
+    if (eventSystemActive) {
+        // Event System is still loaded - only remove Globe-specific elements
+        // The filters/events buttons, pagination, and filter panel should stay for Event System
+        if (statusService) {
+            statusService.update('→ Event System still active, preserving UI', 'info');
+        }
+        
+        // Only remove Globe-specific buttons (codex toggle is Globe-only)
+        removeElementsByIds([
+            { id: 'codexToggle', message: 'Codex button removed' }
+        ], statusService);
+        
+        // Restore sceneModel.activeFilters to its own Set (decouple from standalone)
+        // This prevents the Globe's cleanup from affecting Event System's filters
+        if (window.globeController?.sceneModel) {
+            const currentFilters = window.globeController.sceneModel.activeFilters;
+            // Create a new Set with the same values (breaks the reference)
+            window.globeController.sceneModel.activeFilters = new Set(currentFilters || []);
+        }
+        
+        // Note: filtersToggle, eventsManageToggle, pagination, filtersPanel are preserved
+        // because Event System Load Out is still active and needs them
+        
+        return;
+    }
+    
+    // Event System NOT active - do FULL cleanup
     // Remove event UI components using helper
     // Note: headerGlobalTimelineBtn, headerConceptGlossaryBtn, and homeBtn are universal
     // header features and persist across mode switches
     removeElementsByIds([
         { id: 'filtersToggle', message: 'Filter button removed' },
         { id: 'eventsManageToggle', message: 'Event manager button removed' },
+        { id: 'codexToggle', message: 'Codex button removed' },
         { id: 'eventPagination', message: 'Event pagination removed' },
         { id: 'filtersPanel', message: null, checkParent: true },
         { id: 'paginationDock', message: 'Pagination dock removed' },

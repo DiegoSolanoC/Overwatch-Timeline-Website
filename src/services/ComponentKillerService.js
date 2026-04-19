@@ -24,8 +24,17 @@ class ComponentKillerService {
     async killGlobeComponents() {
         this.statusService.update('Killing all Globe Components...', 'info');
         
-        if (this.loaderService.isLoaded('events')) {
+        // Check if Event System Load Out is active
+        const testBtn = document.getElementById('testBtn');
+        const eventSystemActive = testBtn?.dataset.loaded === 'true' && 
+                                  window.eventManager?.listenersSetup === true;
+        
+        // Only unload events if Event System is NOT active
+        // Globe no longer owns event loading - it relies on Event System
+        if (this.loaderService.isLoaded('events') && !eventSystemActive) {
             await this.loaderService.unloadEvents();
+        } else if (eventSystemActive) {
+            this.statusService.update('→ Event System active, preserving events', 'info');
         }
         
         if (this.loaderService.isLoaded('controls')) {
@@ -37,7 +46,8 @@ class ComponentKillerService {
         }
         
         if (this.loaderService.isLoaded('globeBase')) {
-            await this.loaderService.unloadGlobeBase();
+            // Preserve events UI if Event System is still active
+            await this.loaderService.unloadGlobeBase({ preserveEventsUi: eventSystemActive });
         }
         
         const testContainer = document.querySelector('.test-container');

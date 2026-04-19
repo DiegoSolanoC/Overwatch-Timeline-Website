@@ -9,6 +9,21 @@ class ComponentRunnerService {
         this.progressService = progressService;
     }
 
+    /**
+     * Check if Event System Load Out is already active
+     * Globe now relies on Event System for event-related features
+     */
+    isEventSystemLoadOutActive() {
+        const testBtn = document.getElementById('testBtn');
+        const isLoaded = testBtn?.dataset.loaded === 'true';
+        const hasEventManager = window.eventManager?.events?.length > 0;
+        const hasListeners = window.eventManager?.listenersSetup === true;
+        const hasUI = !!document.getElementById('filtersPanel') || 
+                       !!document.getElementById('paginationDock') ||
+                       !!document.getElementById('filtersToggle');
+        return isLoaded && hasEventManager && hasListeners && hasUI;
+    }
+
     async runUniversalFeatures() {
         const runBtn = document.getElementById('runUniversalBtn');
         if (runBtn) {
@@ -165,17 +180,19 @@ class ComponentRunnerService {
                 this.progressService.updateGlobeComponentsProgress(3);
             }
             
-            if (!this.loaderService.isLoaded('events')) {
-                this.statusService.update('→ Loading Events...', 'info');
-                await this.loaderService.loadEvents();
+            // === EVENT SYSTEM DEPENDENCY ===
+            // Globe no longer loads events directly - it relies on Event System Load Out
+            // Check if Event System is already loaded and sync with it
+            const eventSystemActive = this.isEventSystemLoadOutActive();
+            
+            if (eventSystemActive && window.globeController && window.eventManager) {
+                this.statusService.update('→ Event System detected, syncing...', 'info');
+                const { syncEventsWithGlobe } = await import('../app/helpers/EventManagerHelpers.js');
+                syncEventsWithGlobe(window.globeController, window.eventManager);
                 this.progressService.updateGlobeComponentsProgress(4);
             } else {
-                this.statusService.update('→ Events already loaded, skipping...', 'info');
+                this.statusService.update('→ Event System not loaded (Globe will have no events)', 'info');
                 this.progressService.updateGlobeComponentsProgress(4);
-                if (window.globeController && window.eventManager) {
-                    const { syncEventsWithGlobe } = await import('../app/helpers/EventManagerHelpers.js');
-                    syncEventsWithGlobe(window.globeController, window.eventManager);
-                }
             }
             
             this.statusService.update('✓ Globe Components auto-load complete!', 'success');
@@ -187,36 +204,12 @@ class ComponentRunnerService {
                 globeContainer.classList.add('loaded');
             }
             
-            // Change footer to white with no text when timeline is loaded
-            const footer = document.querySelector('footer');
-            if (footer) {
-                footer.classList.add('timeline-loaded');
-                
-                // Initialize news ticker when timeline loads
-                if (window.NewsTickerService && !window.newsTickerService) {
-                    window.newsTickerService = new window.NewsTickerService();
-                    window.newsTickerService.init();
+            // Footer styling for timeline mode - only if Event System is active
+            if (eventSystemActive) {
+                const footer = document.querySelector('footer');
+                if (footer) {
+                    footer.classList.add('timeline-loaded');
                 }
-                
-                // Update ticker with headlines from current page after a short delay to ensure events are loaded
-                // Try multiple times with increasing delays to catch when events are synced
-                const updateTickerDelayed = (attempt = 0) => {
-                    if (window.globeController && window.globeController.dataModel && window.newsTickerService) {
-                        const currentPageEvents = window.globeController.dataModel.getEventsForCurrentPage();
-                        if (currentPageEvents && currentPageEvents.length > 0) {
-                            if (window.newsTickerService.updateTicker) {
-                                window.newsTickerService.updateTicker(currentPageEvents);
-                            }
-                        } else if (attempt < 5) {
-                            // Events not synced yet, try again
-                            setTimeout(() => updateTickerDelayed(attempt + 1), 200);
-                        }
-                    } else if (attempt < 5) {
-                        // Services not ready yet, try again
-                        setTimeout(() => updateTickerDelayed(attempt + 1), 200);
-                    }
-                };
-                updateTickerDelayed();
             }
         } catch (error) {
             console.error('Error in Globe Components auto-load:', error);

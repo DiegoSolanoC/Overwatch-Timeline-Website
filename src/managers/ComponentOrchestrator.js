@@ -33,6 +33,21 @@ export class ComponentOrchestrator {
     }
 
     /**
+     * Check if Event System Load Out is already active
+     * Globe now relies on Event System for event-related features
+     */
+    isEventSystemLoadOutActive() {
+        const testBtn = document.getElementById('testBtn');
+        const isLoaded = testBtn?.dataset.loaded === 'true';
+        const hasEventManager = window.eventManager?.events?.length > 0;
+        const hasListeners = window.eventManager?.listenersSetup === true;
+        const hasUI = !!document.getElementById('filtersPanel') || 
+                       !!document.getElementById('paginationDock') ||
+                       !!document.getElementById('filtersToggle');
+        return isLoaded && hasEventManager && hasListeners && hasUI;
+    }
+
+    /**
      * Play mode switch sound effect
      * @param {boolean} isAutoLoad - If true, don't play sound
      */
@@ -255,19 +270,18 @@ export class ComponentOrchestrator {
                 updateGlobeComponentsProgress(3);
             }
             
-            // Load Events
-            if (!this.loadedComponents.events) {
-                updateStatus('→ Loading Events...', 'info');
-                await this.loaders.events();
+            // === EVENT SYSTEM DEPENDENCY ===
+            // Globe no longer loads events directly - it relies on Event System Load Out
+            const eventSystemActive = this.isEventSystemLoadOutActive();
+            
+            if (eventSystemActive && window.globeController && window.eventManager) {
+                updateStatus('→ Event System detected, syncing...', 'info');
+                const { syncEventsWithGlobe } = await import('../app/helpers/EventManagerHelpers.js');
+                syncEventsWithGlobe(window.globeController, window.eventManager);
                 updateGlobeComponentsProgress(4);
             } else {
-                updateStatus('→ Events already loaded, skipping...', 'info');
+                updateStatus('→ Event System not loaded (Globe will have no events)', 'info');
                 updateGlobeComponentsProgress(4);
-                // Globe may have been rebuilt (e.g. returning from Codex); re-apply markers and data.
-                if (window.globeController && window.eventManager) {
-                    const { syncEventsWithGlobe } = await import('../app/helpers/EventManagerHelpers.js');
-                    syncEventsWithGlobe(window.globeController, window.eventManager);
-                }
             }
             
             updateStatus('✓ Globe Components auto-load complete!', 'success');
@@ -281,36 +295,12 @@ export class ComponentOrchestrator {
                 globeContainer.classList.add('loaded');
             }
             
-            // Change footer to white with no text when timeline is loaded
-            const footer = document.querySelector('footer');
-            if (footer) {
-                footer.classList.add('timeline-loaded');
-                
-                // Initialize news ticker when timeline loads
-                if (window.NewsTickerService && !window.newsTickerService) {
-                    window.newsTickerService = new window.NewsTickerService();
-                    window.newsTickerService.init();
+            // Footer styling for timeline mode - only if Event System is active
+            if (eventSystemActive) {
+                const footer = document.querySelector('footer');
+                if (footer) {
+                    footer.classList.add('timeline-loaded');
                 }
-                
-                // Update ticker with headlines from current page after a short delay to ensure events are loaded
-                // Try multiple times with increasing delays to catch when events are synced
-                const updateTickerDelayed = (attempt = 0) => {
-                    if (window.globeController && window.globeController.dataModel && window.newsTickerService) {
-                        const currentPageEvents = window.globeController.dataModel.getEventsForCurrentPage();
-                        if (currentPageEvents && currentPageEvents.length > 0) {
-                            if (window.newsTickerService.updateTicker) {
-                                window.newsTickerService.updateTicker(currentPageEvents);
-                            }
-                        } else if (attempt < 5) {
-                            // Events not synced yet, try again
-                            setTimeout(() => updateTickerDelayed(attempt + 1), 200);
-                        }
-                    } else if (attempt < 5) {
-                        // Services not ready yet, try again
-                        setTimeout(() => updateTickerDelayed(attempt + 1), 200);
-                    }
-                };
-                updateTickerDelayed();
             }
 
             // Ensure header hub state updates even when globe is started from the main menu button
@@ -529,9 +519,15 @@ export class ComponentOrchestrator {
     async killGlobeComponents() {
         updateStatus('Killing all Globe Components...', 'info');
         
+        // Check if Event System Load Out is active
+        const eventSystemActive = this.isEventSystemLoadOutActive();
+        
         // Unload in reverse order (dependencies first)
-        if (this.loadedComponents.events) {
+        // Only unload events if Event System is NOT active
+        if (this.loadedComponents.events && !eventSystemActive) {
             await this.unloaders.events();
+        } else if (eventSystemActive) {
+            updateStatus('→ Event System active, preserving events UI', 'info');
         }
         
         if (this.loadedComponents.controls) {
@@ -543,7 +539,10 @@ export class ComponentOrchestrator {
         }
         
         if (this.loadedComponents.globeBase) {
-            await this.unloaders.globeBase();
+            // Preserve events UI if Event System is still active
+            if (this.unloaders.globeBase && typeof this.unloaders.globeBase === 'function') {
+                await this.unloaders.globeBase({ preserveEventsUi: eventSystemActive });
+            }
         }
         
         // Restore the menu (test-container) when killing globe components

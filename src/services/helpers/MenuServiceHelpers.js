@@ -77,6 +77,16 @@ function updateStandalonePaginationForFilters() {
     
     // Update slider ticks for filter hits
     updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage);
+    
+    // === GLOBE INTEGRATION ===
+    // Sync filters to Globe markers (if Globe is loaded)
+    const gc = window.globeController;
+    if (gc?.sceneModel && gc.globeView?.applyFilters) {
+        // Sync filter state to sceneModel
+        gc.sceneModel.activeFilters = activeFilters;
+        // Apply filters to lock/unlock markers
+        gc.globeView.applyFilters();
+    }
 }
 
 /**
@@ -1560,11 +1570,82 @@ export function createMenuButtonsContainer(statusService) {
                                             displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : ''
                                         );
                                     }
+                                    
+                                    // === GLOBE INTEGRATION ===
+                                    // If Globe is loaded, pan camera to marker and highlight it
+                                    const gc = window.globeController;
+                                    if (gc && event) {
+                                        const sceneModel = gc.sceneModel;
+                                        const ic = gc.interactionController;
+                                        if (sceneModel && ic) {
+                                            // Find the marker for this event
+                                            const markers = sceneModel.getMarkers?.() || [];
+                                            const marker = markers.find(m => 
+                                                m?.userData?.event && 
+                                                (m.userData.event.id === event.id || m.userData.event.name === event.name)
+                                            );
+                                            
+                                            if (marker && !marker.userData?.isLocked) {
+                                                // Pan camera to marker
+                                                const locationType = marker.userData?.locationType || 'earth';
+                                                if (locationType === 'moon' || locationType === 'mars') {
+                                                    ic.resetCameraToDefault();
+                                                } else if (locationType === 'station' || locationType === 'marsShip') {
+                                                    ic.setPlanesVisibility(false);
+                                                    ic.startFollowingStation(marker);
+                                                } else {
+                                                    // Earth: zoom to marker
+                                                    ic.zoomToMarker(marker);
+                                                }
+                                                
+                                                // Highlight marker
+                                                ic.startEventMarkerPulse?.(marker);
+                                                ic.hoveredEventMarker = marker;
+                                                ic.pulseService?.setHoveredMarker?.(marker);
+                                                
+                                                // Sync thumbnail highlight on marker
+                                                ic.highlightNumberButtonForMarker?.(marker);
+                                            }
+                                        }
+                                    }
                                 };
                                 
                                 newBtn.onmouseleave = () => {
                                     if (window.EventsHoverPreviewBadge?.hide) {
                                         window.EventsHoverPreviewBadge.hide();
+                                    }
+                                    
+                                    // === GLOBE INTEGRATION ===
+                                    // Restore camera and stop marker pulse
+                                    const gc = window.globeController;
+                                    if (gc?.interactionController) {
+                                        const ic = gc.interactionController;
+                                        
+                                        // Stop marker pulse
+                                        if (ic.hoveredEventMarker) {
+                                            ic.stopEventMarkerPulse?.(ic.hoveredEventMarker);
+                                            ic.hoveredEventMarker = null;
+                                            ic.pulseService?.setHoveredMarker?.(null);
+                                        }
+                                        
+                                        // Clear thumbnail highlight
+                                        ic.highlightNumberButtonForMarker?.(null);
+                                        
+                                        // Restore camera if original position was stored
+                                        const uiView = gc.uiView;
+                                        if (uiView?.originalCameraPosition && uiView.zoomOutFromEvent) {
+                                            uiView.zoomOutFromEvent();
+                                        } else {
+                                            // Fallback: just reset camera
+                                            ic.resetCameraToDefault?.();
+                                        }
+                                        
+                                        // Resume auto-rotate after delay
+                                        if (gc.sceneModel && !gc.sceneModel.getAutoRotateEnabled?.()) {
+                                            gc.sceneModel.autoRotateTimeout = setTimeout(() => {
+                                                gc.sceneModel.setAutoRotate?.(true);
+                                            }, 2000);
+                                        }
                                     }
                                 };
                             });
