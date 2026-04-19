@@ -1143,13 +1143,14 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     user-select: none;
 }
 
-/* Dev-only: sun yaw — slider only, right side (avoids collapse / left chrome) */
+/* Dev-only: sun yaw — slider centered below header */
 #globe-container .dev-sun-yaw-panel {
     position: absolute;
-    right: max(12px, env(safe-area-inset-right));
-    left: auto;
-    bottom: 16px;
-    transform: none;
+    top: 80px;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translateX(-50%);
     z-index: 125;
     margin: 0;
     padding: 0;
@@ -1167,91 +1168,111 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
 
 #globe-container .dev-sun-yaw-panel__range {
     display: block;
-    width: min(300px, calc(100vw - 120px));
-    height: 36px;
+    width: min(600px, calc(100vw - 160px));
+    height: 24px;
     margin: 0;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.45);
 }
 
 #globe-container .dev-sun-yaw-panel__range::-webkit-slider-runnable-track {
-    height: 10px;
-    border-radius: 5px;
+    height: 24px;
+    border-radius: 12px;
     background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.45);
 }
 
 #globe-container .dev-sun-yaw-panel__range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 24px;
-    height: 24px;
-    margin-top: -8px;
+    width: 48px;
+    height: 48px;
+    margin-top: -14px;
     border-radius: 50%;
-    background: #fff;
-    border: 2px solid rgba(13, 71, 161, 0.95);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    background: url('../../assets/images/icons/Lighting Icon.png') center/contain no-repeat;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
 }
 
 #globe-container .dev-sun-yaw-panel__range::-moz-range-track {
-    height: 10px;
-    border-radius: 5px;
+    height: 24px;
+    border-radius: 12px;
     background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.45);
 }
 
 #globe-container .dev-sun-yaw-panel__range::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: #fff;
-    border: 2px solid rgba(13, 71, 161, 0.95);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    background: url('../../assets/images/icons/Lighting Icon.png') center/contain no-repeat;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
 }
 
-body.color-palette-gray #globe-container .dev-sun-yaw-panel__range::-webkit-slider-thumb {
-    border-color: rgba(80, 80, 88, 1);
+/* Sun slider track backgrounds per palette (thumb uses --accent-primary from variables.css) */
+body.color-palette-gray #globe-container .dev-sun-yaw-panel__range::-webkit-slider-runnable-track {
+    background: rgba(74, 74, 74, 0.5);
 }
 
-body.color-palette-gray #globe-container .dev-sun-yaw-panel__range::-moz-range-thumb {
-    border-color: rgba(80, 80, 88, 1);
+body.color-palette-gray #globe-container .dev-sun-yaw-panel__range::-moz-range-track {
+    background: rgba(74, 74, 74, 0.5);
 }
 
-body.color-palette-crimson #globe-container .dev-sun-yaw-panel__range::-webkit-slider-thumb {
-    border-color: rgba(160, 36, 44, 1);
+body.color-palette-crimson #globe-container .dev-sun-yaw-panel__range::-webkit-slider-runnable-track {
+    background: rgba(92, 16, 24, 0.5);
 }
 
-body.color-palette-crimson #globe-container .dev-sun-yaw-panel__range::-moz-range-thumb {
-    border-color: rgba(160, 36, 44, 1);
+body.color-palette-crimson #globe-container .dev-sun-yaw-panel__range::-moz-range-track {
+    background: rgba(92, 16, 24, 0.5);
 }
 
-body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-webkit-slider-thumb {
-    border-color: rgba(120, 72, 180, 1);
+body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-webkit-slider-runnable-track {
+    background: rgba(61, 36, 104, 0.5);
 }
 
-body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range-thumb {
-    border-color: rgba(120, 72, 180, 1);
+body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range-track {
+    background: rgba(61, 36, 104, 0.5);
 }
 
 @media (max-width: 768px) {
     #globe-container .dev-sun-yaw-panel {
-        bottom: calc(var(--footer-height, 65px) + 58px);
+        top: 80px;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translateX(-50%);
     }
 
     #globe-container .dev-sun-yaw-panel__range {
-        width: min(280px, calc(100vw - 88px));
+        width: min(500px, calc(100vw - 40px));
+        height: 20px;
     }
 
-    body:has(#paginationDock) #globe-container .dev-sun-yaw-panel {
-        bottom: calc(
-            var(--footer-height, 65px) + var(--pagination-dock-height, 240px) + 12px
-        );
+    #globe-container .dev-sun-yaw-panel__range::-webkit-slider-runnable-track {
+        height: 20px;
     }
 
-    body:has(#paginationDock).pagination-dock-collapsed #globe-container .dev-sun-yaw-panel {
-        bottom: calc(
-            var(--footer-height, 65px) + var(--pagination-dock-height-collapsed, 138px) + 12px
-        );
+    #globe-container .dev-sun-yaw-panel__range::-webkit-slider-thumb {
+        width: 40px;
+        height: 40px;
+        margin-top: -12px;
+    }
+
+    #globe-container .dev-sun-yaw-panel__range::-moz-range-track {
+        height: 20px;
+    }
+
+    #globe-container .dev-sun-yaw-panel__range::-moz-range-thumb {
+        width: 40px;
+        height: 40px;
     }
 }
 
@@ -1450,12 +1471,12 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
         border-style: solid !important;
         border-width: 2px 2px 2px 6px !important;
         border-color: rgba(255, 255, 255, 0.93) !important;
-        background: rgba(13, 71, 161, 0.35) !important;
+        background: var(--btn-primary-bg) !important;
     }
 
     .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn:hover {
         transform: skewX(-11deg) translateY(-3px) scale(1.04) !important;
-        background: rgba(13, 71, 161, 0.55) !important;
+        background: var(--btn-primary-bg-hover) !important;
         border-color: #fff !important;
     }
 

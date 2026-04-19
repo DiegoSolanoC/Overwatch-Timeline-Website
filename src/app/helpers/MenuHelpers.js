@@ -178,6 +178,10 @@ export function isGitHubPages() {
  * @returns {HTMLElement} - The created button
  */
 export function createMenuButton({ id, title, imagePath, label, description }) {
+    // Wrapper contains button + external label
+    const wrapper = document.createElement('div');
+    wrapper.className = 'main-menu-btn-wrapper';
+
     const button = document.createElement('button');
     button.id = id;
     button.className = 'main-menu-btn';
@@ -188,10 +192,21 @@ export function createMenuButton({ id, title, imagePath, label, description }) {
         </div>
         <div class="main-menu-label-container">
             <div class="main-menu-label">${label}</div>
-            <div class="main-menu-description">${description}</div>
         </div>
     `;
-    return button;
+
+    // External dark label below button with description only
+    const externalLabel = document.createElement('div');
+    externalLabel.className = 'main-menu-external-label';
+    externalLabel.innerHTML = `<div class="main-menu-external-label__desc">${description}</div>`;
+
+    wrapper.appendChild(button);
+    wrapper.appendChild(externalLabel);
+
+    // Keep reference to button for event handlers
+    wrapper.button = button;
+
+    return wrapper;
 }
 
 /**
@@ -215,7 +230,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
     });
 
     if (setupGlobeHandler) {
-        globeBtn.addEventListener('click', setupGlobeHandler);
+        globeBtn.button.addEventListener('click', setupGlobeHandler);
     }
 
     menuButtons.appendChild(globeBtn);
@@ -230,7 +245,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
     });
 
     if (setupGlossaryHandler) {
-        glossaryBtn.addEventListener('click', setupGlossaryHandler);
+        glossaryBtn.button.addEventListener('click', setupGlossaryHandler);
     }
 
     menuButtons.appendChild(glossaryBtn);
@@ -247,7 +262,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         });
 
         if (setupBiographyHandler) {
-            biographyBtn.addEventListener('click', setupBiographyHandler);
+            biographyBtn.button.addEventListener('click', setupBiographyHandler);
         }
 
         menuButtons.appendChild(biographyBtn);
