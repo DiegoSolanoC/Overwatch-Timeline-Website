@@ -288,29 +288,41 @@ export async function loadEventsLogic({ initializeEventManager, createGlobeContr
     // Initialize EventManager using helper
     await initializeEventManager(statusService);
     
-    // Add filter and event manager buttons using helper
+    // Add filter and event manager buttons using helper (styled as globe dock rail buttons)
     createGlobeControlButton({
         id: 'filtersToggle',
-        className: '',
+        className: 'dock-globe-rail__btn',
         title: 'Open Filters',
         label: 'Filters',
         iconPath: 'assets/images/icons/Filter Icon.png',
         iconAlt: 'Filters',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 20
+        parentId: 'dockGlobeRailRight',
+        baseClass: 'globe-control-btn',
+        headerOrder: 5,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     }, statusService);
+    
+    // Show filters toggle button (it was hidden initially)
+    const filtersToggleBtn = document.getElementById('filtersToggle');
+    if (filtersToggleBtn) {
+        filtersToggleBtn.style.setProperty('display', 'flex', 'important');
+    }
     
     createGlobeControlButton({
         id: 'eventsManageToggle',
-        className: '',
+        className: 'dock-globe-rail__btn',
         title: 'Manage Events',
         label: 'Events',
         iconPath: 'assets/images/icons/Event Manager Icon.png',
         iconAlt: 'Event Manager',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 10
+        parentId: 'dockGlobeRailRight',
+        baseClass: 'globe-control-btn',
+        headerOrder: 10,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     }, statusService);
 
     createGlobeControlButton({

@@ -15,30 +15,36 @@ import { updateStatus } from '../../managers/StatusManager.js';
  * @param {Function} params.updateStatus - Status update function
  */
 export function setupEventUIComponents({ updateStatus }) {
-    // Add filter button
+    // Add filter button (styled as globe dock rail button, positioned on right)
     createGlobeControlButton({
         id: 'filtersToggle',
-        className: '',
+        className: 'dock-globe-rail__btn',
         title: 'Open Filters',
         label: 'Filters',
         iconPath: 'assets/images/icons/Filter Icon.png',
         iconAlt: 'Filters',
-        parentId: 'headerHubRight',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 5 // Keep it to the left of Palette/Music in the right hub
+        parentId: 'dockGlobeRailRight',
+        baseClass: 'globe-control-btn',
+        headerOrder: 5,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     });
     
-    // Add event manager button
+    // Add event manager button (styled as globe dock rail button, positioned on right)
     createGlobeControlButton({
         id: 'eventsManageToggle',
-        className: '',
+        className: 'dock-globe-rail__btn',
         title: 'Manage Events',
         label: 'Events',
         iconPath: 'assets/images/icons/Event Manager Icon.png',
         iconAlt: 'Event Manager',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 10
+        parentId: 'dockGlobeRailRight',
+        baseClass: 'globe-control-btn',
+        headerOrder: 10,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     });
 
     createGlobeControlButton({

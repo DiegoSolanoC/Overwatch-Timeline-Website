@@ -71,6 +71,11 @@
     /** Globe timeline or Codex: same events UI / dataModel (bridge), but no WebGL globe. */
     function canUseTimelinePaginationShortcuts() {
         if (isGlobeTimelineMode()) return true;
+        // Standalone TEST mode: pagination dock is present and standaloneEventSlide is active
+        const hasPaginationDock = !!document.getElementById('paginationDock');
+        const hasStandaloneSlide = !!window.standaloneEventSlide;
+        if (hasPaginationDock && hasStandaloneSlide) return true;
+        // Codex mode check
         if (!isCodexModeActive()) return false;
         return !!(codexOrGlobeDataModel() && codexOrGlobeUiView());
     }
@@ -281,14 +286,9 @@
         var btn = document.querySelector(
             '#eventNumberButtons .event-number-btn[data-position="' + positionStr + '"]'
         );
-        if (!btn || btn.style.display === 'none' || btn.classList.contains('locked')) return false;
-
-        var slideOpen = document.getElementById('eventSlide') && document.getElementById('eventSlide').classList.contains('open');
-        if (slideOpen && btn.disabled) {
-            btn.disabled = false;
-            btn.click();
-            btn.disabled = true;
-            return true;
+        if (!btn) {
+            console.log('AppKeyboardShortcuts: No button found for position', positionStr);
+            return false;
         }
         if (!btn.disabled) {
             btn.click();

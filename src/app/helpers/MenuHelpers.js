@@ -4,6 +4,147 @@
  */
 
 import { updateStatus } from '../../managers/StatusManager.js';
+import { getOrCreateElement, createEventPagination, createFiltersPanel } from './ComponentDOMHelpers.js';
+import { shouldEventBeLocked } from '../../managers/helpers/MarkerCreationHelpers.js';
+
+/** WAAPI keyframes for page turn animation - matches globe implementation */
+function thumbPageTurnShrinkKeyframes(isThumbsDesktop, locked) {
+    if (isThumbsDesktop) {
+        const from = locked
+            ? { opacity: 0.5, transform: 'skewX(-11deg)' }
+            : { opacity: 1, transform: 'skewX(-11deg) scale(1)' };
+        const to = { opacity: 0, transform: 'skewX(-11deg) scale(0.6)' };
+        return [from, to];
+    }
+    const from = locked ? { opacity: 0.5 } : { opacity: 1 };
+    const to = { opacity: 0 };
+    return [from, to];
+}
+
+function thumbPageTurnGrowKeyframes(isThumbsDesktop, locked) {
+    if (isThumbsDesktop) {
+        const from = {
+            opacity: 0,
+            transform: 'skewX(-11deg) scale(0.6)'
+        };
+        const to = locked
+            ? { opacity: 0.5, transform: 'skewX(-11deg) scale(1)' }
+            : { opacity: 1, transform: 'skewX(-11deg) scale(1)' };
+        return [from, to];
+    }
+    const from = { opacity: 0 };
+    const to = locked ? { opacity: 0.5 } : { opacity: 1 };
+    return [from, to];
+}
+
+/**
+ * Updates standalone pagination thumbnails based on active filters
+ * Locks (disables/dims) thumbnails for events that don't match filters
+ */
+export function updateStandalonePaginationForFilters() {
+    const activeFilters = window.standaloneActiveFilters || new Set();
+    const events = window.eventManager?.events || [];
+    const buttons = document.querySelectorAll('#eventNumberButtons .event-number-btn');
+    
+    if (!buttons.length) return;
+    
+    const eventsPerPage = 10; // Standard pagination
+    const currentPage = window.eventManager?.getCurrentEventPage?.() || 1;
+    const startIndex = (currentPage - 1) * eventsPerPage;
+    
+    buttons.forEach((btn, index) => {
+        const eventIndex = startIndex + index;
+        const event = events[eventIndex];
+        
+        if (!event) {
+            // No event for this slot - hide button
+            btn.style.display = 'none';
+            return;
+        }
+        
+        // Check if this event should be locked based on filters
+        const isLocked = activeFilters.size > 0 && shouldEventBeLocked(event, activeFilters);
+        
+        if (isLocked) {
+            btn.disabled = true;
+            btn.classList.add('locked');
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+            btn.title = btn.title.replace(' — Filtered out', '') + ' — Filtered out';
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('locked');
+            btn.style.opacity = '';
+            btn.style.pointerEvents = 'auto';
+            // Remove " — Filtered out" from title if present
+            if (btn.title.includes(' — Filtered out')) {
+                btn.title = btn.title.replace(' — Filtered out', '');
+            }
+        }
+    });
+    
+    // Update slider ticks for filter hits
+    updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage);
+}
+
+/**
+ * Same rule as dock thumbs / event list: first variant (or root) must have a non-empty description
+ */
+function eventRootSlotMissingDescription(rootEvent) {
+    if (!rootEvent) return true;
+    // Get display event (first variant if available, otherwise root)
+    const displayEv = rootEvent.variants?.[0] || rootEvent;
+    const d = displayEv?.description;
+    return !(d && String(d).trim().length > 0);
+}
+
+/**
+ * Updates slider ticks to show filter hits
+ * Only sub-ticks (event-page-slider-tick--sub) get the filter-hit styling
+ * Each sub-tick represents the gap between two consecutive events
+ */
+function updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage) {
+    const ticksEl = document.getElementById('eventPageSliderTicks');
+    if (!ticksEl) return;
+    
+    // Clear existing filter-hit classes
+    ticksEl.querySelectorAll('.event-page-slider-tick--filter-hit').forEach(tick => {
+        tick.classList.remove('event-page-slider-tick--filter-hit');
+    });
+    
+    if (!activeFilters || activeFilters.size === 0) return;
+    
+    // Get only sub-ticks (these represent event boundaries)
+    const subTicks = ticksEl.querySelectorAll('.event-page-slider-tick--sub');
+    if (!subTicks.length) return;
+    
+    const totalEvents = events.length;
+    const totalPages = Math.ceil(totalEvents / eventsPerPage);
+    
+    // Map each sub-tick to its corresponding event index
+    // Sub-ticks are created as: for each page, for k=1 to onPage-1
+    let subTickIndex = 0;
+    for (let p = 0; p < totalPages && subTickIndex < subTicks.length; p++) {
+        const onPage = Math.min(eventsPerPage, Math.max(0, totalEvents - p * eventsPerPage));
+        if (onPage <= 1) continue; // No sub-ticks for pages with 0-1 events
+        
+        for (let k = 1; k < onPage && subTickIndex < subTicks.length; k++) {
+            // This sub-tick represents the boundary between events (p*eventsPerPage + k-1) and (p*eventsPerPage + k)
+            const leftEventIndex = p * eventsPerPage + (k - 1);
+            const rightEventIndex = p * eventsPerPage + k;
+            
+            // Check if either event matches the filters (green if match on either side)
+            const leftPasses = leftEventIndex < totalEvents && !shouldEventBeLocked(events[leftEventIndex], activeFilters);
+            const rightPasses = rightEventIndex < totalEvents && !shouldEventBeLocked(events[rightEventIndex], activeFilters);
+            
+            if (leftPasses || rightPasses) {
+                subTicks[subTickIndex].classList.add('event-page-slider-tick--filter-hit');
+            }
+            
+            subTickIndex++;
+        }
+    }
+}
 
 /**
  * Detects if running on GitHub Pages
@@ -102,11 +243,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         menuButtons.appendChild(biographyBtn);
     }
 
-    // TEST button (small, below main buttons)
+    // Event System Load Out button (small, below main buttons)
     const testBtn = document.createElement('button');
     testBtn.id = 'testBtn';
     testBtn.className = 'test-btn';
-    testBtn.textContent = 'TEST';
+    testBtn.textContent = 'LOAD Event System Load Out';
     testBtn.style.cssText = `
         margin-top: 20px;
         padding: 8px 16px;
@@ -154,7 +295,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                     // Show the events manage panel toggle button
                     const eventsManageToggle = document.getElementById('eventsManageToggle');
                     if (eventsManageToggle) {
-                        eventsManageToggle.style.display = 'flex';
+                        eventsManageToggle.style.setProperty('display', 'flex', 'important');
                         // Remove the old globe-bootstrap handler
                         const newBtn = eventsManageToggle.cloneNode(true);
                         eventsManageToggle.parentNode.replaceChild(newBtn, eventsManageToggle);
@@ -166,6 +307,85 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             }
                         });
                     }
+                }
+                
+                // Create pagination dock for standalone mode
+                getOrCreateElement('eventPagination', () => {
+                    updateStatus('Creating pagination dock...', 'info');
+                    return createEventPagination();
+                }, 'Pagination dock');
+
+                // Create filters panel for standalone mode (decoupled from globe)
+                getOrCreateElement('filtersPanel', () => {
+                    updateStatus('Creating filters panel...', 'info');
+                    return createFiltersPanel();
+                }, 'Filters panel');
+
+                // Initialize FilterService for standalone mode
+                if (window.FilterService && typeof window.FilterService.init === 'function') {
+                    window.FilterService.init();
+                    updateStatus('✓ Filter panel initialized', 'success');
+                }
+
+                // Setup standalone filter state (decoupled from globe sceneModel)
+                if (!window.standaloneActiveFilters) {
+                    window.standaloneActiveFilters = new Set();
+                }
+
+                // Override FilterService confirm handler for standalone mode
+                const confirmFiltersBtn = document.getElementById('confirmFiltersBtn');
+                if (confirmFiltersBtn) {
+                    // Remove old listeners by cloning
+                    const newConfirmBtn = confirmFiltersBtn.cloneNode(true);
+                    confirmFiltersBtn.parentNode.replaceChild(newConfirmBtn, confirmFiltersBtn);
+                    // Add standalone handler
+                    newConfirmBtn.addEventListener('click', () => {
+                        // Apply filters to standalone state
+                        if (window.FilterService?.stateManager?.selectedFilters) {
+                            window.standaloneActiveFilters = new Set(window.FilterService.stateManager.selectedFilters);
+                        }
+                        // Play sound
+                        if (window.SoundEffectsManager) {
+                            window.SoundEffectsManager.play('filterConfirm');
+                        }
+                        // Update dock thumbnails to reflect locked state
+                        updateStandalonePaginationForFilters();
+                        // Close panel
+                        const filtersPanel = document.getElementById('filtersPanel');
+                        if (filtersPanel) filtersPanel.classList.remove('open');
+                        const filtersToggle = document.getElementById('filtersToggle');
+                        if (filtersToggle) filtersToggle.classList.remove('active');
+                        updateStatus('✓ Filters applied', 'success');
+                    });
+                }
+
+                // Override Clear button for standalone mode
+                const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+                if (clearFiltersBtn) {
+                    const newClearBtn = clearFiltersBtn.cloneNode(true);
+                    clearFiltersBtn.parentNode.replaceChild(newClearBtn, clearFiltersBtn);
+                    newClearBtn.addEventListener('click', () => {
+                        // Clear standalone filters
+                        window.standaloneActiveFilters.clear();
+                        if (window.FilterService?.stateManager) {
+                            window.FilterService.stateManager.clear();
+                        }
+                        if (window.SoundEffectsManager) {
+                            window.SoundEffectsManager.play('filterClear');
+                        }
+                        // Update buttons and thumbnails
+                        if (window.FilterService?.updateButtonStates) {
+                            window.FilterService.updateButtonStates();
+                        }
+                        updateStandalonePaginationForFilters();
+                        updateStatus('✓ Filters cleared', 'success');
+                    });
+                }
+
+                // Show filters toggle button
+                const filtersToggle = document.getElementById('filtersToggle');
+                if (filtersToggle) {
+                    filtersToggle.style.setProperty('display', 'flex', 'important');
                 }
 
                 // Initialize standalone Event Slide (decoupled from globe)
@@ -182,30 +402,44 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const events = window.eventManager?.events || [];
                             if (index < 0 || index >= events.length) return;
                             this.currentEventIndex = index;
-                            this.allEvents = events;
                             
-                            const event = events[index];
-                            this.currentEventData = event;
-                            const isMultiEvent = event.variants && event.variants.length > 0;
-                            this.currentVariantIndex = 0;
-                            const displayEvent = isMultiEvent ? event.variants[0] : event;
+                            const eventData = events[index];
+                            this.showStandaloneEventSlide(eventData, index);
+                        },
+                        
+                        // Show event slide with event data
+                        showStandaloneEventSlide(eventData, globalIndex) {
+                            if (!eventData) return;
                             
-                            // Get event data
-                            let eventName = displayEvent.name || event.name || 'Unnamed Event';
+                            const isMultiEvent = Array.isArray(eventData.variants) && eventData.variants.length > 0;
+                            const variantIndex = eventData.variantIndex || 0;
+                            const displayEvent = isMultiEvent && eventData.variants[variantIndex] 
+                                ? { ...eventData, ...eventData.variants[variantIndex] }
+                                : eventData;
+                            
+                            // Get event data for display
+                            let eventName = displayEvent.name || eventData.name || 'Unnamed Event';
                             const description = displayEvent.description || '';
-                            const imagePath = window.eventManager?.getEventImagePath 
-                                ? window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image)
-                                : displayEvent.image;
+                            
+                            // Get image path using NavigationImageHelpers
+                            let imagePath = null;
+                            if (window.NavigationImageHelpers?.getEventImagePath) {
+                                imagePath = window.NavigationImageHelpers.getEventImagePath(displayEvent, eventName);
+                            } else if (window.eventManager?.getEventImagePath) {
+                                imagePath = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
+                            } else {
+                                imagePath = displayEvent.image || displayEvent.imagePath || null;
+                            }
                             
                             // Apply glitch text if enabled
                             if (window.GlitchTextService?.isEnabled?.()) {
                                 eventName = window.GlitchTextService.getDisplayEventName(eventName);
                             }
                             
-                            // Show the slide
-                            this.displaySlide(eventName, imagePath, description, event, isMultiEvent, displayEvent);
+                            // Call the full displaySlide method with all features
+                            this.displaySlide(eventName, imagePath, description, eventData, isMultiEvent, displayEvent);
                             
-                            // Update prev/next button states
+                            // Update nav buttons
                             this.updateNavButtons();
                         },
                         
@@ -1059,6 +1293,728 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (nextBtn) nextBtn.disabled = this.currentEventIndex >= this.allEvents.length - 1;
                         },
                         
+                        setupStandalonePagination() {
+                            const prevBtn = document.getElementById('prevPageBtn');
+                            const nextBtn = document.getElementById('nextPageBtn');
+                            const pageInput = document.getElementById('pageInput');
+                            const pageSlider = document.getElementById('eventPageSlider');
+                            const ticksEl = document.getElementById('eventPageSliderTicks');
+                            
+                            if (!prevBtn || !nextBtn) return;
+                            
+                            // Get data from eventManager (same as Event Manager panel uses)
+                            const events = window.eventManager?.events || [];
+                            const eventsPerPage = 10; // Globe uses 10 events per page
+                            
+                            if (!events.length) {
+                                console.warn('MenuHelpers: No events available for pagination');
+                                return;
+                            }
+                            
+                            console.log('MenuHelpers: Setting up pagination with', events.length, 'events');
+                            
+                            // Calculate total pages
+                            const getTotalPages = () => Math.max(1, Math.ceil(events.length / eventsPerPage));
+                            
+                            // STANDALONE: Track our own current page (don't rely on globe dataModel)
+                            let standaloneCurrentPage = 1;
+                            
+                            const getCurrentPage = () => standaloneCurrentPage;
+                            
+                            const setCurrentPage = (page) => {
+                                standaloneCurrentPage = page;
+                                console.log(`MenuHelpers: Standalone page set to ${page}`);
+                            };
+                            
+                            // Get events for a specific page (mimics DataModel.getEventsForCurrentPage)
+                            const getEventsForPage = (pageNum) => {
+                                const start = (pageNum - 1) * eventsPerPage;
+                                const end = start + eventsPerPage;
+                                return events.slice(start, end);
+                            };
+                            
+                            // Generate slider ticks matching globe implementation
+                            const generateSliderTicks = (totalPages) => {
+                                if (!ticksEl || totalPages <= 1) return;
+                                
+                                ticksEl.innerHTML = '';
+                                const totalEvents = events.length;
+                                
+                                // Add page number labels at the start of each page segment
+                                for (let i = 0; i < totalPages; i++) {
+                                    const label = document.createElement('span');
+                                    label.className = 'event-page-slider-label';
+                                    label.style.left = `${(i / totalPages) * 100}%`;
+                                    label.textContent = String(i + 1);
+                                    ticksEl.appendChild(label);
+                                }
+                                
+                                // Add major tick marks between pages
+                                if (totalPages > 1) {
+                                    for (let i = 1; i < totalPages; i++) {
+                                        const tick = document.createElement('span');
+                                        tick.className = 'event-page-slider-tick event-page-slider-tick--major';
+                                        tick.style.left = `${(i / totalPages) * 100}%`;
+                                        ticksEl.appendChild(tick);
+                                    }
+                                }
+                                
+                                // Add sub-ticks for events within pages
+                                for (let p = 0; p < totalPages; p++) {
+                                    const onPage = Math.min(eventsPerPage, Math.max(0, totalEvents - p * eventsPerPage));
+                                    if (onPage <= 1) continue;
+                                    for (let k = 1; k < onPage; k++) {
+                                        const sub = document.createElement('span');
+                                        sub.className = 'event-page-slider-tick event-page-slider-tick--sub';
+                                        sub.style.left = `${((p + k / onPage) / totalPages) * 100}%`;
+                                        ticksEl.appendChild(sub);
+                                    }
+                                }
+                                
+                                // Add unfinished slot markers (red bars) for events missing descriptions
+                                for (let p = 0; p < totalPages; p++) {
+                                    const onPage = Math.min(eventsPerPage, Math.max(0, totalEvents - p * eventsPerPage));
+                                    for (let e = 0; e < onPage; e++) {
+                                        const g = p * eventsPerPage + e;
+                                        const rootEv = g >= 0 && g < totalEvents ? events[g] : null;
+                                        if (!eventRootSlotMissingDescription(rootEv)) continue;
+                                        const mark = document.createElement('span');
+                                        mark.className = 'event-page-slider-tick event-page-slider-tick--unfinished-slot';
+                                        mark.style.left = `${((p + (e + 0.5) / onPage) / totalPages) * 100}%`;
+                                        mark.title = 'Unfinished: missing description';
+                                        ticksEl.appendChild(mark);
+                                    }
+                                }
+                            };
+                            
+                            // Update era strip
+                            const updateEraStrip = (totalPages) => {
+                                const pageSliderEl = document.getElementById('eventPageSlider');
+                                if (!pageSliderEl) return;
+                                
+                                let eraStrip = document.getElementById('eventPageSliderEraStrip');
+                                if (!eraStrip) {
+                                    const wrap = pageSliderEl.closest('.event-page-slider-wrap');
+                                    if (wrap) {
+                                        eraStrip = document.createElement('div');
+                                        eraStrip.id = 'eventPageSliderEraStrip';
+                                        eraStrip.className = 'event-page-slider-era-strip';
+                                        wrap.appendChild(eraStrip);
+                                    }
+                                }
+                                
+                                if (!eraStrip) return;
+                                
+                                // Try to use EraHoverPreviewTheme first
+                                if (window.EraHoverPreviewTheme?.buildGlobalEraStripeBackgroundLinearGradient) {
+                                    eraStrip.style.background = window.EraHoverPreviewTheme.buildGlobalEraStripeBackgroundLinearGradient(
+                                        events,
+                                        eventsPerPage,
+                                        totalPages
+                                    );
+                                } else {
+                                    // Fallback: build era stripe manually using event.eraName
+                                    const eraColors = {
+                                        'The Age of Progress': '#66bb6a',
+                                        'Age of Progress': '#66bb6a',
+                                        'The Omnic Crisis': '#ff5722',
+                                        'Omnic Crisis': '#ff5722',
+                                        'The Golden Age': '#ffca28',
+                                        'Golden Age': '#ffca28',
+                                        'The Fall of Overwatch': '#4e342e',
+                                        'Fall of Overwatch': '#4e342e',
+                                        'The Age of Conflict': '#42a5f5',
+                                        'Age of Conflict': '#42a5f5',
+                                        'The Null Sector Invasion': '#ba68c8',
+                                        'Null Sector Invasion': '#ba68c8',
+                                        'The Reign of Talon': '#8b1313',
+                                        'Reign of Talon': '#8b1313'
+                                    };
+                                    
+                                    const stops = [];
+                                    for (let p = 0; p < totalPages; p++) {
+                                        const startIdx = p * eventsPerPage;
+                                        const pageEvents = events.slice(startIdx, startIdx + eventsPerPage);
+                                        
+                                        // Find dominant era on this page
+                                        const eraCounts = {};
+                                        pageEvents.forEach(ev => {
+                                            const era = ev.eraName || 'Unknown';
+                                            eraCounts[era] = (eraCounts[era] || 0) + 1;
+                                        });
+                                        
+                                        let dominantEra = 'Unknown';
+                                        let maxCount = 0;
+                                        Object.entries(eraCounts).forEach(([era, count]) => {
+                                            if (count > maxCount) {
+                                                maxCount = count;
+                                                dominantEra = era;
+                                            }
+                                        });
+                                        
+                                        const color = eraColors[dominantEra] || '#888888';
+                                        const startPct = (p / totalPages) * 100;
+                                        const endPct = ((p + 1) / totalPages) * 100;
+                                        stops.push(`${color} ${startPct}%`, `${color} ${endPct}%`);
+                                    }
+                                    
+                                    eraStrip.style.background = `linear-gradient(to right, ${stops.join(', ')})`;
+                                }
+                            };
+                            
+                            // Update pagination UI
+                            const updatePaginationUI = () => {
+                                const currentPage = getCurrentPage();
+                                const totalPages = getTotalPages();
+                                const pageTotal = document.getElementById('pageTotal');
+                                
+                                if (pageTotal) pageTotal.textContent = `/ ${totalPages}`;
+                                if (pageInput) {
+                                    pageInput.value = currentPage;
+                                    pageInput.max = totalPages;
+                                }
+                                
+                                // Update slider using globe's EVENT_PAGE_SLIDER_RESOLUTION
+                                if (pageSlider) {
+                                    const SLIDER_RESOLUTION = 10000;
+                                    pageSlider.min = '0';
+                                    pageSlider.max = String(SLIDER_RESOLUTION);
+                                    pageSlider.disabled = totalPages <= 1;
+                                    
+                                    // Calculate slider value for page center (same as globe)
+                                    const pageCenter = (currentPage - 0.5) / totalPages;
+                                    pageSlider.value = String(Math.round(pageCenter * SLIDER_RESOLUTION));
+                                }
+                                
+                                // Generate ticks and era strip
+                                generateSliderTicks(totalPages);
+                                updateEraStrip(totalPages);
+                                
+                                // Update buttons
+                                prevBtn.disabled = totalPages <= 1;
+                                nextBtn.disabled = totalPages <= 1;
+                                
+                                // Update number button content with current page events
+                                const currentPageEvents = getEventsForPage(currentPage);
+                                this.updateNumberButtons(currentPageEvents, currentPage);
+                                
+                                // Show/hide pagination
+                                const pagination = document.getElementById('eventPagination');
+                                if (pagination) {
+                                    pagination.style.display = totalPages <= 1 ? 'none' : 'flex';
+                                }
+                            };
+                            
+                            // Handle page change
+                            const handlePageChange = (newPage) => {
+                                const totalPages = getTotalPages();
+                                const validPage = Math.max(1, Math.min(totalPages, newPage));
+                                const currentPage = getCurrentPage();
+                                
+                                console.log(`MenuHelpers: Page change requested: ${newPage} -> valid: ${validPage}, current: ${currentPage}, total: ${totalPages}`);
+                                
+                                if (validPage !== currentPage) {
+                                    console.log(`MenuHelpers: Changing to page ${validPage}`);
+                                    setCurrentPage(validPage);
+                                    updatePaginationUI();
+                                    
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('pageTurn');
+                                    }
+                                } else {
+                                    console.log(`MenuHelpers: Already on page ${validPage}, no change needed`);
+                                }
+                            };
+                            
+                            // Prev button
+                            prevBtn.onclick = (e) => {
+                                e?.stopPropagation?.();
+                                const current = getCurrentPage();
+                                if (current > 1) {
+                                    handlePageChange(current - 1);
+                                } else {
+                                    handlePageChange(getTotalPages()); // Wrap to last
+                                }
+                            };
+                            
+                            // Next button
+                            nextBtn.onclick = (e) => {
+                                e?.stopPropagation?.();
+                                const current = getCurrentPage();
+                                const total = getTotalPages();
+                                if (current < total) {
+                                    handlePageChange(current + 1);
+                                } else {
+                                    handlePageChange(1); // Wrap to first
+                                }
+                            };
+                            
+                            // Page input
+                            if (pageInput) {
+                                pageInput.onchange = (e) => {
+                                    e.stopPropagation();
+                                    const value = parseInt(e.target.value, 10);
+                                    if (!isNaN(value)) {
+                                        handlePageChange(value);
+                                    }
+                                };
+                                
+                                pageInput.onkeydown = (e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        pageInput.blur();
+                                    }
+                                };
+                            }
+                            
+                            // Page slider
+                            if (pageSlider) {
+                                pageSlider.oninput = () => {
+                                    // Visual feedback while dragging
+                                };
+                                
+                                pageSlider.onchange = () => {
+                                    const SLIDER_RESOLUTION = 10000;
+                                    const value = parseInt(pageSlider.value, 10);
+                                    const progress = value / SLIDER_RESOLUTION;
+                                    const totalPages = getTotalPages();
+                                    const newPage = Math.min(totalPages, Math.max(1, Math.floor(progress * totalPages) + 1));
+                                    handlePageChange(newPage);
+                                };
+                            }
+                            
+                            // Store for external access
+                            this.updatePaginationUI = updatePaginationUI;
+                            
+                            // Initial update
+                            updatePaginationUI();
+                        },
+                        
+                        wireNumberButtons(pageEvents, pageNum, allEvents) {
+                            const buttons = document.querySelectorAll('#eventNumberButtons .event-number-btn');
+                            if (!buttons.length) return;
+                            
+                            const events = allEvents || window.eventManager?.events || [];
+                            const eventsPerPage = 10; // Globe uses 10 events per page
+                            const baseIndex = (pageNum - 1) * eventsPerPage;
+                            
+                            buttons.forEach((btn, index) => {
+                                // Remove old listeners by cloning
+                                const newBtn = btn.cloneNode(true);
+                                btn.parentNode.replaceChild(newBtn, btn);
+                                
+                                const event = pageEvents?.[index];
+                                const globalEventIndex = baseIndex + index;
+                                
+                                if (!event) {
+                                    newBtn.disabled = true;
+                                    newBtn.style.opacity = '0.3';
+                                    newBtn.style.display = 'none';
+                                    return;
+                                }
+                                
+                                newBtn.disabled = false;
+                                newBtn.style.opacity = '1';
+                                newBtn.style.display = '';
+                                
+                                // Update button number
+                                const numEl = newBtn.querySelector('.event-number-btn__num');
+                                if (numEl) numEl.textContent = globalEventIndex + 1;
+                                
+                                // Update button content
+                                const nameEl = newBtn.querySelector('.event-number-btn__name');
+                                const imgEl = newBtn.querySelector('.event-number-btn__img');
+                                const imgWrap = newBtn.querySelector('.event-number-btn__img-wrap');
+                                const variantBadge = newBtn.querySelector('.event-number-btn__variant-badge');
+                                const keyEl = newBtn.querySelector('.event-number-btn__key');
+                                
+                                // Get display event (first variant for multi-events)
+                                const isMultiEvent = Array.isArray(event.variants) && event.variants.length > 0;
+                                const displayEvent = isMultiEvent && event.variants[0] 
+                                    ? { ...event, ...event.variants[0] }
+                                    : event;
+                                
+                                // Get plain name
+                                const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
+                                if (nameEl) nameEl.textContent = plainName;
+                                
+                                // Get image path using helper
+                                let imagePath = null;
+                                if (window.NavigationImageHelpers?.getEventImagePath) {
+                                    imagePath = window.NavigationImageHelpers.getEventImagePath(displayEvent, plainName);
+                                } else if (window.eventManager?.getEventImagePath) {
+                                    imagePath = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
+                                } else {
+                                    imagePath = displayEvent.image || displayEvent.imagePath || null;
+                                }
+                                
+                                if (imgEl) {
+                                    if (imagePath) {
+                                        imgEl.src = imagePath;
+                                        imgEl.style.display = '';
+                                        if (imgWrap) imgWrap.classList.remove('event-number-btn__img-wrap--empty');
+                                    } else {
+                                        imgEl.removeAttribute('src');
+                                        imgEl.style.display = 'none';
+                                        if (imgWrap) imgWrap.classList.add('event-number-btn__img-wrap--empty');
+                                    }
+                                }
+                                if (keyEl) keyEl.textContent = index + 1;
+                                
+                                // Show variant badge if multi-variant
+                                if (variantBadge) {
+                                    const hasVariants = Array.isArray(event.variants) && event.variants.length > 1;
+                                    variantBadge.hidden = !hasVariants;
+                                    variantBadge.dataset.eventIndex = globalEventIndex;
+                                    variantBadge.dataset.currentVariant = '0';
+                                    // Set badge text to show "1/3", "2/3", etc.
+                                    if (hasVariants) {
+                                        variantBadge.textContent = `1/${event.variants.length}`;
+                                    }
+                                }
+                                
+                                // Click handler - open event slide directly
+                                newBtn.onclick = (e) => {
+                                    e.stopPropagation();
+                                    
+                                    // Check if clicking variant badge
+                                    if (e.target.closest('.event-number-btn__variant-badge')) {
+                                        return;
+                                    }
+                                    
+                                    // Show event in standalone panel
+                                    if (window.standaloneEventSlide) {
+                                        window.standaloneEventSlide.showEvent(globalEventIndex);
+                                    }
+                                    
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('filterConfirm');
+                                    }
+                                };
+                                
+                                // Variant badge click - cycles thumbnail and opens event slide
+                                if (variantBadge) {
+                                    variantBadge.onclick = (e) => {
+                                        e.stopPropagation();
+                                        
+                                        const targetEvent = events[globalEventIndex];
+                                        if (!targetEvent?.variants?.length) return;
+                                        
+                                        const currentVariant = parseInt(variantBadge.dataset.currentVariant || '0', 10);
+                                        const nextVariant = (currentVariant + 1) % targetEvent.variants.length;
+                                        variantBadge.dataset.currentVariant = nextVariant;
+                                        // Update badge text
+                                        variantBadge.textContent = `${nextVariant + 1}/${targetEvent.variants.length}`;
+                                        
+                                        // Update thumbnail image to show the variant
+                                        const variantDisplayEvent = targetEvent.variants[nextVariant];
+                                        if (variantDisplayEvent && imgEl) {
+                                            let variantImagePath = null;
+                                            if (window.NavigationImageHelpers?.getEventImagePath) {
+                                                variantImagePath = window.NavigationImageHelpers.getEventImagePath(variantDisplayEvent, variantDisplayEvent.name);
+                                            } else if (window.eventManager?.getEventImagePath) {
+                                                variantImagePath = window.eventManager.getEventImagePath(variantDisplayEvent.name, variantDisplayEvent.image);
+                                            } else {
+                                                variantImagePath = variantDisplayEvent.image || variantDisplayEvent.imagePath || null;
+                                            }
+                                            
+                                            if (variantImagePath) {
+                                                imgEl.src = variantImagePath;
+                                                imgEl.style.display = '';
+                                                if (imgWrap) imgWrap.classList.remove('event-number-btn__img-wrap--empty');
+                                            }
+                                            
+                                            // Update name to show variant name
+                                            if (nameEl && variantDisplayEvent.name) {
+                                                nameEl.textContent = variantDisplayEvent.name;
+                                            }
+                                        }
+                                        
+                                        // Also open the event slide with this variant
+                                        if (window.standaloneEventSlide) {
+                                            window.standaloneEventSlide.showStandaloneEventSlide({
+                                                ...targetEvent,
+                                                ...variantDisplayEvent,
+                                                variantIndex: nextVariant,
+                                                hasVariants: true,
+                                                variants: targetEvent.variants
+                                            }, globalEventIndex);
+                                        }
+                                    };
+                                }
+                                
+                                // Hover effects - use getHoverPreviewLines like the globe
+                                newBtn.onmouseenter = () => {
+                                    console.log('MenuHelpers: mouseenter on button', globalEventIndex, 'event:', event?.name);
+                                    if (window.EventsHoverPreviewBadge?.show && event) {
+                                        // Get era/year/flags using same method as globe
+                                        const hoverLines = window.EventsHoverPreviewBadge.getHoverPreviewLines 
+                                            ? window.EventsHoverPreviewBadge.getHoverPreviewLines(event)
+                                            : { eraName: displayEvent.eraName || '', primaryRowFlag: null, otherRowFlags: [], yearLine: displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '' };
+                                        
+                                        const variants = isMultiEvent ? event.variants : [];
+                                        const otherVariants = variants.slice(1);
+                                        
+                                        console.log('MenuHelpers: Calling show with era:', hoverLines.eraName || displayEvent.eraName);
+                                        window.EventsHoverPreviewBadge.show(
+                                            globalEventIndex + 1,
+                                            plainName,
+                                            otherVariants.map(v => v.name || ''),
+                                            hoverLines.eraName || displayEvent.eraName || '',
+                                            hoverLines.primaryRowFlag || null,
+                                            hoverLines.otherRowFlags || [],
+                                            hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
+                                        );
+                                    } else {
+                                        console.log('MenuHelpers: EventsHoverPreviewBadge not available or no event', window.EventsHoverPreviewBadge, event);
+                                    }
+                                };
+                                
+                                newBtn.onmouseleave = () => {
+                                    if (window.EventsHoverPreviewBadge?.hide) {
+                                        window.EventsHoverPreviewBadge.hide();
+                                    }
+                                };
+                            });
+                        },
+                        
+                        updateNumberButtons(pageEvents, pageNum) {
+                            // Get all events for indexing
+                            const allEvents = window.eventManager?.events || [];
+                            
+                            // Animate with content swap during animation (like globe)
+                            this.animatePageTurn(pageEvents, pageNum, allEvents);
+                        },
+                        
+                        animatePageTurn(pageEvents, pageNum, allEvents) {
+                            const buttons = document.querySelectorAll('#eventNumberButtons .event-number-btn');
+                            if (!buttons.length) return;
+                            
+                            const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+                            if (prefersReducedMotion || typeof Element.prototype.animate !== 'function') {
+                                // Fallback: just update content without animation
+                                this.wireNumberButtons(pageEvents, pageNum, allEvents);
+                                return;
+                            }
+                            
+                            // Match globe timing
+                            const STAGGER_MS = 58;
+                            const SHRINK_MS = 290;
+                            const GROW_MS = 515;
+                            
+                            // Detect desktop layout (skews transform)
+                            const isThumbsDesktop = window.matchMedia?.('(min-width: 1024px)')?.matches ?? false;
+                            
+                            // Cancel any existing animations
+                            buttons.forEach(btn => {
+                                if (btn.dataset.pageTurnToken) {
+                                    try {
+                                        const oldAnim = btn.getAnimations?.();
+                                        if (oldAnim?.length) {
+                                            oldAnim.forEach(a => a.cancel?.());
+                                        }
+                                    } catch (e) {}
+                                }
+                            });
+                            
+                            // Start fresh wave
+                            const waveToken = Date.now().toString();
+                            
+                            buttons.forEach((btn, i) => {
+                                if (btn.style.display === 'none') return;
+                                
+                                // Get the event data for this button position
+                                const event = pageEvents[i];
+                                const globalEventIndex = (pageNum - 1) * 10 + i;
+                                
+                                btn.dataset.pageTurnToken = waveToken;
+                                const locked = btn.dataset.locked === 'true';
+                                
+                                // Staggered start for each button
+                                const delay = i * STAGGER_MS;
+                                
+                                // Step 1: Shrink out (old content)
+                                const shrinkAnim = btn.animate(
+                                    thumbPageTurnShrinkKeyframes(isThumbsDesktop, locked),
+                                    {
+                                        duration: SHRINK_MS,
+                                        easing: 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
+                                        delay: delay,
+                                        fill: 'both'
+                                    }
+                                );
+                                
+                                shrinkAnim.onfinish = () => {
+                                    // Check if this wave is still valid
+                                    if (btn.dataset.pageTurnToken !== waveToken) return;
+                                    
+                                    // Update THIS button's content while it's invisible (between shrink and grow)
+                                    this.updateSingleButtonContent(btn, event, globalEventIndex, allEvents);
+                                    
+                                    // Step 2: Grow in (new content)
+                                    const growAnim = btn.animate(
+                                        thumbPageTurnGrowKeyframes(isThumbsDesktop, locked),
+                                        {
+                                            duration: GROW_MS,
+                                            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                                            fill: 'both'
+                                        }
+                                    );
+                                    
+                                    growAnim.onfinish = () => {
+                                        delete btn.dataset.pageTurnToken;
+                                    };
+                                };
+                            });
+                        },
+                        
+                        updateSingleButtonContent(btn, event, globalEventIndex, allEvents) {
+                            if (!event) {
+                                btn.style.display = 'none';
+                                return;
+                            }
+                            
+                            btn.style.display = '';
+                            btn.dataset.position = String(globalEventIndex % 10);
+                            btn.dataset.eventIndex = globalEventIndex;
+                            
+                            const numEl = btn.querySelector('.event-number-btn__num');
+                            const nameEl = btn.querySelector('.event-number-btn__name');
+                            const imgEl = btn.querySelector('.event-number-btn__img');
+                            const imgWrap = btn.querySelector('.event-number-btn__img-wrap');
+                            const variantBadge = btn.querySelector('.event-number-btn__variant-badge');
+                            const keyEl = btn.querySelector('.event-number-btn__key');
+                            
+                            if (numEl) numEl.textContent = globalEventIndex + 1;
+                            if (keyEl) keyEl.textContent = (globalEventIndex % 10) + 1;
+                            
+                            const isMultiEvent = Array.isArray(event.variants) && event.variants.length > 0;
+                            const displayEvent = isMultiEvent && event.variants[0]
+                                ? { ...event, ...event.variants[0] }
+                                : event;
+                            
+                            const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
+                            if (nameEl) nameEl.textContent = plainName;
+                            
+                            // Get image
+                            let imagePath = null;
+                            if (window.NavigationImageHelpers?.getEventImagePath) {
+                                imagePath = window.NavigationImageHelpers.getEventImagePath(displayEvent, plainName);
+                            } else if (window.eventManager?.getEventImagePath) {
+                                imagePath = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
+                            } else {
+                                imagePath = displayEvent.image || displayEvent.imagePath || null;
+                            }
+                            
+                            if (imgEl) {
+                                if (imagePath) {
+                                    imgEl.src = imagePath;
+                                    imgEl.style.display = '';
+                                    if (imgWrap) imgWrap.classList.remove('event-number-btn__img-wrap--empty');
+                                } else {
+                                    imgEl.removeAttribute('src');
+                                    imgEl.style.display = 'none';
+                                    if (imgWrap) imgWrap.classList.add('event-number-btn__img-wrap--empty');
+                                }
+                            }
+                            
+                            // Variant badge
+                            if (variantBadge) {
+                                const hasVariants = Array.isArray(event.variants) && event.variants.length > 1;
+                                variantBadge.hidden = !hasVariants;
+                                variantBadge.dataset.eventIndex = globalEventIndex;
+                                variantBadge.dataset.currentVariant = '0';
+                                if (hasVariants) {
+                                    variantBadge.textContent = `1/${event.variants.length}`;
+                                }
+                            }
+                            
+                            // Click handler
+                            btn.onclick = (e) => {
+                                e.stopPropagation();
+                                if (e.target.closest('.event-number-btn__variant-badge')) return;
+                                if (window.standaloneEventSlide) {
+                                    window.standaloneEventSlide.showEvent(globalEventIndex);
+                                    window.SoundEffectsManager?.play?.('filterConfirm');
+                                }
+                            };
+                            
+                            // Variant badge click
+                            if (variantBadge) {
+                                variantBadge.onclick = (e) => {
+                                    e.stopPropagation();
+                                    const targetEvent = allEvents[globalEventIndex];
+                                    if (!targetEvent?.variants?.length) return;
+                                    
+                                    const currentVariant = parseInt(variantBadge.dataset.currentVariant || '0', 10);
+                                    const nextVariant = (currentVariant + 1) % targetEvent.variants.length;
+                                    variantBadge.dataset.currentVariant = nextVariant;
+                                    variantBadge.textContent = `${nextVariant + 1}/${targetEvent.variants.length}`;
+                                    
+                                    const variantDisplayEvent = targetEvent.variants[nextVariant];
+                                    if (variantDisplayEvent && imgEl) {
+                                        let variantImagePath = null;
+                                        if (window.NavigationImageHelpers?.getEventImagePath) {
+                                            variantImagePath = window.NavigationImageHelpers.getEventImagePath(variantDisplayEvent, variantDisplayEvent.name);
+                                        } else if (window.eventManager?.getEventImagePath) {
+                                            variantImagePath = window.eventManager.getEventImagePath(variantDisplayEvent.name, variantDisplayEvent.image);
+                                        } else {
+                                            variantImagePath = variantDisplayEvent.image || variantDisplayEvent.imagePath || null;
+                                        }
+                                        
+                                        if (variantImagePath) {
+                                            imgEl.src = variantImagePath;
+                                            imgEl.style.display = '';
+                                            if (imgWrap) imgWrap.classList.remove('event-number-btn__img-wrap--empty');
+                                        }
+                                        if (nameEl && variantDisplayEvent.name) {
+                                            nameEl.textContent = variantDisplayEvent.name;
+                                        }
+                                    }
+                                    
+                                    if (window.standaloneEventSlide) {
+                                        window.standaloneEventSlide.showStandaloneEventSlide({
+                                            ...targetEvent,
+                                            ...variantDisplayEvent,
+                                            variantIndex: nextVariant,
+                                            hasVariants: true,
+                                            variants: targetEvent.variants
+                                        }, globalEventIndex);
+                                    }
+                                };
+                            }
+                            
+                            // Hover effects - use getHoverPreviewLines like the globe
+                            btn.onmouseenter = () => {
+                                if (window.EventsHoverPreviewBadge?.show && event) {
+                                    // Get era/year/flags using same method as globe
+                                    const hoverLines = window.EventsHoverPreviewBadge.getHoverPreviewLines 
+                                        ? window.EventsHoverPreviewBadge.getHoverPreviewLines(event)
+                                        : { eraName: displayEvent.eraName || '', primaryRowFlag: null, otherRowFlags: [], yearLine: displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '' };
+                                    
+                                    const variants = isMultiEvent ? event.variants : [];
+                                    const otherVariants = variants.slice(1);
+                                    
+                                    window.EventsHoverPreviewBadge.show(
+                                        globalEventIndex + 1,
+                                        plainName,
+                                        otherVariants.map(v => v.name || ''),
+                                        hoverLines.eraName || displayEvent.eraName || '',
+                                        hoverLines.primaryRowFlag || null,
+                                        hoverLines.otherRowFlags || [],
+                                        hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
+                                    );
+                                }
+                            };
+                            
+                            btn.onmouseleave = () => {
+                                if (window.EventsHoverPreviewBadge?.hide) {
+                                    window.EventsHoverPreviewBadge.hide();
+                                }
+                            };
+                        },
+                        
                         toggleImageOverlay(imagePath) {
                             const overlay = document.getElementById('eventImageOverlay');
                             if (!overlay) return;
@@ -1124,10 +2080,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             window.standaloneEventSlide.showEvent(index);
                         }
                     };
+                    
+                    // Setup standalone pagination dock (wait for dock to be created)
+                    if (window.standaloneEventSlide?.setupStandalonePagination) {
+                        setTimeout(() => {
+                            window.standaloneEventSlide.setupStandalonePagination();
+                        }, 200);
+                    }
                 }
 
                 testBtn.dataset.loaded = 'true';
-                testBtn.textContent = 'UNLOAD';
+                testBtn.textContent = 'UNLOAD Event System Load Out';
                 testBtn.style.background = '#c93439';
                 updateStatus('✓ News ticker loaded - click again to unload', 'success');
             } catch (error) {
@@ -1152,7 +2115,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
             // Hide events manage toggle button
             const eventsManageToggle = document.getElementById('eventsManageToggle');
             if (eventsManageToggle) {
-                eventsManageToggle.style.display = 'none';
+                eventsManageToggle.style.setProperty('display', 'none', 'important');
             }
 
             // Close event slide panel if open
@@ -1170,8 +2133,71 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
             // Clean up standalone event slide
             window.standaloneEventSlide = null;
 
+            // Remove pagination dock (includes eventPagination inside it)
+            const paginationDock = document.getElementById('paginationDock');
+            if (paginationDock) {
+                paginationDock.remove();
+            }
+            const paginationDockCollapseStrip = document.getElementById('paginationDockCollapseStrip');
+            if (paginationDockCollapseStrip) {
+                paginationDockCollapseStrip.remove();
+            }
+            // Also explicitly remove eventPagination if it exists outside the dock
+            const eventPagination = document.getElementById('eventPagination');
+            if (eventPagination) {
+                eventPagination.remove();
+            }
+            // Clear eventNumberButtons content to prevent duplicate thumbnails
+            const eventNumberButtons = document.getElementById('eventNumberButtons');
+            if (eventNumberButtons) {
+                eventNumberButtons.innerHTML = '';
+            }
+
+            // Close events manage panel if open
+            const eventsManagePanel = document.getElementById('eventsManagePanel');
+            if (eventsManagePanel) {
+                eventsManagePanel.classList.remove('open');
+            }
+
+            // Clear events list
+            const eventsList = document.getElementById('eventsList');
+            if (eventsList) {
+                eventsList.innerHTML = '';
+            }
+
+            // Remove event manager listeners flag so it can be re-initialized
+            if (window.eventManager) {
+                window.eventManager.listenersSetup = false;
+            }
+
+            // Cleanup EventsHoverPreviewBadge (reset module state)
+            if (window.EventsHoverPreviewBadge?.cleanup) {
+                window.EventsHoverPreviewBadge.cleanup();
+            }
+
+            // Clear standalone filters
+            if (window.standaloneActiveFilters) {
+                window.standaloneActiveFilters.clear();
+            }
+            if (window.FilterService?.stateManager) {
+                window.FilterService.stateManager.clear();
+            }
+
+            // Hide filters toggle button
+            const filtersToggle = document.getElementById('filtersToggle');
+            if (filtersToggle) {
+                filtersToggle.style.setProperty('display', 'none', 'important');
+            }
+
+            // Close and remove filters panel
+            const filtersPanel = document.getElementById('filtersPanel');
+            if (filtersPanel) {
+                filtersPanel.classList.remove('open');
+                filtersPanel.remove();
+            }
+
             testBtn.dataset.loaded = 'false';
-            testBtn.textContent = 'TEST';
+            testBtn.textContent = 'LOAD Event System Load Out';
             testBtn.style.background = '#333';
             updateStatus('✓ News ticker unloaded', 'success');
         }
@@ -1196,4 +2222,9 @@ export function getOrCreateTestContainer() {
         updateStatus('✓ Test container created', 'success');
     }
     return testContainer;
+}
+
+// Make updateStandalonePaginationForFilters available globally
+if (typeof window !== 'undefined') {
+    window.updateStandalonePaginationForFilters = updateStandalonePaginationForFilters;
 }

@@ -57,7 +57,7 @@ function fillLineFlagSlot(slotEl, entry) {
 }
 
 function ensureBadge() {
-    if (badgeEl) return;
+    if (badgeEl) return badgeEl;
     badgeEl = document.createElement('div');
     badgeEl.id = 'eventsHoverPreviewBadge';
     badgeEl.className = 'music-now-playing-badge events-hover-preview-badge';
@@ -89,16 +89,27 @@ function ensureBadge() {
     textEraNameEl = badgeEl.querySelector('.events-hover-preview-era__name');
     textEraYearsEl = badgeEl.querySelector('.events-hover-preview-era__years');
     textVariantsEl = badgeEl.querySelector('.events-hover-preview-variants');
+    return badgeEl;
 }
 
 function positionBadge() {
+    // Anchor to header hub instead of eventsManageToggle (which is now in dock rail)
+    // This keeps the hover preview in the header area
+    const headerHub = document.getElementById('headerHub');
     const btn = document.getElementById('eventsManageToggle');
-    if (!btn || !badgeEl) return;
+    if (!badgeEl) return;
+    
+    // Use header hub as anchor, fallback to button if hub not found
+    const anchorEl = headerHub || btn;
+    if (!anchorEl) return;
 
     const scale = getBodyScale();
-    const rect = btn.getBoundingClientRect();
+    const rect = anchorEl.getBoundingClientRect();
     const gap = 2;
-    const cx = (rect.left + rect.width / 2) / scale;
+    
+    // Position closer to the left side (1/4 from left edge instead of center)
+    // This aligns better with the events/world codex buttons area
+    const cx = (rect.left + (rect.width / 4)) / scale;
     const top = (rect.bottom + gap) / scale;
 
     const vw = Math.max(1, (window.innerWidth || 1) / scale);
@@ -223,7 +234,18 @@ export function getHoverPreviewLines(eventObj, options) {
  * @param {(object|null)[]} [otherRowFlags] - One optional flag per extra variant row (same order as otherVariantTitles)
  * @param {string} [yearLinePlain] - Years after era (smaller); default "Year Unknown"
  */
-export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVariantTitles, eraPlain, primaryRowFlag, otherRowFlags, yearLinePlain) {
+export function showEventsHoverPreview(
+    eventNum,
+    plainEventName,
+    otherVariantNames,
+    eraName,
+    primaryRowFlag,
+    otherRowFlags,
+    yearLine
+) {
+    console.log('EventsHoverPreviewBadge: show called', { eventNum, plainEventName, eraName });
+    const badgeEl = ensureBadge();
+    console.log('EventsHoverPreviewBadge: badge element', badgeEl);
     try {
         if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
             return;
@@ -246,16 +268,16 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
     
     if (textNumberEl) {
         textNumberEl.textContent =
-            globalNumber1Based != null && Number.isFinite(globalNumber1Based)
-                ? String(globalNumber1Based)
+            eventNum != null && Number.isFinite(eventNum)
+                ? String(eventNum)
                 : '';
     }
-    if (textTitleEl) textTitleEl.textContent = titlePlain || '';
+    if (textTitleEl) textTitleEl.textContent = plainEventName || '';
 
-    const eraTrim = eraPlain != null ? String(eraPlain).trim() : '';
+    const eraTrim = eraName != null ? String(eraName).trim() : '';
     const yearTrim =
-        yearLinePlain != null && String(yearLinePlain).trim() !== ''
-            ? String(yearLinePlain).trim()
+        yearLine != null && String(yearLine).trim() !== ''
+            ? String(yearLine).trim()
             : 'Year Unknown';
 
     if (textEraNameEl) {
@@ -278,7 +300,7 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
         badgeEl.classList.toggle('events-hover-preview-badge--no-era', !eraTrim);
     }
 
-    const titlesRaw = Array.isArray(otherVariantTitles) ? otherVariantTitles : [];
+    const titlesRaw = Array.isArray(otherVariantNames) ? otherVariantNames : [];
     const flagsParallel = Array.isArray(otherRowFlags) ? otherRowFlags : [];
     let variantRowCount = 0;
     if (textVariantsEl) {
@@ -306,7 +328,9 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
     }
 
     badgeEl.classList.add('music-now-playing-badge--visible');
+    console.log('EventsHoverPreviewBadge: added visible class, badge in DOM:', document.body.contains(badgeEl));
     positionBadge();
+    console.log('EventsHoverPreviewBadge: positionBadge called, badge style:', badgeEl.style.cssText);
 
     stopHoverPreviewFollow();
     let pending = null;
@@ -328,8 +352,8 @@ export function showEventsHoverPreview(globalNumber1Based, titlePlain, otherVari
     const onScroll = () => schedule();
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', onScroll);
-    const anchorBtn = document.getElementById('eventsManageToggle');
-    const hub = anchorBtn && anchorBtn.closest ? anchorBtn.closest('.header-hub') : null;
+    // Get header hub directly (button is now in dock rail, not header)
+    const hub = document.getElementById('headerHub');
     if (hub) hub.addEventListener('scroll', onScroll);
     hoverPreviewFollowCleanup = () => {
         window.removeEventListener('scroll', onScroll, true);
@@ -392,11 +416,32 @@ export function hideEventsHoverPreview() {
     }, 250);
 }
 
+/**
+ * Cleanup function to reset module state when unloading
+ * This allows the badge to be recreated on next load
+ */
+export function cleanupEventsHoverPreview() {
+    stopHoverPreviewFollow();
+    if (badgeEl && badgeEl.parentNode) {
+        badgeEl.parentNode.removeChild(badgeEl);
+    }
+    badgeEl = null;
+    textNumberEl = null;
+    textTitleEl = null;
+    textEraEl = null;
+    textVariantsEl = null;
+    textPrimaryFlagSlot = null;
+    textEraNameEl = null;
+    textEraYearsEl = null;
+    cancelPendingHideCleanup();
+}
+
 if (typeof window !== 'undefined') {
     window.EventsHoverPreviewBadge = {
         show: showEventsHoverPreview,
         hide: hideEventsHoverPreview,
         getPlainTitle: getPlainEventTitleForHover,
-        getHoverPreviewLines: getHoverPreviewLines
+        getHoverPreviewLines: getHoverPreviewLines,
+        cleanup: cleanupEventsHoverPreview
     };
 }

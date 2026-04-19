@@ -105,32 +105,26 @@ async function loadPalette() {
  * createGlobeControlButton is idempotent — it skips if the ID already exists.
  */
 function loadHeaderNavButtons() {
-    // Events Manager button (hidden by default, shown when events are loaded)
+    // Events Manager button - styled as globe dock rail button, positioned on right
     createGlobeControlButton({
         id: 'eventsManageToggle',
-        className: '',
+        className: 'dock-globe-rail__btn',
         title: 'Manage Events',
         label: 'Events',
         iconPath: 'assets/images/icons/Event Manager Icon.png',
         iconAlt: 'Event Manager',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 10
+        parentId: 'dockGlobeRailRight',
+        baseClass: 'globe-control-btn',
+        headerOrder: 10,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     });
 
     // Hide by default - will be shown when EventManager is loaded
     const eventsBtn = document.getElementById('eventsManageToggle');
     if (eventsBtn) {
-        eventsBtn.style.display = 'none';
-        // Bootstrap: load the globe when Events is clicked and globe isn't loaded yet
-        eventsBtn.addEventListener('click', function bootstrapEventsToggle(e) {
-            if (window.globeController) return; // Real handler active
-            e.stopPropagation();
-            e.preventDefault();
-            if (typeof window.runGlobeComponents === 'function') {
-                void window.runGlobeComponents(false);
-            }
-        }, true);
+        eventsBtn.style.setProperty('display', 'none', 'important');
     }
 
     // Interactive Globe button (was Map/Globe toggle) - launches globe timeline
@@ -185,18 +179,26 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
-    // Filters button (right side)
+    // Filters button - styled as globe dock rail button, positioned on right
     createGlobeControlButton({
         id: 'filtersToggle',
-        className: '',
+        className: 'dock-globe-rail__btn',
         title: 'Open Filters',
         label: 'Filters',
         iconPath: 'assets/images/icons/Filter Icon.png',
         iconAlt: 'Filters',
-        parentId: 'headerHubRight',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 5
+        parentId: 'dockGlobeRailRight',
+        baseClass: 'globe-control-btn',
+        headerOrder: 5,
+        mobileParentId: 'dockGlobeRailRight',
+        mobileBaseClass: 'globe-control-btn',
+        mobileClassName: 'dock-globe-rail__btn'
     });
+    // Hide initially - will be shown by Event System Load Out or Globe loaders
+    const filtersToggleBtn = document.getElementById('filtersToggle');
+    if (filtersToggleBtn) {
+        filtersToggleBtn.style.setProperty('display', 'none', 'important');
+    }
 
     // Home button — right hub, after Music (order 60), returns to blank startup state
     createGlobeControlButton({
@@ -702,6 +704,12 @@ async function loadEvents() {
 
         // Pagination + header controls must exist before UIView binds number buttons / hover preview.
         setupEventUIComponents({ updateStatus });
+
+        // Show filters toggle button for globe mode
+        const filtersToggleBtn = document.getElementById('filtersToggle');
+        if (filtersToggleBtn) {
+            filtersToggleBtn.style.setProperty('display', 'flex', 'important');
+        }
 
         // Sync events with globe and add markers (pagination DOM is present for this sync)
         syncEventsWithGlobe(window.globeController, window.eventManager);

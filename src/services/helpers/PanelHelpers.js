@@ -216,6 +216,10 @@ export function createEventPagination(statusService) {
     const setupPaginationPlacement = () => {
         const paginationEl = document.getElementById('eventPagination');
         if (!paginationEl) return;
+        // Prevent creating duplicate dock elements if already exists
+        if (document.getElementById('paginationDock') && document.getElementById('paginationDockCollapseStrip')) {
+            return;
+        }
 
         let dock = document.getElementById('paginationDock');
 
@@ -273,13 +277,11 @@ export function createEventPagination(statusService) {
     
     document.getElementById('content').appendChild(pagination);
     
-    // Setup placement after appending
+    // Setup placement after appending (one-time, no resize listener to avoid accumulation)
     setTimeout(() => {
         setupPaginationPlacement();
         window.dispatchEvent(new Event('resize'));
     }, 50);
-    
-    window.addEventListener('resize', setupPaginationPlacement);
     
     if (statusService) {
         statusService.update('✓ Event pagination added', 'success');

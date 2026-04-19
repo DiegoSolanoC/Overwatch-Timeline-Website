@@ -199,6 +199,11 @@ export function createEventPagination() {
         </div>`;
 
     const setupPaginationPlacement = () => {
+        // Prevent creating duplicate dock elements if already exists
+        if (document.getElementById('paginationDock') && document.getElementById('paginationDockCollapseStrip')) {
+            return;
+        }
+
         let dock = document.getElementById('paginationDock');
 
         if (!dock) {
@@ -250,7 +255,7 @@ export function createEventPagination() {
         initPaginationDockCollapse();
     };
     
-    // Initial placement
+    // Initial placement (one-time, no resize listener to avoid accumulation)
     document.getElementById('content').appendChild(pagination);
     // Defer dock setup to ensure layout-container exists
     requestAnimationFrame(() => {
@@ -261,7 +266,6 @@ export function createEventPagination() {
             window.dispatchEvent(new Event('resize'));
         }, 100);
     });
-    window.addEventListener('resize', setupPaginationPlacement);
     
     return pagination;
 }

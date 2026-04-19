@@ -90,3 +90,13 @@ export function buildGlobalEraStripeBackgroundLinearGradient(allEvents, eventsPe
     }
     return `linear-gradient(to right, ${parts.join(', ')})`;
 }
+
+// Make available globally for non-module usage
+if (typeof window !== 'undefined') {
+    window.EraHoverPreviewTheme = {
+        getEraHoverPreviewSlug,
+        ERA_STRIPE_NEUTRAL,
+        getEraStripeColorHexForEvent,
+        buildGlobalEraStripeBackgroundLinearGradient
+    };
+}
