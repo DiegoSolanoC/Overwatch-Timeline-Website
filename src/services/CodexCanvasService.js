@@ -13,6 +13,57 @@ let onDocKeydown = null;
 let nodeZ = 20;
 /** @type {{ x: number, y: number }|null} */
 let pendingNodePos = null;
+/** @type {IntersectionObserver|null} */
+let codexImageObserver = null;
+
+/** Virtual scrolling: all nodes stored here, only visible ones rendered to DOM */
+/** @type {Array<{id: string, kind: string, x: number, y: number, [key: string]: any}>} */
+let codexAllNodes = [];
+/** @type {Set<string>} */
+let codexRenderedNodeIds = new Set();
+/** Virtual scroll buffer in pixels around viewport - larger = more preloading */
+const CODEX_VIRTUAL_BUFFER_PX = 600;
+
+/** Web Worker for parsing Codex JSON without blocking main thread */
+let codexParseWorker = null;
+function getCodexParseWorker() {
+    if (codexParseWorker) return codexParseWorker;
+    const workerCode = `
+        self.onmessage = function(e) {
+            try {
+                const data = JSON.parse(e.data.json);
+                self.postMessage({ ok: true, data });
+            } catch (err) {
+                self.postMessage({ ok: false, error: err.message });
+            }
+        };
+    `;
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    codexParseWorker = new Worker(URL.createObjectURL(blob));
+    return codexParseWorker;
+}
+function terminateCodexParseWorker() {
+    if (codexParseWorker) {
+        codexParseWorker.terminate();
+        codexParseWorker = null;
+    }
+}
+/** Parse JSON in Web Worker */
+function parseCodexJsonWorker(json) {
+    return new Promise((resolve) => {
+        const worker = getCodexParseWorker();
+        const onMessage = (e) => {
+            worker.removeEventListener('message', onMessage);
+            if (e.data.ok) {
+                resolve({ ok: true, data: e.data.data });
+            } else {
+                resolve({ ok: false, error: e.data.error });
+            }
+        };
+        worker.addEventListener('message', onMessage);
+        worker.postMessage({ json });
+    });
+}
 
 const DOUBLE_RIGHT_MS = 450;
 const capOpts = { capture: true };
@@ -54,8 +105,145 @@ let codexVisualPrefs = { ...CODEX_VISUAL_DEFAULTS };
 
 const CODEX_IMG_BASE_PX = 144;
 const CODEX_FRAME_PATH = 'assets/images/Codex/Node';
-/** Luminance mask (white = show cords, black = hide under hex); aligned with frame + rotation. */
-const CODEX_NODE_ALPHA_IMAGE_URL = 'assets/images/Codex/Node%20Alpha.png';
+/** Luminance mask base path for variant-specific alpha images (Alpha Node1/2/3.png) */
+const CODEX_NODE_ALPHA_PATH = 'assets/images/Codex/Alpha%20Node';
+/** Enable simplified DOM structure (4 elements vs 8). Set to false to use legacy nested DOM. */
+const CODEX_USE_SIMPLIFIED_DOM = true;
+
+/** IntersectionObserver for lazy loading codex images */
+function ensureCodexImageObserver() {
+    if (codexImageObserver) return;
+    codexImageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src && !img.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                }
+                codexImageObserver.unobserve(img);
+            }
+        });
+    }, {
+        root: null,
+        rootMargin: '100px', // Load images 100px before they come into view
+        threshold: 0
+    });
+}
+
+/** Observe an image for lazy loading */
+function observeCodexImage(img) {
+    ensureCodexImageObserver();
+    if (codexImageObserver && img) {
+        codexImageObserver.observe(img);
+    }
+}
+
+/** Disconnect and cleanup the image observer */
+function disconnectCodexImageObserver() {
+    if (codexImageObserver) {
+        codexImageObserver.disconnect();
+        codexImageObserver = null;
+    }
+}
+
+/** Virtual Scrolling: Get viewport bounds in world coordinates with buffer */
+function getCodexVirtualViewportBounds() {
+    if (!root) return null;
+    const rw = root.clientWidth || 1;
+    const rh = root.clientHeight || 1;
+    const z = Math.max(0.05, codexViewZoom);
+    // Viewport in world coordinates
+    const viewLeft = -codexViewPanX / z;
+    const viewTop = -codexViewPanY / z;
+    const viewRight = viewLeft + rw / z;
+    const viewBottom = viewTop + rh / z;
+    // Add buffer
+    return {
+        left: viewLeft - CODEX_VIRTUAL_BUFFER_PX,
+        top: viewTop - CODEX_VIRTUAL_BUFFER_PX,
+        right: viewRight + CODEX_VIRTUAL_BUFFER_PX,
+        bottom: viewBottom + CODEX_VIRTUAL_BUFFER_PX
+    };
+}
+
+/** Check if a node position is within the virtual viewport */
+function isNodeInVirtualViewport(node, viewport) {
+    const nodeSize = CODEX_IMG_BASE_PX * (node.scale || 1);
+    return (
+        node.x + nodeSize >= viewport.left &&
+        node.x <= viewport.right &&
+        node.y + nodeSize >= viewport.top &&
+        node.y <= viewport.bottom
+    );
+}
+
+/** RAF throttle for virtual scroll updates during pan */
+let codexVirtualScrollRaf = 0;
+function scheduleUpdateCodexVirtualScroll() {
+    if (codexVirtualScrollRaf) return;
+    codexVirtualScrollRaf = requestAnimationFrame(() => {
+        codexVirtualScrollRaf = 0;
+        updateCodexVirtualScroll();
+    });
+}
+
+/** Virtual Scrolling: Render only visible nodes, remove off-screen ones */
+function updateCodexVirtualScroll() {
+    if (!root || codexAllNodes.length === 0) return;
+    
+    const viewport = getCodexVirtualViewportBounds();
+    if (!viewport) return;
+    
+    // Determine which nodes should be visible
+    const visibleNodeIds = new Set();
+    const nodesToRender = [];
+    
+    for (const node of codexAllNodes) {
+        if (isNodeInVirtualViewport(node, viewport)) {
+            visibleNodeIds.add(node.id);
+            if (!codexRenderedNodeIds.has(node.id)) {
+                nodesToRender.push(node);
+            }
+        }
+    }
+    
+    // Remove nodes that are no longer visible
+    const nodesToRemove = [];
+    for (const id of codexRenderedNodeIds) {
+        if (!visibleNodeIds.has(id)) {
+            nodesToRemove.push(id);
+        }
+    }
+    
+    // Remove off-screen nodes from DOM
+    for (const id of nodesToRemove) {
+        const el = root.querySelector(`[data-codex-node-id="${escapeForAttrSelector(id)}"]`);
+        if (el) {
+            el.remove();
+            codexRenderedNodeIds.delete(id);
+        }
+    }
+    
+    // Add newly visible nodes to DOM immediately (batching caused lag)
+    for (const node of nodesToRender) {
+        placeLoadedCodexNodeRecord(node);
+        codexRenderedNodeIds.add(node.id);
+    }
+    
+    // Update edge visibility
+    scheduleRedrawCodexEdges();
+}
+
+/** Clear all rendered nodes from DOM (keeps codexAllNodes data) */
+function clearCodexVirtualScroll() {
+    // NOTE: Do NOT clear codexAllNodes here - it holds the source data!
+    // Only clear the rendered node tracking and remove DOM elements
+    codexRenderedNodeIds.clear();
+    if (codexWorldEl) {
+        codexWorldEl.querySelectorAll('.codex-node').forEach(el => el.remove());
+    }
+}
 
 /** Stable 32-bit hash for per-node Codex visuals (frame + rotation). */
 function codexStyleHash32(id) {
@@ -146,8 +334,8 @@ const CODEX_JUNCTION_LAYOUT_MIN_VERSION = 4;
 const CODEX_ZOOM_MIN = 0.18;
 const CODEX_ZOOM_MAX = 2.25;
 const CODEX_ZOOM_FACTOR = 1.12;
-/** Starting / reset board zoom — slightly zoomed out vs 1. */
-const CODEX_ZOOM_INITIAL = 0.88;
+/** Starting / reset board zoom — closer in for better detail. */
+const CODEX_ZOOM_INITIAL = 1.15;
 /** Node portrait/junction scale clamp + defaults for newly placed nodes. */
 const CODEX_SCALE_MIN = 0.25;
 const CODEX_SCALE_MAX = 5;
@@ -1314,6 +1502,39 @@ function markNodeVisualUnsaved(el) {
  * @param {HTMLElement|null} el
  * @param {{ network?: boolean, mode?: 'replace'|'toggle' }} [opts]
  */
+function debugLogNodeInfo(el) {
+    if (!el) return;
+    const nid = el.dataset.codexNodeId || 'unknown';
+    const kind = el.dataset.codexKind || 'unknown';
+    const hero = el.dataset.codexHero || '';
+    const npc = el.dataset.codexNpc || '';
+    const faction = el.dataset.codexFactionFile || '';
+    const country = el.dataset.codexCountryKey || '';
+
+    const variant = el.dataset.codexFrameVariant || '1';
+    const rotation = el.dataset.codexHexRotation || '0';
+    const isSimplified = el.classList.contains('codex-node--simplified');
+
+    const nodeImage = `${CODEX_FRAME_PATH}${variant}.png`;
+    const alphaImage = `${CODEX_NODE_ALPHA_PATH}${variant}.png`;
+
+    console.group(`🎯 Node Selected: ${nid}`);
+    console.log('  Kind:', kind);
+    console.log('  Hero:', hero || '-');
+    console.log('  NPC:', npc || '-');
+    console.log('  Faction:', faction || '-');
+    console.log('  Country:', country || '-');
+    console.log('---');
+    console.log('  Frame Variant:', variant);
+    console.log('  Hex Rotation:', rotation + '°');
+    console.log('  DOM Structure:', isSimplified ? 'simplified (4 elements)' : 'legacy (8 elements)');
+    console.log('---');
+    console.log('  📦 Node Image (frame):', nodeImage);
+    console.log('  🔲 Alpha Image (edges):', alphaImage);
+    console.log('  🎭 Mask Image (DOM):', `Mask Node${variant}.png`);
+    console.groupEnd();
+}
+
 function selectCodexNode(el, opts = {}) {
     if (!root) return;
     if (el == null) {
@@ -1327,6 +1548,9 @@ function selectCodexNode(el, opts = {}) {
         return;
     }
     if (!root.contains(el)) return;
+
+    // Debug: log node info when selected
+    debugLogNodeInfo(el);
 
     if (opts.network) {
         codexSelectedNodeEls.clear();
@@ -1416,12 +1640,19 @@ function applyNodeScale(el, scale, skipRedraw) {
     const s = Math.max(CODEX_SCALE_MIN, Math.min(CODEX_SCALE_MAX, Number(scale) || 1));
     el.dataset.codexScale = String(s);
     const junction = el.classList.contains('codex-node--junction');
+    const simplified = el.classList.contains('codex-node--simplified');
     const basePx = junction ? CODEX_JUNCTION_BASE_PX : CODEX_IMG_BASE_PX;
     const px = basePx * s;
     if (junction) {
         el.style.width = `${px}px`;
         el.style.height = `${px}px`;
+    } else if (simplified) {
+        // Simplified DOM: scale the root element directly
+        el.style.width = `${px}px`;
+        el.style.height = `${px}px`;
+        // Frame scales with parent via CSS inheritance
     } else {
+        // Legacy nested DOM
         const inner = el.querySelector('.codex-node__inner');
         const frame = el.querySelector('.codex-node__frame');
         if (inner) {
@@ -1626,8 +1857,11 @@ function appendCodexEdgeNodeMask(defs, ns, vw, vh, maskWorldRect = null) {
                 return;
             }
             const img = document.createElementNS(ns, 'image');
-            img.setAttribute('href', CODEX_NODE_ALPHA_IMAGE_URL);
-            img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', CODEX_NODE_ALPHA_IMAGE_URL);
+            // Use variant-specific alpha image matching the frame variant
+            const frameVariant = el.dataset.codexFrameVariant || '1';
+            const alphaUrl = `${CODEX_NODE_ALPHA_PATH}${frameVariant}.png`;
+            img.setAttribute('href', alphaUrl);
+            img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', alphaUrl);
             img.setAttribute('x', String(r.left));
             img.setAttribute('y', String(r.top));
             img.setAttribute('width', String(r.width));
@@ -2829,6 +3063,7 @@ function placeLoadedCodexNodeRecord(L) {
     const opts = {
         fromSaved: true,
         skipRedraw: true,
+        skipLazyLoad: true, // Load images immediately for virtual scroll
         id: L.id,
         scale: resolveCodexNodeScale(placeKind, L.scale)
     };
@@ -2904,24 +3139,25 @@ function centerCodexViewOnWorldCenter() {
     codexViewPanY = rh / 2 - cy * z;
 }
 
-/** Frame the bounding box of all placed nodes (after load / reset view feel). */
+/** Frame the bounding box of all nodes using stored data (works with virtual scroll). */
 function centerCodexViewOnNodes() {
-    if (!root || !codexWorldEl) return;
-    const els = root.querySelectorAll('.codex-node');
-    if (!els.length) return;
+    if (!root) return;
+    // Use codexAllNodes data instead of DOM elements for virtual scroll compatibility
+    const nodes = codexAllNodes;
+    if (!nodes || !nodes.length) return;
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    els.forEach((el) => {
-        const x = parseFloat(el.style.left) || 0;
-        const y = parseFloat(el.style.top) || 0;
-        const w = el.offsetWidth || CODEX_IMG_BASE_PX;
-        const h = el.offsetHeight || CODEX_IMG_BASE_PX;
+    nodes.forEach((node) => {
+        const x = node.x || 0;
+        const y = node.y || 0;
+        const scale = node.scale || 1;
+        const size = CODEX_IMG_BASE_PX * scale;
         minX = Math.min(minX, x);
         minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x + w);
-        maxY = Math.max(maxY, y + h);
+        maxX = Math.max(maxX, x + size);
+        maxY = Math.max(maxY, y + size);
     });
     if (!Number.isFinite(minX)) return;
     const cx = (minX + maxX) / 2;
@@ -2966,9 +3202,15 @@ async function loadCodexState() {
         sourceObj = canonical.data;
         loadedFromCanonical = true;
     } else {
+        // Use Web Worker to parse JSON without blocking main thread
         try {
             const raw = localStorage.getItem(CODEX_STORAGE_KEY);
-            if (raw) sourceObj = JSON.parse(raw);
+            if (raw) {
+                const result = await parseCodexJsonWorker(raw);
+                if (result.ok) {
+                    sourceObj = result.data;
+                }
+            }
         } catch (_) {
             sourceObj = null;
         }
@@ -2995,14 +3237,15 @@ async function loadCodexState() {
     codexEdges = edges;
     codexUnsavedEdgeKeys.clear();
     codexViewZoom = CODEX_ZOOM_INITIAL;
+    
+    // Store all nodes for virtual scrolling
+    codexAllNodes = nodes || [];
+    // Clear previously rendered nodes
+    clearCodexVirtualScroll();
+    
     if (!nodes.length) {
         centerCodexViewOnWorldCenter();
-    } else {
-        codexViewPanX = 0;
-        codexViewPanY = 0;
-    }
-    applyCodexWorldTransformStyle();
-    if (!nodes.length) {
+        applyCodexWorldTransformStyle();
         redrawCodexEdges();
         codexLayoutDirty = false;
         updateCodexToolbar();
@@ -3010,11 +3253,20 @@ async function loadCodexState() {
         return;
     }
 
-    await placeCodexNodeRecordsInChunks(nodes);
-
+    // Center view on all nodes FIRST (using data, not DOM elements)
     centerCodexViewOnNodes();
     applyCodexWorldTransformStyle();
-    syncCodexNodeDomCullFromView();
+
+    // Then render visible nodes via virtual scroll
+    updateCodexVirtualScroll();
+    
+    // Failsafe: if no nodes rendered after initial load, render all nodes
+    if (codexRenderedNodeIds.size === 0 && nodes.length > 0) {
+        for (const node of nodes) {
+            placeLoadedCodexNodeRecord(node);
+            codexRenderedNodeIds.add(node.id);
+        }
+    }
 
     if (migratedNow) {
         try {
@@ -3170,6 +3422,7 @@ function applyCodexWorldTransformStyle() {
 function applyCodexViewTransform() {
     applyCodexWorldTransformStyle();
     scheduleRedrawCodexEdges();
+    scheduleUpdateCodexVirtualScroll();
 }
 
 /** Keep world point under (clientX, clientY) fixed while changing zoom (wheel / pinch / buttons). */
@@ -3177,6 +3430,7 @@ function applyCodexZoomWithAnchor(clientX, clientY, newZoom) {
     if (!root) return;
     const rr = root.getBoundingClientRect();
     const s = getCodexBodyLayoutPerViewportPx();
+    const oldZoom = codexViewZoom;
     const lx = (clientX - rr.left) / s;
     const ly = (clientY - rr.top) / s;
     const w = clientToWorldCodex(clientX, clientY);
@@ -3184,6 +3438,10 @@ function applyCodexZoomWithAnchor(clientX, clientY, newZoom) {
     codexViewPanX = lx - w.x * codexViewZoom;
     codexViewPanY = ly - w.y * codexViewZoom;
     applyCodexViewTransform();
+    // Update virtual scroll if zoom changed significantly (>10%)
+    if (Math.abs(codexViewZoom - oldZoom) / oldZoom > 0.1) {
+        scheduleUpdateCodexVirtualScroll();
+    }
 }
 
 function codexZoomByFactorAt(factor, clientX, clientY) {
@@ -3372,6 +3630,8 @@ function beginActualBackgroundPan(prep, firstMoveEv) {
         /* Cords live under .codex-world; pan is CSS translate only — no full SVG rebuild per move. */
         applyCodexWorldTransformStyle();
         syncCodexNodeDomCullFromView();
+        /* Virtual scroll: add/remove nodes based on viewport */
+        scheduleUpdateCodexVirtualScroll();
     };
 
     applyClient(firstMoveEv.clientX, firstMoveEv.clientY);
@@ -4412,8 +4672,13 @@ function beginActualNodeDrag(prep, firstMoveEv) {
 
     dragNodes.forEach((nodeEl) => {
         nodeEl.style.willChange = 'transform';
-        nodeEl.style.transformOrigin = '0 0';
-        nodeEl.style.transform = 'translate3d(0px, 0px, 0)';
+        const isSimplified = nodeEl.classList.contains('codex-node--simplified');
+        // Simplified nodes use center origin for rotation; others use top-left
+        nodeEl.style.transformOrigin = isSimplified ? 'center center' : '0 0';
+        // For simplified nodes, preserve rotation during drag
+        const hexRot = isSimplified ? (parseFloat(nodeEl.dataset.codexHexRotation) || 0) : 0;
+        const rotStr = hexRot ? ` rotate(${hexRot}deg)` : '';
+        nodeEl.style.transform = `translate3d(0px, 0px, 0)${rotStr}`;
     });
 
     let lastTx = 0;
@@ -4440,9 +4705,12 @@ function beginActualNodeDrag(prep, firstMoveEv) {
         ty = c.ty;
         lastTx = tx;
         lastTy = ty;
-        const tStr = `translate3d(${tx}px, ${ty}px, 0)`;
         dragNodes.forEach((nodeEl) => {
-            nodeEl.style.transform = tStr;
+            // Include rotation for simplified nodes
+            const isSimplified = nodeEl.classList.contains('codex-node--simplified');
+            const hexRot = isSimplified ? (parseFloat(nodeEl.dataset.codexHexRotation) || 0) : 0;
+            const rotStr = hexRot ? ` rotate(${hexRot}deg)` : '';
+            nodeEl.style.transform = `translate3d(${tx}px, ${ty}px, 0)${rotStr}`;
         });
         scheduleRedrawCodexEdges();
     };
@@ -4476,6 +4744,7 @@ function beginActualNodeDrag(prep, firstMoveEv) {
             nodeEl.style.left = `${bl + lastTx}px`;
             nodeEl.style.top = `${bt + lastTy}px`;
             nodeEl.style.transform = '';
+            nodeEl.style.transformOrigin = '';
             nodeEl.style.willChange = '';
         });
         document.removeEventListener(moveEvent, onMove, usePointerRawUpdate ? rawOpts : capOpts);
@@ -4641,7 +4910,7 @@ function bindCodexNodeInteraction(el) {
  * @param {string} kind
  * @param {string|null} heroName
  * @param {{ filename: string, displayName?: string }|null} faction
- * @param {{ fromSaved?: boolean, id?: string, scale?: number }} [opts]
+ * @param {{ fromSaved?: boolean, id?: string, scale?: number, skipLazyLoad?: boolean }} [opts]
  */
 function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
     const el = document.createElement('div');
@@ -4674,65 +4943,109 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
         el.dataset.codexFactionDisplay = faction.displayName || faction.filename || '';
     }
 
-    const inner = document.createElement('div');
-    inner.className = 'codex-node__inner';
-
-    const clip = document.createElement('div');
-    clip.className = 'codex-node__clip';
-    clip.setAttribute('aria-hidden', 'true');
-
-    const imgSpin = document.createElement('div');
-    imgSpin.className = 'codex-node__img-spin';
-    imgSpin.setAttribute('aria-hidden', 'true');
-
-    const img = document.createElement('img');
-    img.className = 'codex-node__img';
-    img.draggable = false;
-    img.loading = 'lazy';
-    img.decoding = 'async';
-    if (kind === 'hero') {
-        img.src = `assets/images/heroes/${encodeURIComponent(heroName)}.png`;
-        img.alt = heroName || 'Hero';
-    } else if (kind === 'npc') {
-        img.src = `assets/images/npcs/${encodeURIComponent(heroName)}.png`;
-        img.alt = heroName || 'NPC';
-    } else if (kind === 'country') {
-        const ck = el.dataset.codexCountryKey || '';
-        img.src = codexCountryFlagSrc(ck);
-        img.alt = ck || 'Country';
-    } else {
-        img.src = `assets/images/factions/${encodeURIComponent(faction.filename)}.png`;
-        img.alt = faction.displayName || '';
-    }
-    img.onerror = () => {
-        img.style.opacity = '0.35';
-    };
-
     const nid = el.dataset.codexNodeId;
     const frameVariant = codexFrameVariantForId(nid);
     const hexRotationDeg = codexHexRotationDegreesForId(nid);
     el.dataset.codexFrameVariant = String(frameVariant);
     el.dataset.codexHexRotation = String(hexRotationDeg);
-    inner.style.setProperty('--codex-hex-rotation', `${hexRotationDeg}deg`);
-    inner.style.setProperty('--codex-portrait-counter-rotation', `${-hexRotationDeg}deg`);
-    const frame = document.createElement('img');
-    frame.className = 'codex-node__frame';
-    frame.src = `${CODEX_FRAME_PATH}${frameVariant}.png`;
-    frame.alt = '';
-    frame.draggable = false;
-    frame.loading = 'lazy';
-    frame.decoding = 'async';
-    frame.setAttribute('aria-hidden', 'true');
 
-    const portraitFit = document.createElement('div');
-    portraitFit.className = 'codex-node__portrait-fit';
-    portraitFit.setAttribute('aria-hidden', 'true');
-    portraitFit.appendChild(img);
-    imgSpin.appendChild(portraitFit);
-    clip.appendChild(imgSpin);
-    inner.appendChild(clip);
-    inner.appendChild(frame);
-    el.appendChild(inner);
+    // Get image source and alt text
+    let imgSrc = '';
+    let imgAlt = '';
+    if (kind === 'hero') {
+        imgSrc = `assets/images/heroes/${encodeURIComponent(heroName)}.png`;
+        imgAlt = heroName || 'Hero';
+    } else if (kind === 'npc') {
+        imgSrc = `assets/images/npcs/${encodeURIComponent(heroName)}.png`;
+        imgAlt = heroName || 'NPC';
+    } else if (kind === 'country') {
+        const ck = el.dataset.codexCountryKey || '';
+        imgSrc = codexCountryFlagSrc(ck);
+        imgAlt = ck || 'Country';
+    } else {
+        imgSrc = `assets/images/factions/${encodeURIComponent(faction.filename)}.png`;
+        imgAlt = faction.displayName || '';
+    }
+
+    const frameSrc = `${CODEX_FRAME_PATH}${frameVariant}.png`;
+
+    if (CODEX_USE_SIMPLIFIED_DOM) {
+        // Simplified DOM: 5 elements
+        // el (root) -> imgWrapper (masked, rotates with hex) -> img (counter-rotates) + frame
+        el.classList.add('codex-node--simplified');
+        el.style.setProperty('--codex-hex-rotation', `${hexRotationDeg}deg`);
+
+        // Wrapper that rotates with hex and gets masked
+        const imgWrapper = document.createElement('div');
+        imgWrapper.className = 'codex-node__img-wrapper';
+
+        const img = document.createElement('img');
+        img.className = 'codex-node__img';
+        img.draggable = false;
+        img.decoding = 'async';
+        img.alt = imgAlt;
+        img.onerror = () => { img.style.opacity = '0.35'; };
+        if (opts.skipLazyLoad) { img.src = imgSrc; }
+        else { img.dataset.src = imgSrc; observeCodexImage(img); }
+
+        imgWrapper.appendChild(img);
+
+        const frame = document.createElement('img');
+        frame.className = 'codex-node__frame';
+        frame.alt = '';
+        frame.draggable = false;
+        frame.decoding = 'async';
+        frame.setAttribute('aria-hidden', 'true');
+        if (opts.skipLazyLoad) { frame.src = frameSrc; }
+        else { frame.dataset.src = frameSrc; observeCodexImage(frame); }
+
+        el.appendChild(imgWrapper);
+        el.appendChild(frame);
+    } else {
+        // Legacy DOM: 8 elements with nested mask structure
+        const inner = document.createElement('div');
+        inner.className = 'codex-node__inner';
+
+        const clip = document.createElement('div');
+        clip.className = 'codex-node__clip';
+        clip.setAttribute('aria-hidden', 'true');
+
+        const imgSpin = document.createElement('div');
+        imgSpin.className = 'codex-node__img-spin';
+        imgSpin.setAttribute('aria-hidden', 'true');
+
+        const img = document.createElement('img');
+        img.className = 'codex-node__img';
+        img.draggable = false;
+        img.decoding = 'async';
+        img.alt = imgAlt;
+        img.onerror = () => { img.style.opacity = '0.35'; };
+        if (opts.skipLazyLoad) { img.src = imgSrc; }
+        else { img.dataset.src = imgSrc; observeCodexImage(img); }
+
+        const portraitFit = document.createElement('div');
+        portraitFit.className = 'codex-node__portrait-fit';
+        portraitFit.setAttribute('aria-hidden', 'true');
+        portraitFit.appendChild(img);
+        imgSpin.appendChild(portraitFit);
+        clip.appendChild(imgSpin);
+        inner.appendChild(clip);
+
+        const frame = document.createElement('img');
+        frame.className = 'codex-node__frame';
+        frame.alt = '';
+        frame.draggable = false;
+        frame.decoding = 'async';
+        frame.setAttribute('aria-hidden', 'true');
+        if (opts.skipLazyLoad) { frame.src = frameSrc; }
+        else { frame.dataset.src = frameSrc; observeCodexImage(frame); }
+
+        inner.style.setProperty('--codex-hex-rotation', `${hexRotationDeg}deg`);
+        inner.style.setProperty('--codex-portrait-counter-rotation', `${-hexRotationDeg}deg`);
+        inner.appendChild(frame);
+        el.appendChild(inner);
+    }
+
     const portraitKind = kind === 'faction'
         ? 'faction'
         : kind === 'country'
@@ -4874,6 +5187,13 @@ export function initCodexCanvas(rootElement) {
 }
 
 export function destroyCodexCanvas() {
+    disconnectCodexImageObserver();
+    terminateCodexParseWorker();
+    clearCodexVirtualScroll();
+    if (codexVirtualScrollRaf) {
+        cancelAnimationFrame(codexVirtualScrollRaf);
+        codexVirtualScrollRaf = 0;
+    }
     if (onCodexGlobalKeydown) {
         document.removeEventListener('keydown', onCodexGlobalKeydown, true);
         onCodexGlobalKeydown = null;

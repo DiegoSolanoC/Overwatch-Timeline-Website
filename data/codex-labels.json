@@ -2,21 +2,12 @@
   "v": 4,
   "nodes": [
     {
-      "id": "cn-1776187918958-thq2voxg",
-      "kind": "faction",
-      "factionFilename": "00Overwatch",
-      "factionDisplay": "Overwatch",
-      "x": 6953.66,
-      "y": 5813.75,
-      "scale": 5
-    },
-    {
       "id": "cn-1776187942174-ajc0gk24",
       "kind": "faction",
       "factionFilename": "33Talon Empire",
       "factionDisplay": "Talon Empire",
-      "x": 7651.5,
-      "y": 5828.44,
+      "x": 7745.56,
+      "y": 9361.63,
       "scale": 5
     },
     {
@@ -24,8 +15,8 @@
       "kind": "faction",
       "factionFilename": "26Null Sector",
       "factionDisplay": "Null Sector",
-      "x": 8305.27,
-      "y": 5828.44,
+      "x": 6970.29,
+      "y": 7166.31,
       "scale": 5
     },
     {
@@ -33,8 +24,8 @@
       "kind": "faction",
       "factionFilename": "01Blackwatch",
       "factionDisplay": "Blackwatch",
-      "x": 6774.4,
-      "y": 6609.81,
+      "x": 11621.9,
+      "y": 8640.46,
       "scale": 2
     },
     {
@@ -42,8 +33,8 @@
       "kind": "faction",
       "factionFilename": "02Ecopoints",
       "factionDisplay": "Ecopoints",
-      "x": 7289.15,
-      "y": 6615.35,
+      "x": 13109.4,
+      "y": 9648.98,
       "scale": 2
     },
     {
@@ -51,8 +42,8 @@
       "kind": "faction",
       "factionFilename": "34Search & Rescue",
       "factionDisplay": "Search & Rescue",
-      "x": 7031.77,
-      "y": 6609.82,
+      "x": 10777.3,
+      "y": 9630.55,
       "scale": 2
     },
     {
@@ -60,8 +51,8 @@
       "kind": "faction",
       "factionFilename": "35IJC",
       "factionDisplay": "IJC",
-      "x": 7549.27,
-      "y": 6612.58,
+      "x": 12489.8,
+      "y": 9643.49,
       "scale": 2
     },
     {
@@ -69,8 +60,8 @@
       "kind": "faction",
       "factionFilename": "18Livre Tournois",
       "factionDisplay": "Livre Tournois",
-      "x": 7909.04,
-      "y": 6623.65,
+      "x": 7815.02,
+      "y": 10035.1,
       "scale": 2
     },
     {
@@ -78,8 +69,8 @@
       "kind": "faction",
       "factionFilename": "25Shambali Order",
       "factionDisplay": "Shambali Order",
-      "x": 7912.47,
-      "y": 6967.38,
+      "x": 8721.86,
+      "y": 7198.31,
       "scale": 4
     },
     {
@@ -87,8 +78,8 @@
       "kind": "faction",
       "factionFilename": "36The Sombra Collective",
       "factionDisplay": "The Sombra Collective",
-      "x": 6891.3,
-      "y": 6961.84,
+      "x": 10886.2,
+      "y": 10362.6,
       "scale": 4
     },
     {
@@ -96,8 +87,8 @@
       "kind": "faction",
       "factionFilename": "23The Chernobog Conspiracy",
       "factionDisplay": "The Chernobog Conspiracy",
-      "x": 7389.43,
-      "y": 6959.07,
+      "x": 9727.78,
+      "y": 9256.65,
       "scale": 4
     },
     {
@@ -105,8 +96,8 @@
       "kind": "faction",
       "factionFilename": "04Omnica Corporation",
       "factionDisplay": "Omnica Corporation",
-      "x": 6952.49,
-      "y": 7715.96,
+      "x": 9680.09,
+      "y": 7410.49,
       "scale": 3
     },
     {
@@ -114,8 +105,8 @@
       "kind": "faction",
       "factionFilename": "12The Anubis Omnic Crisis",
       "factionDisplay": "The Anubis Omnic Crisis",
-      "x": 7352.84,
-      "y": 7719.09,
+      "x": 8604.62,
+      "y": 8073.73,
       "scale": 3
     },
     {
@@ -123,8 +114,8 @@
       "kind": "faction",
       "factionFilename": "36The Gwishin",
       "factionDisplay": "The Gwishin",
-      "x": 7768.83,
-      "y": 7812.91,
+      "x": 9238.58,
+      "y": 8164.72,
       "scale": 2
     },
     {
@@ -132,8 +123,8 @@
       "kind": "faction",
       "factionFilename": "05Vishkar Corporation",
       "factionDisplay": "Vishkar Corporation",
-      "x": 8059.72,
-      "y": 7715.96,
+      "x": 7295.35,
+      "y": 8208.3,
       "scale": 3
     },
     {
@@ -141,8 +132,8 @@
       "kind": "faction",
       "factionFilename": "31Helix Securities",
       "factionDisplay": "Helix Securities",
-      "x": 8435.04,
-      "y": 7719.09,
+      "x": 10607.1,
+      "y": 8237.73,
       "scale": 3
     },
     {
@@ -150,8 +141,8 @@
       "kind": "faction",
       "factionFilename": "30M.E.K.A Squad",
       "factionDisplay": "M.E.K.A Squad",
-      "x": 8816.62,
-      "y": 7719.08,
+      "x": 9741.48,
+      "y": 8269.59,
       "scale": 3
     },
     {
@@ -159,8 +150,8 @@
       "kind": "faction",
       "factionFilename": "11Volskaya Industries",
       "factionDisplay": "Volskaya Industries",
-      "x": 9195.08,
-      "y": 7715.96,
+      "x": 10701.7,
+      "y": 10805.1,
       "scale": 3
     },
     {
@@ -168,8 +159,8 @@
       "kind": "faction",
       "factionFilename": "15Caribbean Coalition",
       "factionDisplay": "Caribbean Coalition",
-      "x": 9614.19,
-      "y": 7828.56,
+      "x": 7342.97,
+      "y": 10340.1,
       "scale": 2
     },
     {
@@ -177,8 +168,8 @@
       "kind": "faction",
       "factionFilename": "09Crusader Initiative",
       "factionDisplay": "Crusader Initiative",
-      "x": 9902,
-      "y": 7831.68,
+      "x": 14187.8,
+      "y": 10265.8,
       "scale": 2
     },
     {
@@ -186,8 +177,8 @@
       "kind": "faction",
       "factionFilename": "06Inti Warriors",
       "factionDisplay": "Inti Warriors",
-      "x": 10185.1,
-      "y": 7747.31,
+      "x": 11835.2,
+      "y": 11090.2,
       "scale": 3
     },
     {
@@ -195,8 +186,8 @@
       "kind": "faction",
       "factionFilename": "17Colloseo Gladiatori",
       "factionDisplay": "Colloseo Gladiatori",
-      "x": 9388.15,
-      "y": 8761.05,
+      "x": 7890.94,
+      "y": 8932.57,
       "scale": 3
     },
     {
@@ -204,8 +195,8 @@
       "kind": "faction",
       "factionFilename": "14Deadlock Rebels",
       "factionDisplay": "Deadlock Rebels",
-      "x": 9768.97,
-      "y": 8744.02,
+      "x": 9420.91,
+      "y": 10319.9,
       "scale": 3
     },
     {
@@ -213,8 +204,8 @@
       "kind": "faction",
       "factionFilename": "28Deep Sea Raiders",
       "factionDisplay": "Deep Sea Raiders",
-      "x": 10147.8,
-      "y": 8744.02,
+      "x": 7032.02,
+      "y": 9986.81,
       "scale": 3
     },
     {
@@ -222,8 +213,8 @@
       "kind": "faction",
       "factionFilename": "08Ironclad Guild",
       "factionDisplay": "Ironclad Guild",
-      "x": 6920.92,
-      "y": 8229.47,
+      "x": 13805.1,
+      "y": 11091.4,
       "scale": 3
     },
     {
@@ -231,8 +222,8 @@
       "kind": "faction",
       "factionFilename": "19Wayfinder Society",
       "factionDisplay": "Wayfinder Society",
-      "x": 7324.19,
-      "y": 8235.26,
+      "x": 12791,
+      "y": 11068.5,
       "scale": 3
     },
     {
@@ -240,8 +231,8 @@
       "kind": "faction",
       "factionFilename": "27The Martins Collective",
       "factionDisplay": "The Martins Collective",
-      "x": 7704.85,
-      "y": 8237.67,
+      "x": 13611.3,
+      "y": 7473.24,
       "scale": 3
     },
     {
@@ -249,8 +240,8 @@
       "kind": "faction",
       "factionFilename": "29The Phreaks",
       "factionDisplay": "The Phreaks",
-      "x": 8098.21,
-      "y": 8237.66,
+      "x": 12396.4,
+      "y": 7580.7,
       "scale": 3
     },
     {
@@ -258,8 +249,8 @@
       "kind": "faction",
       "factionFilename": "20Los Muertos",
       "factionDisplay": "Los Muertos",
-      "x": 8476.55,
-      "y": 8240.17,
+      "x": 10750.3,
+      "y": 10034,
       "scale": 3
     },
     {
@@ -267,8 +258,8 @@
       "kind": "faction",
       "factionFilename": "37 Yamagami Blades",
       "factionDisplay": "Yamagami Blades",
-      "x": 8878.82,
-      "y": 8368.29,
+      "x": 8126.02,
+      "y": 11124.1,
       "scale": 2
     },
     {
@@ -276,17 +267,8 @@
       "kind": "faction",
       "factionFilename": "21Shimada Clan",
       "factionDisplay": "Shimada Clan",
-      "x": 9139.33,
-      "y": 8260.68,
-      "scale": 3
-    },
-    {
-      "id": "cn-1776189227153-n4wer0l4",
-      "kind": "faction",
-      "factionFilename": "22Hashimoto Clan",
-      "factionDisplay": "Hashimoto Clan",
-      "x": 9515.95,
-      "y": 8269.18,
+      "x": 9073.94,
+      "y": 10976,
       "scale": 3
     },
     {
@@ -294,8 +276,8 @@
       "kind": "faction",
       "factionFilename": "32Yokai Gang",
       "factionDisplay": "Yokai Gang",
-      "x": 9906.76,
-      "y": 8263.52,
+      "x": 8061.6,
+      "y": 10676.1,
       "scale": 3
     },
     {
@@ -303,8 +285,8 @@
       "kind": "faction",
       "factionFilename": "13Lumérico Incorporated",
       "factionDisplay": "Lumérico Incorporated",
-      "x": 6880.45,
-      "y": 8734.87,
+      "x": 10053.7,
+      "y": 10794,
       "scale": 3
     },
     {
@@ -312,8 +294,8 @@
       "kind": "faction",
       "factionFilename": "39Heliotech Industries",
       "factionDisplay": "Heliotech Industries",
-      "x": 7291.35,
-      "y": 8845.11,
+      "x": 10258.4,
+      "y": 11179.4,
       "scale": 2
     },
     {
@@ -321,8 +303,8 @@
       "kind": "faction",
       "factionFilename": "38Pacific Energy Solutions",
       "factionDisplay": "Pacific Energy Solutions",
-      "x": 7569.46,
-      "y": 8855.13,
+      "x": 9983.49,
+      "y": 11182.9,
       "scale": 2
     },
     {
@@ -330,8 +312,8 @@
       "kind": "faction",
       "factionFilename": "24Oasis Ministries",
       "factionDisplay": "Oasis Ministries",
-      "x": 7832.53,
-      "y": 8749.9,
+      "x": 8942.93,
+      "y": 8736.94,
       "scale": 3
     },
     {
@@ -339,8 +321,8 @@
       "kind": "faction",
       "factionFilename": "07Lucheng Interstellar",
       "factionDisplay": "Lucheng Interstellar",
-      "x": 8233.42,
-      "y": 8764.93,
+      "x": 13913.7,
+      "y": 9323.42,
       "scale": 3
     },
     {
@@ -348,8 +330,8 @@
       "kind": "faction",
       "factionFilename": "10Wuxing University",
       "factionDisplay": "Wuxing University",
-      "x": 8616.76,
-      "y": 8752.41,
+      "x": 14004.7,
+      "y": 8156.76,
       "scale": 3
     },
     {
@@ -357,794 +339,1069 @@
       "kind": "faction",
       "factionFilename": "16Junker Monarchy",
       "factionDisplay": "Junker Monarchy",
-      "x": 9000.1,
-      "y": 8744.88,
+      "x": 10877,
+      "y": 7221.75,
       "scale": 3
     },
     {
       "id": "cn-1776189507539-assf49p2",
       "kind": "hero",
       "heroName": "Ana",
-      "x": 9398.61,
-      "y": 5765.68,
+      "x": 10905.2,
+      "y": 9206.24,
       "scale": 2.5
     },
     {
       "id": "cn-1776190150580-gay8nq0u",
       "kind": "hero",
       "heroName": "Anran",
-      "x": 9748.75,
-      "y": 5761.9,
+      "x": 13673.7,
+      "y": 8208.71,
       "scale": 2.5
     },
     {
       "id": "cn-1776196198262-5y6w0bjm",
       "kind": "hero",
       "heroName": "Ashe",
-      "x": 10097.5,
-      "y": 5762.43,
+      "x": 9289.3,
+      "y": 10043.4,
       "scale": 2.5
     },
     {
       "id": "cn-1776196204721-fis6namn",
       "kind": "hero",
       "heroName": "Baptiste",
-      "x": 10439,
-      "y": 5769.75,
+      "x": 12316.6,
+      "y": 8211.23,
       "scale": 2.5
     },
     {
       "id": "cn-1776196211171-fiu3bla1",
       "kind": "hero",
       "heroName": "Bastion",
-      "x": 10758.3,
-      "y": 5789.25,
+      "x": 13221,
+      "y": 10396.6,
       "scale": 2.5
     },
     {
       "id": "cn-1776196223986-3odd2n1h",
       "kind": "hero",
       "heroName": "Brigitte",
-      "x": 11072.9,
-      "y": 5789.25,
+      "x": 13810.3,
+      "y": 10755.6,
       "scale": 2.5
     },
     {
       "id": "cn-1776196229194-2fk44bft",
       "kind": "hero",
       "heroName": "Cassidy",
-      "x": 11384.9,
-      "y": 5794.12,
+      "x": 11975.9,
+      "y": 8810.15,
       "scale": 2.5
     },
     {
       "id": "cn-1776196234545-xy7i1stx",
       "kind": "hero",
       "heroName": "D.va",
-      "x": 11694.6,
-      "y": 5794.13,
+      "x": 9975.45,
+      "y": 8005.07,
       "scale": 2.5
     },
     {
       "id": "cn-1776196245474-7zeubdc1",
       "kind": "hero",
       "heroName": "Domina",
-      "x": 12009.1,
-      "y": 5794.13,
+      "x": 7592.6,
+      "y": 8519.74,
       "scale": 2.5
     },
     {
       "id": "cn-1776196250777-gqnrvcb6",
       "kind": "hero",
       "heroName": "Doomfist",
-      "x": 12330.9,
-      "y": 5803.88,
+      "x": 6913.55,
+      "y": 8986.58,
       "scale": 2.5
     },
     {
       "id": "cn-1776196449851-ihq6q2kc",
       "kind": "hero",
       "heroName": "Echo",
-      "x": 9393.22,
-      "y": 6160.41,
+      "x": 11668.9,
+      "y": 8209.9,
       "scale": 2.5
     },
     {
       "id": "cn-1776196454601-i5cqp9rt",
       "kind": "hero",
       "heroName": "Emre",
-      "x": 9740.14,
-      "y": 6152.3,
+      "x": 9534.45,
+      "y": 9664.87,
       "scale": 2.5
     },
     {
       "id": "cn-1776196460311-ckh9f0q6",
       "kind": "hero",
       "heroName": "Freja",
-      "x": 10091.3,
-      "y": 6155.52,
+      "x": 8637.29,
+      "y": 9999.07,
       "scale": 2.5
     },
     {
       "id": "cn-1776196479762-ave5fhpz",
       "kind": "hero",
       "heroName": "Genji",
-      "x": 10437.1,
-      "y": 6147.72,
+      "x": 12133.4,
+      "y": 9092.95,
       "scale": 2.5
     },
     {
       "id": "cn-1776196496819-icb5pcwb",
       "kind": "hero",
       "heroName": "Hanzo",
-      "x": 10755,
-      "y": 6139.15,
+      "x": 8759.98,
+      "y": 10999.9,
       "scale": 2.5
     },
     {
       "id": "cn-1776196515659-bjdag5mi",
       "kind": "hero",
       "heroName": "Hazard",
-      "x": 11084,
-      "y": 6140.83,
+      "x": 12626.4,
+      "y": 7323.86,
       "scale": 2.5
     },
     {
       "id": "cn-1776196520283-ijn6b6y7",
       "kind": "hero",
       "heroName": "Illari",
-      "x": 11401.6,
-      "y": 6158.9,
+      "x": 11694.4,
+      "y": 10831.4,
       "scale": 2.5
     },
     {
       "id": "cn-1776196531050-cwotr9c8",
       "kind": "hero",
       "heroName": "Jetpack Cat",
-      "x": 11723.3,
-      "y": 6156.15,
+      "x": 13384.9,
+      "y": 10114.8,
       "scale": 2.5
     },
     {
       "id": "cn-1776196540666-6pvolx0z",
       "kind": "hero",
       "heroName": "Junker Queen",
-      "x": 12040,
-      "y": 6162.88,
+      "x": 10729.9,
+      "y": 7558.88,
       "scale": 2.5
     },
     {
       "id": "cn-1776196548088-m6onbpwi",
       "kind": "hero",
       "heroName": "Junkrat",
-      "x": 12367.2,
-      "y": 6170.69,
+      "x": 11599.4,
+      "y": 7419.44,
       "scale": 2.5
     },
     {
       "id": "cn-1776196641135-ah1klxj2",
       "kind": "hero",
       "heroName": "Juno",
-      "x": 9398.81,
-      "y": 6558.45,
+      "x": 13770.7,
+      "y": 9654.17,
       "scale": 2.5
     },
     {
       "id": "cn-1776196649551-16lk3g8j",
       "kind": "hero",
       "heroName": "Kiriko",
-      "x": 9733.63,
-      "y": 6549.21,
+      "x": 8587.78,
+      "y": 10720.4,
       "scale": 2.5
     },
     {
       "id": "cn-1776196659201-xb05ivvs",
       "kind": "hero",
       "heroName": "Lifeweaver",
-      "x": 10070.7,
-      "y": 6548.66,
+      "x": 13374.7,
+      "y": 7789,
       "scale": 2.5
     },
     {
       "id": "cn-1776196665335-bh6hmgle",
       "kind": "hero",
       "heroName": "Lúcio",
-      "x": 10442.2,
-      "y": 6551.08,
+      "x": 12593.9,
+      "y": 8662.75,
       "scale": 2.5
     },
     {
       "id": "cn-1776196674639-wzypztd4",
       "kind": "hero",
       "heroName": "Mauga",
-      "x": 10766.9,
-      "y": 6539.42,
+      "x": 7347.13,
+      "y": 9743.7,
       "scale": 2.5
     },
     {
       "id": "cn-1776196684186-7jqz9wij",
       "kind": "hero",
       "heroName": "Mei",
-      "x": 11089.6,
-      "y": 6534.26,
+      "x": 13212.2,
+      "y": 9371.66,
       "scale": 2.5
     },
     {
       "id": "cn-1776196690675-a5qoyt63",
       "kind": "hero",
       "heroName": "Mercy",
-      "x": 11407.7,
-      "y": 6539.97,
+      "x": 11969.8,
+      "y": 9374.42,
       "scale": 2.5
     },
     {
       "id": "cn-1776196699851-w6uvyn2a",
       "kind": "hero",
       "heroName": "Mitzuki",
-      "x": 11728.1,
-      "y": 6534.81,
+      "x": 7697.13,
+      "y": 10797.9,
       "scale": 2.5
     },
     {
       "id": "cn-1776196706068-vf6jo3yv",
       "kind": "hero",
       "heroName": "Moira",
-      "x": 12034.5,
-      "y": 6533.17,
+      "x": 8425.66,
+      "y": 9542.41,
       "scale": 2.5
     },
     {
       "id": "cn-1776196718017-d7iptftx",
       "kind": "hero",
       "heroName": "Orisa",
-      "x": 12369.9,
-      "y": 6542.08,
+      "x": 12280.9,
+      "y": 9987.57,
       "scale": 2.5
     },
     {
       "id": "cn-1776196774051-4c33pw30",
       "kind": "hero",
       "heroName": "Pharah",
-      "x": 9395.18,
-      "y": 6942.37,
+      "x": 10805.1,
+      "y": 8592.35,
       "scale": 2.5
     },
     {
       "id": "cn-1776196781651-ocp88l4m",
       "kind": "hero",
       "heroName": "Ramattra",
-      "x": 9733.79,
-      "y": 6945.22,
+      "x": 7764.76,
+      "y": 7296.51,
       "scale": 2.5
     },
     {
       "id": "cn-1776196788706-fozp2nfw",
       "kind": "hero",
       "heroName": "Reaper",
-      "x": 10059.7,
-      "y": 6929.69,
+      "x": 11400.1,
+      "y": 9213.38,
       "scale": 2.5
     },
     {
       "id": "cn-1776196805086-xyq2ev6r",
       "kind": "hero",
       "heroName": "Reinhardt",
-      "x": 10411.2,
-      "y": 6920.6,
+      "x": 13981.9,
+      "y": 10467.2,
       "scale": 2.5
     },
     {
       "id": "cn-1776196821571-4rcgktce",
       "kind": "hero",
       "heroName": "Roadhog",
-      "x": 10745.1,
-      "y": 6926.04,
+      "x": 11430.8,
+      "y": 7700.3,
       "scale": 2.5
     },
     {
       "id": "cn-1776196828122-lxi2dv4l",
       "kind": "hero",
       "heroName": "Sierra",
-      "x": 11093,
-      "y": 6945.26,
+      "x": 10451.9,
+      "y": 8584.07,
       "scale": 2.5
     },
     {
       "id": "cn-1776196835600-1h52n95b",
       "kind": "hero",
       "heroName": "Sigma",
-      "x": 11421.3,
-      "y": 6949.49,
+      "x": 8272.82,
+      "y": 9194.73,
       "scale": 2.5
     },
     {
       "id": "cn-1776196844950-pobifv6r",
       "kind": "hero",
       "heroName": "Sojourn",
-      "x": 11741.4,
-      "y": 6956.48,
+      "x": 12295.5,
+      "y": 9374.59,
       "scale": 2.5
     },
     {
       "id": "cn-1776196852034-00yc3egl",
       "kind": "hero",
       "heroName": "Soldier 76",
-      "x": 12055.1,
-      "y": 6946.48,
+      "x": 11475.5,
+      "y": 10074.9,
       "scale": 2.5
     },
     {
       "id": "cn-1776196863784-f3kkr8v0",
       "kind": "hero",
       "heroName": "Sombra",
-      "x": 12369.5,
-      "y": 6949.46,
+      "x": 11145.1,
+      "y": 10081.1,
       "scale": 2.5
     },
     {
       "id": "cn-1776196880352-54bx34qm",
       "kind": "hero",
       "heroName": "Symmetra",
-      "x": 9390.53,
-      "y": 7351.51,
+      "x": 6967.79,
+      "y": 8163.64,
       "scale": 2.5
     },
     {
       "id": "cn-1776196905749-nf6n8qe5",
       "kind": "hero",
       "heroName": "Torbjörn",
-      "x": 9723.08,
-      "y": 7375.48,
+      "x": 13489.6,
+      "y": 10939.9,
       "scale": 2.5
     },
     {
       "id": "cn-1776196911100-qr8yi5kw",
       "kind": "hero",
       "heroName": "Tracer",
-      "x": 10069.6,
-      "y": 7368.98,
+      "x": 12925.6,
+      "y": 8658.92,
       "scale": 2.5
     },
     {
       "id": "cn-1776196918049-3szka57e",
       "kind": "hero",
       "heroName": "Vendetta",
-      "x": 10389.1,
-      "y": 7375.47,
+      "x": 7582.05,
+      "y": 9198.08,
       "scale": 2.5
     },
     {
       "id": "cn-1776196924066-edm90ljs",
       "kind": "hero",
       "heroName": "Venture",
-      "x": 10738.2,
-      "y": 7342.49,
+      "x": 12627.8,
+      "y": 10790.5,
       "scale": 2.5
     },
     {
       "id": "cn-1776196930475-lm63xd8b",
       "kind": "hero",
       "heroName": "Widowmaker",
-      "x": 11073.7,
-      "y": 7348.47,
+      "x": 11244.7,
+      "y": 8935.9,
       "scale": 2.5
     },
     {
       "id": "cn-1776196936200-9siqgmrn",
       "kind": "hero",
       "heroName": "Winston",
-      "x": 11414.3,
-      "y": 7332.99,
+      "x": 13375.6,
+      "y": 9090.46,
       "scale": 2.5
     },
     {
       "id": "cn-1776196943516-m7w9aebw",
       "kind": "hero",
       "heroName": "Wrecking Ball",
-      "x": 11739.5,
-      "y": 7335.99,
+      "x": 10561.6,
+      "y": 7277.22,
       "scale": 2.5
     },
     {
       "id": "cn-1776196949591-cyopgpwx",
       "kind": "hero",
       "heroName": "Wuyang",
-      "x": 12063.5,
-      "y": 7345.97,
+      "x": 13859.3,
+      "y": 8513.65,
       "scale": 2.5
     },
     {
       "id": "cn-1776196956799-6ugphhum",
       "kind": "hero",
       "heroName": "Zarya",
-      "x": 12403,
-      "y": 7356.45,
+      "x": 11996.7,
+      "y": 8207.42,
       "scale": 2.5
     },
     {
       "id": "cn-1776196962623-ddk7o1p4",
       "kind": "hero",
       "heroName": "Zenyatta",
-      "x": 12725.1,
-      "y": 7349.96,
+      "x": 8399.83,
+      "y": 7300.23,
       "scale": 2.5
     },
     {
       "id": "cn-1776197531895-fyylpmp4",
       "kind": "npc",
       "npcName": "Adawe",
-      "x": 10811.5,
-      "y": 7794.09,
-      "scale": 1.5
+      "x": 12793,
+      "y": 9638.28,
+      "scale": 2
     },
     {
       "id": "cn-1776197727524-g8fx2yzv",
       "kind": "npc",
       "npcName": "Antonio",
-      "x": 11014.8,
-      "y": 7750.29,
+      "x": 7309.49,
+      "y": 9234.08,
       "scale": 2
     },
     {
       "id": "cn-1776197734661-n3wmhd4x",
       "kind": "npc",
       "npcName": "Asa",
-      "x": 11291.5,
-      "y": 7814.45,
+      "x": 8404.26,
+      "y": 11178.5,
       "scale": 1.5
     },
     {
       "id": "cn-1776197740892-6e9fqzn6",
       "kind": "npc",
       "npcName": "Athena",
-      "x": 11479.1,
-      "y": 7750.76,
+      "x": 13283.6,
+      "y": 8868.2,
       "scale": 2
     },
     {
       "id": "cn-1776197747185-ov00pu8u",
       "kind": "npc",
       "npcName": "Aurora",
-      "x": 11743.1,
-      "y": 7757.8,
+      "x": 9604.55,
+      "y": 7172.61,
       "scale": 2
     },
     {
       "id": "cn-1776197773898-vrt0idb9",
       "kind": "npc",
       "npcName": "B.O.B",
-      "x": 12000.4,
-      "y": 7764.08,
+      "x": 9633.83,
+      "y": 10079.4,
       "scale": 2
     },
     {
       "id": "cn-1776197779816-8kojasku",
       "kind": "npc",
       "npcName": "Bars",
-      "x": 12260.1,
-      "y": 7814.45,
+      "x": 9817.44,
+      "y": 10475.3,
       "scale": 1.5
     },
     {
       "id": "cn-1776197785893-fhkkqm96",
       "kind": "npc",
       "npcName": "Boomslang",
-      "x": 12461.8,
-      "y": 7813.98,
+      "x": 12434.8,
+      "y": 7390.4,
       "scale": 1.5
     },
     {
       "id": "cn-1776197798582-i6xktlaz",
       "kind": "npc",
       "npcName": "Casino",
-      "x": 12672.7,
-      "y": 7813.98,
+      "x": 9648.22,
+      "y": 8592.87,
       "scale": 1.5
     },
     {
       "id": "cn-1776197806040-5z8jra3s",
       "kind": "npc",
       "npcName": "Chisaka",
-      "x": 12875.4,
-      "y": 7823.01,
+      "x": 7880.78,
+      "y": 10633.2,
       "scale": 1.5
     },
     {
       "id": "cn-1776197821324-p34man2s",
       "kind": "npc",
       "npcName": "Claudio",
-      "x": 10795.4,
-      "y": 8056.1,
+      "x": 13875.8,
+      "y": 7299.79,
       "scale": 2
     },
     {
       "id": "cn-1776197831375-68zappm3",
       "kind": "npc",
       "npcName": "D.mon",
-      "x": 11045.7,
-      "y": 8057.28,
+      "x": 10140.2,
+      "y": 8300.62,
       "scale": 2
     },
     {
       "id": "cn-1776197882511-xsmqj1h0",
       "kind": "npc",
       "npcName": "Efi",
-      "x": 11309.5,
-      "y": 8071.39,
+      "x": 12614.2,
+      "y": 10005.5,
       "scale": 2
     },
     {
       "id": "cn-1776197891024-vj1u8iwh",
       "kind": "npc",
       "npcName": "Emily",
-      "x": 11572.5,
-      "y": 8135.08,
+      "x": 13142,
+      "y": 8525.99,
       "scale": 1.5
     },
     {
       "id": "cn-1776197899775-0v9epp21",
       "kind": "npc",
       "npcName": "Geiger",
-      "x": 11773.4,
-      "y": 8139.82,
+      "x": 11272.2,
+      "y": 7439.22,
       "scale": 1.5
     },
     {
       "id": "cn-1776197905423-vxfliac5",
       "kind": "npc",
       "npcName": "Gerard",
-      "x": 11975.7,
-      "y": 8088.05,
+      "x": 11283.1,
+      "y": 8643.73,
       "scale": 2
     },
     {
       "id": "cn-1776197955340-9ialzc1r",
       "kind": "npc",
       "npcName": "Harold",
-      "x": 12230,
-      "y": 8144.57,
+      "x": 14161.2,
+      "y": 9175.99,
       "scale": 1.5
     },
     {
       "id": "cn-1776197963232-c9rv6uj4",
       "kind": "npc",
       "npcName": "Hector",
-      "x": 12435.5,
-      "y": 8154.37,
+      "x": 14016,
+      "y": 7537.31,
       "scale": 1.5
     },
     {
       "id": "cn-1776197969276-beq1rriu",
       "kind": "npc",
       "npcName": "Iggy",
-      "x": 12649.8,
-      "y": 8156.66,
+      "x": 12825.3,
+      "y": 8532.13,
       "scale": 1.5
     },
     {
       "id": "cn-1776197976145-vsj1hid6",
       "kind": "npc",
       "npcName": "Ingrid",
-      "x": 12852.6,
-      "y": 8168.45,
+      "x": 13630,
+      "y": 10757.1,
       "scale": 1.5
     },
     {
       "id": "cn-1776197989357-65l93878",
       "kind": "npc",
       "npcName": "Jackdaw",
-      "x": 10789,
-      "y": 8430.92,
+      "x": 12233.6,
+      "y": 7389.7,
       "scale": 1.5
     },
     {
       "id": "cn-1776197996547-ax6bzskn",
       "kind": "npc",
       "npcName": "Jiayi",
-      "x": 10989.1,
-      "y": 8437.19,
+      "x": 13729.7,
+      "y": 9370.04,
       "scale": 1.5
     },
     {
       "id": "cn-1776198013473-a8laewup",
       "kind": "npc",
       "npcName": "Katya",
-      "x": 11446.3,
-      "y": 8453.87,
+      "x": 10699.2,
+      "y": 10631.7,
       "scale": 1.5
     },
     {
       "id": "cn-1776198022373-o0zmc6re",
       "kind": "npc",
       "npcName": "Kace",
-      "x": 11182.3,
-      "y": 8390.97,
+      "x": 8148.52,
+      "y": 8146.13,
       "scale": 2
     },
     {
       "id": "cn-1776198033132-vt4u1eu5",
       "kind": "npc",
       "npcName": "Kendra",
-      "x": 11654.4,
-      "y": 8394.33,
+      "x": 10617.9,
+      "y": 8874.53,
       "scale": 2
     },
     {
       "id": "cn-1776198177071-2bom9fnt",
       "kind": "npc",
       "npcName": "King",
-      "x": 11917.1,
-      "y": 8463.48,
+      "x": 9748.06,
+      "y": 8097.69,
       "scale": 1.5
     },
     {
       "id": "cn-1776198183171-3vqqwytd",
       "kind": "npc",
       "npcName": "Lanet",
-      "x": 12120.2,
-      "y": 8465.16,
+      "x": 7936.01,
+      "y": 7116.08,
       "scale": 1.5
     },
     {
       "id": "cn-1776198190957-4hj4odld",
       "kind": "npc",
       "npcName": "Liao",
-      "x": 12319.3,
-      "y": 8417.36,
+      "x": 9897.57,
+      "y": 7183.65,
       "scale": 2
     },
     {
       "id": "cn-1776198219789-bkys0s6a",
       "kind": "npc",
       "npcName": "Lynx 17",
-      "x": 12575.4,
-      "y": 8473.18,
+      "x": 10988.7,
+      "y": 11142.6,
       "scale": 1.5
     },
     {
       "id": "cn-1776198226824-v8m7nt4w",
       "kind": "npc",
       "npcName": "Mason",
-      "x": 12783.7,
-      "y": 8487.32,
+      "x": 11081.1,
+      "y": 7668.22,
       "scale": 1.5
     },
     {
       "id": "cn-1776198232155-ou5s8rbe",
       "kind": "npc",
       "npcName": "Maximillien",
-      "x": 10772,
-      "y": 8714.46,
+      "x": 8109.87,
+      "y": 10035.1,
       "scale": 2
     },
     {
       "id": "cn-1776198318691-7hzwtvim",
       "kind": "npc",
       "npcName": "Meri",
-      "x": 11039.9,
-      "y": 8770.53,
+      "x": 11373.7,
+      "y": 7262.5,
       "scale": 1.5
     },
     {
       "id": "cn-1776198324203-7ytk5c1w",
       "kind": "npc",
       "npcName": "Mondatta",
-      "x": 11239.1,
-      "y": 8717.58,
+      "x": 8562.72,
+      "y": 7627.09,
       "scale": 2
     },
     {
       "id": "cn-1776198330904-1m57omri",
       "kind": "npc",
       "npcName": "Nameless",
-      "x": 11504,
-      "y": 8776.76,
+      "x": 7741.52,
+      "y": 7117.37,
       "scale": 1.5
     },
     {
       "id": "cn-1776198357928-5tnnx0cn",
       "kind": "npc",
       "npcName": "Nobuto",
-      "x": 11712.6,
-      "y": 8782.98,
+      "x": 8454.21,
+      "y": 10632.4,
       "scale": 1.5
     },
     {
       "id": "cn-1776198370537-lbpkctra",
       "kind": "npc",
       "npcName": "Overlord",
-      "x": 11899.5,
-      "y": 8789.22,
+      "x": 10058.6,
+      "y": 8605.81,
       "scale": 1.5
     },
     {
       "id": "cn-1776198377705-vm3e7of8",
       "kind": "npc",
       "npcName": "Revel",
-      "x": 12111.3,
-      "y": 8792.33,
+      "x": 12129.1,
+      "y": 7217.92,
       "scale": 1.5
     },
     {
       "id": "cn-1776198974115-2jyrwswf",
       "kind": "npc",
       "npcName": "Ryota",
-      "x": 12310.6,
-      "y": 8795.44,
+      "x": 8263.45,
+      "y": 10514.3,
       "scale": 1.5
     },
     {
       "id": "cn-1776198981201-kaorvuxy",
       "kind": "npc",
       "npcName": "Sakura",
-      "x": 12503.7,
-      "y": 8795.45,
+      "x": 8068.45,
+      "y": 10517.9,
       "scale": 1.5
     },
     {
       "id": "cn-1776198988218-izi2wsik",
       "kind": "npc",
       "npcName": "Sanjay",
-      "x": 12693.7,
-      "y": 8745.61,
+      "x": 7116.46,
+      "y": 8553.71,
       "scale": 2
     },
     {
       "id": "cn-1776199008484-l590n2nt",
       "kind": "npc",
       "npcName": "Susannah",
-      "x": 10772,
-      "y": 9047.72,
+      "x": 12809.3,
+      "y": 7634.91,
       "scale": 2
     },
     {
       "id": "cn-1776199020498-imn45tfj",
       "kind": "npc",
       "npcName": "Sven",
-      "x": 11036.8,
-      "y": 9110.01,
+      "x": 14199.7,
+      "y": 11255.2,
       "scale": 1.5
     },
     {
       "id": "cn-1776199033515-s6jmpjno",
       "kind": "npc",
       "npcName": "The Triplets",
-      "x": 11242.3,
-      "y": 9110.01,
+      "x": 9720.88,
+      "y": 10657.2,
       "scale": 1.5
     },
     {
       "id": "cn-1776199043702-xqydsjiy",
       "kind": "npc",
       "npcName": "Toshiro",
-      "x": 11444.8,
-      "y": 9060.18,
+      "x": 7855.68,
+      "y": 11123.3,
       "scale": 2
     },
     {
       "id": "cn-1776199057015-ffml1sq3",
       "kind": "npc",
       "npcName": "Touch Up",
-      "x": 11725.1,
-      "y": 9122.46,
+      "x": 12330.7,
+      "y": 7216.36,
       "scale": 1.5
     },
     {
       "id": "cn-1776199062968-hvbhj4fv",
       "kind": "npc",
       "npcName": "Vialli",
-      "x": 11933.7,
-      "y": 9122.47,
+      "x": 7428.64,
+      "y": 9495.49,
       "scale": 1.5
     },
     {
       "id": "cn-1776199068032-gsp8p36b",
       "kind": "npc",
       "npcName": "Zera",
-      "x": 12133,
-      "y": 9122.48,
+      "x": 7544.66,
+      "y": 7103.2,
       "scale": 1.5
+    },
+    {
+      "id": "cn-1776288245714-28npbd8s",
+      "kind": "country",
+      "countryKey": "Numbani",
+      "x": 12717.9,
+      "y": 10207.5,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776289508655-9brmpvgq",
+      "kind": "faction",
+      "factionFilename": "00Overwatch",
+      "factionDisplay": "Overwatch",
+      "x": 12572.1,
+      "y": 8928.38,
+      "scale": 5
+    },
+    {
+      "id": "cn-1776370090612-ylaicggr",
+      "kind": "junction",
+      "x": 7130.71,
+      "y": 9351.24,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776370269459-lfd9zfa1",
+      "kind": "junction",
+      "x": 7045.45,
+      "y": 9441.65,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776374966677-2vkit5t0",
+      "kind": "junction",
+      "x": 7685.03,
+      "y": 10046.2,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776375042496-kw00pzju",
+      "kind": "junction",
+      "x": 7683.94,
+      "y": 10708.5,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776375343089-j632doz6",
+      "kind": "faction",
+      "factionFilename": "22Hashimoto Clan",
+      "factionDisplay": "Hashimoto Clan",
+      "x": 7284.51,
+      "y": 10771.9,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776375452288-ibjt2kyx",
+      "kind": "junction",
+      "x": 7685.03,
+      "y": 10202,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776376685565-zxk7dvgo",
+      "kind": "junction",
+      "x": 8419.55,
+      "y": 10035.6,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776376830324-a5bnrf62",
+      "kind": "junction",
+      "x": 8420.47,
+      "y": 10198.2,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776376863181-li86o8hn",
+      "kind": "junction",
+      "x": 8711.45,
+      "y": 10487.9,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776377077915-gxzcag2i",
+      "kind": "junction",
+      "x": 8549.45,
+      "y": 9906.82,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776377200346-8iiefroy",
+      "kind": "junction",
+      "x": 9103.03,
+      "y": 9796.08,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776377423834-5hcwepin",
+      "kind": "junction",
+      "x": 8899.19,
+      "y": 9906.82,
+      "scale": 3
+    },
+    {
+      "id": "cn-1776378174256-j0k8stw4",
+      "kind": "junction",
+      "x": 9302.46,
+      "y": 9499.5,
+      "scale": 3
     }
   ],
-  "edges": []
+  "edges": [
+    {
+      "fromId": "cn-1776188568433-ct7ioax0",
+      "toId": "cn-1776196454601-i5cqp9rt"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776196918049-3szka57e"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776196674639-wzypztd4"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776196835600-1h52n95b"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776196706068-vf6jo3yv"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776199062968-hvbhj4fv"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776188407279-tczl1kd3"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776198232155-ou5s8rbe"
+    },
+    {
+      "fromId": "cn-1776196918049-3szka57e",
+      "toId": "cn-1776188989261-sni9cnre"
+    },
+    {
+      "fromId": "cn-1776196918049-3szka57e",
+      "toId": "cn-1776197727524-g8fx2yzv"
+    },
+    {
+      "fromId": "cn-1776196918049-3szka57e",
+      "toId": "cn-1776199062968-hvbhj4fv"
+    },
+    {
+      "fromId": "cn-1776197727524-g8fx2yzv",
+      "toId": "cn-1776199062968-hvbhj4fv"
+    },
+    {
+      "fromId": "cn-1776196706068-vf6jo3yv",
+      "toId": "cn-1776196835600-1h52n95b"
+    },
+    {
+      "fromId": "cn-1776198232155-ou5s8rbe",
+      "toId": "cn-1776188407279-tczl1kd3"
+    },
+    {
+      "fromId": "cn-1776196674639-wzypztd4",
+      "toId": "cn-1776189013831-v9g8z604"
+    },
+    {
+      "fromId": "cn-1776196250777-gqnrvcb6",
+      "toId": "cn-1776197727524-g8fx2yzv"
+    },
+    {
+      "fromId": "cn-1776196250777-gqnrvcb6",
+      "toId": "cn-1776370090612-ylaicggr"
+    },
+    {
+      "fromId": "cn-1776370090612-ylaicggr",
+      "toId": "cn-1776199062968-hvbhj4fv"
+    },
+    {
+      "fromId": "cn-1776196250777-gqnrvcb6",
+      "toId": "cn-1776370269459-lfd9zfa1"
+    },
+    {
+      "fromId": "cn-1776370269459-lfd9zfa1",
+      "toId": "cn-1776196674639-wzypztd4"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776374966677-2vkit5t0"
+    },
+    {
+      "fromId": "cn-1776375042496-kw00pzju",
+      "toId": "cn-1776375343089-j632doz6"
+    },
+    {
+      "fromId": "cn-1776374966677-2vkit5t0",
+      "toId": "cn-1776375452288-ibjt2kyx"
+    },
+    {
+      "fromId": "cn-1776375452288-ibjt2kyx",
+      "toId": "cn-1776188801774-u140ql4g"
+    },
+    {
+      "fromId": "cn-1776375452288-ibjt2kyx",
+      "toId": "cn-1776375042496-kw00pzju"
+    },
+    {
+      "fromId": "cn-1776187942174-ajc0gk24",
+      "toId": "cn-1776376685565-zxk7dvgo"
+    },
+    {
+      "fromId": "cn-1776376685565-zxk7dvgo",
+      "toId": "cn-1776376830324-a5bnrf62"
+    },
+    {
+      "fromId": "cn-1776376830324-a5bnrf62",
+      "toId": "cn-1776376863181-li86o8hn"
+    },
+    {
+      "fromId": "cn-1776376863181-li86o8hn",
+      "toId": "cn-1776188997910-x5sjqser"
+    },
+    {
+      "fromId": "cn-1776188997910-x5sjqser",
+      "toId": "cn-1776196198262-5y6w0bjm"
+    },
+    {
+      "fromId": "cn-1776188997910-x5sjqser",
+      "toId": "cn-1776197773898-vrt0idb9"
+    },
+    {
+      "fromId": "cn-1776196198262-5y6w0bjm",
+      "toId": "cn-1776197773898-vrt0idb9"
+    },
+    {
+      "fromId": "cn-1776188997910-x5sjqser",
+      "toId": "cn-1776197779816-8kojasku"
+    },
+    {
+      "fromId": "cn-1776188997910-x5sjqser",
+      "toId": "cn-1776199033515-s6jmpjno"
+    },
+    {
+      "fromId": "cn-1776376685565-zxk7dvgo",
+      "toId": "cn-1776377077915-gxzcag2i"
+    },
+    {
+      "fromId": "cn-1776196460311-ckh9f0q6",
+      "toId": "cn-1776377200346-8iiefroy"
+    },
+    {
+      "fromId": "cn-1776377200346-8iiefroy",
+      "toId": "cn-1776196454601-i5cqp9rt"
+    },
+    {
+      "fromId": "cn-1776198232155-ou5s8rbe",
+      "toId": "cn-1776196460311-ckh9f0q6"
+    },
+    {
+      "fromId": "cn-1776377077915-gxzcag2i",
+      "toId": "cn-1776377423834-5hcwepin"
+    },
+    {
+      "fromId": "cn-1776377423834-5hcwepin",
+      "toId": "cn-1776378174256-j0k8stw4"
+    },
+    {
+      "fromId": "cn-1776378174256-j0k8stw4",
+      "toId": "cn-1776188568433-ct7ioax0"
+    }
+  ]
 }

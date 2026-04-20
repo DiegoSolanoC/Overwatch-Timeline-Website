@@ -359,11 +359,11 @@ export class ComponentOrchestrator {
         updateStatus('🚀 Starting Glossary Components auto-load...', 'info');
 
         try {
-            // Hide main menu buttons
-            const mainMenuButtons = document.querySelector('.main-menu-buttons');
-            if (mainMenuButtons) {
-                mainMenuButtons.style.display = 'none';
-                updateStatus('→ Hiding main menu buttons...', 'info');
+            // Hide test-container (consistent with other modes)
+            const testContainer = document.querySelector('.test-container');
+            if (testContainer) {
+                testContainer.style.display = 'none';
+                updateStatus('→ Hiding menu container...', 'info');
             }
 
             // Enter Codex mode via CodexModeService
@@ -372,6 +372,9 @@ export class ComponentOrchestrator {
             } else {
                 updateStatus('→ CodexModeService not available', 'error');
             }
+
+            // Ensure header hub state updates
+            this.dispatchAppModeChange('glossary');
 
             this.loadedComponents.glossary = true;
             updateStatus('✓ Glossary Components auto-load complete!', 'success');
@@ -419,14 +422,21 @@ export class ComponentOrchestrator {
         updateStatus('🚀 Starting Story Viewer...', 'info');
         
         try {
-            // Kill menu components but keep other features
-            await this.killMenuComponents();
+            // Hide test-container (consistent with other modes)
+            const testContainer = document.querySelector('.test-container');
+            if (testContainer) {
+                testContainer.style.display = 'none';
+                updateStatus('→ Hiding menu container...', 'info');
+            }
             
             // Create and show the Story Viewer panel
             await this.createStoryViewerPanel();
             
             // Minimum loading time for visual consistency (800ms)
             await new Promise(r => setTimeout(r, 800));
+
+            // Ensure header hub state updates
+            this.dispatchAppModeChange('biography');
             
             this.loadedComponents.biography = true;
             updateStatus('✓ Story Viewer loaded!', 'success');
@@ -964,6 +974,9 @@ export class ComponentOrchestrator {
         // This will also load menu if not already loaded
         await this.restoreMainMenu();
         
+        // Clear mode from localStorage (consistent with other modes)
+        localStorage.removeItem('currentMode');
+        
         updateStatus('✓ All Globe Components killed!', 'success');
     }
 
@@ -988,12 +1001,8 @@ export class ComponentOrchestrator {
             window.CodexModeService.clearCodexShellForGlobeInit();
         }
 
-        // Show main menu buttons again
-        const mainMenuButtons = document.querySelector('.main-menu-buttons');
-        if (mainMenuButtons) {
-            mainMenuButtons.style.display = '';
-            updateStatus('→ Showing main menu buttons...', 'info');
-        }
+        // Restore the menu (test-container) - consistent with other modes
+        await this.restoreMainMenu();
 
         localStorage.removeItem('currentMode');
         this.loadedComponents.glossary = false;
@@ -1061,18 +1070,10 @@ export class ComponentOrchestrator {
             }, 300);
         }
 
-        // Restore the main menu (test-container)
-        const testContainer = document.querySelector('.test-container');
-        if (testContainer) {
-            testContainer.style.display = 'flex';
-            updateStatus('✓ Main menu restored', 'success');
-        }
+        // Restore the menu (test-container) - consistent with other modes
+        await this.restoreMainMenu();
 
-        // Clear mode from localStorage
-        if (localStorage.getItem('currentMode') === 'biography') {
-            localStorage.removeItem('currentMode');
-        }
-        
+        localStorage.removeItem('currentMode');
         this.loadedComponents.biography = false;
         
         updateStatus('✓ Story Viewer exited!', 'success');
