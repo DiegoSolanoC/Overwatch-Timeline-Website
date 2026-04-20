@@ -175,6 +175,15 @@ export class ComponentOrchestrator {
     async runGlobeComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
 
+        // Kill other modes first (mutual exclusion)
+        const currentMode = localStorage.getItem('currentMode');
+        if (currentMode === 'biography' && this.loadedComponents.biography) {
+            await this.killBiographyComponents();
+        }
+        if (currentMode === 'glossary' && this.loadedComponents.glossary) {
+            await this.killGlossaryComponents();
+        }
+
         const inlineFromCodex = beginTimelineInlineLoadIfCodex();
         
         // Save current mode to localStorage
@@ -326,6 +335,12 @@ export class ComponentOrchestrator {
     async runGlossaryComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
 
+        // Kill other modes first (mutual exclusion)
+        const currentMode = localStorage.getItem('currentMode');
+        if (currentMode === 'biography' && this.loadedComponents.biography) {
+            await this.killBiographyComponents();
+        }
+
         // Save current mode to localStorage
         localStorage.setItem('currentMode', 'glossary');
 
@@ -374,11 +389,20 @@ export class ComponentOrchestrator {
 
     /**
      * Run all Biography Components sequentially
-     * (Placeholder - no actual loads yet)
+     * Story Viewer mode - displays events in a centered panel
      */
     async runBiographyComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
         
+        // Kill other modes first (mutual exclusion)
+        const currentMode = localStorage.getItem('currentMode');
+        if (currentMode === 'globe' && this.loadedComponents.globeBase) {
+            await this.killGlobeComponents();
+        }
+        if (currentMode === 'glossary' && this.loadedComponents.glossary) {
+            await this.killGlossaryComponents();
+        }
+
         // Save current mode to localStorage
         localStorage.setItem('currentMode', 'biography');
         
@@ -388,29 +412,420 @@ export class ComponentOrchestrator {
         }
         
         const isRunOperation = getRunOperation();
-        // Note: isRunOperation and overlay should already be set by the button click handler
-        // But if called directly (not from button), set them here
         if (!isRunOperation) {
             setRunOperation(true);
             showLoadingOverlay();
         }
-        updateStatus('🚀 Starting Biography Components auto-load...', 'info');
+        updateStatus('🚀 Starting Story Viewer...', 'info');
         
         try {
-            // Placeholder - no actual loading yet
-            updateStatus('→ Biography Components loading not yet implemented', 'info');
+            // Kill menu components but keep other features
+            await this.killMenuComponents();
+            
+            // Create and show the Story Viewer panel
+            await this.createStoryViewerPanel();
+            
+            // Minimum loading time for visual consistency (800ms)
+            await new Promise(r => setTimeout(r, 800));
             
             this.loadedComponents.biography = true;
-            updateStatus('✓ Biography Components auto-load complete!', 'success');
+            updateStatus('✓ Story Viewer loaded!', 'success');
         } catch (error) {
-            console.error('Error in Biography Components auto-load:', error);
-            updateStatus(`✗ Error in Biography Components auto-load: ${error.message}`, 'error');
+            console.error('Error in Story Viewer load:', error);
+            updateStatus(`✗ Error in Story Viewer load: ${error.message}`, 'error');
         } finally {
             setRunOperation(false);
             hideLoadingOverlay();
             if (runBtn) {
                 runBtn.disabled = false;
             }
+        }
+    }
+
+    /**
+     * Create the Story Viewer - takes over center space like Globe/Codex
+     * Uses actual Event Manager panel but displayed in center
+     */
+    async createStoryViewerPanel() {
+        // Check if already exists
+        let storyContainer = document.getElementById('storyViewerContainer');
+        if (storyContainer) {
+            storyContainer.style.display = 'flex';
+            return;
+        }
+
+        // Hide the test-container (main menu buttons)
+        const testContainer = document.querySelector('.test-container');
+        if (testContainer) {
+            testContainer.style.display = 'none';
+        }
+
+        // Get the actual eventsManagePanel and move it to center
+        const eventsManagePanel = document.getElementById('eventsManagePanel');
+        if (!eventsManagePanel) {
+            updateStatus('⚠ Event Manager panel not found', 'error');
+            return;
+        }
+
+        // Create story viewer container
+        storyContainer = document.createElement('div');
+        storyContainer.id = 'storyViewerContainer';
+        storyContainer.className = 'story-viewer-container';
+        
+        // Move the eventsManagePanel into story container
+        // Store original parent to restore later
+        this._originalEventsPanelParent = eventsManagePanel.parentNode;
+        this._originalEventsPanelClasses = eventsManagePanel.className;
+        
+        // Change panel to be centered instead of side panel
+        eventsManagePanel.classList.remove('events-manage-panel');
+        eventsManagePanel.classList.add('story-viewer-panel-embedded');
+        eventsManagePanel.style.right = 'auto';
+        eventsManagePanel.style.position = 'relative';
+        eventsManagePanel.style.width = '100%';
+        eventsManagePanel.style.height = '100%';
+        eventsManagePanel.style.top = 'auto';
+        eventsManagePanel.style.bottom = 'auto';
+        
+        // Move panel into story container
+        storyContainer.appendChild(eventsManagePanel);
+        
+        // Update title
+        const title = eventsManagePanel.querySelector('.events-manage-title');
+        if (title) {
+            title.textContent = 'Story Viewer';
+            title.classList.remove('events-manage-title');
+            title.classList.add('story-viewer-title');
+        }
+        
+        // Hide Add/Save/Export buttons in story mode
+        const addBtn = document.getElementById('addEventBtn');
+        const saveBtn = document.getElementById('saveEventsBtn');
+        const exportBtn = document.getElementById('exportEventsBtn');
+        if (addBtn) addBtn.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (exportBtn) exportBtn.style.display = 'none';
+        
+        // Change close button to "Exit to Menu"
+        const closeBtn = document.getElementById('eventsManageClose');
+        if (closeBtn) {
+            closeBtn.innerHTML = 'Exit';
+            closeBtn.classList.add('story-viewer-exit-btn');
+            // Remove old click handler and add exit handler
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+            newCloseBtn.addEventListener('click', () => {
+                this.killBiographyComponents();
+            });
+        }
+
+        // Insert into main content area
+        const content = document.getElementById('content');
+        if (content) {
+            content.appendChild(storyContainer);
+        } else {
+            document.body.appendChild(storyContainer);
+        }
+
+        // Open the panel
+        eventsManagePanel.classList.add('open');
+        
+        // Ensure EventManager renders to this panel
+        if (window.eventManager) {
+            window.eventManager.renderEvents();
+        }
+
+        // Show with animation
+        requestAnimationFrame(() => {
+            storyContainer.classList.add('active');
+        });
+
+        updateStatus('✓ Story Viewer loaded with full Event Manager functionality', 'success');
+    }
+
+    /**
+     * Wire up event handlers for Story Viewer - mirrors Event Manager
+     */
+    wireStoryViewerHandlers() {
+        const self = this;
+
+        // Search input
+        const searchInput = document.getElementById('storyViewerSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterStoryViewerEvents();
+            });
+        }
+
+        // Filters input with suggestions
+        const filtersInput = document.getElementById('storyViewerSearchFilters');
+        if (filtersInput) {
+            filtersInput.addEventListener('input', (e) => {
+                this.updateStoryViewerFilterPredictions();
+                this.filterStoryViewerEvents();
+            });
+            filtersInput.addEventListener('focus', () => {
+                this.updateStoryViewerFilterPredictions();
+            });
+        }
+
+        // Country input with suggestions
+        const countryInput = document.getElementById('storyViewerSearchCountry');
+        if (countryInput) {
+            countryInput.addEventListener('input', (e) => {
+                this.updateStoryViewerCountryPredictions();
+                this.filterStoryViewerEvents();
+            });
+            countryInput.addEventListener('focus', () => {
+                this.updateStoryViewerCountryPredictions();
+            });
+        }
+
+        // Clear button
+        const clearBtn = document.getElementById('storyViewerSearchClear');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.clearStoryViewerSearch();
+            });
+        }
+
+        // Per page input
+        const perPageInput = document.getElementById('storyViewerPerPageInput');
+        if (perPageInput) {
+            perPageInput.addEventListener('change', () => {
+                this.renderStoryViewerEvents(window.eventManager.events);
+            });
+        }
+
+        // Show all checkbox
+        const showAllCheckbox = document.getElementById('storyViewerShowAllCheckbox');
+        if (showAllCheckbox) {
+            showAllCheckbox.addEventListener('change', () => {
+                this.renderStoryViewerEvents(window.eventManager.events);
+            });
+        }
+
+        // Use filter selection checkbox
+        const useFilterCheckbox = document.getElementById('storyViewerUseFilterSelectionCheckbox');
+        if (useFilterCheckbox) {
+            useFilterCheckbox.addEventListener('change', () => {
+                this.filterStoryViewerEvents();
+            });
+        }
+
+        // Toolbar toggle
+        const toolbarToggle = document.getElementById('storyViewerToolbarToggleBtn');
+        if (toolbarToggle) {
+            toolbarToggle.addEventListener('click', () => {
+                const controls = document.getElementById('storyViewerControls');
+                if (controls) {
+                    controls.classList.toggle('collapsed');
+                    toolbarToggle.textContent = controls.classList.contains('collapsed') ? 'Show controls' : 'Hide controls';
+                    toolbarToggle.setAttribute('aria-pressed', !controls.classList.contains('collapsed'));
+                }
+            });
+        }
+
+        updateStatus('✓ Story Viewer handlers wired', 'success');
+    }
+
+    /**
+     * Filter events in Story Viewer - mirrors Event Manager logic
+     */
+    filterStoryViewerEvents() {
+        if (!window.eventManager || !window.eventManager.events) return;
+
+        const searchInput = document.getElementById('storyViewerSearchInput');
+        const filtersInput = document.getElementById('storyViewerSearchFilters');
+        const countryInput = document.getElementById('storyViewerSearchCountry');
+        const useFilterCheckbox = document.getElementById('storyViewerUseFilterSelectionCheckbox');
+
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const filterTerms = filtersInput ? filtersInput.value.toLowerCase().split(',').map(s => s.trim()).filter(s => s) : [];
+        const countryTerms = countryInput ? countryInput.value.toLowerCase().split(',').map(s => s.trim()).filter(s => s) : [];
+        const useFilterSelection = useFilterCheckbox ? useFilterCheckbox.checked : false;
+
+        // Get active filters from Filter panel if checkbox is checked
+        let activeFilterSet = new Set();
+        if (useFilterSelection && window.standaloneActiveFilters) {
+            activeFilterSet = window.standaloneActiveFilters;
+        }
+
+        // Filter events
+        const filtered = window.eventManager.events.filter(event => {
+            // Title search
+            if (searchTerm && !event.name.toLowerCase().includes(searchTerm)) {
+                return false;
+            }
+
+            // Filter tags (heroes, factions, NPCs)
+            if (filterTerms.length > 0) {
+                const eventTags = [
+                    ...(event.heroes || []),
+                    ...(event.factions || []),
+                    ...(event.npcs || [])
+                ].map(t => t.toLowerCase());
+                
+                const hasMatch = filterTerms.some(term => 
+                    eventTags.some(tag => tag.includes(term))
+                );
+                if (!hasMatch) return false;
+            }
+
+            // Filter panel selection
+            if (useFilterSelection && activeFilterSet.size > 0) {
+                const eventTags = [
+                    ...(event.heroes || []),
+                    ...(event.factions || []),
+                    ...(event.npcs || [])
+                ].map(t => t.toLowerCase());
+                
+                const hasMatch = Array.from(activeFilterSet).some(filter => 
+                    eventTags.some(tag => tag.includes(filter.toLowerCase()))
+                );
+                if (!hasMatch) return false;
+            }
+
+            // Country search
+            if (countryTerms.length > 0) {
+                const eventCountries = (event.countries || []).map(c => c.toLowerCase());
+                const hasMatch = countryTerms.some(term =>
+                    eventCountries.some(country => country.includes(term))
+                );
+                if (!hasMatch) return false;
+            }
+
+            return true;
+        });
+
+        this.renderStoryViewerEvents(filtered);
+    }
+
+    /**
+     * Render events in Story Viewer - mirrors Event Manager rendering
+     */
+    renderStoryViewerEvents(events) {
+        const list = document.getElementById('storyViewerList');
+        const countDisplay = document.getElementById('storyViewerCount');
+        if (!list) return;
+
+        // Update count
+        if (countDisplay) {
+            countDisplay.textContent = `${events.length} Event${events.length !== 1 ? 's' : ''}`;
+        }
+
+        // Get pagination settings
+        const perPageInput = document.getElementById('storyViewerPerPageInput');
+        const showAllCheckbox = document.getElementById('storyViewerShowAllCheckbox');
+        
+        const showAll = showAllCheckbox ? showAllCheckbox.checked : false;
+        const perPage = showAll ? events.length : (perPageInput ? parseInt(perPageInput.value) || 50 : 50);
+
+        // Simple render - show all or paginated
+        list.innerHTML = '';
+        
+        const eventsToShow = events.slice(0, perPage);
+        
+        eventsToShow.forEach((event, index) => {
+            const item = document.createElement('div');
+            item.className = 'event-item';
+            item.dataset.eventId = event.id;
+            item.innerHTML = `
+                <div class="event-item-preview-image">
+                    <img src="${event.image || 'assets/images/events/default.png'}" alt="${event.name}" />
+                </div>
+                <div class="event-item-info">
+                    <h3 class="event-item-title">${event.name}</h3>
+                    <div class="event-item-meta">
+                        <span class="event-item-year">${event.year || ''}</span>
+                        <span class="event-item-location">${event.location || ''}</span>
+                    </div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => {
+                this.openStoryEvent(event, index);
+            });
+            
+            list.appendChild(item);
+        });
+
+        // Render pagination if needed
+        if (!showAll && events.length > perPage) {
+            this.renderStoryViewerPagination(events.length, perPage);
+        }
+    }
+
+    /**
+     * Render pagination for Story Viewer
+     */
+    renderStoryViewerPagination(total, perPage) {
+        const pagination = document.getElementById('storyViewerPagination');
+        if (!pagination) return;
+
+        const totalPages = Math.ceil(total / perPage);
+        pagination.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'story-viewer-pagination-btn';
+            btn.textContent = i;
+            btn.addEventListener('click', () => {
+                this.goToStoryViewerPage(i, perPage);
+            });
+            pagination.appendChild(btn);
+        }
+    }
+
+    /**
+     * Go to specific page in Story Viewer
+     */
+    goToStoryViewerPage(page, perPage) {
+        // Implementation would track current page and re-render
+        updateStatus(`Story Viewer: Page ${page} selected`, 'info');
+    }
+
+    /**
+     * Update filter predictions dropdown
+     */
+    updateStoryViewerFilterPredictions() {
+        // Mirror the filter predictions from EventListenerService
+        if (window.EventListenerService && window.EventListenerService._updateFilterPredictions) {
+            // Reuse existing logic
+        }
+    }
+
+    /**
+     * Update country predictions dropdown
+     */
+    updateStoryViewerCountryPredictions() {
+        // Mirror the country predictions from EventListenerService
+    }
+
+    /**
+     * Clear all search filters in Story Viewer
+     */
+    clearStoryViewerSearch() {
+        const searchInput = document.getElementById('storyViewerSearchInput');
+        const filtersInput = document.getElementById('storyViewerSearchFilters');
+        const countryInput = document.getElementById('storyViewerSearchCountry');
+
+        if (searchInput) searchInput.value = '';
+        if (filtersInput) filtersInput.value = '';
+        if (countryInput) countryInput.value = '';
+
+        this.renderStoryViewerEvents(window.eventManager.events);
+    }
+
+    /**
+     * Open a specific event in story mode
+     */
+    openStoryEvent(event, index) {
+        // Use the existing event slide system but in story context
+        if (window.MenuHelpers && window.MenuHelpers.showStandaloneEventSlide) {
+            window.MenuHelpers.showStandaloneEventSlide(event, index);
+        } else if (window.MenuServiceHelpers && window.MenuServiceHelpers.showStandaloneEventSlide) {
+            window.MenuServiceHelpers.showStandaloneEventSlide(event, index);
         }
     }
 
@@ -587,14 +1002,79 @@ export class ComponentOrchestrator {
     }
 
     /**
-     * Kill all Biography Components
+     * Kill all Biography Components (Story Viewer)
      */
     async killBiographyComponents() {
-        updateStatus('Killing all Biography Components...', 'info');
+        updateStatus('Exiting Story Viewer...', 'info');
         
-        // Placeholder - no actual unloading yet
+        // Restore Event Manager panel to its original location
+        const eventsManagePanel = document.getElementById('eventsManagePanel');
+        if (eventsManagePanel && this._originalEventsPanelParent) {
+            // Restore original classes
+            eventsManagePanel.className = this._originalEventsPanelClasses || 'events-manage-panel';
+            
+            // Restore original styles
+            eventsManagePanel.style.right = '';
+            eventsManagePanel.style.position = '';
+            eventsManagePanel.style.width = '';
+            eventsManagePanel.style.height = '';
+            eventsManagePanel.style.top = '';
+            eventsManagePanel.style.bottom = '';
+            
+            // Restore original title
+            const title = eventsManagePanel.querySelector('.story-viewer-title');
+            if (title) {
+                title.textContent = 'Event Management';
+                title.classList.remove('story-viewer-title');
+                title.classList.add('events-manage-title');
+            }
+            
+            // Show Add/Save/Export buttons again
+            const addBtn = document.getElementById('addEventBtn');
+            const saveBtn = document.getElementById('saveEventsBtn');
+            const exportBtn = document.getElementById('exportEventsBtn');
+            if (addBtn) addBtn.style.display = '';
+            if (saveBtn) saveBtn.style.display = '';
+            if (exportBtn) exportBtn.style.display = '';
+            
+            // Restore close button
+            const closeBtn = eventsManagePanel.querySelector('.story-viewer-exit-btn, .events-manage-close');
+            if (closeBtn) {
+                closeBtn.innerHTML = '×';
+                closeBtn.classList.remove('story-viewer-exit-btn');
+                // Re-clone to remove exit handler and restore original
+                const newCloseBtn = closeBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+                // Original close handler will be re-attached by EventManager
+            }
+            
+            // Move back to original parent
+            this._originalEventsPanelParent.appendChild(eventsManagePanel);
+        }
+        
+        // Remove story viewer container
+        const storyContainer = document.getElementById('storyViewerContainer');
+        if (storyContainer) {
+            storyContainer.classList.remove('active');
+            setTimeout(() => {
+                storyContainer.remove();
+            }, 300);
+        }
+
+        // Restore the main menu (test-container)
+        const testContainer = document.querySelector('.test-container');
+        if (testContainer) {
+            testContainer.style.display = 'flex';
+            updateStatus('✓ Main menu restored', 'success');
+        }
+
+        // Clear mode from localStorage
+        if (localStorage.getItem('currentMode') === 'biography') {
+            localStorage.removeItem('currentMode');
+        }
+        
         this.loadedComponents.biography = false;
         
-        updateStatus('✓ All Biography Components killed!', 'success');
+        updateStatus('✓ Story Viewer exited!', 'success');
     }
 }

@@ -587,6 +587,7 @@ class MusicManager {
 
     /**
      * If shuffle is off and the current track is the previous palette's default, switch to this palette's default.
+     * Includes fade out/in transition for smooth palette switching.
      */
     onPaletteChanged(previousPalette, newPalette) {
         const H = typeof window !== 'undefined' ? window.MusicPaletteDefaultHelpers : null;
@@ -599,9 +600,17 @@ class MusicManager {
         if (!this.shuffleService.isShuffling && this._musicMode === 'startup' && typeof this._playMusic === 'function') {
             const themePath = H.getStartupThemePath(next);
             if (themePath) {
-                this._playMusic(themePath);
-                this.updateNowPlaying();
-                this.saveMusicState();
+                const self = this;
+                // Fade out, swap track, wait briefly, then fade in for dramatic effect
+                this.volumeService.fadeOut(false, false, function () {
+                    self._playMusic(themePath);
+                    // Brief pause before fade in (300ms silence for dramatic effect)
+                    setTimeout(function () {
+                        self.volumeService.fadeIn(false, false);
+                    }, 300);
+                    self.updateNowPlaying();
+                    self.saveMusicState();
+                });
             }
         }
 

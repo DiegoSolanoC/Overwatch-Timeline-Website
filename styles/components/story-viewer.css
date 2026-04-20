@@ -1,0 +1,430 @@
+/* ========================================
+   STORY VIEWER - Full Center Space
+   Like Globe/Codex - takes over main content area
+   ======================================== */
+
+/* Story Viewer Container - fills center space like globe */
+.story-viewer-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-secondary, #0a1929); /* Uses palette variable */
+    z-index: 10; /* Below panels but above background */
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+    overflow: hidden;
+    color: white;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Embedded Event Manager panel (when moved to Story Viewer) */
+.story-viewer-panel-embedded {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    overflow-y: auto !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.story-viewer-panel-embedded .events-manage-content,
+.story-viewer-panel-embedded .story-viewer-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.story-viewer-container.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Pattern overlay - matches events-manage-panel, filters-panel, music-panel */
+.story-viewer-container {
+    isolation: isolate;
+}
+
+.story-viewer-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: url('../../../assets/images/maps/Pattern.png');
+    background-repeat: repeat;
+    background-size: clamp(520px, 42vw, 960px) auto;
+    background-position: center center;
+    opacity: 0.62;
+}
+
+.story-viewer-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: rgb(var(--dock-pattern-tint-rgb, 33, 150, 243) / 0.28);
+    mix-blend-mode: color;
+}
+
+/* Ensure content sits above pattern */
+.story-viewer-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Exit button - positioned in header */
+.story-viewer-close,
+.story-viewer-exit-btn {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+    border: 1px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    z-index: 15;
+}
+
+.story-viewer-close:hover,
+.story-viewer-exit-btn:hover {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-heavy));
+}
+
+/* Gray palette: orange hover for exit */
+body.color-palette-gray .story-viewer-close:hover,
+body.color-palette-gray .story-viewer-exit-btn:hover {
+    background: rgba(255, 102, 0, 0.8);
+}
+
+/* Content - same as events-manage-content */
+.story-viewer-content {
+    padding: 22px 28px 24px 28px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    position: relative;
+    overflow-y: auto;
+}
+
+/* Header - same as events-manage-header */
+.story-viewer-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 12px 80px 12px 15px;
+    border-bottom: 2px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    isolation: isolate;
+}
+
+/* Title section */
+.story-viewer-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.story-viewer-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.story-viewer-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.story-viewer-count {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Toolbar toggle button */
+.story-viewer-toolbar-toggle-btn {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--accent-primary-rgb), var(--opacity-medium));
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.story-viewer-toolbar-toggle-btn:hover {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+}
+
+/* Actions */
+.story-viewer-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.story-viewer-action-btn {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+    border: 1px solid rgba(var(--accent-primary-rgb), var(--opacity-light));
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.story-viewer-action-btn:hover {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-heavy));
+}
+
+/* Controls section - same as events-manage-controls */
+.story-viewer-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.story-viewer-controls.collapsed {
+    display: none;
+}
+
+.story-viewer-controls-title {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+
+/* Search section */
+.story-viewer-search {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.story-viewer-search-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.story-viewer-search-row--primary {
+    flex: 1;
+}
+
+.story-viewer-search-row--secondary {
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Search labels and inputs - same as events-manage */
+.story-search-label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+}
+
+.story-search-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    flex: 1;
+    min-width: 150px;
+}
+
+.story-search-input:focus {
+    outline: none;
+    border-color: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.story-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.story-search-input-small {
+    width: 60px;
+    flex: none;
+}
+
+/* Search field with suggestions dropdown */
+.story-search-field {
+    position: relative;
+    display: inline-block;
+    flex: 1;
+    min-width: 150px;
+}
+
+/* Search suggestions dropdown */
+.story-search-suggestions {
+    position: fixed;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 99999;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.story-search-suggestions .suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #fff;
+    transition: background 0.15s ease;
+}
+
+.story-search-suggestions .suggestion-item:hover {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+}
+
+/* Checkboxes */
+.story-search-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+
+.story-search-checkbox input[type="checkbox"] {
+    cursor: pointer;
+}
+
+/* Per page group */
+.story-per-page-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Clear button */
+.story-search-clear-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.story-search-clear-btn:hover {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+    border-color: rgba(var(--accent-primary-rgb), var(--opacity-light));
+}
+
+/* Event list - uses same event-item styles */
+#storyViewerList {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Pagination - same as event pagination */
+.story-viewer-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.story-viewer-pagination-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    min-width: 36px;
+}
+
+.story-viewer-pagination-btn:hover {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+    border-color: rgba(var(--accent-primary-rgb), var(--opacity-light));
+}
+
+.story-viewer-pagination-btn.active {
+    background: rgba(var(--accent-primary-rgb), var(--opacity-heavy));
+    border-color: rgba(var(--accent-primary-rgb), var(--opacity-medium));
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .story-viewer-panel {
+        width: 95vw;
+        height: 90vh;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+
+    .story-viewer-panel.open {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .story-viewer-content {
+        padding: 16px;
+    }
+
+    .story-viewer-header {
+        padding: 12px 60px 12px 12px;
+    }
+
+    .story-viewer-title {
+        font-size: 1.2rem;
+    }
+
+    .story-viewer-close {
+        font-size: 36px;
+        width: 40px;
+        height: 40px;
+    }
+}

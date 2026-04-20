@@ -258,15 +258,15 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
 
     menuButtons.appendChild(glossaryBtn);
 
-    // Only show Character Bios if NOT on GitHub Pages (still unimplemented)
+    // Only show Story Viewer if NOT on GitHub Pages
     if (!isGitHubPages()) {
-        // Character Bios button
+        // Story Viewer button
         const biographyBtn = createMenuButton({
             id: 'runBiographyBtn',
-            title: 'Character Bios',
+            title: 'Story Viewer',
             imagePath: 'assets/images/menu/Character%20Bios.png',
-            label: 'Character Bios',
-            description: 'Coming Soon...'
+            label: 'Story Viewer',
+            description: 'Explore the Story of overwatch through a sequence of event slides'
         });
 
         if (setupBiographyHandler) {

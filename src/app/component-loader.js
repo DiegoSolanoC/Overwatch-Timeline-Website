@@ -179,6 +179,32 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
+    // Story Viewer button - launches story mode
+    createGlobeControlButton({
+        id: 'headerStoryViewerBtn',
+        className: '',
+        title: 'Story Viewer',
+        label: 'Story Viewer',
+        iconPath: 'assets/images/icons/Story%20Icon.png',
+        iconAlt: 'Story Viewer',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        iconSpanId: 'headerStoryViewerIcon',
+        headerOrder: 16
+    });
+
+    // Bootstrap handler: clicking Story Viewer launches story mode
+    const headerStoryBtn = document.getElementById('headerStoryViewerBtn');
+    if (headerStoryBtn) {
+        headerStoryBtn.addEventListener('click', function bootstrapStory(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (typeof window.runBiographyComponents === 'function') {
+                void window.runBiographyComponents(false);
+            }
+        }, true);
+    }
+
     // Filters button - styled as globe dock rail button, positioned on right
     createGlobeControlButton({
         id: 'filtersToggle',
@@ -214,7 +240,7 @@ function loadHeaderNavButtons() {
         headerOrder: 70
     });
 
-    // Wire up Home button click — unloads globe or glossary/codex, returns to clean state
+    // Wire up Home button click — unloads globe, glossary/codex, or story viewer, returns to clean state
     const homeButton = document.getElementById('homeBtn');
     if (homeButton) {
         homeButton.addEventListener('click', async function(e) {
@@ -222,6 +248,13 @@ function loadHeaderNavButtons() {
             e.preventDefault();
 
             const currentMode = (localStorage.getItem('currentMode') || 'menu').toLowerCase();
+
+            // Kill Story Viewer if active
+            if (currentMode === 'biography') {
+                if (typeof window.killBiographyComponents === 'function') {
+                    await window.killBiographyComponents();
+                }
+            }
 
             // Kill Glossary/Codex if active
             if (currentMode === 'glossary' || document.body.classList.contains('codex-mode-active')) {
