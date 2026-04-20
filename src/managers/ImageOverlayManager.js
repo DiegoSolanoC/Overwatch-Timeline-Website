@@ -33,8 +33,12 @@ export class ImageOverlayManager {
         
         if (!eventImageOverlay) return;
 
+        console.log('[DEBUG ImageOverlayManager] toggleEventImage called, SoundEffectsManager:', !!window.SoundEffectsManager);
         if (window.SoundEffectsManager) {
+            console.log('[DEBUG ImageOverlayManager] Playing switchMap sound');
             window.SoundEffectsManager.play('switchMap');
+        } else {
+            console.log('[DEBUG ImageOverlayManager] SoundEffectsManager NOT available!');
         }
 
         // Toggle the state

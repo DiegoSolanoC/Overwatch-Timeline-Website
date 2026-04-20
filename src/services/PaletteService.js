@@ -2,7 +2,7 @@
  * PaletteService - Handles palette loading, unloading, and toggle functionality
  */
 
-const MAP_TEXTURE_BLUE = 'assets/images/maps/MAP.png';
+const MAP_TEXTURE_BLUE = 'assets/images/maps/MAP Blue.png';
 const MAP_TEXTURE_GRAY = 'assets/images/maps/MAP Black.png';
 const MAP_TEXTURE_CRIMSON = 'assets/images/maps/MAP Crimson.png';
 const MAP_TEXTURE_NULLED = 'assets/images/maps/MAP Nulled.png';

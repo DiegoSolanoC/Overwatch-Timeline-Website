@@ -46,11 +46,15 @@ export function updateStandalonePaginationForFilters() {
     const events = window.eventManager?.events || [];
     const buttons = document.querySelectorAll('#eventNumberButtons .event-number-btn');
     
+    console.log('[DEBUG updateStandalonePagination] activeFilters:', Array.from(activeFilters), 'buttons found:', buttons.length);
+    
     if (!buttons.length) return;
     
     const eventsPerPage = 10; // Standard pagination
     const currentPage = window.eventManager?.getCurrentEventPage?.() || 1;
     const startIndex = (currentPage - 1) * eventsPerPage;
+    
+    console.log('[DEBUG updateStandalonePagination] currentPage:', currentPage, 'startIndex:', startIndex);
     
     buttons.forEach((btn, index) => {
         const eventIndex = startIndex + index;
@@ -64,6 +68,10 @@ export function updateStandalonePaginationForFilters() {
         
         // Check if this event should be locked based on filters
         const isLocked = activeFilters.size > 0 && shouldEventBeLocked(event, activeFilters);
+        
+        if (activeFilters.size > 0) {
+            console.log('[DEBUG updateStandalonePagination] Event', eventIndex, event.name || 'unnamed', 'isLocked:', isLocked, 'filters:', event.filters);
+        }
         
         if (isLocked) {
             btn.disabled = true;
@@ -115,45 +123,44 @@ function eventRootSlotMissingDescription(rootEvent) {
  */
 function updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage) {
     const ticksEl = document.getElementById('eventPageSliderTicks');
+    console.log('[DEBUG updateStandaloneSliderTicks] Called, ticksEl:', !!ticksEl, 'activeFilters:', Array.from(activeFilters || []));
     if (!ticksEl) return;
     
-    // Clear existing filter-hit classes
-    ticksEl.querySelectorAll('.event-page-slider-tick--filter-hit').forEach(tick => {
-        tick.classList.remove('event-page-slider-tick--filter-hit');
+    // Clear existing filter-hit classes from ticks and number labels
+    const existingHits = ticksEl.querySelectorAll('.event-page-slider-tick--filter-hit, .event-page-slider-num.filter-hit');
+    console.log('[DEBUG updateStandaloneSliderTicks] Clearing', existingHits.length, 'existing filter-hit classes');
+    existingHits.forEach(el => {
+        el.classList.remove('event-page-slider-tick--filter-hit', 'filter-hit');
     });
-    
-    if (!activeFilters || activeFilters.size === 0) return;
-    
-    // Get only sub-ticks (these represent event boundaries)
-    const subTicks = ticksEl.querySelectorAll('.event-page-slider-tick--sub');
-    if (!subTicks.length) return;
     
     const totalEvents = events.length;
     const totalPages = Math.ceil(totalEvents / eventsPerPage);
     
-    // Map each sub-tick to its corresponding event index
-    // Sub-ticks are created as: for each page, for k=1 to onPage-1
-    let subTickIndex = 0;
-    for (let p = 0; p < totalPages && subTickIndex < subTicks.length; p++) {
-        const onPage = Math.min(eventsPerPage, Math.max(0, totalEvents - p * eventsPerPage));
-        if (onPage <= 1) continue; // No sub-ticks for pages with 0-1 events
-        
-        for (let k = 1; k < onPage && subTickIndex < subTicks.length; k++) {
-            // This sub-tick represents the boundary between events (p*eventsPerPage + k-1) and (p*eventsPerPage + k)
-            const leftEventIndex = p * eventsPerPage + (k - 1);
-            const rightEventIndex = p * eventsPerPage + k;
-            
-            // Check if either event matches the filters (green if match on either side)
-            const leftPasses = leftEventIndex < totalEvents && !shouldEventBeLocked(events[leftEventIndex], activeFilters);
-            const rightPasses = rightEventIndex < totalEvents && !shouldEventBeLocked(events[rightEventIndex], activeFilters);
-            
-            if (leftPasses || rightPasses) {
-                subTicks[subTickIndex].classList.add('event-page-slider-tick--filter-hit');
-            }
-            
-            subTickIndex++;
+    // Color event number labels green based on filter matches
+    const numLabels = ticksEl.querySelectorAll('.event-page-slider-num');
+    console.log('[DEBUG updateStandaloneSliderTicks] Found', numLabels.length, 'number labels, totalEvents:', totalEvents);
+    numLabels.forEach(label => {
+        const eventIndex = parseInt(label.dataset.eventIndex, 10);
+        const event = eventIndex >= 0 && eventIndex < totalEvents ? events[eventIndex] : null;
+        if (event && !shouldEventBeLocked(event, activeFilters)) {
+            console.log('[DEBUG] Number label', label.dataset.pagePosition, 'for event', eventIndex, event.name, '-> green');
+            label.classList.add('filter-hit');
         }
-    }
+    });
+    
+    if (!activeFilters || activeFilters.size === 0) return;
+    
+    // Color event position ticks green based on filter matches
+    const eventTicks = ticksEl.querySelectorAll('.event-page-slider-tick--event');
+    console.log('[DEBUG updateStandaloneSliderTicks] Found', eventTicks.length, 'event ticks');
+    eventTicks.forEach(tick => {
+        const eventIndex = parseInt(tick.dataset.eventIndex, 10);
+        const event = eventIndex >= 0 && eventIndex < totalEvents ? events[eventIndex] : null;
+        if (event && !shouldEventBeLocked(event, activeFilters)) {
+            console.log('[DEBUG] Event tick', tick.dataset.pagePosition, 'for event', eventIndex, event.name, '-> green');
+            tick.classList.add('event-page-slider-tick--filter-hit');
+        }
+    });
 }
 
 /**
@@ -200,8 +207,9 @@ export function createMenuButton({ id, title, imagePath, label, description }) {
     externalLabel.className = 'main-menu-external-label';
     externalLabel.innerHTML = `<div class="main-menu-external-label__desc">${description}</div>`;
 
+    // Move label inside the button so it shares the same coordinate space
+    button.appendChild(externalLabel);
     wrapper.appendChild(button);
-    wrapper.appendChild(externalLabel);
 
     // Keep reference to button for event handlers
     wrapper.button = button;
@@ -328,7 +336,30 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         newBtn.addEventListener('click', () => {
                             const panel = document.getElementById('eventsManagePanel');
                             if (panel) {
+                                const isOpening = !panel.classList.contains('open');
                                 panel.classList.toggle('open');
+                                
+                                // Close other panels if opening (mutual exclusion)
+                                if (isOpening) {
+                                    // Close filters panel
+                                    const filtersPanel = document.getElementById('filtersPanel');
+                                    const filtersButton = document.getElementById('filtersToggle');
+                                    if (filtersPanel?.classList.contains('open')) {
+                                        filtersPanel.classList.remove('open');
+                                        filtersButton?.classList.remove('active');
+                                    }
+                                    // Close music panel
+                                    const musicPanel = document.getElementById('musicPanel');
+                                    const musicButton = document.getElementById('musicToggle');
+                                    if (musicPanel?.classList.contains('open')) {
+                                        musicPanel.classList.remove('open');
+                                        musicButton?.classList.remove('active');
+                                    }
+                                }
+                            }
+                            // Play event manager sound
+                            if (window.SoundEffectsManager?.play) {
+                                window.SoundEffectsManager.play('eventManager');
                             }
                         });
                     }
@@ -366,9 +397,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                     // Add standalone handler
                     newConfirmBtn.addEventListener('click', () => {
                         // Apply filters to standalone state
+                        console.log('[DEBUG Confirm] selectedFilters before:', window.FilterService?.stateManager?.selectedFilters ? Array.from(window.FilterService.stateManager.selectedFilters) : 'none');
                         if (window.FilterService?.stateManager?.selectedFilters) {
                             window.standaloneActiveFilters = new Set(window.FilterService.stateManager.selectedFilters);
                         }
+                        console.log('[DEBUG Confirm] standaloneActiveFilters after:', window.standaloneActiveFilters ? Array.from(window.standaloneActiveFilters) : 'none');
                         // Play sound
                         if (window.SoundEffectsManager) {
                             window.SoundEffectsManager.play('filterConfirm');
@@ -427,6 +460,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const events = window.eventManager?.events || [];
                             if (index < 0 || index >= events.length) return;
                             this.currentEventIndex = index;
+                            this.allEvents = events; // Fix: set allEvents so updateNavButtons works
                             
                             const eventData = events[index];
                             this.showStandaloneEventSlide(eventData, index);
@@ -635,9 +669,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             // Wire close button
                             if (eventSlideClose) {
                                 eventSlideClose.onclick = () => {
+                                    console.log('[DEBUG] Close button clicked');
                                     this.cancelEdit();
                                     eventSlide.classList.remove('open');
                                     this.hideImageOverlay();
+                                    console.log('[DEBUG] About to play sound, SoundEffectsManager:', !!window.SoundEffectsManager);
+                                    if (window.SoundEffectsManager?.play) {
+                                        console.log('[DEBUG] Playing eventClick sound');
+                                        window.SoundEffectsManager.play('eventClick');
+                                    } else {
+                                        console.log('[DEBUG] SoundEffectsManager.play not available');
+                                    }
                                 };
                             }
                             
@@ -760,6 +802,20 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 
                                 box.appendChild(img);
                                 tag.appendChild(box);
+                                
+                                // Check if this filter matches the active selection (green highlight)
+                                const activeFilters = window.standaloneActiveFilters || new Set();
+                                if (activeFilters.size > 0) {
+                                    let filterKey = type === 'heroes' ? `hero:${key}` 
+                                        : type === 'factions' ? `faction:${key}`
+                                        : type === 'npcs' ? `npc:${key}`
+                                        : `country:${key}`;
+                                    
+                                    // Also check without prefix for compatibility
+                                    if (activeFilters.has(filterKey) || activeFilters.has(key)) {
+                                        tag.classList.add('selected');
+                                    }
+                                }
                                 
                                 // Click handler to open Event Manager with search
                                 tag.addEventListener('click', (e) => {
@@ -1153,12 +1209,19 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         },
                         
                         hideEventSlide() {
+                            console.log('[DEBUG] hideEventSlide called');
                             const eventSlide = document.getElementById('eventSlide');
                             if (eventSlide) {
                                 eventSlide.classList.remove('open');
                                 this.hideImageOverlay();
                             }
                             this.cancelEdit();
+                            // Play close sound for event system
+                            console.log('[DEBUG] hideEventSlide: SoundEffectsManager available:', !!window.SoundEffectsManager?.play);
+                            if (window.SoundEffectsManager?.play) {
+                                console.log('[DEBUG] hideEventSlide: Playing eventClick');
+                                window.SoundEffectsManager.play('eventClick');
+                            }
                         },
                         
                         cancelEdit(editBtn, saveBtn) {
@@ -1289,16 +1352,26 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             
                             if (prevBtn) {
                                 prevBtn.onclick = () => {
-                                    if (this.currentEventIndex > 0) {
-                                        this.showEvent(this.currentEventIndex - 1);
+                                    // Loop around: if at first event, go to last
+                                    const newIndex = this.currentEventIndex > 0 
+                                        ? this.currentEventIndex - 1 
+                                        : this.allEvents.length - 1;
+                                    this.showEvent(newIndex);
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('switchEvent');
                                     }
                                 };
                             }
                             
                             if (nextBtn) {
                                 nextBtn.onclick = () => {
-                                    if (this.currentEventIndex < this.allEvents.length - 1) {
-                                        this.showEvent(this.currentEventIndex + 1);
+                                    // Loop around: if at last event, go to first
+                                    const newIndex = this.currentEventIndex < this.allEvents.length - 1 
+                                        ? this.currentEventIndex + 1 
+                                        : 0;
+                                    this.showEvent(newIndex);
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('switchEvent');
                                     }
                                 };
                             }
@@ -1306,7 +1379,14 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (allEventsBtn) {
                                 allEventsBtn.onclick = () => {
                                     const panel = document.getElementById('eventsManagePanel');
-                                    if (panel) panel.classList.add('open');
+                                    if (panel) {
+                                        const isOpening = !panel.classList.contains('open');
+                                        panel.classList.add('open');
+                                        // Play eventManager sound when opening
+                                        if (isOpening && window.SoundEffectsManager?.play) {
+                                            window.SoundEffectsManager.play('eventManager');
+                                        }
+                                    }
                                 };
                             }
                         },
@@ -1314,8 +1394,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         updateNavButtons() {
                             const prevBtn = document.getElementById('eventPrevBtn');
                             const nextBtn = document.getElementById('eventNextBtn');
-                            if (prevBtn) prevBtn.disabled = this.currentEventIndex <= 0;
-                            if (nextBtn) nextBtn.disabled = this.currentEventIndex >= this.allEvents.length - 1;
+                            // Buttons always enabled since navigation loops around
+                            if (prevBtn) prevBtn.disabled = false;
+                            if (nextBtn) nextBtn.disabled = false;
                         },
                         
                         setupStandalonePagination() {
@@ -1384,15 +1465,31 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     }
                                 }
                                 
-                                // Add sub-ticks for events within pages
+                                // Add event number labels (1-10) for each page position
                                 for (let p = 0; p < totalPages; p++) {
                                     const onPage = Math.min(eventsPerPage, Math.max(0, totalEvents - p * eventsPerPage));
-                                    if (onPage <= 1) continue;
-                                    for (let k = 1; k < onPage; k++) {
-                                        const sub = document.createElement('span');
-                                        sub.className = 'event-page-slider-tick event-page-slider-tick--sub';
-                                        sub.style.left = `${((p + k / onPage) / totalPages) * 100}%`;
-                                        ticksEl.appendChild(sub);
+                                    for (let e = 0; e < onPage; e++) {
+                                        const numLabel = document.createElement('span');
+                                        numLabel.className = 'event-page-slider-num';
+                                        numLabel.dataset.eventIndex = p * eventsPerPage + e;
+                                        numLabel.dataset.pagePosition = e + 1; // 1-10 position
+                                        numLabel.style.left = `${((p + (e + 0.5) / onPage) / totalPages) * 100}%`;
+                                        numLabel.textContent = String(e + 1);
+                                        ticksEl.appendChild(numLabel);
+                                    }
+                                }
+                                
+                                // Add event position ticks (one per event slot, centered)
+                                for (let p = 0; p < totalPages; p++) {
+                                    const onPage = Math.min(eventsPerPage, Math.max(0, totalEvents - p * eventsPerPage));
+                                    for (let e = 0; e < onPage; e++) {
+                                        const tick = document.createElement('span');
+                                        tick.className = 'event-page-slider-tick event-page-slider-tick--event';
+                                        tick.dataset.eventIndex = p * eventsPerPage + e;
+                                        tick.dataset.pagePosition = e + 1; // 1-10
+                                        // Centered on each event position
+                                        tick.style.left = `${((p + (e + 0.5) / onPage) / totalPages) * 100}%`;
+                                        ticksEl.appendChild(tick);
                                     }
                                 }
                                 
@@ -1515,6 +1612,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 generateSliderTicks(totalPages);
                                 updateEraStrip(totalPages);
                                 
+                                // Update filter-hit ticks for current filter state
+                                const activeFilters = window.standaloneActiveFilters || new Set();
+                                updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage);
+                                
                                 // Update buttons
                                 prevBtn.disabled = totalPages <= 1;
                                 nextBtn.disabled = totalPages <= 1;
@@ -1531,7 +1632,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             };
                             
                             // Handle page change
-                            const handlePageChange = (newPage) => {
+                            const handlePageChange = (newPage, options = {}) => {
                                 const totalPages = getTotalPages();
                                 const validPage = Math.max(1, Math.min(totalPages, newPage));
                                 const currentPage = getCurrentPage();
@@ -1543,8 +1644,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     setCurrentPage(validPage);
                                     updatePaginationUI();
                                     
-                                    if (window.SoundEffectsManager?.play) {
-                                        window.SoundEffectsManager.play('pageTurn');
+                                    // Skip sound during slider scrubbing - tick sounds play instead
+                                    if (!options.skipSound && window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('page');
                                     }
                                 } else {
                                     console.log(`MenuHelpers: Already on page ${validPage}, no change needed`);
@@ -1593,20 +1695,82 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 };
                             }
                             
-                            // Page slider
+                            // Page slider - Globe-style with tick sounds and live updates
                             if (pageSlider) {
-                                pageSlider.oninput = () => {
-                                    // Visual feedback while dragging
+                                const SLIDER_RESOLUTION = 10000;
+                                let lastPage = getCurrentPage();
+                                let sliderGesture = {
+                                    down: false,
+                                    dragLike: false,
+                                    inputEvents: 0,
+                                    tapPendingPageSound: false
                                 };
                                 
-                                pageSlider.onchange = () => {
-                                    const SLIDER_RESOLUTION = 10000;
+                                // Pointer events for gesture detection
+                                pageSlider.addEventListener('pointerdown', (e) => {
+                                    sliderGesture.down = true;
+                                    sliderGesture.dragLike = false;
+                                    sliderGesture.inputEvents = 0;
+                                    sliderGesture.tapPendingPageSound = false;
+                                    const startX = e.clientX;
+                                    const startY = e.clientY;
+                                    
+                                    const onMove = (ev) => {
+                                        if (!sliderGesture.down) return;
+                                        const dx = ev.clientX - startX;
+                                        const dy = ev.clientY - startY;
+                                        if (dx * dx + dy * dy > 100) {
+                                            sliderGesture.dragLike = true;
+                                            sliderGesture.tapPendingPageSound = false;
+                                        }
+                                    };
+                                    
+                                    const onUp = () => {
+                                        window.removeEventListener('pointermove', onMove);
+                                        window.removeEventListener('pointerup', onUp);
+                                        window.removeEventListener('pointercancel', onUp);
+                                        sliderGesture.down = false;
+                                        
+                                        // Play page sound on tap release
+                                        if (sliderGesture.tapPendingPageSound && window.SoundEffectsManager?.play) {
+                                            window.SoundEffectsManager.play('page');
+                                        }
+                                        sliderGesture.tapPendingPageSound = false;
+                                    };
+                                    
+                                    window.addEventListener('pointermove', onMove);
+                                    window.addEventListener('pointerup', onUp);
+                                    window.addEventListener('pointercancel', onUp);
+                                });
+                                
+                                // Input event for live page updates
+                                pageSlider.addEventListener('input', () => {
+                                    const tp = getTotalPages();
+                                    if (tp <= 1) return;
                                     const value = parseInt(pageSlider.value, 10);
                                     const progress = value / SLIDER_RESOLUTION;
-                                    const totalPages = getTotalPages();
-                                    const newPage = Math.min(totalPages, Math.max(1, Math.floor(progress * totalPages) + 1));
-                                    handlePageChange(newPage);
-                                };
+                                    const newPage = Math.min(tp, Math.max(1, Math.floor(progress * tp) + 1));
+                                    
+                                    if (newPage === lastPage) return;
+                                    lastPage = newPage;
+                                    
+                                    sliderGesture.inputEvents += 1;
+                                    
+                                    // Update page immediately (live scrubbing) - skip sound, tick sounds play instead
+                                    handlePageChange(newPage, { skipSound: true });
+                                    
+                                    // Detect drag vs tap
+                                    const isScrubDrag = sliderGesture.dragLike || sliderGesture.inputEvents >= 2;
+                                    if (isScrubDrag) {
+                                        sliderGesture.tapPendingPageSound = false;
+                                        // Play tick sound during scrubbing
+                                        if (window.PanelResizeGearTick?.play) {
+                                            window.PanelResizeGearTick.play();
+                                        }
+                                    } else {
+                                        sliderGesture.tapPendingPageSound = true;
+                                    }
+                                });
                             }
                             
                             // Store for external access
@@ -1624,6 +1788,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const eventsPerPage = 10; // Globe uses 10 events per page
                             const baseIndex = (pageNum - 1) * eventsPerPage;
                             
+                            // Get active filters for lock state check
+                            const activeFilters = window.standaloneActiveFilters || new Set();
+                            const filtersOn = activeFilters.size > 0;
+                            
+                            console.log('[DEBUG wireNumberButtons] pageNum:', pageNum, 'filtersOn:', filtersOn, 'activeFilters:', Array.from(activeFilters));
+                            
                             buttons.forEach((btn, index) => {
                                 // Remove old listeners by cloning
                                 const newBtn = btn.cloneNode(true);
@@ -1636,12 +1806,21 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     newBtn.disabled = true;
                                     newBtn.style.opacity = '0.3';
                                     newBtn.style.display = 'none';
+                                    newBtn.classList.remove('locked');
                                     return;
                                 }
                                 
-                                newBtn.disabled = false;
-                                newBtn.style.opacity = '1';
+                                // Check if this event should be locked based on filters
+                                const isLocked = filtersOn && shouldEventBeLocked(event, activeFilters);
+                                
+                                if (filtersOn) {
+                                    console.log('[DEBUG] Event', globalEventIndex, event.name || 'unnamed', 'isLocked:', isLocked, 'filters:', event.filters, 'npcs:', event.npcs, 'factions:', event.factions);
+                                }
+                                
+                                newBtn.disabled = isLocked;
+                                newBtn.style.opacity = isLocked ? '0.5' : '1';
                                 newBtn.style.display = '';
+                                newBtn.classList.toggle('locked', isLocked);
                                 
                                 // Update button number
                                 const numEl = newBtn.querySelector('.event-number-btn__num');
@@ -1714,7 +1893,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     }
                                     
                                     if (window.SoundEffectsManager?.play) {
-                                        window.SoundEffectsManager.play('filterConfirm');
+                                        window.SoundEffectsManager.play('eventClick');
                                     }
                                 };
                                 
@@ -1917,6 +2096,25 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             // Start fresh wave
                             const waveToken = Date.now().toString();
                             
+                            // Get active filters for lock state check
+                            const activeFilters = window.standaloneActiveFilters || new Set();
+                            const filtersOn = activeFilters.size > 0;
+                            
+                            // Helper to set up click handler
+                            const setupClickHandler = (button, eventIndex) => {
+                                if (!window.standaloneEventSlide) {
+                                    console.error('[DEBUG] Cannot setup click handler - standaloneEventSlide not available!');
+                                    return;
+                                }
+                                button.onclick = (e) => {
+                                    e.stopPropagation();
+                                    if (e.target.closest('.event-number-btn__variant-badge')) return;
+                                    console.log('[DEBUG Click] Opening event', eventIndex);
+                                    window.standaloneEventSlide.showEvent(eventIndex);
+                                    window.SoundEffectsManager?.play?.('eventClick');
+                                };
+                            };
+                            
                             buttons.forEach((btn, i) => {
                                 if (btn.style.display === 'none') return;
                                 
@@ -1924,15 +2122,33 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 const event = pageEvents[i];
                                 const globalEventIndex = (pageNum - 1) * 10 + i;
                                 
+                                // IMMEDIATELY set up click handler with CORRECT index
+                                // (will be refreshed again in updateSingleButtonContent, but this ensures it's right from start)
+                                setupClickHandler(btn, globalEventIndex);
+                                
+                                // Calculate CORRECT lock state for this event (not from old button state)
+                                const isLocked = filtersOn && event && shouldEventBeLocked(event, activeFilters);
+                                
                                 btn.dataset.pageTurnToken = waveToken;
-                                const locked = btn.dataset.locked === 'true';
+                                btn.dataset.locked = isLocked ? 'true' : 'false';
+                                
+                                // Set initial disabled state for animation (will be updated in updateSingleButtonContent)
+                                if (isLocked) {
+                                    btn.disabled = true;
+                                    btn.setAttribute('disabled', '');
+                                    btn.style.pointerEvents = 'none';
+                                } else {
+                                    btn.disabled = false;
+                                    btn.removeAttribute('disabled');
+                                    btn.style.pointerEvents = 'auto';
+                                }
                                 
                                 // Staggered start for each button
                                 const delay = i * STAGGER_MS;
                                 
-                                // Step 1: Shrink out (old content)
+                                // Step 1: Shrink out with CORRECT lock state
                                 const shrinkAnim = btn.animate(
-                                    thumbPageTurnShrinkKeyframes(isThumbsDesktop, locked),
+                                    thumbPageTurnShrinkKeyframes(isThumbsDesktop, isLocked),
                                     {
                                         duration: SHRINK_MS,
                                         easing: 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
@@ -1948,9 +2164,15 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     // Update THIS button's content while it's invisible (between shrink and grow)
                                     this.updateSingleButtonContent(btn, event, globalEventIndex, allEvents);
                                     
-                                    // Step 2: Grow in (new content)
+                                    // RECALCULATE lock state AFTER content update (button now has new dataset.locked)
+                                    const newLocked = btn.dataset.locked === 'true';
+                                    
+                                    // ENSURE click handler is set with correct index (redundancy for safety)
+                                    setupClickHandler(btn, globalEventIndex);
+                                    
+                                    // Step 2: Grow in (new content) with CORRECT lock state
                                     const growAnim = btn.animate(
-                                        thumbPageTurnGrowKeyframes(isThumbsDesktop, locked),
+                                        thumbPageTurnGrowKeyframes(isThumbsDesktop, newLocked),
                                         {
                                             duration: GROW_MS,
                                             easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
@@ -1960,6 +2182,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     
                                     growAnim.onfinish = () => {
                                         delete btn.dataset.pageTurnToken;
+                                        // Final safety: ensure click handler is still set correctly
+                                        if (!btn.onclick || btn.dataset.eventIndex !== String(globalEventIndex)) {
+                                            console.log('[DEBUG] Re-setting click handler in growAnim.onfinish for event', globalEventIndex);
+                                            setupClickHandler(btn, globalEventIndex);
+                                        }
                                     };
                                 };
                             });
@@ -1974,6 +2201,30 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             btn.style.display = '';
                             btn.dataset.position = String(globalEventIndex % 10);
                             btn.dataset.eventIndex = globalEventIndex;
+                            
+                            // Check filter lock state (like wireNumberButtons does)
+                            const activeFilters = window.standaloneActiveFilters || new Set();
+                            const filtersOn = activeFilters.size > 0;
+                            const isLocked = filtersOn && shouldEventBeLocked(event, activeFilters);
+                            
+                            // Explicitly handle disabled state (property AND attribute)
+                            if (isLocked) {
+                                btn.disabled = true;
+                                btn.setAttribute('disabled', '');
+                                btn.style.pointerEvents = 'none';
+                            } else {
+                                btn.disabled = false;
+                                btn.removeAttribute('disabled');
+                                btn.style.pointerEvents = 'auto';
+                            }
+                            btn.style.opacity = isLocked ? '0.5' : '';
+                            btn.classList.toggle('locked', isLocked);
+                            btn.dataset.locked = isLocked ? 'true' : 'false';
+                            
+                            // Debug logging
+                            if (filtersOn) {
+                                console.log('[DEBUG updateSingleButtonContent] Event', globalEventIndex, 'isLocked:', isLocked, 'disabled:', btn.disabled);
+                            }
                             
                             const numEl = btn.querySelector('.event-number-btn__num');
                             const nameEl = btn.querySelector('.event-number-btn__name');
@@ -2029,10 +2280,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             // Click handler
                             btn.onclick = (e) => {
                                 e.stopPropagation();
-                                if (e.target.closest('.event-number-btn__variant-badge')) return;
+                                console.log('[DEBUG Click updateSingleButtonContent] Clicked, globalEventIndex:', globalEventIndex, 'event name:', event.name);
+                                if (e.target.closest('.event-number-btn__variant-badge')) {
+                                    console.log('[DEBUG Click] Variant badge clicked, ignoring');
+                                    return;
+                                }
                                 if (window.standaloneEventSlide) {
+                                    console.log('[DEBUG Click] Opening event via standaloneEventSlide');
                                     window.standaloneEventSlide.showEvent(globalEventIndex);
-                                    window.SoundEffectsManager?.play?.('filterConfirm');
+                                    window.SoundEffectsManager?.play?.('eventClick');
+                                } else {
+                                    console.log('[DEBUG Click] standaloneEventSlide not available!');
                                 }
                             };
                             
@@ -2047,6 +2305,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     const nextVariant = (currentVariant + 1) % targetEvent.variants.length;
                                     variantBadge.dataset.currentVariant = nextVariant;
                                     variantBadge.textContent = `${nextVariant + 1}/${targetEvent.variants.length}`;
+                                    
+                                    // Play switch event sound (same as event manager)
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('switchEvent');
+                                    }
                                     
                                     const variantDisplayEvent = targetEvent.variants[nextVariant];
                                     if (variantDisplayEvent && imgEl) {
@@ -2167,7 +2430,14 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         
                         toggleImageOverlay(imagePath) {
                             const overlay = document.getElementById('eventImageOverlay');
+                            console.log('[DEBUG MenuHelpers] toggleImageOverlay called, overlay:', !!overlay, 'SoundEffectsManager:', !!window.SoundEffectsManager);
                             if (!overlay) return;
+                            
+                            // Play sound effect
+                            if (window.SoundEffectsManager) {
+                                console.log('[DEBUG MenuHelpers] Playing switchMap sound');
+                                window.SoundEffectsManager.play('switchMap');
+                            }
                             
                             if (overlay.classList.contains('open')) {
                                 this.hideImageOverlay();
@@ -2179,7 +2449,6 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         showImageOverlay(imagePath) {
                             const overlay = document.getElementById('eventImageOverlay');
                             const img = document.getElementById('eventImage');
-                            const eventSlide = document.getElementById('eventSlide');
                             
                             if (overlay && img && imagePath) {
                                 img.src = imagePath;
@@ -2188,11 +2457,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 overlay.style.display = 'flex';
                                 overlay.style.opacity = '1';
                                 overlay.classList.add('open');
-                                
-                                // Add slide-open class for positioning
-                                if (eventSlide && eventSlide.classList.contains('open')) {
-                                    overlay.classList.add('slide-open');
-                                }
+                                // No slide-open class - matches Globe behavior (no slide animation)
                             }
                         },
                         
@@ -2228,6 +2493,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                     window.eventManager.openEventFromList = function(event, index) {
                         if (window.standaloneEventSlide) {
                             window.standaloneEventSlide.showEvent(index);
+                            if (window.SoundEffectsManager?.play) {
+                                window.SoundEffectsManager.play('eventClick');
+                            }
                         }
                     };
                     

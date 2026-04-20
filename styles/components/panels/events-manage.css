@@ -470,16 +470,14 @@ body.color-palette-gray .events-manage-title {
 .events-search-field {
     position: relative;
     display: inline-block;
+    z-index: 100; /* Establish stacking context for suggestions dropdown */
 }
 
 .events-search-suggestions {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    max-height: 180px;
+    position: fixed; /* Use fixed to escape overflow clipping from parent containers */
+    max-height: 220px;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: 99999; /* Very high z-index to ensure it appears on top of everything */
     background: var(--bg-secondary);
     background: color-mix(in srgb, var(--bg-secondary) 94%, #000 6%);
     border: 1px solid rgba(var(--accent-primary-rgb), 0.35);

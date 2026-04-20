@@ -78,7 +78,7 @@ export class GlobeView {
         const paletteKey = isGray ? 'gray' : (isCrimson ? 'crimson' : (isNulled ? 'nulled' : 'blue'));
         const initialTexturePath = isGray
             ? 'assets/images/maps/MAP Black.png'
-            : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : (isNulled ? 'assets/images/maps/MAP Nulled.png' : 'assets/images/maps/MAP.png'));
+            : (isCrimson ? 'assets/images/maps/MAP Crimson.png' : (isNulled ? 'assets/images/maps/MAP Nulled.png' : 'assets/images/maps/MAP Blue.png'));
         console.log('Initializing globe with palette:', savedPalette || 'blue (default)', 'Texture:', initialTexturePath);
         if (this.sceneModel.setEarthMapTextureUrl) {
             this.sceneModel.setEarthMapTextureUrl(initialTexturePath);
@@ -216,7 +216,7 @@ export class GlobeView {
 
         // Preload other Earth map textures for quick palette switching
         const allMapTextures = [
-            'assets/images/maps/MAP.png',
+            'assets/images/maps/MAP Blue.png',
             'assets/images/maps/MAP Black.png',
             'assets/images/maps/MAP Crimson.png',
             'assets/images/maps/MAP Nulled.png'

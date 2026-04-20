@@ -387,14 +387,12 @@ async function loadToggles() {
             baseClass: 'globe-control-btn',
             iconSpanId: 'mapViewToggleIcon',
             headerOrder: 10,
-            mobileParentId: 'dockGlobeRailRight',
-            mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'dock-globe-rail__btn'
         });
 
         createGlobeControlButton({
             id: 'hyperloopToggle',
-            className: 'active hyperloop-btn dock-globe-rail__btn',
+            className: 'hyperloop-btn dock-globe-rail__btn',
             title: 'Toggle hyperloop',
             label: 'Vehicles',
             iconPath: 'assets/images/icons/Train Icon.png',
@@ -410,7 +408,7 @@ async function loadToggles() {
 
         createGlobeControlButton({
             id: 'weatherEffectsToggle',
-            className: 'active weather-effects-btn dock-globe-rail__btn',
+            className: 'weather-effects-btn dock-globe-rail__btn',
             title: 'Toggle weather',
             label: 'Weather',
             iconPath: 'assets/images/icons/Weather Icon.png',
@@ -426,7 +424,7 @@ async function loadToggles() {
 
         createGlobeControlButton({
             id: 'lightingToggle',
-            className: 'active lighting-btn dock-globe-rail__btn',
+            className: 'lighting-btn dock-globe-rail__btn',
             title: 'Toggle Lighting',
             label: 'Lighting',
             iconPath: 'assets/images/icons/Lighting Icon.png',

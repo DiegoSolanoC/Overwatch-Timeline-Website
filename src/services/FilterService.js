@@ -147,13 +147,62 @@ class FilterService {
             (typeof window !== 'undefined' ? window.globeController : null);
         return globeController?.sceneModel || null;
     }
+
+    /**
+     * Detect if running in standalone mode (Event System Load Out without globe)
+     * Standalone mode is active when standaloneActiveFilters exists and globe is not present
+     */
+    isStandaloneMode() {
+        return typeof window !== 'undefined' && 
+               window.standaloneActiveFilters instanceof Set &&
+               !window.globeController?.globeView;
+    }
+
+    /**
+     * Apply filters to standalone mode (Event System Load Out)
+     * Updates standaloneActiveFilters and refreshes pagination UI
+     */
+    applyFiltersToStandalone() {
+        // Copy selected filters to standalone state
+        if (window.standaloneActiveFilters) {
+            window.standaloneActiveFilters = new Set(this.stateManager.selectedFilters);
+        }
+        
+        // Update pagination thumbnails if the function is available
+        if (typeof window.updateStandalonePaginationForFilters === 'function') {
+            window.updateStandalonePaginationForFilters();
+        }
+        
+        // Also trigger full pagination UI update (wireNumberButtons with fresh clones)
+        // This ensures thumbnails properly reflect filter state after cloning
+        if (window.standaloneEventSlide?.updatePaginationUI) {
+            window.standaloneEventSlide.updatePaginationUI();
+        }
+        
+        // Also sync to globe if it's loaded later (hybrid mode)
+        const sceneModel = this.getSceneModel();
+        if (sceneModel) {
+            this.stateManager.applyToScene(sceneModel);
+            if (window.globeController?.globeView?.applyFilters) {
+                window.globeController.globeView.applyFilters();
+            }
+        }
+    }
     
     /**
      * Reset selectedFilters to confirmed state and update button states
+     * Supports both globe mode (sceneModel.activeFilters) and standalone mode (standaloneActiveFilters)
      */
     resetToConfirmedFilters() {
         const sceneModel = this.getSceneModel();
-        this.stateManager.resetToConfirmed(sceneModel);
+        
+        // In standalone mode, use standaloneActiveFilters as the "confirmed" state
+        if (this.isStandaloneMode() && window.standaloneActiveFilters) {
+            this.stateManager.selectedFilters = new Set(window.standaloneActiveFilters);
+        } else {
+            this.stateManager.resetToConfirmed(sceneModel);
+        }
+        
         this.updateButtonStates();
         this.updateFilterCounts();
     }
@@ -515,9 +564,24 @@ class FilterService {
     }
     
     /**
-     * Setup all button handlers - delegates to helper
+     * Setup all button handlers - delegates to helper or uses built-in fallback
+     * Re-queries DOM elements to avoid race conditions with standalone mode overrides
+     * In standalone mode, always uses built-in fallback for full mode support
      */
     async setupButtons() {
+        // Re-query DOM elements to avoid race conditions (standalone mode may have replaced buttons)
+        const filtersButton = document.getElementById('filtersToggle') || this.filtersButton;
+        const filtersPanelClose = document.getElementById('filtersPanelClose') || this.filtersPanelClose;
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn') || this.clearFiltersBtn;
+        const confirmFiltersBtn = document.getElementById('confirmFiltersBtn') || this.confirmFiltersBtn;
+        
+        // In standalone mode, use built-in fallback for full dual-mode support
+        // The helper is globe-centric and doesn't support standalone mode
+        if (this.isStandaloneMode()) {
+            this._setupButtonHandlersFallback(filtersButton, filtersPanelClose, clearFiltersBtn, confirmFiltersBtn);
+            return;
+        }
+        
         let helper = window.FilterButtonSetupHelpers?.setupButtons;
         
         // If helper not available, try to load it dynamically
@@ -534,8 +598,9 @@ class FilterService {
         }
         
         if (helper) {
+            // Use the helper for globe mode (globe-centric handlers)
             helper(
-                this.filtersButton, this.filtersPanelClose, this.clearFiltersBtn, this.confirmFiltersBtn,
+                filtersButton, filtersPanelClose, clearFiltersBtn, confirmFiltersBtn,
                 this.soundManager, () => this.togglePanel(),
                 () => this.resetToConfirmedFilters(), () => this.closePanel(),
                 this.stateManager, () => this.updateButtonStates(),
@@ -544,39 +609,88 @@ class FilterService {
                 (items, type, folder) => this.createFilterButtons(items, type, folder)
             );
         } else {
-            // Fallback - basic button setup
-            if (this.filtersButton) {
-                this.filtersButton.addEventListener('click', () => this.togglePanel());
-            }
-            if (this.filtersPanelClose) {
-                this.filtersPanelClose.addEventListener('click', () => {
-                    this.resetToConfirmedFilters();
-                    this.closePanel();
-                });
-            }
-            if (this.clearFiltersBtn) {
-                this.clearFiltersBtn.addEventListener('click', () => {
-                    this.stateManager.clear();
-                    this.updateButtonStates();
+            // Built-in fallback with full standalone + globe support
+            this._setupButtonHandlersFallback(filtersButton, filtersPanelClose, clearFiltersBtn, confirmFiltersBtn);
+        }
+    }
+
+    /**
+     * Built-in button handler setup with support for both standalone and globe modes
+     * This ensures parity between Event System Load Out and Globe modes
+     */
+    _setupButtonHandlersFallback(filtersButton, filtersPanelClose, clearFiltersBtn, confirmFiltersBtn) {
+        // Toggle button - open/close panel
+        if (filtersButton) {
+            filtersButton.addEventListener('click', () => {
+                const isOpening = !this.filtersPanel?.classList.contains('open');
+                this.togglePanel();
+                if (isOpening && this.soundManager) {
+                    this.soundManager.play('filterButton');
+                }
+            });
+        }
+        
+        // Close button - reset to confirmed and close
+        if (filtersPanelClose) {
+            filtersPanelClose.addEventListener('click', () => {
+                this.resetToConfirmedFilters();
+                this.closePanel();
+                if (this.soundManager) this.soundManager.play('filterButton');
+            });
+        }
+        
+        // Clear button - clear all filters and apply immediately
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', () => {
+                this.stateManager.clear();
+                this.updateButtonStates();
+                if (this.soundManager) this.soundManager.play('filterClear');
+                
+                // Apply to current mode (standalone or globe)
+                if (this.isStandaloneMode()) {
+                    // Clear standalone filters and refresh UI
+                    if (window.standaloneActiveFilters) {
+                        window.standaloneActiveFilters.clear();
+                    }
+                    // Refresh pagination to show all unlocked
+                    if (typeof window.updateStandalonePaginationForFilters === 'function') {
+                        window.updateStandalonePaginationForFilters();
+                    }
+                    if (window.standaloneEventSlide?.updatePaginationUI) {
+                        window.standaloneEventSlide.updatePaginationUI();
+                    }
+                } else {
                     const sceneModel = this.getSceneModel();
                     const globeController = typeof window !== 'undefined' ? window.globeController : null;
                     if (sceneModel && globeController?.globeView) {
                         sceneModel.activeFilters.clear();
-                        globeController.globeView.applyFilters(); /* runs unlockAllEvents + updateNumberButtons */
+                        globeController.globeView.applyFilters();
                     }
-                });
-            }
-            if (this.confirmFiltersBtn) {
-                this.confirmFiltersBtn.addEventListener('click', () => {
+                }
+            });
+        }
+        
+        // Confirm button - apply filters and close (THE KEY BUTTON FOR FILTER FUNCTIONALITY)
+        if (confirmFiltersBtn) {
+            confirmFiltersBtn.addEventListener('click', () => {
+                if (this.soundManager) this.soundManager.play('filterConfirm');
+                
+                // Apply filters based on current mode
+                if (this.isStandaloneMode()) {
+                    // Standalone/Event System Load Out mode
+                    this.applyFiltersToStandalone();
+                } else {
+                    // Globe mode
                     const sceneModel = this.getSceneModel();
                     const globeController = typeof window !== 'undefined' ? window.globeController : null;
                     if (sceneModel && globeController?.globeView) {
                         this.stateManager.applyToScene(sceneModel);
                         globeController.globeView.applyFilters();
                     }
-                    this.closePanel();
-                });
-            }
+                }
+                
+                this.closePanel();
+            });
         }
     }
 }

@@ -85,6 +85,8 @@
         if (gc && gc.dataModel) return gc.dataModel;
         var br = window.__codexEventSlideBridge;
         if (br && br.dataModel) return br.dataModel;
+        // Support standalone event system
+        if (window.eventManager?.events) return window.eventManager;
         return null;
     }
 
@@ -93,6 +95,8 @@
         if (gc && gc.uiView) return gc.uiView;
         var br = window.__codexEventSlideBridge;
         if (br && br.uiView) return br.uiView;
+        // Support standalone event system
+        if (window.standaloneEventSlide) return window.standaloneEventSlide;
         return null;
     }
 
@@ -304,22 +308,30 @@
     }
 
     function hideEventSlideIfOpen() {
+        var slide = document.getElementById('eventSlide');
+        var overlay = document.getElementById('eventImageOverlay');
+        
+        // Check if slide is actually open before trying to close
+        var slideOpen = slide && slide.classList.contains('open');
+        var overlayOpen = overlay && overlay.classList.contains('open');
+        
+        if (!slideOpen && !overlayOpen) return false;
+        
         try {
             var uiHide = codexOrGlobeUiView();
-            if (uiHide && typeof uiHide.hideEventSlide === 'function') {
+            if (uiHide && typeof uiHide.hideEventSlide === 'function' && slideOpen) {
                 clearHackedOverlays();
                 uiHide.hideEventSlide();
                 return true;
             }
         } catch (_) {}
-        var slide = document.getElementById('eventSlide');
-        var overlay = document.getElementById('eventImageOverlay');
-        if (slide && slide.classList.contains('open')) {
+        
+        if (slideOpen) {
             slide.classList.remove('open');
             if (overlay) overlay.classList.remove('slide-open', 'open', 'fade-in', 'fade-out');
             return true;
         }
-        if (overlay && overlay.classList.contains('open')) {
+        if (overlayOpen) {
             overlay.classList.remove('slide-open', 'open', 'fade-in', 'fade-out');
             return true;
         }
@@ -328,18 +340,25 @@
 
     /** @returns {boolean} whether something was closed */
     function closeTopOverlay() {
+        console.log('[DEBUG Keyboard] closeTopOverlay called');
+        
         var ext = document.getElementById('externalLinkConfirmOverlay');
         if (ext && ext.classList.contains('is-open')) {
+            console.log('[DEBUG Keyboard] Closing external link confirm');
             var cancel = document.getElementById('externalLinkConfirmCancel');
             if (cancel) cancel.click();
             else ext.classList.remove('is-open');
             return true;
         }
 
-        if (hideEventSlideIfOpen()) return true;
+        if (hideEventSlideIfOpen()) {
+            console.log('[DEBUG Keyboard] Closed event slide');
+            return true;
+        }
 
         var palette = document.getElementById('paletteMenu');
         if (palette && palette.classList.contains('open')) {
+            console.log('[DEBUG Keyboard] Closing palette');
             if (typeof window._closePaletteMenu === 'function') {
                 window._closePaletteMenu();
             } else {
@@ -351,7 +370,9 @@
         }
 
         var filters = document.getElementById('filtersPanel');
+        console.log('[DEBUG Keyboard] filtersPanel:', !!filters, 'open:', filters?.classList.contains('open'));
         if (filters && filters.classList.contains('open')) {
+            console.log('[DEBUG Keyboard] Closing filters panel');
             var fc = document.getElementById('filtersPanelClose');
             if (fc) fc.click();
             else filters.classList.remove('open');
@@ -359,7 +380,9 @@
         }
 
         var music = document.getElementById('musicPanel');
+        console.log('[DEBUG Keyboard] musicPanel:', !!music, 'open:', music?.classList.contains('open'));
         if (music && music.classList.contains('open')) {
+            console.log('[DEBUG Keyboard] Closing music panel');
             var mc = document.getElementById('musicPanelClose');
             if (mc) mc.click();
             else music.classList.remove('open');
@@ -367,7 +390,9 @@
         }
 
         var manage = document.getElementById('eventsManagePanel');
+        console.log('[DEBUG Keyboard] eventsManagePanel:', !!manage, 'open:', manage?.classList.contains('open'));
         if (manage && manage.classList.contains('open')) {
+            console.log('[DEBUG Keyboard] Closing events manage panel');
             var mClose = document.getElementById('eventsManageClose');
             if (mClose) mClose.click();
             else manage.classList.remove('open');
@@ -376,6 +401,7 @@
 
         var sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('visible')) {
+            console.log('[DEBUG Keyboard] Closing sidebar');
             sidebar.classList.remove('visible');
             try {
                 localStorage.setItem('sidebarOpen', 'false');
@@ -383,6 +409,7 @@
             return true;
         }
 
+        console.log('[DEBUG Keyboard] Nothing to close');
         return false;
     }
 
@@ -404,7 +431,9 @@
         var lower = typeof key === 'string' ? key.toLowerCase() : '';
 
         if (key === 'Escape' || lower === 'q') {
+            console.log('[DEBUG Keyboard] Escape/Q pressed, target:', target?.id || target?.tagName);
             if (isTypingContext(target)) {
+                console.log('[DEBUG Keyboard] In typing context');
                 if (key !== 'Escape' || !escapeOkWhileTypingInTarget(target)) return;
             }
             if (closeAllOverlayLayers()) consumeEvent(e);
@@ -576,8 +605,61 @@
         e.stopPropagation();
     }
 
+    /**
+     * Double-click outside panels to close them
+     * Closes music, filters, and event manager panels when double-clicking on background
+     */
+    function onDoubleClick(e) {
+        var t = e.target;
+        if (!t || !t.closest) return;
+
+        // Check if click is inside any of the panels
+        var inFilters = t.closest('#filtersPanel');
+        var inMusic = t.closest('#musicPanel');
+        var inEventsManage = t.closest('#eventsManagePanel');
+        var inEventSlide = t.closest('#eventSlide');
+        var inPalette = t.closest('#paletteMenu');
+
+        // If clicked inside any panel, don't close
+        if (inFilters || inMusic || inEventsManage || inEventSlide || inPalette) return;
+
+        // Check if any panel is open and close it
+        var filters = document.getElementById('filtersPanel');
+        var music = document.getElementById('musicPanel');
+        var manage = document.getElementById('eventsManagePanel');
+
+        var closed = false;
+
+        if (filters && filters.classList.contains('open')) {
+            var fc = document.getElementById('filtersPanelClose');
+            if (fc) fc.click();
+            else filters.classList.remove('open');
+            closed = true;
+        }
+
+        if (music && music.classList.contains('open')) {
+            var mc = document.getElementById('musicPanelClose');
+            if (mc) mc.click();
+            else music.classList.remove('open');
+            closed = true;
+        }
+
+        if (manage && manage.classList.contains('open')) {
+            var mClose = document.getElementById('eventsManageClose');
+            if (mClose) mClose.click();
+            else manage.classList.remove('open');
+            closed = true;
+        }
+
+        if (closed) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
     document.addEventListener('keydown', onKeyDown, true);
     document.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    document.addEventListener('dblclick', onDoubleClick, true);
 
     /** Full stack dismiss (Escape/Q): modals, event slide, palette, filters, music, event manager, sidebar */
     window.closeAllDismissiblePanels = closeAllOverlayLayers;

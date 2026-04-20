@@ -1663,8 +1663,8 @@ export class EventSlideManager {
         if (window.GlitchTextService) {
             window.GlitchTextService.stopAnimation();
         }
-        // Only play event click sound if an event was actually open
-        if (this.currentEventMarker && window.SoundEffectsManager) {
+        // Play event click sound when closing panel (for both globe markers and event system)
+        if (window.SoundEffectsManager) {
             window.SoundEffectsManager.play('eventClick');
         }
 

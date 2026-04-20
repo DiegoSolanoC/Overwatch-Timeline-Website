@@ -336,7 +336,30 @@ export function createMenuButtonsContainer(statusService) {
                         newBtn.addEventListener('click', () => {
                             const panel = document.getElementById('eventsManagePanel');
                             if (panel) {
+                                const isOpening = !panel.classList.contains('open');
                                 panel.classList.toggle('open');
+                                
+                                // Close other panels if opening (mutual exclusion)
+                                if (isOpening) {
+                                    // Close filters panel
+                                    const filtersPanel = document.getElementById('filtersPanel');
+                                    const filtersButton = document.getElementById('filtersToggle');
+                                    if (filtersPanel?.classList.contains('open')) {
+                                        filtersPanel.classList.remove('open');
+                                        filtersButton?.classList.remove('active');
+                                    }
+                                    // Close music panel
+                                    const musicPanel = document.getElementById('musicPanel');
+                                    const musicButton = document.getElementById('musicToggle');
+                                    if (musicPanel?.classList.contains('open')) {
+                                        musicPanel.classList.remove('open');
+                                        musicButton?.classList.remove('active');
+                                    }
+                                }
+                            }
+                            // Play event manager sound
+                            if (window.SoundEffectsManager?.play) {
+                                window.SoundEffectsManager.play('eventManager');
                             }
                         });
                     }
@@ -364,6 +387,13 @@ export function createMenuButtonsContainer(statusService) {
                 // Setup standalone filter state (decoupled from globe sceneModel)
                 if (!window.standaloneActiveFilters) {
                     window.standaloneActiveFilters = new Set();
+                }
+
+                // Initialize SoundEffectsManager and preload event-related sounds
+                if (window.SoundEffectsManager && typeof window.SoundEffectsManager.init === 'function') {
+                    if (statusService) statusService.update('Loading sound effects...', 'info');
+                    window.SoundEffectsManager.init();
+                    if (statusService) statusService.update('✓ Sound effects loaded', 'success');
                 }
 
                 // Override FilterService confirm handler for standalone mode
@@ -608,6 +638,9 @@ export function createMenuButtonsContainer(statusService) {
                                     this.cancelEdit();
                                     eventSlide.classList.remove('open');
                                     this.hideImageOverlay();
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('eventClick');
+                                    }
                                 };
                             }
                             
@@ -994,6 +1027,20 @@ export function createMenuButtonsContainer(statusService) {
                                 box.appendChild(img);
                                 tag.appendChild(box);
                                 
+                                // Check if this filter matches the active selection (green highlight)
+                                const activeFilters = window.standaloneActiveFilters || new Set();
+                                if (activeFilters.size > 0) {
+                                    let filterKey = type === 'heroes' ? `hero:${key}` 
+                                        : type === 'factions' ? `faction:${key}`
+                                        : type === 'npcs' ? `npc:${key}`
+                                        : `country:${key}`;
+                                    
+                                    // Also check without prefix for compatibility
+                                    if (activeFilters.has(filterKey) || activeFilters.has(key)) {
+                                        tag.classList.add('selected');
+                                    }
+                                }
+                                
                                 // Click handler to open Event Manager with search
                                 tag.addEventListener('click', (e) => {
                                     e.preventDefault();
@@ -1137,18 +1184,39 @@ export function createMenuButtonsContainer(statusService) {
                             
                             if (prevBtn) {
                                 prevBtn.onclick = () => {
-                                    if (this.currentEventIndex > 0) this.showEvent(this.currentEventIndex - 1);
+                                    // Loop around: if at first event, go to last
+                                    const newIndex = this.currentEventIndex > 0 
+                                        ? this.currentEventIndex - 1 
+                                        : this.allEvents.length - 1;
+                                    this.showEvent(newIndex);
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('switchEvent');
+                                    }
                                 };
                             }
                             if (nextBtn) {
                                 nextBtn.onclick = () => {
-                                    if (this.currentEventIndex < this.allEvents.length - 1) this.showEvent(this.currentEventIndex + 1);
+                                    // Loop around: if at last event, go to first
+                                    const newIndex = this.currentEventIndex < this.allEvents.length - 1 
+                                        ? this.currentEventIndex + 1 
+                                        : 0;
+                                    this.showEvent(newIndex);
+                                    if (window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('switchEvent');
+                                    }
                                 };
                             }
                             if (allEventsBtn) {
                                 allEventsBtn.onclick = () => {
                                     const panel = document.getElementById('eventsManagePanel');
-                                    if (panel) panel.classList.add('open');
+                                    if (panel) {
+                                        const isOpening = !panel.classList.contains('open');
+                                        panel.classList.add('open');
+                                        // Play eventManager sound when opening
+                                        if (isOpening && window.SoundEffectsManager?.play) {
+                                            window.SoundEffectsManager.play('eventManager');
+                                        }
+                                    }
                                 };
                             }
                         },
@@ -1156,16 +1224,27 @@ export function createMenuButtonsContainer(statusService) {
                         updateNavButtons() {
                             const prevBtn = document.getElementById('eventPrevBtn');
                             const nextBtn = document.getElementById('eventNextBtn');
-                            if (prevBtn) prevBtn.disabled = this.currentEventIndex <= 0;
-                            if (nextBtn) nextBtn.disabled = this.currentEventIndex >= this.allEvents.length - 1;
+                            // Buttons always enabled since navigation loops around
+                            if (prevBtn) prevBtn.disabled = false;
+                            if (nextBtn) nextBtn.disabled = false;
                         },
                         
                         setupStandalonePagination() {
-                            const prevBtn = document.getElementById('prevPageBtn');
-                            const nextBtn = document.getElementById('nextPageBtn');
                             const pageInput = document.getElementById('pageInput');
                             const pageSlider = document.getElementById('eventPageSlider');
                             const ticksEl = document.getElementById('eventPageSliderTicks');
+                            
+                            // Clone buttons to remove old listeners (same pattern as Globe)
+                            const cloneBtn = (id) => {
+                                const btn = document.getElementById(id);
+                                if (!btn || !btn.parentNode) return btn;
+                                const clone = btn.cloneNode(true);
+                                btn.parentNode.replaceChild(clone, btn);
+                                return document.getElementById(id) || clone;
+                            };
+                            
+                            let prevBtn = cloneBtn('prevPageBtn');
+                            let nextBtn = cloneBtn('nextPageBtn');
                             
                             if (!prevBtn || !nextBtn) return;
                             
@@ -1358,32 +1437,33 @@ export function createMenuButtonsContainer(statusService) {
                                     pagination.style.display = totalPages <= 1 ? 'none' : 'flex';
                                 }
                             };
-                            
-                            const handlePageChange = (newPage) => {
+
+                            const handlePageChange = (newPage, options = {}) => {
                                 const totalPages = getTotalPages();
                                 const validPage = Math.max(1, Math.min(totalPages, newPage));
-                                
+
                                 if (validPage !== getCurrentPage()) {
                                     setCurrentPage(validPage);
                                     updatePaginationUI();
-                                    if (window.SoundEffectsManager?.play) {
-                                        window.SoundEffectsManager.play('pageTurn');
+                                    // Skip sound during slider scrubbing - tick sounds play instead
+                                    if (!options.skipSound && window.SoundEffectsManager?.play) {
+                                        window.SoundEffectsManager.play('page');
                                     }
                                 }
                             };
-                            
-                            prevBtn.onclick = (e) => {
+
+                            prevBtn.addEventListener('click', (e) => {
                                 e?.stopPropagation?.();
                                 const current = getCurrentPage();
                                 handlePageChange(current > 1 ? current - 1 : getTotalPages());
-                            };
-                            
-                            nextBtn.onclick = (e) => {
+                            });
+
+                            nextBtn.addEventListener('click', (e) => {
                                 e?.stopPropagation?.();
                                 const current = getCurrentPage();
                                 const total = getTotalPages();
                                 handlePageChange(current < total ? current + 1 : 1);
-                            };
+                            });
                             
                             if (pageInput) {
                                 pageInput.onchange = (e) => {
@@ -1401,14 +1481,81 @@ export function createMenuButtonsContainer(statusService) {
                             }
                             
                             if (pageSlider) {
-                                pageSlider.onchange = () => {
-                                    const SLIDER_RESOLUTION = 10000;
+                                // Globe-style slider with tick sounds and live updates
+                                const SLIDER_RESOLUTION = 10000;
+                                let lastPage = getCurrentPage();
+                                let sliderGesture = {
+                                    down: false,
+                                    dragLike: false,
+                                    inputEvents: 0,
+                                    tapPendingPageSound: false
+                                };
+                                
+                                // Pointer events for gesture detection
+                                pageSlider.addEventListener('pointerdown', (e) => {
+                                    sliderGesture.down = true;
+                                    sliderGesture.dragLike = false;
+                                    sliderGesture.inputEvents = 0;
+                                    sliderGesture.tapPendingPageSound = false;
+                                    const startX = e.clientX;
+                                    const startY = e.clientY;
+                                    
+                                    const onMove = (ev) => {
+                                        if (!sliderGesture.down) return;
+                                        const dx = ev.clientX - startX;
+                                        const dy = ev.clientY - startY;
+                                        if (dx * dx + dy * dy > 100) {
+                                            sliderGesture.dragLike = true;
+                                            sliderGesture.tapPendingPageSound = false;
+                                        }
+                                    };
+                                    
+                                    const onUp = () => {
+                                        window.removeEventListener('pointermove', onMove);
+                                        window.removeEventListener('pointerup', onUp);
+                                        window.removeEventListener('pointercancel', onUp);
+                                        sliderGesture.down = false;
+                                        
+                                        // Play page sound on tap release
+                                        if (sliderGesture.tapPendingPageSound && window.SoundEffectsManager?.play) {
+                                            window.SoundEffectsManager.play('page');
+                                        }
+                                        sliderGesture.tapPendingPageSound = false;
+                                    };
+                                    
+                                    window.addEventListener('pointermove', onMove);
+                                    window.addEventListener('pointerup', onUp);
+                                    window.addEventListener('pointercancel', onUp);
+                                });
+                                
+                                // Input event for live page updates
+                                pageSlider.addEventListener('input', () => {
+                                    const tp = getTotalPages();
+                                    if (tp <= 1) return;
                                     const value = parseInt(pageSlider.value, 10);
                                     const progress = value / SLIDER_RESOLUTION;
-                                    const totalPages = getTotalPages();
-                                    const newPage = Math.min(totalPages, Math.max(1, Math.floor(progress * totalPages) + 1));
-                                    handlePageChange(newPage);
-                                };
+                                    const newPage = Math.min(tp, Math.max(1, Math.floor(progress * tp) + 1));
+                                    
+                                    if (newPage === lastPage) return;
+                                    lastPage = newPage;
+                                    
+                                    sliderGesture.inputEvents += 1;
+                                    
+                                    // Update page immediately (live scrubbing) - skip sound, tick sounds play instead
+                                    handlePageChange(newPage, { skipSound: true });
+                                    
+                                    // Detect drag vs tap
+                                    const isScrubDrag = sliderGesture.dragLike || sliderGesture.inputEvents >= 2;
+                                    if (isScrubDrag) {
+                                        sliderGesture.tapPendingPageSound = false;
+                                        // Play tick sound during scrubbing
+                                        if (window.PanelResizeGearTick?.play) {
+                                            window.PanelResizeGearTick.play();
+                                        }
+                                    } else {
+                                        sliderGesture.tapPendingPageSound = true;
+                                    }
+                                });
                             }
                             
                             this.updatePaginationUI = updatePaginationUI;
@@ -1496,18 +1643,20 @@ export function createMenuButtonsContainer(statusService) {
                                 }
                                 
                                 // Click handler - open event slide directly
-                                newBtn.onclick = (e) => {
+                                newBtn.addEventListener('click', (e) => {
                                     e.stopPropagation();
                                     if (e.target.closest('.event-number-btn__variant-badge')) return;
                                     if (window.standaloneEventSlide) {
                                         window.standaloneEventSlide.showEvent(globalEventIndex);
-                                        window.SoundEffectsManager?.play?.('filterConfirm');
+                                        if (window.SoundEffectsManager?.play) {
+                                            window.SoundEffectsManager.play('eventClick');
+                                        }
                                     }
-                                };
+                                });
                                 
                                 // Variant badge click - cycles thumbnail and opens event slide
                                 if (variantBadge) {
-                                    variantBadge.onclick = (e) => {
+                                    variantBadge.addEventListener('click', (e) => {
                                         e.stopPropagation();
                                         const targetEvent = events[globalEventIndex];
                                         if (!targetEvent?.variants?.length) return;
@@ -1517,6 +1666,11 @@ export function createMenuButtonsContainer(statusService) {
                                         variantBadge.dataset.currentVariant = nextVariant;
                                         // Update badge text
                                         variantBadge.textContent = `${nextVariant + 1}/${targetEvent.variants.length}`;
+                                        
+                                        // Play switch event sound (same as event manager)
+                                        if (window.SoundEffectsManager?.play) {
+                                            window.SoundEffectsManager.play('switchEvent');
+                                        }
                                         
                                         // Update thumbnail image to show the variant
                                         const variantDisplayEvent = targetEvent.variants[nextVariant];
@@ -1552,7 +1706,7 @@ export function createMenuButtonsContainer(statusService) {
                                                 variants: targetEvent.variants
                                             }, globalEventIndex);
                                         }
-                                    };
+                                    });
                                 }
                                 
                                 // Hover effects - show era, years, flags, titles
@@ -1804,7 +1958,7 @@ export function createMenuButtonsContainer(statusService) {
                                 if (e.target.closest('.event-number-btn__variant-badge')) return;
                                 if (window.standaloneEventSlide) {
                                     window.standaloneEventSlide.showEvent(globalEventIndex);
-                                    window.SoundEffectsManager?.play?.('filterConfirm');
+                                    window.SoundEffectsManager?.play?.('eventClick');
                                 }
                             };
                             
@@ -1879,7 +2033,15 @@ export function createMenuButtonsContainer(statusService) {
                         
                         toggleImageOverlay(imagePath) {
                             const overlay = document.getElementById('eventImageOverlay');
+                            console.log('[DEBUG MenuServiceHelpers] toggleImageOverlay called, overlay:', !!overlay, 'SoundEffectsManager:', !!window.SoundEffectsManager);
                             if (!overlay) return;
+                            
+                            // Play sound effect
+                            if (window.SoundEffectsManager) {
+                                console.log('[DEBUG MenuServiceHelpers] Playing switchMap sound');
+                                window.SoundEffectsManager.play('switchMap');
+                            }
+                            
                             if (overlay.classList.contains('open')) {
                                 this.hideImageOverlay();
                             } else if (imagePath) {
@@ -1890,7 +2052,6 @@ export function createMenuButtonsContainer(statusService) {
                         showImageOverlay(imagePath) {
                             const overlay = document.getElementById('eventImageOverlay');
                             const img = document.getElementById('eventImage');
-                            const eventSlide = document.getElementById('eventSlide');
                             
                             if (overlay && img && imagePath) {
                                 img.src = imagePath;
@@ -1899,9 +2060,7 @@ export function createMenuButtonsContainer(statusService) {
                                 overlay.style.display = 'flex';
                                 overlay.style.opacity = '1';
                                 overlay.classList.add('open');
-                                if (eventSlide?.classList.contains('open')) {
-                                    overlay.classList.add('slide-open');
-                                }
+                                // No slide-open class - matches Globe behavior (no slide animation)
                             }
                         },
                         
@@ -1932,6 +2091,9 @@ export function createMenuButtonsContainer(statusService) {
                     // Wire up Event Manager list clicks
                     window.eventManager.openEventFromList = function(event, index) {
                         window.standaloneEventSlide?.showEvent(index);
+                        if (window.SoundEffectsManager?.play) {
+                            window.SoundEffectsManager.play('eventClick');
+                        }
                     };
                     
                     // Setup standalone pagination dock (wait for dock to be created)

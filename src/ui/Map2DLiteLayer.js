@@ -23,7 +23,7 @@ function texturePathForPalette(key) {
     if (key === 'gray') return 'assets/images/maps/MAP Black.png';
     if (key === 'crimson') return 'assets/images/maps/MAP Crimson.png';
     if (key === 'nulled') return 'assets/images/maps/MAP Nulled.png';
-    return 'assets/images/maps/MAP.png';
+    return 'assets/images/maps/MAP Blue.png';
 }
 
 function resolveEventImagePath(displayEvent, eventName) {

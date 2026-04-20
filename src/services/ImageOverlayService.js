@@ -29,6 +29,11 @@ class ImageOverlayService {
         
         if (!eventImageOverlay) return;
         
+        // Play sound effect
+        if (window.SoundEffectsManager) {
+            window.SoundEffectsManager.play('switchMap');
+        }
+        
         // Toggle the state
         this.imageToggleState = !this.imageToggleState;
         

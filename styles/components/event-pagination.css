@@ -1060,6 +1060,30 @@ body:not(:has(#paginationDock)) .event-page-slider-row--desktop-only {
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
 }
 
+/* Event number labels (1-10) above slider - HIDDEN (keeping code for reference) */
+.event-page-slider-num {
+    display: none;
+}
+
+/* Event position ticks (centered on each event slot) */
+.event-page-slider-tick--event {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    margin-left: -0.5px;
+    background: rgba(255, 255, 255, 0.35);
+    z-index: 1;
+}
+
+/* Event position tick turns green when event matches filter */
+.event-page-slider-tick--event.event-page-slider-tick--filter-hit {
+    width: 3px;
+    margin-left: -1.5px;
+    background: rgba(76, 175, 80, 0.95) !important;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.65) !important;
+}
+
 /* Confirmed globe filters: event on either side of this divider matches hero/faction pick */
 .event-page-slider-tick--sub.event-page-slider-tick--filter-hit {
     width: 2px;

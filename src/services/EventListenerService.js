@@ -98,8 +98,12 @@ class EventListenerService {
                 }
                 
                 // Play event manager sound
+                console.log('[DEBUG] EventManager toggle clicked, SoundEffectsManager:', !!window.SoundEffectsManager);
                 if (window.SoundEffectsManager) {
+                    console.log('[DEBUG] Playing eventManager sound');
                     window.SoundEffectsManager.play('eventManager');
+                } else {
+                    console.log('[DEBUG] SoundEffectsManager not available');
                 }
                 
                 // Toggle event management panel (works normally on both localhost and GitHub Pages)
@@ -542,6 +546,19 @@ class EventListenerService {
                 countrySuggestionsEl.appendChild(btn);
             }
             countrySuggestionsEl.style.display = max > 0 ? 'block' : 'none';
+            
+            // Move to body and position using fixed positioning to escape overflow contexts
+            if (max > 0) {
+                if (countrySuggestionsEl.parentNode !== document.body) {
+                    document.body.appendChild(countrySuggestionsEl);
+                }
+                const rect = countryInput.getBoundingClientRect();
+                // Align to panel edge - closer to right side of screen
+                countrySuggestionsEl.style.left = `auto`;
+                countrySuggestionsEl.style.right = `20px`;
+                countrySuggestionsEl.style.top = `${rect.bottom + 6}px`;
+                countrySuggestionsEl.style.width = `300px`;
+            }
         };
 
         const updateCountryPredictions = () => {
@@ -811,6 +828,19 @@ class EventListenerService {
                 suggestionsEl.appendChild(btn);
             }
             suggestionsEl.style.display = max > 0 ? 'block' : 'none';
+            
+            // Move to body and position using fixed positioning to escape overflow contexts
+            if (max > 0) {
+                if (suggestionsEl.parentNode !== document.body) {
+                    document.body.appendChild(suggestionsEl);
+                }
+                const rect = filtersInput.getBoundingClientRect();
+                // Align to panel edge - closer to right side of screen
+                suggestionsEl.style.left = `auto`;
+                suggestionsEl.style.right = `20px`;
+                suggestionsEl.style.top = `${rect.bottom + 6}px`;
+                suggestionsEl.style.width = `300px`;
+            }
         };
 
         const updateFilterPredictions = () => {
