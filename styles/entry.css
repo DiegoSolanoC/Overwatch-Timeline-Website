@@ -455,12 +455,33 @@ body.color-palette-gray .main-menu-label-container {
     transition: opacity 0.3s ease;
 }
 
+/* Ensure globe UI stays behind loading overlay */
+.loading-overlay.active ~ #app-container .dev-sun-yaw-panel,
+.loading-overlay.active ~ #app-container .dock-globe-rail,
+.loading-overlay.active ~ #app-container .test-container,
+.loading-overlay.active ~ #app-container #zoomControls,
+.loading-overlay.active ~ #app-container .zoom-btn,
+.loading-overlay.active ~ #globe-container .dev-sun-yaw-panel,
+.loading-overlay.active ~ #globe-container .dock-globe-rail,
+.loading-overlay.active ~ #globe-container #zoomControls,
+.loading-overlay.active ~ #globe-container .zoom-btn,
+body:has(.loading-overlay.active) .dev-sun-yaw-panel,
+body:has(.loading-overlay.active) .dock-globe-rail,
+/* Hide all globe UI when loading overlay is active */
+body:has(.loading-overlay.active) .dev-sun-yaw-panel,
+body:has(.loading-overlay.active) .dock-globe-rail,
+body:has(.loading-overlay.active) .test-container,
+body:has(.loading-overlay.active) #zoomControls,
+body:has(.loading-overlay.active) .zoom-btn,
+body:has(.loading-overlay.active) .globe-control-btn,
+body:has(.loading-overlay.active) .time-control-slider {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
 /* Show zoom controls when visible */
 .zoom-controls.visible {
     opacity: 1;
-}
-
-.zoom-controls .zoom-btn {
     pointer-events: auto; /* Buttons are clickable */
 }
 

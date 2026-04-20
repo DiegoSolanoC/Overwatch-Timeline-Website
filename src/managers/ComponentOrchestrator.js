@@ -500,6 +500,12 @@ export class ComponentOrchestrator {
         // Move panel into story container
         storyContainer.appendChild(eventsManagePanel);
         
+        // Add story-viewer-header class to the header
+        const header = eventsManagePanel.querySelector('.events-manage-header');
+        if (header) {
+            header.classList.add('story-viewer-header');
+        }
+        
         // Update title
         const title = eventsManagePanel.querySelector('.events-manage-title');
         if (title) {
@@ -508,26 +514,20 @@ export class ComponentOrchestrator {
             title.classList.add('story-viewer-title');
         }
         
-        // Hide Add/Save/Export buttons in story mode
+        // Move Add/Save/Export buttons to center position in story mode
         const addBtn = document.getElementById('addEventBtn');
         const saveBtn = document.getElementById('saveEventsBtn');
         const exportBtn = document.getElementById('exportEventsBtn');
-        if (addBtn) addBtn.style.display = 'none';
-        if (saveBtn) saveBtn.style.display = 'none';
-        if (exportBtn) exportBtn.style.display = 'none';
+        if (addBtn) addBtn.classList.add('story-viewer-action-btn');
+        if (saveBtn) saveBtn.classList.add('story-viewer-action-btn');
+        if (exportBtn) exportBtn.classList.add('story-viewer-action-btn');
         
-        // Change close button to "Exit to Menu"
-        const closeBtn = document.getElementById('eventsManageClose');
-        if (closeBtn) {
-            closeBtn.innerHTML = 'Exit';
-            closeBtn.classList.add('story-viewer-exit-btn');
-            // Remove old click handler and add exit handler
-            const newCloseBtn = closeBtn.cloneNode(true);
-            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-            newCloseBtn.addEventListener('click', () => {
-                this.killBiographyComponents();
-            });
-        }
+        // Hide close button - we exit via Home button instead
+        const closeBtnById = document.getElementById('eventsManageClose');
+        const closeBtnByClass = eventsManagePanel.querySelector('.events-manage-close');
+        [closeBtnById, closeBtnByClass].forEach(btn => {
+            if (btn) btn.style.setProperty('display', 'none', 'important');
+        });
 
         // Insert into main content area
         const content = document.getElementById('content');
@@ -1038,23 +1038,24 @@ export class ComponentOrchestrator {
                 title.classList.add('events-manage-title');
             }
             
-            // Show Add/Save/Export buttons again
+            // Restore Add/Save/Export buttons to normal state
             const addBtn = document.getElementById('addEventBtn');
             const saveBtn = document.getElementById('saveEventsBtn');
             const exportBtn = document.getElementById('exportEventsBtn');
-            if (addBtn) addBtn.style.display = '';
-            if (saveBtn) saveBtn.style.display = '';
-            if (exportBtn) exportBtn.style.display = '';
+            if (addBtn) addBtn.classList.remove('story-viewer-action-btn');
+            if (saveBtn) saveBtn.classList.remove('story-viewer-action-btn');
+            if (exportBtn) exportBtn.classList.remove('story-viewer-action-btn');
             
-            // Restore close button
-            const closeBtn = eventsManagePanel.querySelector('.story-viewer-exit-btn, .events-manage-close');
+            // Show close button again
+            const closeBtn = document.getElementById('eventsManageClose');
             if (closeBtn) {
-                closeBtn.innerHTML = '×';
-                closeBtn.classList.remove('story-viewer-exit-btn');
-                // Re-clone to remove exit handler and restore original
-                const newCloseBtn = closeBtn.cloneNode(true);
-                closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-                // Original close handler will be re-attached by EventManager
+                closeBtn.style.display = '';
+            }
+            
+            // Remove story-viewer-header class from header
+            const header = eventsManagePanel.querySelector('.story-viewer-header');
+            if (header) {
+                header.classList.remove('story-viewer-header');
             }
             
             // Move back to original parent

@@ -63,22 +63,23 @@ function yieldForLoadingOverlayPaint() {
  * @param {HTMLElement|null} [container]
  */
 export function clearCodexShellForGlobeInit(container) {
-    if (typeof document === 'undefined') return;
-    destroyCodexCanvas();
-    document.body.classList.remove('codex-mode-active');
     const el = container || document.getElementById('globe-container');
     if (!el) return;
+    // Always clear container when switching modes - ensures clean state
+    el.innerHTML = '';
+    document.body.classList.remove('codex-mode-active');
     el.classList.remove('codex-mode');
-    if (el.querySelector(`#${CODEX_ROOT_ID}`)) {
-        el.innerHTML = '';
-    }
 }
 
 export async function applyCodexShell() {
     const container = document.getElementById('globe-container');
     if (!container) return;
 
+    // Clean slate: clear container and reset mode classes
     container.innerHTML = '';
+    document.body.classList.remove('codex-mode-active');
+    container.classList.remove('codex-mode');
+
     const root = document.createElement('div');
     root.id = CODEX_ROOT_ID;
     root.className = 'codex-view-root';
@@ -115,16 +116,17 @@ export async function applyCodexShell() {
 }
 
 export async function enterCodexMode() {
-    if (document.body.classList.contains('codex-mode-active') && !window.loadedComponents?.globeBase) {
+    const container = document.getElementById('globe-container');
+    if (!container) return;
+
+    // If Codex is already properly initialized (has root element), skip
+    if (container.querySelector('#codex-root')) {
         return;
     }
 
     if (typeof window.unloadGlobeBase !== 'function') {
         return;
     }
-
-    const container = document.getElementById('globe-container');
-    if (!container) return;
 
     window.__codexInlineLoaderActive = true;
     showCodexEntryInlineLoader(container);

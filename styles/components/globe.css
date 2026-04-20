@@ -110,6 +110,13 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     transform-origin: 0 0;
     z-index: 1;
     pointer-events: auto;
+    /* Performance optimization: isolate this layer from document reflows */
+    contain: layout style;
+}
+
+/* Optimize during active panning */
+.codex-world--panning {
+    will-change: transform;
 }
 
 /* Full-stage pointer target: contextmenu offsetX/Y are native-local to this box (same space as node left/top). */

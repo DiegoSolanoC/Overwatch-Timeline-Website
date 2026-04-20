@@ -437,6 +437,8 @@ let onCodexTouchMoveHandler = null;
 let onCodexTouchEndHandler = null;
 /** @type {object|null} */
 let backgroundPanPointerPending = null;
+/** @type {number|null} Active background pan pointer ID (for performance checks). */
+let backgroundPanPointerId = null;
 /** @type {HTMLElement|null} */
 let codexToolbarEl = null;
 /** Right-side cord/packet look panel (child of {@link root}). */
@@ -2578,15 +2580,17 @@ function syncCodexNodeOffscreenContentVisibility(visibleRect, nodeList) {
     });
 }
 
-/** World rect for which nodes should stay “visually on”; cheap O(n) — safe to call while panning (no SVG rebuild). */
+/** World rect for which nodes should stay "visually on"; cheap O(n) — safe to call while panning (no SVG rebuild).
+ *  Skips work during any drag operations for performance.
+ */
 /** @param {NodeListOf<Element>|Element[]|undefined} [nodeList] */
 function syncCodexNodeDomCullFromView(nodeList) {
     if (!root) return;
+    /* Performance: skip during any drag/pan operations */
+    if (codexActiveDragNodeIds.size > 0 || backgroundPanPointerId != null) return;
     const list = nodeList || root.querySelectorAll('.codex-node');
     const nodeCount = list.length;
-    const use =
-        codexActiveDragNodeIds.size === 0
-        && nodeCount >= CODEX_NODE_DOM_CULL_MIN_NODES;
+    const use = nodeCount >= CODEX_NODE_DOM_CULL_MIN_NODES;
     const rect = use
         ? getCodexVisibleWorldBoundsExpanded(CODEX_EDGE_CULL_MARGIN_PX + CODEX_NODE_DOM_CULL_MARGIN_EXTRA_PX)
         : null;
@@ -3619,9 +3623,13 @@ function onBackgroundPanUpMaybe(ev) {
 function beginActualBackgroundPan(prep, firstMoveEv) {
     if (!hitLayerEl) return;
     const { pointerId, startCX, startCY, origPanX, origPanY } = prep;
+    backgroundPanPointerId = pointerId;
     try {
         hitLayerEl.setPointerCapture(pointerId);
     } catch (_) { /* ignore */ }
+
+    /* Performance: enable GPU optimization for panning */
+    if (codexWorldEl) codexWorldEl.classList.add('codex-world--panning');
 
     const layoutPerVp = getCodexBodyLayoutPerViewportPx();
     const applyClient = (clientX, clientY) => {
@@ -3629,9 +3637,7 @@ function beginActualBackgroundPan(prep, firstMoveEv) {
         codexViewPanY = origPanY + (clientY - startCY) / layoutPerVp;
         /* Cords live under .codex-world; pan is CSS translate only — no full SVG rebuild per move. */
         applyCodexWorldTransformStyle();
-        syncCodexNodeDomCullFromView();
-        /* Virtual scroll: add/remove nodes based on viewport */
-        scheduleUpdateCodexVirtualScroll();
+        /* Skip expensive DOM culling during pan - only run after pan ends */
     };
 
     applyClient(firstMoveEv.clientX, firstMoveEv.clientY);
@@ -3654,6 +3660,11 @@ function beginActualBackgroundPan(prep, firstMoveEv) {
             hitLayerEl.releasePointerCapture(pointerId);
         } catch (_) { /* ignore */ }
         if (hitLayerEl) hitLayerEl.style.cursor = '';
+        /* Performance: cleanup GPU optimization, then sync visibility */
+        if (codexWorldEl) codexWorldEl.classList.remove('codex-world--panning');
+        backgroundPanPointerId = null;
+        syncCodexNodeDomCullFromView();
+        scheduleUpdateCodexVirtualScroll();
         redrawCodexEdges();
     };
 

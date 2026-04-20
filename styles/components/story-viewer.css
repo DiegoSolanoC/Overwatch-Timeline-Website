@@ -206,6 +206,51 @@ body.color-palette-gray .story-viewer-exit-btn:hover {
     background: rgba(var(--accent-primary-rgb), var(--opacity-heavy));
 }
 
+/* Story viewer header: no close button, centered action buttons */
+.story-viewer-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start !important; /* Start from left */
+    gap: 15px;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border-bottom: 2px solid rgba(33, 150, 243, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+/* Title stays on the left */
+.story-viewer-header .events-manage-title-section {
+    flex: 0 1 auto;
+    margin-right: 20px; /* Space between title and buttons */
+}
+
+/* Action buttons wrapper - centered in remaining space */
+.story-viewer-header .events-manage-buttons {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Individual buttons in story mode */
+.story-viewer-header #addEventBtn.story-viewer-action-btn,
+.story-viewer-header #saveEventsBtn.story-viewer-action-btn,
+.story-viewer-header #exportEventsBtn.story-viewer-action-btn {
+    order: 1;
+}
+
+/* Hide the close (X) button ONLY in story viewer */
+.story-viewer-header .events-manage-close,
+.story-viewer-header #eventsManageClose,
+#storyViewerContainer .events-manage-close,
+#storyViewerContainer #eventsManageClose {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* Controls section - same as events-manage-controls */
 .story-viewer-controls {
     display: flex;
