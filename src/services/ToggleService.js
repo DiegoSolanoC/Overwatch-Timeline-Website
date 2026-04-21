@@ -146,8 +146,17 @@ class ToggleService {
                 hyperloopIcon.innerHTML = '<img src="assets/images/icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
             }
 
-            const refreshP = gc?.eventMarkerManager?.refreshEventMarkers?.(false);
+            console.log(`[hyperloopToggle] Transport ${visible ? 'ENABLED' : 'DISABLED'}, refreshing markers...`);
+            
+            // Use Event System's EventMarkerManager if available
+            const markerManager = window.globeEventMarkerManager || gc?.eventMarkerManager;
+            const managerType = window.globeEventMarkerManager ? 'EventSystem' : (gc?.eventMarkerManager ? 'Globe' : 'None');
+            console.log(`[hyperloopToggle] Using ${managerType} marker manager:`, markerManager ? 'found' : 'NOT FOUND');
+            
+            const refreshP = markerManager?.refreshEventMarkers?.(false);
+            
             const finishTransportSurfaceSwitch = () => {
+                console.log('[hyperloopToggle] Finishing transport surface switch...');
                 gc?.transportView?.updateHyperloopVisibility?.();
                 if (!gc?.sceneModel?.getMapViewEnabled?.()) {
                     gc?.transportController?.updateSatellites?.();
@@ -157,6 +166,7 @@ class ToggleService {
                 if (onToggle) {
                     onToggle();
                 }
+                console.log('[hyperloopToggle] Toggle complete');
             };
             if (refreshP && typeof refreshP.then === 'function') {
                 refreshP.then(finishTransportSurfaceSwitch);

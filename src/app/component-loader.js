@@ -105,27 +105,9 @@ async function loadPalette() {
  * createGlobeControlButton is idempotent — it skips if the ID already exists.
  */
 function loadHeaderNavButtons() {
-    // Events Manager button - styled as globe dock rail button, positioned on right
-    createGlobeControlButton({
-        id: 'eventsManageToggle',
-        className: 'dock-globe-rail__btn',
-        title: 'Manage Events',
-        label: 'Events',
-        iconPath: 'assets/images/icons/Event Manager Icon.png',
-        iconAlt: 'Event Manager',
-        parentId: 'dockGlobeRailRight',
-        baseClass: 'globe-control-btn',
-        headerOrder: 10,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
-    });
-
-    // Hide by default - will be shown when EventManager is loaded
-    const eventsBtn = document.getElementById('eventsManageToggle');
-    if (eventsBtn) {
-        eventsBtn.style.setProperty('display', 'none', 'important');
-    }
+    // NOTE: Events Manager and Filters buttons are now created by
+    // standalone Event System Load Out only (via testBtn click)
+    // Globe no longer creates these buttons
 
     // Interactive Globe button (was Map/Globe toggle) - launches globe timeline
     createGlobeControlButton({
@@ -203,27 +185,6 @@ function loadHeaderNavButtons() {
                 void window.runBiographyComponents(false);
             }
         }, true);
-    }
-
-    // Filters button - styled as globe dock rail button, positioned on right
-    createGlobeControlButton({
-        id: 'filtersToggle',
-        className: 'dock-globe-rail__btn',
-        title: 'Open Filters',
-        label: 'Filters',
-        iconPath: 'assets/images/icons/Filter Icon.png',
-        iconAlt: 'Filters',
-        parentId: 'dockGlobeRailRight',
-        baseClass: 'globe-control-btn',
-        headerOrder: 5,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
-    });
-    // Hide initially - will be shown by Event System Load Out or Globe loaders
-    const filtersToggleBtn = document.getElementById('filtersToggle');
-    if (filtersToggleBtn) {
-        filtersToggleBtn.style.setProperty('display', 'none', 'important');
     }
 
     // Home button — right hub, after Music (order 60), returns to blank startup state

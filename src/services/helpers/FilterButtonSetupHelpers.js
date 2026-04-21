@@ -81,13 +81,7 @@ export function setupClearButton(clearFiltersBtn, soundManager, stateManager, up
         stateManager.clear();
         updateButtonStates();
         
-        // Clear filters, unlock all events, and refresh number buttons immediately
-        const sceneModel = getSceneModel();
-        const globeController = typeof window !== 'undefined' ? window.globeController : null;
-        if (sceneModel && globeController?.globeView) {
-            sceneModel.activeFilters.clear();
-            globeController.globeView.applyFilters(); /* runs unlockAllEvents + updateNumberButtons */
-        }
+        // NOTE: Globe filter clear removed - Event System Load Out handles this
         
         // Rebuild the grid for whichever tab is active now (avoid stale type from setup time)
         const currentFilterType = resolveFilterType(getCurrentFilterType);
@@ -112,14 +106,8 @@ export function setupConfirmButton(confirmFiltersBtn, soundManager, stateManager
             soundManager.play('filterConfirm');
         }
         
-        // Apply filters to events immediately BEFORE closing
-        const sceneModel = getSceneModel();
-        const globeController = typeof window !== 'undefined' ? window.globeController : null;
-        
-        if (sceneModel && globeController?.globeView) {
-            stateManager.applyToScene(sceneModel);
-            globeController.globeView.applyFilters();
-        }
+        // NOTE: Globe filter application removed - Event System Load Out handles this
+        // via EventMarkerManager.applyFilters() in MenuHelpers.js/MenuServiceHelpers.js
         
         closePanel();
     });

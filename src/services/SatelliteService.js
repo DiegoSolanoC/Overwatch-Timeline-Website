@@ -235,6 +235,7 @@ class SatelliteService {
 
     /**
      * Update satellites - handle orbital motion with speed variation and rotation angle changes
+     * NOTE: Now uses Event System data when available, falls back to Globe dataModel
      */
     updateSatellites() {
         const hyperloopVisible = this.sceneModel.getHyperloopVisible();
@@ -245,28 +246,41 @@ class SatelliteService {
         let hasMarsShipMarkerOnPage = false;
         let isHoveringMarsShipMarker = false;
         
-        if (window.globeController && window.globeController.dataModel) {
+        // Get current page events - prefer Event System data
+        let currentPageEvents = [];
+        let dataSource = 'none';
+        
+        if (window.eventManager?.events && window.standaloneEventSlide?.currentPage) {
+            const allEvents = window.eventManager.events;
+            const currentPage = window.standaloneEventSlide.currentPage;
+            const eventsPerPage = 10;
+            const startIndex = (currentPage - 1) * eventsPerPage;
+            const endIndex = startIndex + eventsPerPage;
+            currentPageEvents = allEvents.slice(startIndex, endIndex);
+            dataSource = `EventSystem (page ${currentPage})`;
+        } else if (window.globeController?.dataModel?.getEventsForCurrentPage) {
             const dataModel = window.globeController.dataModel;
-            const currentPageEvents = dataModel.getEventsForCurrentPage();
-            
-            hasStationMarkerOnPage = currentPageEvents.some(event => {
-                const eventLocationType = event.locationType || 'earth';
-                if (eventLocationType === 'station') return true;
-                if (event.variants) {
-                    return event.variants.some(variant => (variant.locationType || eventLocationType) === 'station');
-                }
-                return false;
-            });
-
-            hasMarsShipMarkerOnPage = currentPageEvents.some(event => {
-                const eventLocationType = event.locationType || 'earth';
-                if (eventLocationType === 'marsShip') return true;
-                if (event.variants) {
-                    return event.variants.some(variant => (variant.locationType || eventLocationType) === 'marsShip');
-                }
-                return false;
-            });
+            currentPageEvents = dataModel.getEventsForCurrentPage();
+            dataSource = 'Globe dataModel';
         }
+        
+        hasStationMarkerOnPage = currentPageEvents.some(event => {
+            const eventLocationType = event.locationType || 'earth';
+            if (eventLocationType === 'station') return true;
+            if (event.variants) {
+                return event.variants.some(variant => (variant.locationType || eventLocationType) === 'station');
+            }
+            return false;
+        });
+
+        hasMarsShipMarkerOnPage = currentPageEvents.some(event => {
+            const eventLocationType = event.locationType || 'earth';
+            if (eventLocationType === 'marsShip') return true;
+            if (event.variants) {
+                return event.variants.some(variant => (variant.locationType || eventLocationType) === 'marsShip');
+            }
+            return false;
+        });
         
         if (window.globeController && window.globeController.interactionController) {
             const hoveredMarker = window.globeController.interactionController.hoveredEventMarker;

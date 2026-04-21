@@ -5,7 +5,9 @@
 
 import { updateStatus } from '../../managers/StatusManager.js';
 import { getOrCreateElement, createEventPagination, createFiltersPanel } from './ComponentDOMHelpers.js';
+import { createGlobeControlButton } from './ComponentLoadHelpers.js';
 import { shouldEventBeLocked } from '../../managers/helpers/MarkerCreationHelpers.js';
+import { EventMarkerManager } from '../../managers/EventMarkerManager.js';
 
 /** WAAPI keyframes for page turn animation - matches globe implementation */
 function thumbPageTurnShrinkKeyframes(isThumbsDesktop, locked) {
@@ -46,15 +48,27 @@ export function updateStandalonePaginationForFilters() {
     const events = window.eventManager?.events || [];
     const buttons = document.querySelectorAll('#eventNumberButtons .event-number-btn');
     
-    console.log('[DEBUG updateStandalonePagination] activeFilters:', Array.from(activeFilters), 'buttons found:', buttons.length);
+    // Get stack trace to find who's calling this function
+    const stack = new Error().stack;
+    const caller = stack?.split('\n')[2]?.trim() || 'unknown';
     
-    if (!buttons.length) return;
+    console.log(`[FILTER DEBUG] 🔄 updateStandalonePaginationForFilters() called`);
+    console.log(`[FILTER DEBUG]    Caller: ${caller}`);
+    console.log(`[FILTER DEBUG]    Active filters: [${Array.from(activeFilters).join(', ')}]`);
+    console.log(`[FILTER DEBUG]    Total events: ${events.length}, buttons found: ${buttons.length}`);
     
-    const eventsPerPage = 10; // Standard pagination
-    const currentPage = window.eventManager?.getCurrentEventPage?.() || 1;
+    if (!buttons.length) {
+        console.log(`[FILTER DEBUG]    No buttons found - skipping update`);
+        return;
+    }
+    
+    const eventsPerPage = 10;
+    const currentPage = window.standaloneEventSlide?.currentPage || 1;
     const startIndex = (currentPage - 1) * eventsPerPage;
     
-    console.log('[DEBUG updateStandalonePagination] currentPage:', currentPage, 'startIndex:', startIndex);
+    let lockedCount = 0;
+    let unlockedCount = 0;
+    let hiddenCount = 0;
     
     buttons.forEach((btn, index) => {
         const eventIndex = startIndex + index;
@@ -63,45 +77,51 @@ export function updateStandalonePaginationForFilters() {
         if (!event) {
             // No event for this slot - hide button
             btn.style.display = 'none';
+            hiddenCount++;
             return;
         }
         
         // Check if this event should be locked based on filters
         const isLocked = activeFilters.size > 0 && shouldEventBeLocked(event, activeFilters);
         
-        if (activeFilters.size > 0) {
-            console.log('[DEBUG updateStandalonePagination] Event', eventIndex, event.name || 'unnamed', 'isLocked:', isLocked, 'filters:', event.filters);
-        }
-        
         if (isLocked) {
             btn.disabled = true;
             btn.classList.add('locked');
-            btn.style.opacity = '0.5';
+            btn.style.setProperty('opacity', '0.5', 'important');
+            btn.style.setProperty('filter', 'none', 'important');
             btn.style.pointerEvents = 'none';
             btn.title = btn.title.replace(' — Filtered out', '') + ' — Filtered out';
+            btn.dataset.isLocked = 'true';
+            lockedCount++;
         } else {
             btn.disabled = false;
             btn.classList.remove('locked');
-            btn.style.opacity = '';
+            // Force clear any lingering visual lock styles
+            btn.style.setProperty('opacity', '1', 'important');
+            btn.style.setProperty('filter', 'none', 'important');
+            btn.style.display = 'flex';
             btn.style.pointerEvents = 'auto';
+            btn.dataset.isLocked = 'false';
             // Remove " — Filtered out" from title if present
-            if (btn.title.includes(' — Filtered out')) {
+            if (btn.title && btn.title.includes(' — Filtered out')) {
                 btn.title = btn.title.replace(' — Filtered out', '');
             }
+            unlockedCount++;
+            // Debug visual state
+            console.log(`[VISUAL] Pagination #${eventIndex} UNLOCKED: opacity='${btn.style.opacity}', filter='${btn.style.filter}', classList='${btn.classList.value}'`);
         }
     });
+    
+    console.log(`[FILTER DEBUG]    Pagination update complete: ${lockedCount} locked, ${unlockedCount} unlocked, ${hiddenCount} hidden`);
     
     // Update slider ticks for filter hits
     updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage);
     
     // === GLOBE INTEGRATION ===
-    // Sync filters to Globe markers (if Globe is loaded)
-    const gc = window.globeController;
-    if (gc?.sceneModel && gc.globeView?.applyFilters) {
-        // Sync filter state to sceneModel
-        gc.sceneModel.activeFilters = activeFilters;
-        // Apply filters to lock/unlock markers
-        gc.globeView.applyFilters();
+    // Sync filters to Globe markers via EventMarkerManager (if it exists)
+    if (window.globeEventMarkerManager) {
+        console.log(`[FILTER DEBUG]    Syncing to globe markers...`);
+        window.globeEventMarkerManager.applyFilters();
     }
 }
 
@@ -123,12 +143,10 @@ function eventRootSlotMissingDescription(rootEvent) {
  */
 function updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage) {
     const ticksEl = document.getElementById('eventPageSliderTicks');
-    console.log('[DEBUG updateStandaloneSliderTicks] Called, ticksEl:', !!ticksEl, 'activeFilters:', Array.from(activeFilters || []));
     if (!ticksEl) return;
     
     // Clear existing filter-hit classes from ticks and number labels
     const existingHits = ticksEl.querySelectorAll('.event-page-slider-tick--filter-hit, .event-page-slider-num.filter-hit');
-    console.log('[DEBUG updateStandaloneSliderTicks] Clearing', existingHits.length, 'existing filter-hit classes');
     existingHits.forEach(el => {
         el.classList.remove('event-page-slider-tick--filter-hit', 'filter-hit');
     });
@@ -138,12 +156,10 @@ function updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, curre
     
     // Color event number labels green based on filter matches
     const numLabels = ticksEl.querySelectorAll('.event-page-slider-num');
-    console.log('[DEBUG updateStandaloneSliderTicks] Found', numLabels.length, 'number labels, totalEvents:', totalEvents);
     numLabels.forEach(label => {
         const eventIndex = parseInt(label.dataset.eventIndex, 10);
         const event = eventIndex >= 0 && eventIndex < totalEvents ? events[eventIndex] : null;
         if (event && !shouldEventBeLocked(event, activeFilters)) {
-            console.log('[DEBUG] Number label', label.dataset.pagePosition, 'for event', eventIndex, event.name, '-> green');
             label.classList.add('filter-hit');
         }
     });
@@ -152,12 +168,10 @@ function updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, curre
     
     // Color event position ticks green based on filter matches
     const eventTicks = ticksEl.querySelectorAll('.event-page-slider-tick--event');
-    console.log('[DEBUG updateStandaloneSliderTicks] Found', eventTicks.length, 'event ticks');
     eventTicks.forEach(tick => {
         const eventIndex = parseInt(tick.dataset.eventIndex, 10);
         const event = eventIndex >= 0 && eventIndex < totalEvents ? events[eventIndex] : null;
         if (event && !shouldEventBeLocked(event, activeFilters)) {
-            console.log('[DEBUG] Event tick', tick.dataset.pagePosition, 'for event', eventIndex, event.name, '-> green');
             tick.classList.add('event-page-slider-tick--filter-hit');
         }
     });
@@ -294,12 +308,55 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
 
         if (!isLoaded) {
             // LOAD
-            updateStatus('Loading news ticker...', 'info');
+            updateStatus('Loading Event System...', 'info');
             try {
+                // Create event buttons (these are no longer pre-created by loadHeaderNavButtons)
+                createGlobeControlButton({
+                    id: 'eventsManageToggle',
+                    className: 'dock-globe-rail__btn',
+                    title: 'Manage Events',
+                    label: 'Events',
+                    iconPath: 'assets/images/icons/Event Manager Icon.png',
+                    iconAlt: 'Event Manager',
+                    parentId: 'dockGlobeRailRight',
+                    baseClass: 'globe-control-btn',
+                    headerOrder: 10,
+                    mobileParentId: 'dockGlobeRailRight',
+                    mobileBaseClass: 'globe-control-btn',
+                    mobileClassName: 'dock-globe-rail__btn'
+                });
+
+                createGlobeControlButton({
+                    id: 'filtersToggle',
+                    className: 'dock-globe-rail__btn',
+                    title: 'Open Filters',
+                    label: 'Filters',
+                    iconPath: 'assets/images/icons/Filter Icon.png',
+                    iconAlt: 'Filters',
+                    parentId: 'dockGlobeRailRight',
+                    baseClass: 'globe-control-btn',
+                    headerOrder: 5,
+                    mobileParentId: 'dockGlobeRailRight',
+                    mobileBaseClass: 'globe-control-btn',
+                    mobileClassName: 'dock-globe-rail__btn'
+                });
+
                 // Initialize EventManager if not already loaded
                 if (!window.eventManager) {
                     const { initializeEventManager } = await import('./EventManagerHelpers.js');
                     window.eventManager = await initializeEventManager();
+                }
+
+                // Initialize EventMarkerManager for Globe (if Globe is loaded)
+                if (window.globeController?.sceneModel && !window.globeEventMarkerManager) {
+                    updateStatus('Initializing event markers...', 'info');
+                    window.globeEventMarkerManager = new EventMarkerManager(
+                        window.globeController.sceneModel,
+                        window.globeController.dataModel
+                    );
+                    // Add event markers to the globe
+                    await window.globeEventMarkerManager.addEventMarkers(true);
+                    updateStatus('✓ Event markers added', 'success');
                 }
 
                 // Add timeline-loaded class to footer (enables background + Atlas News logo)
@@ -386,6 +443,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                 }
 
                 // Override FilterService confirm handler for standalone mode
+                // Set flag to prevent FilterService from overriding these handlers
+                window._menuHelpersFilterHandlersInstalled = true;
+                
                 const confirmFiltersBtn = document.getElementById('confirmFiltersBtn');
                 if (confirmFiltersBtn) {
                     // Remove old listeners by cloning
@@ -394,17 +454,38 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                     // Add standalone handler
                     newConfirmBtn.addEventListener('click', () => {
                         // Apply filters to standalone state
-                        console.log('[DEBUG Confirm] selectedFilters before:', window.FilterService?.stateManager?.selectedFilters ? Array.from(window.FilterService.stateManager.selectedFilters) : 'none');
                         if (window.FilterService?.stateManager?.selectedFilters) {
                             window.standaloneActiveFilters = new Set(window.FilterService.stateManager.selectedFilters);
                         }
-                        console.log('[DEBUG Confirm] standaloneActiveFilters after:', window.standaloneActiveFilters ? Array.from(window.standaloneActiveFilters) : 'none');
+                        // Log filter state with matches
+                        const activeFilters = window.standaloneActiveFilters || new Set();
+                        const filterStr = activeFilters.size > 0 ? `[${Array.from(activeFilters).join(', ')}]` : '[]';
+                        const currentPage = window.standaloneEventSlide?.currentPage || 1;
+                        // Calculate matching events on current page
+                        const allEvents = window.eventManager?.events || [];
+                        const pageStart = (currentPage - 1) * 10;
+                        const pageEnd = Math.min(pageStart + 10, allEvents.length);
+                        const matching = [];
+                        for (let i = pageStart; i < pageEnd; i++) {
+                            const evt = allEvents[i];
+                            if (evt && typeof window.shouldEventBeLocked === 'function' && !window.shouldEventBeLocked(evt, activeFilters)) {
+                                matching.push((i % 10) + 1);
+                            }
+                        }
+                        const matchStr = matching.length > 0 ? `[${matching.join(', ')}]` : '[]';
+                        console.log(`[FILTERS] 🔵 CONFIRM: ${filterStr} | Page ${currentPage} matches: ${matchStr}`);
                         // Play sound
                         if (window.SoundEffectsManager) {
                             window.SoundEffectsManager.play('filterConfirm');
                         }
                         // Update dock thumbnails to reflect locked state
                         updateStandalonePaginationForFilters();
+                        // Apply filters to Globe markers (if EventMarkerManager exists)
+                        if (window.globeEventMarkerManager) {
+                            window.globeEventMarkerManager.applyFilters();
+                        } else if (window.globeController?.eventMarkerManager) {
+                            window.globeController.eventMarkerManager.applyFilters();
+                        }
                         // Close panel
                         const filtersPanel = document.getElementById('filtersPanel');
                         if (filtersPanel) filtersPanel.classList.remove('open');
@@ -425,6 +506,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         if (window.FilterService?.stateManager) {
                             window.FilterService.stateManager.clear();
                         }
+                        // Log clear (all events match when no filters)
+                        const currentPage = window.standaloneEventSlide?.currentPage || 1;
+                        console.log(`[FILTERS] 🟡 CLEAR: [] | Page ${currentPage} matches: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`);
                         if (window.SoundEffectsManager) {
                             window.SoundEffectsManager.play('filterClear');
                         }
@@ -433,6 +517,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             window.FilterService.updateButtonStates();
                         }
                         updateStandalonePaginationForFilters();
+                        // Clear filters from Globe markers (if EventMarkerManager exists)
+                        if (window.globeEventMarkerManager) {
+                            window.globeEventMarkerManager.applyFilters();
+                        }
                         updateStatus('✓ Filters cleared', 'success');
                     });
                 }
@@ -447,6 +535,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                 if (!window.standaloneEventSlide) {
                     window.standaloneEventSlide = {
                         currentEventIndex: 0,
+                        currentPage: 1, // Track current page for marker display
                         allEvents: [],
                         currentEventData: null,
                         currentVariantIndex: 0,
@@ -666,16 +755,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             // Wire close button
                             if (eventSlideClose) {
                                 eventSlideClose.onclick = () => {
-                                    console.log('[DEBUG] Close button clicked');
                                     this.cancelEdit();
                                     eventSlide.classList.remove('open');
                                     this.hideImageOverlay();
-                                    console.log('[DEBUG] About to play sound, SoundEffectsManager:', !!window.SoundEffectsManager);
                                     if (window.SoundEffectsManager?.play) {
-                                        console.log('[DEBUG] Playing eventClick sound');
                                         window.SoundEffectsManager.play('eventClick');
-                                    } else {
-                                        console.log('[DEBUG] SoundEffectsManager.play not available');
                                     }
                                 };
                             }
@@ -1426,7 +1510,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             
                             const setCurrentPage = (page) => {
                                 standaloneCurrentPage = page;
-                                console.log(`MenuHelpers: Standalone page set to ${page}`);
+                                // Sync to standaloneEventSlide for filter matching
+                                if (window.standaloneEventSlide) {
+                                    window.standaloneEventSlide.currentPage = page;
+                                }
                             };
                             
                             // Get events for a specific page (mimics DataModel.getEventsForCurrentPage)
@@ -1628,25 +1715,50 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 }
                             };
                             
+                            // Helper to calculate matching events on a page
+                            const getMatchingEventsOnPage = (pageNum) => {
+                                const activeFilters = window.standaloneActiveFilters || new Set();
+                                if (activeFilters.size === 0) return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                                
+                                const pageStart = (pageNum - 1) * 10;
+                                const pageEnd = Math.min(pageStart + 10, events.length);
+                                const matching = [];
+                                
+                                for (let i = pageStart; i < pageEnd; i++) {
+                                    const event = events[i];
+                                    if (event && !shouldEventBeLocked(event, activeFilters)) {
+                                        matching.push((i % 10) + 1); // 1-based index on page
+                                    }
+                                }
+                                return matching;
+                            };
+                            
                             // Handle page change
                             const handlePageChange = (newPage, options = {}) => {
                                 const totalPages = getTotalPages();
                                 const validPage = Math.max(1, Math.min(totalPages, newPage));
                                 const currentPage = getCurrentPage();
                                 
-                                console.log(`MenuHelpers: Page change requested: ${newPage} -> valid: ${validPage}, current: ${currentPage}, total: ${totalPages}`);
-                                
                                 if (validPage !== currentPage) {
-                                    console.log(`MenuHelpers: Changing to page ${validPage}`);
                                     setCurrentPage(validPage);
                                     updatePaginationUI();
+                                    
+                                    // Log page change with filter state and matches
+                                    const activeFilters = window.standaloneActiveFilters || new Set();
+                                    const filterStr = activeFilters.size > 0 ? `[${Array.from(activeFilters).join(', ')}]` : '[]';
+                                    const matching = getMatchingEventsOnPage(validPage);
+                                    const matchStr = matching.length > 0 ? `[${matching.join(', ')}]` : '[]';
+                                    console.log(`[FILTERS] 📄 PAGE ${validPage}: ${filterStr} | Matches: ${matchStr}`);
+                                    
+                                    // Refresh event markers on Globe for new page
+                                    if (window.globeEventMarkerManager) {
+                                        window.globeEventMarkerManager.refreshEventMarkers(true);
+                                    }
                                     
                                     // Skip sound during slider scrubbing - tick sounds play instead
                                     if (!options.skipSound && window.SoundEffectsManager?.play) {
                                         window.SoundEffectsManager.play('page');
                                     }
-                                } else {
-                                    console.log(`MenuHelpers: Already on page ${validPage}, no change needed`);
                                 }
                             };
                             
@@ -1782,14 +1894,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (!buttons.length) return;
                             
                             const events = allEvents || window.eventManager?.events || [];
-                            const eventsPerPage = 10; // Globe uses 10 events per page
+                            const eventsPerPage = 10;
                             const baseIndex = (pageNum - 1) * eventsPerPage;
                             
                             // Get active filters for lock state check
                             const activeFilters = window.standaloneActiveFilters || new Set();
                             const filtersOn = activeFilters.size > 0;
-                            
-                            console.log('[DEBUG wireNumberButtons] pageNum:', pageNum, 'filtersOn:', filtersOn, 'activeFilters:', Array.from(activeFilters));
                             
                             buttons.forEach((btn, index) => {
                                 // Remove old listeners by cloning
@@ -1810,14 +1920,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 // Check if this event should be locked based on filters
                                 const isLocked = filtersOn && shouldEventBeLocked(event, activeFilters);
                                 
-                                if (filtersOn) {
-                                    console.log('[DEBUG] Event', globalEventIndex, event.name || 'unnamed', 'isLocked:', isLocked, 'filters:', event.filters, 'npcs:', event.npcs, 'factions:', event.factions);
-                                }
-                                
                                 newBtn.disabled = isLocked;
                                 newBtn.style.opacity = isLocked ? '0.5' : '1';
                                 newBtn.style.display = '';
                                 newBtn.classList.toggle('locked', isLocked);
+                                newBtn.dataset.isLocked = isLocked ? 'true' : 'false';
+                                newBtn.dataset.eventIndex = globalEventIndex;
                                 
                                 // Update button number
                                 const numEl = newBtn.querySelector('.event-number-btn__num');
@@ -1884,6 +1992,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         return;
                                     }
                                     
+                                    // Alert if locked event was clicked (should not happen)
+                                    const btnLocked = newBtn.dataset.isLocked === 'true';
+                                    if (btnLocked || newBtn.disabled) {
+                                        console.error(`[FILTERS] 🚨 LOCKED EVENT CLICKED: #${globalEventIndex} "${event.name || 'unnamed'}"`);
+                                        return; // Don't open locked events
+                                    }
+                                    
                                     // Show event in standalone panel
                                     if (window.standaloneEventSlide) {
                                         window.standaloneEventSlide.showEvent(globalEventIndex);
@@ -1945,9 +2060,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     };
                                 }
                                 
-                                // Hover effects - use getHoverPreviewLines like the globe
+                                // Hover effects - show preview badge only
                                 newBtn.onmouseenter = () => {
-                                    console.log('MenuHelpers: mouseenter on button', globalEventIndex, 'event:', event?.name);
                                     if (window.EventsHoverPreviewBadge?.show && event) {
                                         // Get era/year/flags using same method as globe
                                         const hoverLines = window.EventsHoverPreviewBadge.getHoverPreviewLines 
@@ -1957,7 +2071,6 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         const variants = isMultiEvent ? event.variants : [];
                                         const otherVariants = variants.slice(1);
                                         
-                                        console.log('MenuHelpers: Calling show with era:', hoverLines.eraName || displayEvent.eraName);
                                         window.EventsHoverPreviewBadge.show(
                                             globalEventIndex + 1,
                                             plainName,
@@ -1967,85 +2080,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                             hoverLines.otherRowFlags || [],
                                             hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
                                         );
-                                    } else {
-                                        console.log('MenuHelpers: EventsHoverPreviewBadge not available or no event', window.EventsHoverPreviewBadge, event);
-                                    }
-                                    
-                                    // === GLOBE INTEGRATION ===
-                                    // If Globe is loaded, pan camera to marker and highlight it
-                                    const gc = window.globeController;
-                                    if (gc && event) {
-                                        const sceneModel = gc.sceneModel;
-                                        const ic = gc.interactionController;
-                                        if (sceneModel && ic) {
-                                            // Find the marker for this event
-                                            const markers = sceneModel.getMarkers?.() || [];
-                                            const marker = markers.find(m => 
-                                                m?.userData?.event && 
-                                                (m.userData.event.id === event.id || m.userData.event.name === event.name)
-                                            );
-                                            
-                                            if (marker && !marker.userData?.isLocked) {
-                                                // Pan camera to marker
-                                                const locationType = marker.userData?.locationType || 'earth';
-                                                if (locationType === 'moon' || locationType === 'mars') {
-                                                    ic.resetCameraToDefault();
-                                                } else if (locationType === 'station' || locationType === 'marsShip') {
-                                                    ic.setPlanesVisibility(false);
-                                                    ic.startFollowingStation(marker);
-                                                } else {
-                                                    // Earth: zoom to marker
-                                                    ic.zoomToMarker(marker);
-                                                }
-                                                
-                                                // Highlight marker
-                                                ic.startEventMarkerPulse?.(marker);
-                                                ic.hoveredEventMarker = marker;
-                                                ic.pulseService?.setHoveredMarker?.(marker);
-                                                
-                                                // Sync thumbnail highlight on marker
-                                                ic.highlightNumberButtonForMarker?.(marker);
-                                            }
-                                        }
                                     }
                                 };
                                 
                                 newBtn.onmouseleave = () => {
                                     if (window.EventsHoverPreviewBadge?.hide) {
                                         window.EventsHoverPreviewBadge.hide();
-                                    }
-                                    
-                                    // === GLOBE INTEGRATION ===
-                                    // Restore camera and stop marker pulse
-                                    const gc = window.globeController;
-                                    if (gc?.interactionController) {
-                                        const ic = gc.interactionController;
-                                        
-                                        // Stop marker pulse
-                                        if (ic.hoveredEventMarker) {
-                                            ic.stopEventMarkerPulse?.(ic.hoveredEventMarker);
-                                            ic.hoveredEventMarker = null;
-                                            ic.pulseService?.setHoveredMarker?.(null);
-                                        }
-                                        
-                                        // Clear thumbnail highlight
-                                        ic.highlightNumberButtonForMarker?.(null);
-                                        
-                                        // Restore camera if original position was stored
-                                        const uiView = gc.uiView;
-                                        if (uiView?.originalCameraPosition && uiView.zoomOutFromEvent) {
-                                            uiView.zoomOutFromEvent();
-                                        } else {
-                                            // Fallback: just reset camera
-                                            ic.resetCameraToDefault?.();
-                                        }
-                                        
-                                        // Resume auto-rotate after delay
-                                        if (gc.sceneModel && !gc.sceneModel.getAutoRotateEnabled?.()) {
-                                            gc.sceneModel.autoRotateTimeout = setTimeout(() => {
-                                                gc.sceneModel.setAutoRotate?.(true);
-                                            }, 2000);
-                                        }
                                     }
                                 };
                             });
@@ -2179,9 +2219,19 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     
                                     growAnim.onfinish = () => {
                                         delete btn.dataset.pageTurnToken;
+                                        // Re-apply correct filter-based visual state (in case filters changed during animation)
+                                        const finalLocked = btn.dataset.locked === 'true';
+                                        if (finalLocked) {
+                                            btn.style.setProperty('opacity', '0.5', 'important');
+                                            btn.style.setProperty('filter', 'none', 'important');
+                                            btn.classList.add('locked');
+                                        } else {
+                                            btn.style.setProperty('opacity', '1', 'important');
+                                            btn.style.setProperty('filter', 'none', 'important');
+                                            btn.classList.remove('locked');
+                                        }
                                         // Final safety: ensure click handler is still set correctly
                                         if (!btn.onclick || btn.dataset.eventIndex !== String(globalEventIndex)) {
-                                            console.log('[DEBUG] Re-setting click handler in growAnim.onfinish for event', globalEventIndex);
                                             setupClickHandler(btn, globalEventIndex);
                                         }
                                     };
@@ -2209,18 +2259,21 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 btn.disabled = true;
                                 btn.setAttribute('disabled', '');
                                 btn.style.pointerEvents = 'none';
+                                btn.style.setProperty('opacity', '0.5', 'important');
+                                btn.style.setProperty('filter', 'none', 'important');
                             } else {
                                 btn.disabled = false;
                                 btn.removeAttribute('disabled');
                                 btn.style.pointerEvents = 'auto';
+                                btn.style.setProperty('opacity', '1', 'important');
+                                btn.style.setProperty('filter', 'none', 'important');
                             }
-                            btn.style.opacity = isLocked ? '0.5' : '';
                             btn.classList.toggle('locked', isLocked);
                             btn.dataset.locked = isLocked ? 'true' : 'false';
                             
-                            // Debug logging
-                            if (filtersOn) {
-                                console.log('[DEBUG updateSingleButtonContent] Event', globalEventIndex, 'isLocked:', isLocked, 'disabled:', btn.disabled);
+                            // Debug logging with visual state
+                            if (filtersOn || btn.style.opacity !== '1') {
+                                console.log(`[VISUAL] Event ${globalEventIndex}: isLocked=${isLocked}, opacity='${btn.style.opacity}', disabled=${btn.disabled}, classList=${btn.classList.value}`);
                             }
                             
                             const numEl = btn.querySelector('.event-number-btn__num');
@@ -2341,7 +2394,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 };
                             }
                             
-                            // Hover effects - use getHoverPreviewLines like the globe
+                            // Hover effects - show preview badge only
                             btn.onmouseenter = () => {
                                 if (window.EventsHoverPreviewBadge?.show && event) {
                                     // Get era/year/flags using same method as globe
@@ -2362,65 +2415,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
                                     );
                                 }
-                                
-                                // === GLOBE INTEGRATION ===
-                                const gc = window.globeController;
-                                if (gc && event) {
-                                    const sceneModel = gc.sceneModel;
-                                    const ic = gc.interactionController;
-                                    if (sceneModel && ic) {
-                                        const markers = sceneModel.getMarkers?.() || [];
-                                        const marker = markers.find(m => 
-                                            m?.userData?.event && 
-                                            (m.userData.event.id === event.id || m.userData.event.name === event.name)
-                                        );
-                                        
-                                        if (marker && !marker.userData?.isLocked) {
-                                            const locationType = marker.userData?.locationType || 'earth';
-                                            if (locationType === 'moon' || locationType === 'mars') {
-                                                ic.resetCameraToDefault();
-                                            } else if (locationType === 'station' || locationType === 'marsShip') {
-                                                ic.setPlanesVisibility(false);
-                                                ic.startFollowingStation(marker);
-                                            } else {
-                                                ic.zoomToMarker(marker);
-                                            }
-                                            
-                                            ic.startEventMarkerPulse?.(marker);
-                                            ic.hoveredEventMarker = marker;
-                                            ic.pulseService?.setHoveredMarker?.(marker);
-                                            ic.highlightNumberButtonForMarker?.(marker);
-                                        }
-                                    }
-                                }
                             };
                             
                             btn.onmouseleave = () => {
                                 if (window.EventsHoverPreviewBadge?.hide) {
                                     window.EventsHoverPreviewBadge.hide();
-                                }
-                                
-                                // === GLOBE INTEGRATION ===
-                                const gc = window.globeController;
-                                if (gc?.interactionController) {
-                                    const ic = gc.interactionController;
-                                    if (ic.hoveredEventMarker) {
-                                        ic.stopEventMarkerPulse?.(ic.hoveredEventMarker);
-                                        ic.hoveredEventMarker = null;
-                                        ic.pulseService?.setHoveredMarker?.(null);
-                                    }
-                                    ic.highlightNumberButtonForMarker?.(null);
-                                    const uiView = gc.uiView;
-                                    if (uiView?.originalCameraPosition && uiView.zoomOutFromEvent) {
-                                        uiView.zoomOutFromEvent();
-                                    } else {
-                                        ic.resetCameraToDefault?.();
-                                    }
-                                    if (gc.sceneModel && !gc.sceneModel.getAutoRotateEnabled?.()) {
-                                        gc.sceneModel.autoRotateTimeout = setTimeout(() => {
-                                            gc.sceneModel.setAutoRotate?.(true);
-                                        }, 2000);
-                                    }
                                 }
                             };
                         },

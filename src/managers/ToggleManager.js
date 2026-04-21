@@ -194,8 +194,14 @@ export class ToggleManager {
                 hyperloopIcon.innerHTML = '<img src="assets/images/icons/Train Icon.png" alt="Transport" style="width: 100%; height: 100%; object-fit: contain;">';
             }
 
-            const refreshP = gc?.eventMarkerManager?.refreshEventMarkers?.(false);
+            console.log(`[ToggleManager hyperloop] Transport ${visible ? 'ENABLED' : 'DISABLED'}, refreshing markers...`);
+            
+            // Use Event System's EventMarkerManager if available
+            const markerManager = window.globeEventMarkerManager || gc?.eventMarkerManager;
+            const refreshP = markerManager?.refreshEventMarkers?.(false);
+            
             const finishTransportSurfaceSwitch = () => {
+                console.log('[ToggleManager hyperloop] Finishing transport surface switch...');
                 // refreshEventMarkers already ends with updatePlaneVisibility + rebind; do not call
                 // updatePlaneVisibility again here (would interrupt orbit panel squash animation).
                 // updateHyperloopVisibility must run AFTER new markers exist so event dots + pin lines get visibility.
@@ -210,6 +216,7 @@ export class ToggleManager {
                 if (onToggle) {
                     onToggle();
                 }
+                console.log('[ToggleManager hyperloop] Toggle complete');
             };
             if (refreshP && typeof refreshP.then === 'function') {
                 refreshP.then(finishTransportSurfaceSwitch);

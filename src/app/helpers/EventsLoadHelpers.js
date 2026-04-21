@@ -15,77 +15,13 @@ import { updateStatus } from '../../managers/StatusManager.js';
  * @param {Function} params.updateStatus - Status update function
  */
 export function setupEventUIComponents({ updateStatus }) {
-    // Add filter button (styled as globe dock rail button, positioned on right)
-    createGlobeControlButton({
-        id: 'filtersToggle',
-        className: 'dock-globe-rail__btn',
-        title: 'Open Filters',
-        label: 'Filters',
-        iconPath: 'assets/images/icons/Filter Icon.png',
-        iconAlt: 'Filters',
-        parentId: 'dockGlobeRailRight',
-        baseClass: 'globe-control-btn',
-        headerOrder: 5,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
-    });
+    // NOTE: All Event System UI (buttons, pagination, filters panel) are now created by
+    // standalone Event System Load Out only (MenuServiceHelpers.js / MenuHelpers.js)
+    // Globe no longer creates any event-related UI - it relies entirely on standalone
     
-    // Add event manager button (styled as globe dock rail button, positioned on right)
-    createGlobeControlButton({
-        id: 'eventsManageToggle',
-        className: 'dock-globe-rail__btn',
-        title: 'Manage Events',
-        label: 'Events',
-        iconPath: 'assets/images/icons/Event Manager Icon.png',
-        iconAlt: 'Event Manager',
-        parentId: 'dockGlobeRailRight',
-        baseClass: 'globe-control-btn',
-        headerOrder: 10,
-        mobileParentId: 'dockGlobeRailRight',
-        mobileBaseClass: 'globe-control-btn',
-        mobileClassName: 'dock-globe-rail__btn'
-    });
-
-    createGlobeControlButton({
-        id: 'codexToggle',
-        className: '',
-        title: 'Open Codex',
-        label: 'Codex',
-        iconPath: 'assets/images/icons/Codex%20Icon.png',
-        iconAlt: 'Codex',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        headerOrder: 15
-    });
-
-    createGlobeControlButton({
-        id: 'headerMapViewToggle',
-        className: '',
-        title: 'Toggle Map View',
-        label: 'Map',
-        iconPath: 'assets/images/icons/Switch to Globe Icon.png',
-        iconAlt: 'Map',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        iconSpanId: 'headerMapViewToggleIcon',
-        headerOrder: 20
-    });
-    
-    // Add event pagination
-    getOrCreateElement('eventPagination', () => {
-        updateStatus('Adding event pagination...', 'info');
-        return createEventPagination();
-    }, 'Event pagination');
-    
-    // Add filters panel
-    getOrCreateElement('filtersPanel', () => {
-        updateStatus('Adding filters panel...', 'info');
-        return createFiltersPanel();
-    }, 'Filters panel');
-    
-    // Verify other panels exist
-    verifyEventPanels();
+    // This function is kept for backwards compatibility but does nothing
+    // as standalone Event System handles all event UI creation
+    updateStatus('→ Event UI handled by standalone Event System', 'info');
 }
 
 /**

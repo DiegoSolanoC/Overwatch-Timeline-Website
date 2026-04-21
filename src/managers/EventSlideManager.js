@@ -1386,7 +1386,8 @@ export class EventSlideManager {
         if (isMultiEvent && marker && marker.userData && marker.userData.variantIndex !== undefined) {
             initialVariantIndex = marker.userData.variantIndex;
         }
-        const activeFilters = this.sceneModel && this.sceneModel.activeFilters;
+        // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+        const activeFilters = window.standaloneActiveFilters;
         if (activeFilters && activeFilters.size > 0 && isMultiEvent && initialVariantIndex === 0) {
             initialVariantIndex = getPreferredVariantIndexForActiveFilters(eventData, activeFilters);
         }

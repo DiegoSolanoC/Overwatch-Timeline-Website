@@ -243,9 +243,7 @@ export function showEventsHoverPreview(
     otherRowFlags,
     yearLine
 ) {
-    console.log('EventsHoverPreviewBadge: show called', { eventNum, plainEventName, eraName });
     const badgeEl = ensureBadge();
-    console.log('EventsHoverPreviewBadge: badge element', badgeEl);
     try {
         if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
             return;
@@ -328,9 +326,7 @@ export function showEventsHoverPreview(
     }
 
     badgeEl.classList.add('music-now-playing-badge--visible');
-    console.log('EventsHoverPreviewBadge: added visible class, badge in DOM:', document.body.contains(badgeEl));
     positionBadge();
-    console.log('EventsHoverPreviewBadge: positionBadge called, badge style:', badgeEl.style.cssText);
 
     stopHoverPreviewFollow();
     let pending = null;

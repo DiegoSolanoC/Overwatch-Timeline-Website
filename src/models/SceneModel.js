@@ -47,8 +47,7 @@ export class SceneModel {
         this.globeWeatherEffectsVisible = true;
         /** Lighting toggle state: Sun, ambient contrast, and city lights (light dots). */
         this.globeLightingVisible = true;
-        this.eventMarker = null; // Current event marker for recentering
-        this.activeFilters = new Set(); // Currently active filter selections
+        // NOTE: eventMarker and activeFilters removed - Globe no longer handles events
         this.isMapView = false; // Earth view mode: globe (false) or flat map (true)
 
         /** Same equirectangular asset as the WebGL map plane; used by DOM lite map `<img>`. */

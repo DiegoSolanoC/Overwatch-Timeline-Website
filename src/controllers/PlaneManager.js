@@ -216,6 +216,7 @@ export class PlaneManager {
      * Update Moon/Mars plane visibility based on current page events
      * Planes are shown only if the current page has at least one event on that plane
      * Animates panels with vertical scaling (squash/stretch effect)
+     * NOTE: Now uses Event System data when available, falls back to Globe's dataModel
      */
     updatePlaneVisibility() {
         // Try multiple ways to get planes
@@ -228,19 +229,36 @@ export class PlaneManager {
         }
         
         if (!moonPlane || !marsPlane) {
+            console.log('[updatePlaneVisibility] Moon or Mars plane not found, skipping');
             return;
         }
         
         const orbitPlane = this.sceneModel.getOrbitPlane ? this.sceneModel.getOrbitPlane() : this.sceneModel.orbitPlane;
 
-        if (!this.dataModel) {
+        // Determine which data source to use for current page events
+        let currentPageEvents = [];
+        let dataSource = 'none';
+        
+        // Try Event System data first
+        if (window.eventManager?.events && window.standaloneEventSlide?.currentPage) {
+            const allEvents = window.eventManager.events;
+            const currentPage = window.standaloneEventSlide.currentPage;
+            const eventsPerPage = 10;
+            const startIndex = (currentPage - 1) * eventsPerPage;
+            const endIndex = startIndex + eventsPerPage;
+            currentPageEvents = allEvents.slice(startIndex, endIndex);
+            dataSource = `EventSystem (page ${currentPage})`;
+        } else if (this.dataModel) {
+            // Fall back to Globe's dataModel
+            currentPageEvents = this.dataModel.getEventsForCurrentPage();
+            dataSource = 'Globe dataModel';
+        } else {
+            console.log('[updatePlaneVisibility] No data source available, hiding all planes');
             this.animatePlaneScale(moonPlane, false);
             this.animatePlaneScale(marsPlane, false);
             if (orbitPlane) this.animatePlaneScale(orbitPlane, false);
             return;
         }
-
-        const currentPageEvents = this.dataModel.getEventsForCurrentPage();
 
         let hasMoonEvent = false;
         let hasMarsEvent = false;

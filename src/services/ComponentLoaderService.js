@@ -19,6 +19,9 @@ const createGlobeControlButton = getHelper('createGlobeControlButton', (config, 
     button.id = config.id;
     button.className = `globe-control-btn ${config.className || ''}`;
     button.title = config.title;
+    if (config.mode) {
+        button.dataset.mode = config.mode;
+    }
     button.innerHTML = `<span id="${config.id}Icon"><img src="${config.iconPath}" alt="${config.iconAlt}" style="width: 100%; height: 100%; object-fit: contain;"></span>`;
     const parent = document.getElementById(config.parentId || 'content');
     if (parent) {

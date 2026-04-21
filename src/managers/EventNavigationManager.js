@@ -129,8 +129,9 @@ const CoordinateMatcher = {
      */
     findMarkerForEvent(markers, targetEvent) {
         const targetLocationType = targetEvent.locationType || 'earth';
+        console.log(`[CoordinateMatcher] Searching for: ${targetEvent.name}, locationType: ${targetLocationType}, among ${markers.length} markers`);
 
-        return markers.find(m => {
+        const found = markers.find(m => {
             if (m.userData && m.userData.isEventMarker) {
                 const markerEvent = m.userData.event;
                 const markerLocationType = m.userData.locationType || 'earth';
@@ -139,13 +140,36 @@ const CoordinateMatcher = {
                 if (markerLocationType !== targetLocationType) return false;
 
                 // Match by event object reference first
-                if (markerEvent === targetEvent) return true;
+                if (markerEvent === targetEvent) {
+                    console.log(`[CoordinateMatcher] Matched by object reference: ${markerEvent.name}`);
+                    return true;
+                }
 
                 // Match by coordinates based on location type
-                return this.matchCoordinates(m, targetEvent, targetLocationType);
+                const coordMatch = this.matchCoordinates(m, targetEvent, targetLocationType);
+                if (coordMatch) {
+                    console.log(`[CoordinateMatcher] Matched by coordinates: marker=${markerEvent?.name}, target=${targetEvent.name}`);
+                }
+                return coordMatch;
             }
             return false;
-        }) || null;
+        });
+        
+        if (!found) {
+            // Log marker info for debugging
+            const eventMarkers = markers.filter(m => m.userData?.isEventMarker);
+            console.log(`[CoordinateMatcher] No match found. Event markers on globe:`, eventMarkers.map(m => ({
+                name: m.userData?.event?.name,
+                lat: m.userData?.lat,
+                lon: m.userData?.lon,
+                x: m.userData?.x,
+                y: m.userData?.y,
+                locationType: m.userData?.locationType
+            })));
+            console.log(`[CoordinateMatcher] Target event:`, {name: targetEvent.name, lat: targetEvent.lat, lon: targetEvent.lon, x: targetEvent.x, y: targetEvent.y, locationType: targetEvent.locationType});
+        }
+        
+        return found || null;
     }
 };
 
@@ -161,7 +185,8 @@ function getPaginationThumbVariantIndex(targetEvent, globalEventIndex) {
         return 0;
     }
     try {
-        const activeFilters = window.globeController?.sceneModel?.activeFilters;
+        // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+        const activeFilters = window.standaloneActiveFilters;
         const filtersOn = activeFilters && activeFilters.size > 0;
         
         if (filtersOn) {
@@ -199,13 +224,22 @@ function getPaginationThumbVariantIndex(targetEvent, globalEventIndex) {
 }
 
 function findMarkerForPaginationThumb(sceneModel, markers, targetEvent, globalEventIndex) {
-    if (!targetEvent || !markers) return null;
+    if (!targetEvent || !markers) {
+        console.log(`[findMarkerForPaginationThumb] Missing targetEvent or markers`);
+        return null;
+    }
+    console.log(`[findMarkerForPaginationThumb] Looking for: ${targetEvent.name}, globalIndex: ${globalEventIndex}`);
+    
     if (Array.isArray(targetEvent.variants) && targetEvent.variants.length > 1 && sceneModel) {
         const vi = getPaginationThumbVariantIndex(targetEvent, globalEventIndex);
         const vm = findVariantMarker(sceneModel, targetEvent, vi);
-        if (vm) return vm;
+        if (vm) {
+            console.log(`[findMarkerForPaginationThumb] Found via variant marker`);
+            return vm;
+        }
     }
     const found = CoordinateMatcher.findMarkerForEvent(markers, targetEvent);
+    console.log(`[findMarkerForPaginationThumb] CoordinateMatcher result: ${found ? 'FOUND' : 'NOT FOUND'}`);
     if (found) return found;
 
     const mapOn = sceneModel.getMapViewEnabled?.() ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
@@ -647,8 +681,8 @@ export class EventNavigationManager {
                         ticksEl.appendChild(tick);
                     }
                 }
-                const activeFilters =
-                    window.globeController?.sceneModel?.activeFilters || null;
+                // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+                const activeFilters = window.standaloneActiveFilters || null;
                 const filtersOn = activeFilters && activeFilters.size > 0;
                 const events = Array.isArray(this.dataModel.events) ? this.dataModel.events : [];
 
@@ -930,10 +964,11 @@ export class EventNavigationManager {
     }
 
     /**
-     * Re-apply camera + pulse for a globe pagination slot (1–10), e.g. after variant cycle while hovered.
+     * Show hover preview for a globe pagination slot (1–10).
+     * NOTE: Camera centering removed - only shows preview badge.
      */
     applyGlobePaginationThumbHover(position) {
-        if (!this.dataModel || position == null) return;
+        if (position == null) return;
         const p = Number(position);
         if (!Number.isFinite(p) || p < 1 || p > 10) return;
 
@@ -942,49 +977,27 @@ export class EventNavigationManager {
         const btn = container.querySelector(`.event-number-btn[data-position="${p}"]`);
         if (!btn || btn.disabled) return;
 
-        const currentPageEvents = this.dataModel.getEventsForCurrentPage();
+        // NOTE: Use Event System's data instead of Globe's dataModel
+        const allEvents = window.eventManager?.events || [];
+        const currentPageNum = window.standaloneEventSlide?.currentPage || 1;
+        const eps = 10; // events per page
+        const startIndex = (currentPageNum - 1) * eps;
+        const endIndex = startIndex + eps;
+        const currentPageEvents = allEvents.slice(startIndex, endIndex);
+        
         const eventIndex = p - 1;
         if (eventIndex >= currentPageEvents.length) return;
 
         const targetEvent = currentPageEvents[eventIndex];
-        const sceneModel = window.globeController?.sceneModel;
-        const ic = window.globeController?.interactionController;
-        if (!sceneModel || !ic || !window.globeController?.globeView) return;
 
-        const markers = sceneModel.getMarkers();
-        const currentPageNum = this.dataModel.getCurrentEventPage();
-        const eps = this.dataModel.eventsPerPage || 10;
-        const globalIx = (currentPageNum - 1) * eps + eventIndex;
-        const marker = findMarkerForPaginationThumb(sceneModel, markers, targetEvent, globalIx);
-
-        const lockedOnMap = marker && marker.userData && marker.userData.isLocked;
+        // Show hover preview badge only (no camera centering)
+        const lockedOnMap = false; // Simplified - Event System doesn't have locked events on map
         if (targetEvent && !lockedOnMap) {
-            const n = getGlobalEventNumber1Based(targetEvent, this.dataModel);
+            const n = (currentPageNum - 1) * eps + eventIndex + 1; // Global event number (1-based)
             const { primary, otherVariants, era, primaryRowFlag, otherRowFlags, yearLine } =
                 getHoverPreviewLines(targetEvent);
             showEventsHoverPreview(n, primary, otherVariants, era, primaryRowFlag, otherRowFlags, yearLine);
         }
-
-        if (!marker || (marker.userData && marker.userData.isLocked)) return;
-
-        if (
-            targetEvent &&
-            Array.isArray(targetEvent.variants) &&
-            targetEvent.variants.length > 1
-        ) {
-            this.uiView.showVariantMarkers(targetEvent);
-        }
-
-        const camera = sceneModel.getCamera?.();
-        const globe = sceneModel.getGlobe?.();
-        if (!this.uiView.currentEventMarker && camera && !this.uiView.originalCameraPosition) {
-            this.uiView.originalCameraPosition = camera.position.clone();
-            this.uiView.originalGlobeRotation = globe
-                ? { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z }
-                : { x: 0, y: 0, z: 0 };
-        }
-
-        handleNumberButtonMouseEnter(marker, sceneModel, ic);
     }
 
     /**
@@ -1078,8 +1091,8 @@ export class EventNavigationManager {
                 });
             }
 
-            const sceneModel = window.globeController?.sceneModel;
-            const activeFilters = sceneModel?.activeFilters;
+            // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+            const activeFilters = window.standaloneActiveFilters;
             const filtersOn = !!(activeFilters && activeFilters.size > 0);
 
             const applyPaginationThumbSlot = (btn, eventIndex) => {

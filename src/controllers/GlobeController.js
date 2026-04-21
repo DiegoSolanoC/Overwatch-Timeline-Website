@@ -13,7 +13,6 @@ import { InteractionController } from './InteractionController.js';
 import { AutoRotateController } from './AutoRotateController.js';
 import { PlaneManager } from './PlaneManager.js';
 import { applyCurrentPaletteToTransportVehicles } from '../utils/TransportPaletteColors.js';
-import { applyPaletteToExistingEventMarkers } from '../managers/helpers/MarkerCreationHelpers.js';
 import { maybeInstallDevSunYawControl } from '../dev/DevSunYawControl.js';
 import { Map2DLiteLayer } from '../ui/Map2DLiteLayer.js';
 export class GlobeController {
@@ -47,7 +46,6 @@ export class GlobeController {
 
         if (typeof window !== 'undefined') {
             window.applyCurrentPaletteToTransportVehicles = applyCurrentPaletteToTransportVehicles;
-            window.applyPaletteToExistingEventMarkers = applyPaletteToExistingEventMarkers;
         }
         
         // Animation state
@@ -97,7 +95,8 @@ export class GlobeController {
         this.globeView.addShootingStars();
         this.globeView.addCityMarkers();
         this.globeView.addSeaportMarkers();
-        this.globeView.addEventMarkers();
+        // NOTE: Event markers removed - Globe no longer shows event markers
+        // Event System Load Out handles all event UI separately
         this.globeView.addEarthCityLights();
 
         const updateVisibility = () => {
@@ -107,16 +106,8 @@ export class GlobeController {
         setTimeout(updateVisibility, 300);
         setTimeout(updateVisibility, 500);
 
-        const finalSync = () => {
-            if (window.eventManager && window.eventManager.events) {
-                this.dataModel.events = [...window.eventManager.events];
-                this.globeView.refreshEventMarkers();
-                console.log('GlobeController: Final sync -', window.eventManager.events.length, 'events from EventManager');
-            }
-        };
-        finalSync();
-        setTimeout(finalSync, 300);
-        setTimeout(finalSync, 1000);
+        // NOTE: Event sync removed - Globe no longer syncs with EventManager
+        // Event System Load Out handles all event data separately
 
         this.globeView.addConnectionLines((routeData) => {
             this.transportModel.addRouteCurve(routeData);
@@ -163,11 +154,6 @@ export class GlobeController {
         if (orbitRig) orbitRig.visible = false;
     }
 
-    /** Used by transport toggle / ToggleService so marker refresh runs (same instance as {@link GlobeView#eventMarkerManager}). */
-    get eventMarkerManager() {
-        return this.globeView?.eventMarkerManager ?? null;
-    }
-
     /**
      * Initialize the globe application
      */
@@ -181,25 +167,8 @@ export class GlobeController {
         // Load data
         try {
             await this.dataModel.loadData();
-            
-            // ALWAYS check for EventManager events (source of truth for user-created events)
-            // Check immediately and also wait a bit in case EventManager is still loading
-            if (window.eventManager && window.eventManager.events) {
-                this.dataModel.events = [...window.eventManager.events];
-                console.log('GlobeController: Using', window.eventManager.events.length, 'events from EventManager');
-            } else {
-                // If EventManager not ready yet, wait a bit and check again
-                setTimeout(() => {
-                    if (window.eventManager && window.eventManager.events) {
-                        this.dataModel.events = [...window.eventManager.events];
-                        console.log('GlobeController: Synced', window.eventManager.events.length, 'events from EventManager (delayed)');
-                        // Refresh markers if already added
-                        if (this.globeView) {
-                            this.globeView.refreshEventMarkers();
-                        }
-                    }
-                }, 200);
-            }
+            // NOTE: EventManager sync removed - Globe no longer syncs event data
+            // Event System Load Out handles all event data separately
         } catch (error) {
             console.error('Failed to load data:', error);
             return;
@@ -227,14 +196,8 @@ export class GlobeController {
             this.onHyperloopToggled();
         });
 
-        this.uiView.setupEventPagination(() => {
-            const gc = window.globeController;
-            if (!gc?.globeView?.refreshEventMarkers) return;
-            gc.globeView.refreshEventMarkers(true, { preservePaginationThumbEntrance: true });
-            if (typeof gc.requestMapLiteSync === 'function') {
-                gc.requestMapLiteSync();
-            }
-        });
+        // NOTE: Event pagination removed - Globe no longer handles event pagination
+        // Event System Load Out handles all event UI separately
 
         window.addEventListener('resize', () => {
             this._globeLayoutDirty = true;
@@ -576,15 +539,8 @@ export class GlobeController {
             this.interactionController.resetCameraToDefault();
         }
 
-        // Close any open event slide to avoid "zoom to globe" assumptions lingering
-        if (this.uiView && this.uiView.currentEventMarker) {
-            this.uiView.hideEventSlide();
-        }
-
-        // Recreate event markers (globe + celestial rigs; Earth map markers are DOM-only)
-        if (this.globeView && typeof this.globeView.refreshEventMarkers === 'function') {
-            this.globeView.refreshEventMarkers();
-        }
+        // NOTE: Event slide and marker refresh removed - Globe no longer handles events
+        // Event System Load Out handles all event UI separately
         
         // Update all transport markers visibility for new view mode
         if (this.transportView && typeof this.transportView.updateAllTransportMarkersVisibility === 'function') {
@@ -632,63 +588,10 @@ export class GlobeController {
     }
 
     /**
-     * Callback after hyperloop toggle: {@link ToggleManager} runs {@link TransportView#updateHyperloopVisibility},
-     * then {@link EventMarkerManager#refreshEventMarkers} (animated), which ends with plane visibility + rebind.
+     * Callback after hyperloop toggle
      * Kept for component-loader / API parity; no extra work required here.
      */
     onHyperloopToggled() {}
-
-    /**
-     * After marker rebuild (e.g. transport on/off, page turn), re-point slide/hover state at the new mesh.
-     * Old markers are detached; without this, {@link UIView#currentEventMarker} stays stale.
-     */
-    rebindOpenEventMarkerAfterRefresh() {
-        const ui = this.uiView;
-        const sm = this.sceneModel;
-        if (!ui?.currentEventMarker?.userData) return;
-
-        const oldMarker = ui.currentEventMarker;
-        const oldUd = oldMarker.userData;
-        if (!oldUd.isEventMarker || !oldUd.event) return;
-        if (oldUd.isMap2dLiteProxy) return;
-
-        const markers = sm.getMarkers?.() || [];
-        const oldVi = oldUd.variantIndex != null ? oldUd.variantIndex : 0;
-        const oldRoot = oldUd.event;
-
-        let replacement = null;
-        for (let i = 0; i < markers.length; i++) {
-            const m = markers[i];
-            const ud = m.userData;
-            if (!ud?.isEventMarker || !ud.event) continue;
-            const sameRoot = ud.event === oldRoot
-                || (oldRoot?.name && ud.event?.name && ud.event.name === oldRoot.name);
-            if (!sameRoot) continue;
-            const vi = ud.variantIndex != null ? ud.variantIndex : 0;
-            if (vi !== oldVi) continue;
-            replacement = m;
-            break;
-        }
-
-        if (!replacement || replacement === oldMarker) {
-            return;
-        }
-
-        const syncState = window.EventSlideStateHelpers?.syncStateWithUIView;
-        if (syncState) {
-            syncState(ui, { currentEventMarker: replacement });
-        } else {
-            ui.currentEventMarker = replacement;
-        }
-        const esm = ui.eventSlideManager;
-        if (esm) {
-            esm.currentEventMarker = replacement;
-        }
-        sm.setActiveMarker?.(replacement);
-        if (sm.eventMarker !== undefined) {
-            sm.eventMarker = replacement;
-        }
-    }
 
     /**
      * Cleanup and stop animation

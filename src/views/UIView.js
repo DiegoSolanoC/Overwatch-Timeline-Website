@@ -1,18 +1,13 @@
 /**
  * UIView - Handles UI elements (labels, buttons, toggles)
  * Note: Glitch text functionality is now handled by GlitchTextService
- * Note: Event slide functionality is now handled by EventSlideManager
- * Note: Event navigation functionality is now handled by EventNavigationManager
+ * Note: Event System features removed - Globe no longer handles events
  */
 
-import { EventSlideManager } from '../managers/EventSlideManager.js';
-import { formatEventSlideTitleHtml } from '../managers/helpers/EventSlideShowHelpers.js';
-import { EventNavigationManager } from '../managers/EventNavigationManager.js';
 import { ImageOverlayManager } from '../managers/ImageOverlayManager.js';
 import { HackedOverlayManager } from '../managers/HackedOverlayManager.js';
 import { ToggleManager } from '../managers/ToggleManager.js';
 import { CameraViewManager } from '../managers/CameraViewManager.js';
-import { EventContentManager } from '../managers/EventContentManager.js';
 import { VariantMarkerManager } from '../managers/VariantMarkerManager.js';
 
 /**
@@ -24,20 +19,15 @@ export class UIView {
         this.dataModel = dataModel; // Store reference to dataModel for pagination
         this.globeView = globeView; // Store reference to globeView for refreshing markers
         this.previousAutoRotateState = null; // Store previous auto-rotate state
-        this.currentEventMarker = null; // Track currently active event marker
-        this.currentEventData = null; // Track currently active event data
-        this.currentVariantIndex = 0; // Track currently displayed variant index
         this.originalCameraPosition = null; // Store original camera position before zoom
         this.originalGlobeRotation = null; // Store original globe rotation before zoom
         
         // Initialize managers
-        this.eventSlideManager = new EventSlideManager(sceneModel, dataModel, this);
-        this.eventNavigationManager = new EventNavigationManager(sceneModel, dataModel, this, this.eventSlideManager);
+        // NOTE: Event managers removed - Globe no longer handles events
         this.imageOverlayManager = new ImageOverlayManager(sceneModel, this);
         this.hackedOverlayManager = new HackedOverlayManager();
         this.toggleManager = new ToggleManager(sceneModel);
         this.cameraViewManager = new CameraViewManager(sceneModel, this);
-        this.eventContentManager = new EventContentManager(sceneModel);
         this.variantMarkerManager = new VariantMarkerManager(sceneModel);
     }
 
@@ -60,136 +50,7 @@ export class UIView {
         this.cameraViewManager.hideCityLabel();
     }
 
-    /**
-     * Update event sources section
-     * Delegates to EventContentManager
-     * @param {Object} event - Event or variant object
-     */
-    updateEventSources(event) {
-        this.eventContentManager.updateEventSources(event);
-    }
-
-    /**
-     * Update event filters section
-     * Delegates to EventContentManager
-     * @param {Object} event - Event or variant object
-     */
-    updateEventFilters(event) {
-        this.eventContentManager.updateEventFilters(event);
-    }
-
-    /**
-     * Show event slide panel
-     * @param {string} eventName - Event name
-     * @param {string} imagePath - Optional image path
-     * @param {string} description - Event description
-     * @param {THREE.Object3D} marker - Event marker object
-     */
-    showEventSlide(eventName, imagePath = null, description = null, marker = null, eventData = null) {
-        // Delegate to EventSlideManager
-        this.eventSlideManager.showEventSlide(eventName, imagePath, description, marker, eventData);
-    }
-    
-    /**
-     * Setup event navigation buttons (prev/next in full events list)
-     * Delegates to EventNavigationManager
-     */
-    setupEventNavigation() {
-        this.eventNavigationManager.setupEventNavigation();
-    }
-    
-    /**
-     * Setup event pagination controls
-     * Delegates to EventNavigationManager
-     * @param {Function} onPageChange - Callback when page changes
-     */
-    setupEventPagination(onPageChange) {
-        this.eventNavigationManager.setupEventPagination(onPageChange);
-    }
-    
-    /**
-     * Setup event number buttons (1-10) to open events by position on current page
-     * Delegates to EventNavigationManager
-     * Returns the update function so it can be called when page changes
-     */
-    setupEventNumberButtons(onPageChange) {
-        return this.eventNavigationManager.setupEventNumberButtons(onPageChange);
-    }
-    
-    /**
-     * Switch to a different variant of a multi-event
-     * Delegates to EventSlideManager
-     */
-    switchEventVariant(variantIndex, eventData) {
-        this.eventSlideManager.switchEventVariant(variantIndex, eventData);
-    }
-
-    /**
-     * Re-apply "N." prefix after GlitchTextService rewrites the title innerHTML.
-     */
-    refreshEventSlideTitleNumberPrefix() {
-        const eventSlideTitle = document.getElementById('eventSlideTitle');
-        if (!eventSlideTitle || !this.currentEventData) return;
-        const isMultiEvent = this.currentEventData.variants && this.currentEventData.variants.length > 0;
-        const currentEvent = isMultiEvent
-            ? this.currentEventData.variants[this.currentVariantIndex]
-            : this.currentEventData;
-        const name = currentEvent?.name;
-        if (!name) return;
-        const nameHtml = window.GlitchTextService
-            ? window.GlitchTextService.getDisplayEventName(name)
-            : name;
-        const dm = this.dataModel || window.globeController?.dataModel;
-        eventSlideTitle.innerHTML = formatEventSlideTitleHtml(nameHtml, this.currentEventData, dm);
-    }
-
-    /**
-     * Toggle glitch effect for Olivia Colomar text
-     */
-    toggleGlitchEffect() {
-        if (!window.GlitchTextService) {
-            console.warn('GlitchTextService not available');
-            return;
-        }
-        
-        const glitchToggleBtn = document.getElementById('eventGlitchToggle');
-        const eventSlideTitle = document.getElementById('eventSlideTitle');
-        const eventSlideText = document.getElementById('eventSlideText');
-        
-        // Get current event data for title and text
-        let titleText = null;
-        let textText = null;
-        
-        if (this.currentEventData) {
-            const isMultiEvent = this.currentEventData.variants && this.currentEventData.variants.length > 0;
-            const currentEvent = isMultiEvent ? this.currentEventData.variants[this.currentVariantIndex] : this.currentEventData;
-            if (currentEvent) {
-                titleText = currentEvent.name || (this.currentEventMarker ? this.currentEventMarker.userData.eventName : 'Event');
-                textText = currentEvent.description || 'Placeholder text for event information.';
-            }
-        }
-        
-        // Use the service's toggle method
-        const newState = window.GlitchTextService.toggleEffect({
-            titleElement: eventSlideTitle,
-            textElement: eventSlideText,
-            titleText: titleText,
-            textText: textText,
-            toggleButton: glitchToggleBtn,
-            onToggle: (enabled, wasEnabled) => {
-                this.refreshEventSlideTitleNumberPrefix();
-                if (typeof this.updateNumberButtons === 'function') {
-                    this.updateNumberButtons();
-                }
-                // Show hacked image overlay if enabled
-                if (enabled) {
-                    setTimeout(() => {
-                        this.showHackedOverlay();
-                    }, 50);
-                }
-            }
-        });
-    }
+    // NOTE: Glitch effect removed - Event System Load Out handles this
     
     /**
      * Toggle event image overlay visibility
@@ -250,13 +111,7 @@ export class UIView {
         this.imageOverlayManager.checkAndAutoShowImage();
     }
 
-    /**
-     * Hide event slide panel
-     */
-    hideEventSlide() {
-        // Delegate to EventSlideManager
-        this.eventSlideManager.hideEventSlide();
-    }
+    // NOTE: Event slide removed - Globe no longer handles events
     
     /**
      * Zoom out from event and restore original camera position and globe rotation

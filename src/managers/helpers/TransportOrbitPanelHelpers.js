@@ -10,5 +10,7 @@ export function useOrbitPanelForStationShipMarkers(sceneModel) {
     const isMap = sceneModel.getMapViewEnabled?.() ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
     // Use ?? so `false` (transport off) is preserved; a ternary would treat false as "use default true".
     const hyper = sceneModel.getHyperloopVisible?.() ?? true;
-    return isMap || !hyper;
+    const useOrbit = isMap || !hyper;
+    console.log(`[useOrbitPanelForStationShipMarkers] isMap=${isMap}, hyperloopVisible=${hyper} -> useOrbitPanel=${useOrbit}`);
+    return useOrbit;
 }

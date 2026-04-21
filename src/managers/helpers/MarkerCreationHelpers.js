@@ -234,13 +234,14 @@ export function shouldEventBeLocked(event, activeFilters) {
     if (!event) {
         return true;
     }
+    
     const variants = event.variants;
     if (variants && variants.length > 0) {
-        if (entityMatchesActiveFilters(event, activeFilters)) {
-            return false;
-        }
-        return !variants.some((v) => entityMatchesActiveFilters(v, activeFilters));
+        const rootMatches = entityMatchesActiveFilters(event, activeFilters);
+        const variantMatches = variants.some((v) => entityMatchesActiveFilters(v, activeFilters));
+        return !rootMatches && !variantMatches;
     }
+    
     return !entityMatchesActiveFilters(event, activeFilters);
 }
 

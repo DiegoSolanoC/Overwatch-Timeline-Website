@@ -57,18 +57,16 @@ export function createFilterImage(filterKey, displayName, type, folder, imageSer
  */
 export function attachFilterButtonClickHandler(filterBtn, filterKey, stateManager, soundManager, updateFilterCounts) {
     filterBtn.addEventListener('click', () => {
-        if (stateManager.has(filterKey)) {
+        const isSelected = stateManager.has(filterKey);
+        
+        if (isSelected) {
             stateManager.remove(filterKey);
             filterBtn.classList.remove('selected');
-            if (soundManager) {
-                soundManager.play('filterOff');
-            }
+            if (soundManager) { soundManager.play('filterOff'); }
         } else {
             stateManager.add(filterKey);
             filterBtn.classList.add('selected');
-            if (soundManager) {
-                soundManager.play('filterPick');
-            }
+            if (soundManager) { soundManager.play('filterPick'); }
         }
         updateFilterCounts();
     });

@@ -73,7 +73,8 @@ export class EventContentManager {
     updateEventFilters(event) {
         const eventFiltersSection = document.getElementById('eventFiltersSection');
         const eventFiltersList = document.getElementById('eventFiltersList');
-        const activeFilters = this.sceneModel.activeFilters || new Set();
+        // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+        const activeFilters = window.standaloneActiveFilters || new Set();
         
         const normalizeKey = (s) => String(s || '')
             .trim()

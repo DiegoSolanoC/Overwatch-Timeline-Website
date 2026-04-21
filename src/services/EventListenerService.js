@@ -648,8 +648,8 @@ class EventListenerService {
                 const selected = fs?.stateManager?.toArray?.();
                 if (Array.isArray(selected)) return selected;
 
-                // Fallback: confirmed/active filters applied to the globe scene.
-                const active = window.globeController?.sceneModel?.activeFilters;
+                // Fallback: standalone active filters
+                const active = window.standaloneActiveFilters;
                 if (active && (active instanceof Set)) return Array.from(active);
                 if (Array.isArray(active)) return active;
             } catch (_) {

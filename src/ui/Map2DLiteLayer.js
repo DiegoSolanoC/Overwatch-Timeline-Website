@@ -141,10 +141,31 @@ function currentPageCelestialFlags(dataModel) {
     let hasMoon = false;
     let hasMars = false;
     let hasOrbit = false;
-    const currentPageEvents = dataModel?.getEventsForCurrentPage?.() || [];
+    
+    // Try Event System data first, fall back to Globe dataModel
+    let currentPageEvents = [];
+    let dataSource = 'none';
+    
+    if (window.eventManager?.events && window.standaloneEventSlide?.currentPage) {
+        const allEvents = window.eventManager.events;
+        const currentPage = window.standaloneEventSlide.currentPage;
+        const eventsPerPage = 10;
+        const startIndex = (currentPage - 1) * eventsPerPage;
+        const endIndex = startIndex + eventsPerPage;
+        currentPageEvents = allEvents.slice(startIndex, endIndex);
+        dataSource = `EventSystem (page ${currentPage})`;
+    } else if (dataModel?.getEventsForCurrentPage) {
+        currentPageEvents = dataModel.getEventsForCurrentPage();
+        dataSource = 'Globe dataModel';
+    }
+    
+    console.log(`[currentPageCelestialFlags] Using ${dataSource}, ${currentPageEvents.length} events`);
+    
+    const eventTypes = [];
     for (let i = 0; i < currentPageEvents.length; i++) {
         const event = currentPageEvents[i];
         const rootLt = event.locationType || 'earth';
+        eventTypes.push(rootLt);
         const visit = (loc) => {
             if (loc === 'moon') hasMoon = true;
             if (loc === 'mars') hasMars = true;
@@ -158,6 +179,9 @@ function currentPageCelestialFlags(dataModel) {
             }
         }
     }
+    
+    console.log(`[currentPageCelestialFlags] Event types: [${eventTypes.join(', ')}] -> Moon=${hasMoon}, Mars=${hasMars}, Orbit=${hasOrbit}`);
+    
     return { hasMoon, hasMars, hasOrbit };
 }
 
@@ -212,7 +236,8 @@ export function createMap2dLiteNavigationStub(fullEvent, displayEvent, variantIn
 }
 
 function makeStubMarker(fullEvent, displayEvent, variantIndex, sceneModel) {
-    const filters = sceneModel?.activeFilters || new Set();
+    // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+    const filters = window.standaloneActiveFilters || new Set();
     const locked = shouldEventBeLocked(fullEvent, filters);
     const isMainVariant = variantIndex == null || variantIndex === 0;
     const originalColor = getMarkerColor(isMainVariant);
@@ -455,6 +480,24 @@ export class Map2DLiteLayer {
         return p;
     }
 
+    /**
+     * Get current page events - uses Event System data when available, falls back to Globe dataModel
+     * @returns {Array} Events for the current page
+     */
+    _getCurrentPageEvents() {
+        // Try Event System data first
+        if (window.eventManager?.events && window.standaloneEventSlide?.currentPage) {
+            const allEvents = window.eventManager.events;
+            const currentPage = window.standaloneEventSlide.currentPage;
+            const eventsPerPage = 10;
+            const startIndex = (currentPage - 1) * eventsPerPage;
+            const endIndex = startIndex + eventsPerPage;
+            return allEvents.slice(startIndex, endIndex);
+        }
+        // Fall back to Globe's dataModel
+        return this.dataModel?.getEventsForCurrentPage?.() || [];
+    }
+
     show() {
         this.ensureDom();
         const palette = readPaletteKey();
@@ -583,6 +626,8 @@ export class Map2DLiteLayer {
         const renderer = this.sceneModel?.getRenderer?.();
         if (!camera || !renderer?.domElement) return;
 
+        console.log('[layoutCelestialPanelsFromCamera] Updating map celestial panels...');
+        
         const moonRig = this.sceneModel?.getMoonRig?.() || this.sceneModel?.moonRig;
         const marsRig = this.sceneModel?.getMarsRig?.() || this.sceneModel?.marsRig;
         const orbitRig = this.sceneModel?.getOrbitRig?.() || this.sceneModel?.orbitRig;
@@ -591,6 +636,8 @@ export class Map2DLiteLayer {
         const orbitSy = orbitRig?.scale?.y ?? 1;
 
         const { hasMoon, hasMars, hasOrbit } = currentPageCelestialFlags(this.dataModel);
+        
+        console.log(`[layoutCelestialPanelsFromCamera] Panel visibility: Moon=${hasMoon}, Mars=${hasMars}, Orbit=${hasOrbit}`);
 
         const edge = MAP2D_CELESTIAL_DOM_EDGE_PX;
         const gap = MAP2D_CELESTIAL_STACK_GAP_PX;
@@ -690,16 +737,24 @@ export class Map2DLiteLayer {
      * Moon / Mars / Orbit panel event dots (WebGL markers are hidden behind DOM map).
      */
     _syncCelestialMarkers() {
-        if (!this.isVisible() || !this._moonMarkersEl || !this._marsMarkersEl || !this._orbitMarkersEl) return;
+        console.log('[_syncCelestialMarkers] Syncing celestial markers...');
+        if (!this.isVisible() || !this._moonMarkersEl || !this._marsMarkersEl || !this._orbitMarkersEl) {
+            console.log('[_syncCelestialMarkers] Not visible or celestial elements missing, skipping');
+            return;
+        }
 
         this._moonMarkersEl.replaceChildren();
         this._marsMarkersEl.replaceChildren();
         this._orbitMarkersEl.replaceChildren();
 
         const ui = window.globeController?.uiView;
-        if (!ui) return;
+        if (!ui) {
+            console.log('[_syncCelestialMarkers] No uiView found, skipping');
+            return;
+        }
 
-        const events = this.dataModel.getEventsForCurrentPage?.() || [];
+        const events = this._getCurrentPageEvents();
+        console.log(`[_syncCelestialMarkers] Processing ${events.length} events`);
 
         const addOne = (fullEvent, displayEvent, variantIndex, locationType) => {
             let host;
@@ -1180,11 +1235,12 @@ export class Map2DLiteLayer {
      * @returns {Promise<void>}
      */
     _syncMarkersFilterInPlace() {
-        const events = this.dataModel.getEventsForCurrentPage?.() || [];
+        const events = this._getCurrentPageEvents();
         if (countRenderableEarthMarkers(events) !== this.markersEl.children.length) {
             return this._performMarkersRebuild('instant');
         }
-        const filters = this.sceneModel?.activeFilters || new Set();
+        // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+        const filters = window.standaloneActiveFilters || new Set();
         const tasks = [];
         for (const btn of [...this.markersEl.children]) {
             const id = btn.__map2dLiteIdentity;
@@ -1222,9 +1278,11 @@ export class Map2DLiteLayer {
         this.clearSyntheticMarkerHover();
         window.globeController?.interactionController?.markerService?.setDomLiteMarkerHover?.(null);
         this.markersEl.replaceChildren();
-        const events = this.dataModel.getEventsForCurrentPage?.() || [];
+        const events = this._getCurrentPageEvents();
+        console.log(`[_performMarkersRebuild] Got ${events.length} events for current page`);
         const ui = window.globeController?.uiView;
         if (!ui) {
+            console.log('[_performMarkersRebuild] No uiView found, updating celestial panels only');
             this._domLiteCelestialEnterMode = pageTurn ? 'pageTurn' : 'instant';
             this._celMarkersDirty = true;
             this.layoutCelestialPanelsFromCamera();

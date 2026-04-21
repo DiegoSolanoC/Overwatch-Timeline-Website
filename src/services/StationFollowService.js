@@ -141,7 +141,9 @@ class StationFollowService {
             ? window.globeController.transportController.findMarsShip?.()
             : null;
         
-        if (!issSatellite && !marsShipSatellite) return;
+        if (!issSatellite && !marsShipSatellite) {
+            return;
+        }
         
         markers.forEach(marker => {
             if (marker && marker.userData && marker.userData.isEventMarker) {

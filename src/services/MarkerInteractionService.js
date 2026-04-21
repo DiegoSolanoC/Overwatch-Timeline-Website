@@ -377,11 +377,15 @@ class MarkerInteractionService {
                     return;
                 }
                 
-                // Check if this is the same event that's currently open
-                const currentEventMarker = this.uiView.currentEventMarker;
-                if (currentEventMarker === clickedMarker) {
-                    // Same event - close it instead of reopening
-                    this.uiView.hideEventSlide();
+                // Check if this is the same event that's currently open (by checking Event System's current index)
+                const events = window.eventManager?.events || [];
+                const eventData = clickedMarker.userData.event;
+                const eventIndex = events.findIndex(e => e === eventData || e.name === eventData.name);
+                const currentIndex = window.standaloneEventSlide?.currentEventIndex;
+                if (eventIndex >= 0 && eventIndex === currentIndex) {
+                    // Same event - close the event slide instead of reopening
+                    const eventSlide = document.getElementById('eventSlide');
+                    if (eventSlide) eventSlide.classList.remove('open');
                     return;
                 }
                 
@@ -408,87 +412,21 @@ class MarkerInteractionService {
                     }
                 }
                 
-                // Open slide panel with event info
-                const eventData = clickedMarker.userData.event;
-                
-                // Check if this is a multi-event
-                const isMultiEvent = eventData.variants && eventData.variants.length > 0;
-                const displayEvent = isMultiEvent ? eventData.variants[0] : eventData;
-                
-                const eventName = displayEvent.name || clickedMarker.userData.eventName;
-                const eventDescription = displayEvent.description || 'Placeholder text for event information.';
-                
-                // Get image path using EventManager's function (same as previews use)
-                let eventImage = null;
-                if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
-                    eventImage = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
-                } else {
-                    // Fallback: construct path manually
-                    eventImage = displayEvent.image || null;
-                    if (!eventImage || !eventImage.trim()) {
-                        // Auto-detect from events images folder
-                        const normalizedName = eventName.replace(/\s+/g, ' ').trim();
-                        const encodedFileName = encodeURIComponent(normalizedName);
-                        eventImage = `assets/images/events/${encodedFileName}.png`;
-                    } else {
-                        // Encode provided path to handle special characters
-                        eventImage = eventImage.trim();
-                        const encodeImagePath = (path) => {
-                            if (!path) return path;
-                            
-                            // Helper to decode multiple times until fully decoded
-                            const fullyDecode = (str) => {
-                                let previous = '';
-                                let current = str;
-                                while (current !== previous) {
-                                    previous = current;
-                                    try {
-                                        const decoded = decodeURIComponent(current);
-                                        if (decoded !== current) {
-                                            current = decoded;
-                                        } else {
-                                            break;
-                                        }
-                                    } catch (e) {
-                                        break; // Can't decode further
-                                    }
-                                }
-                                return current;
-                            };
-                            
-                            // If path already contains Event Images/, normalize to assets/images/events and encode just the filename
-                            const folderPattern = /Event(?:%20| )Images\//;
-                            if (folderPattern.test(path)) {
-                                const parts = path.split(/Event(?:%20| )Images\//);
-                                if (parts.length === 2) {
-                                    let filename = fullyDecode(parts[1]);
-                                    return `assets/images/events/${encodeURIComponent(filename)}`;
-                                }
-                            }
-                            // If it's a full path, try to encode just the filename part
-                            const lastSlash = path.lastIndexOf('/');
-                            if (lastSlash !== -1) {
-                                const folder = path.substring(0, lastSlash + 1);
-                                let filename = fullyDecode(path.substring(lastSlash + 1));
-                                return folder + encodeURIComponent(filename);
-                            }
-                            // If no slash, decode first then encode
-                            const decoded = fullyDecode(path);
-                            return encodeURIComponent(decoded);
-                        };
-                        eventImage = encodeImagePath(eventImage);
+                // Open Event System's standalone event slide (info panel only, not event manager)
+                if (eventIndex >= 0 && window.standaloneEventSlide) {
+                    // Show the specific event (this opens the event slide/info panel)
+                    window.standaloneEventSlide.showEvent(eventIndex);
+                    // Play sound effect
+                    if (window.SoundEffectsManager?.play) {
+                        window.SoundEffectsManager.play('eventClick');
                     }
                 }
-                
-                this.uiView.showEventSlide(eventName, eventImage, eventDescription, clickedMarker, eventData);
             }
         } else {
             // Clicked elsewhere - hide label
             this.uiView.hideCityLabel();
-            // Only close event slide if one is actually open (don't reset camera if user manually zoomed)
-            if (this.uiView.currentEventMarker) {
-                this.uiView.hideEventSlide();
-            }
+            // NOTE: Event slide close removed - Globe no longer handles event slides
+            // Event System Load Out manages its own panel state
             // Empty globe tap (not a drag) closes music/filters panels
             closeTimelineMusicFiltersPanelsIfOpen();
         }

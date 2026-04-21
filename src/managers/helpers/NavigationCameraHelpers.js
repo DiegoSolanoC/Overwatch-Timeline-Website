@@ -167,6 +167,8 @@ export function handleNumberButtonMouseLeave(marker, sceneModel, uiView) {
  * @param {Object} interactionController - InteractionController instance
  */
 export function handleNumberButtonMouseEnter(marker, sceneModel, interactionController) {
+    console.log(`[handleNumberButtonMouseEnter] Marker: ${marker?.userData?.event?.name || 'unknown'}, Location: ${marker?.userData?.locationType || 'earth'}`);
+    
     // Stop auto rotation
     sceneModel.setAutoRotate(false);
     if (sceneModel.autoRotateTimeout) {
@@ -175,6 +177,7 @@ export function handleNumberButtonMouseEnter(marker, sceneModel, interactionCont
     }
 
     if (marker?.userData?.isMap2dLiteProxy) {
+        console.log(`[handleNumberButtonMouseEnter] Map2D Lite proxy - zooming`);
         interactionController.zoomToMarker(marker);
         interactionController.markerService?.setDomLiteMarkerHover?.(marker);
         window.globeController?.map2dLite?.playHoverRadiateLoopForStub?.(marker);
@@ -183,6 +186,7 @@ export function handleNumberButtonMouseEnter(marker, sceneModel, interactionCont
 
     // Center the marker (zoom to it) or reset to default view for Moon/Mars/Station/Ship
     const locationType = marker.userData ? marker.userData.locationType : 'earth';
+    console.log(`[handleNumberButtonMouseEnter] Location type: ${locationType}`);
     if (locationType === 'moon' || locationType === 'mars') {
         // Reset camera to default view for Moon/Mars events
         interactionController.resetCameraToDefault();

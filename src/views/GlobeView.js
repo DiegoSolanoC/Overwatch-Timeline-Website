@@ -2,7 +2,6 @@
  * GlobeView - Handles globe rendering, markers, and connection lines
  */
 import { latLonToVector3, createArcBetweenPoints, xyToPlanePosition } from '../utils/GeometryUtils.js?v=4';
-import { EventMarkerManager } from '../managers/EventMarkerManager.js';
 import { configureTexture, loadTexture, changePlaneTexture } from './helpers/GlobeTextureHelpers.js';
 import {
     createCelestialPlane,
@@ -29,8 +28,7 @@ export class GlobeView {
         this.dataModel = dataModel;
         // Cache textures to avoid reloading delays
         this.textureCache = new Map();
-        // Initialize EventMarkerManager
-        this.eventMarkerManager = new EventMarkerManager(sceneModel, dataModel);
+        // NOTE: EventMarkerManager removed - Globe no longer handles event markers
 
         this._rimGlowSprite = null;
         this._auroraMesh = null;
@@ -1240,41 +1238,6 @@ export class GlobeView {
     }
 
     /**
-     * Add event markers (orange, bigger than hyperloop markers)
-     * @param {boolean} animate - Whether to animate the appearance (grow from 0)
-     * @returns {Promise} - Resolves when markers are added (and animation completes if animating)
-     */
-    /**
-     * Add event markers to the globe, moon, mars, and station
-     * Delegates to EventMarkerManager
-     */
-    addEventMarkers(animate = false) {
-        return this.eventMarkerManager.addEventMarkers(animate);
-    }
-    
-    /**
-     * Remove all event markers and their pin lines
-     * Delegates to EventMarkerManager
-     */
-    removeEventMarkers(animate = false) {
-        return this.eventMarkerManager.removeEventMarkers(animate);
-    }
-    
-    /**
-     * Refresh event markers (remove old, add new for current page)
-     * Rebuilds Earth city lights afterward so event locations stay covered.
-     * @param {boolean} [animate=true]
-     * @returns {Promise<void>|undefined}
-     */
-    refreshEventMarkers(animate = true, options = {}) {
-        const ret = this.eventMarkerManager.refreshEventMarkers(animate, options);
-        if (ret && typeof ret.then === 'function') {
-            return ret.then(() => this.refreshEarthCityLights());
-        }
-        return Promise.resolve(this.refreshEarthCityLights()).then(() => ret);
-    }
-
-    /**
      * Yellow “city light” points on the globe: transport hubs + Earth events (see EarthLightsData.js).
      */
     addEarthCityLights() {
@@ -1317,37 +1280,8 @@ export class GlobeView {
         this._syncAtmosphereSunDirection();
     }
     
-    /**
-     * Apply active filters to event markers
-     * Delegates to EventMarkerManager
-     */
-    applyFilters() {
-        return this.eventMarkerManager.applyFilters();
-    }
-    
-    /**
-     * Lock an event marker (dark orange/near black, smaller, no interactions)
-     * Delegates to EventMarkerManager
-     */
-    lockEvent(marker) {
-        return this.eventMarkerManager.lockEvent(marker);
-    }
-    
-    /**
-     * Unlock an event marker (restore to normal)
-     * Delegates to EventMarkerManager
-     */
-    unlockEvent(marker) {
-        return this.eventMarkerManager.unlockEvent(marker);
-    }
-    
-    /**
-     * Unlock all event markers
-     * Delegates to EventMarkerManager
-     */
-    unlockAllEvents() {
-        return this.eventMarkerManager.unlockAllEvents();
-    }
+    // NOTE: All event filter methods removed - Globe no longer handles event filters
+    // Event System Load Out handles all event UI separately
 
     /**
      * Add seaport markers

@@ -90,7 +90,8 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
     const displayName = event.name || 'Event';
     
     // Check if this event should be locked using helper
-    const activeFilters = sceneModel.activeFilters;
+    // NOTE: Use standaloneActiveFilters only - removed sceneModel.activeFilters
+    const activeFilters = window.standaloneActiveFilters || new Set();
     const shouldBeLocked = shouldEventBeLocked(event, activeFilters);
     
     // Set initial scale based on animation and locked state
@@ -178,7 +179,8 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
     const eventLocationType = event.locationType || 'earth';
     const isMapView = sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView;
     const mapScaleFactor = 1;
-    const activeFilters = sceneModel.activeFilters;
+    // NOTE: Use standaloneActiveFilters only - removed sceneModel.activeFilters
+    const activeFilters = window.standaloneActiveFilters || new Set();
     const shouldBeLocked = shouldEventBeLocked(event, activeFilters);
     
     event.variants.forEach((variant, variantIndex) => {

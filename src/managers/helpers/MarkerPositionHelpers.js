@@ -19,16 +19,18 @@ export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, m
 
     if (locationType === 'station' || locationType === 'marsShip') {
         const useOrbitPanel = sceneModel && useOrbitPanelForStationShipMarkers(sceneModel);
+        console.log(`[calculateMarkerPosition] ${locationType}: useOrbitPanel=${useOrbitPanel}`);
         if (useOrbitPanel) {
             const orbitPlane = sceneModel.getOrbitPlane?.() ?? sceneModel.orbitPlane;
             if (!orbitPlane) {
-                console.warn('Orbit plane not found, skipping station/marsShip marker');
+                console.warn('[calculateMarkerPosition] Orbit plane not found, skipping station/marsShip marker');
                 return null;
             }
             const orbitParent = sceneModel.getOrbitMarkerParent?.() ?? orbitPlane;
             const finalX = x !== undefined ? x : 50;
             const finalY = y !== undefined ? y : 50;
             const pos = xyToPlanePosition(finalX, finalY, 0.4, 0.4, orbitParent.position, null, surfaceLiftZ);
+            console.log(`[calculateMarkerPosition] ${locationType} on orbit panel at (${finalX}, ${finalY})`);
             return {
                 position: pos,
                 targetParent: orbitParent
@@ -36,18 +38,20 @@ export function calculateMarkerPosition({ locationType, lat, lon, x, y, globe, m
         }
         if (locationType === 'station') {
             if (!issSatellite) {
-                console.warn('ISS satellite not found, skipping station marker');
+                console.warn('[calculateMarkerPosition] ISS satellite not found, skipping station marker');
                 return null;
             }
+            console.log('[calculateMarkerPosition] Station marker on ISS satellite');
             return {
                 position: new THREE.Vector3(0, 0, surfaceLiftZ),
                 targetParent: issSatellite
             };
         }
         if (!marsShipSatellite) {
-            console.warn('Mars Ship satellite not found, skipping marsShip marker');
+            console.warn('[calculateMarkerPosition] Mars Ship satellite not found, skipping marsShip marker');
             return null;
         }
+        console.log('[calculateMarkerPosition] MarsShip marker on Mars Ship satellite');
         return {
             position: new THREE.Vector3(0, 0, surfaceLiftZ),
             targetParent: marsShipSatellite

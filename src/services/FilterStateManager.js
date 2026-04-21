@@ -9,15 +9,13 @@ class FilterStateManager {
     }
     
     /**
-     * Get confirmed filters from sceneModel
+     * Get confirmed filters from standalone state
+     * NOTE: Removed sceneModel.activeFilters dependency
      */
-    getConfirmedFilters(sceneModel) {
-        if (sceneModel && sceneModel.activeFilters) {
-            // Ensure we create a new Set from the existing Set/Array
-            const filters = sceneModel.activeFilters instanceof Set 
-                ? new Set(sceneModel.activeFilters)
-                : new Set(Array.from(sceneModel.activeFilters));
-            return filters;
+    getConfirmedFilters() {
+        // Use standaloneActiveFilters instead of sceneModel.activeFilters
+        if (typeof window !== 'undefined' && window.standaloneActiveFilters) {
+            return new Set(window.standaloneActiveFilters);
         }
         return new Set();
     }
@@ -25,8 +23,8 @@ class FilterStateManager {
     /**
      * Reset selectedFilters to match confirmed filters
      */
-    resetToConfirmed(sceneModel) {
-        const confirmedFilters = this.getConfirmedFilters(sceneModel);
+    resetToConfirmed() {
+        const confirmedFilters = this.getConfirmedFilters();
         this.selectedFilters.clear();
         confirmedFilters.forEach(filter => this.selectedFilters.add(filter));
     }
@@ -125,12 +123,13 @@ class FilterStateManager {
     }
     
     /**
-     * Apply selected filters to sceneModel
+     * Apply selected filters to standalone state
+     * NOTE: Removed sceneModel dependency, now uses standaloneActiveFilters
      */
-    applyToScene(sceneModel) {
-        if (sceneModel) {
-            // Create a new Set to ensure proper state persistence
-            sceneModel.activeFilters = new Set(this.selectedFilters);
+    applyToScene() {
+        // Apply to standalone state instead of sceneModel
+        if (typeof window !== 'undefined' && window.standaloneActiveFilters) {
+            window.standaloneActiveFilters = new Set(this.selectedFilters);
         }
     }
 }

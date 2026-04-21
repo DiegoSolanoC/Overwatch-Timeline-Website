@@ -146,7 +146,8 @@ export class ComponentOrchestrator {
                 updateStatus('⬛ Palette already loaded, skipping...', 'info');
             }
 
-            // Always ensure header nav buttons exist (Events, Codex, Map, Filters)
+            // Always ensure header nav buttons exist (Interactive Globe, World Codex, Story Viewer, Home)
+            // NOTE: Events and Filters buttons are now created by standalone Event System Load Out only
             if (this.loaders.headerNav) {
                 this.loaders.headerNav();
             }
@@ -280,43 +281,32 @@ export class ComponentOrchestrator {
                 updateGlobeComponentsProgress(3);
                 await new Promise(r => setTimeout(r, 300));
             } else {
-                updateStatus('→ Controls already loaded, skipping...', 'info');
-                updateGlobeComponentsProgress(3);
-            }
-            
-            // === EVENT SYSTEM DEPENDENCY ===
-            // Globe no longer loads events directly - it relies on Event System Load Out
-            const eventSystemActive = this.isEventSystemLoadOutActive();
-            
-            if (eventSystemActive && window.globeController && window.eventManager) {
-                updateStatus('→ Event System detected, syncing...', 'info');
-                const { syncEventsWithGlobe } = await import('../app/helpers/EventManagerHelpers.js');
-                syncEventsWithGlobe(window.globeController, window.eventManager);
-                updateGlobeComponentsProgress(4);
-            } else {
-                updateStatus('→ Event System not loaded (Globe will have no events)', 'info');
-                updateGlobeComponentsProgress(4);
-            }
-            
-            updateStatus('✓ Globe Components auto-load complete!', 'success');
-            
-            // Globe container should already be visible (shown after Globe Base loaded)
-            // Just ensure it's still visible
-            if (globeContainer) {
                 globeContainer.style.opacity = '1';
                 globeContainer.style.pointerEvents = 'auto';
                 globeContainer.style.display = 'block';
                 globeContainer.classList.add('loaded');
             }
             
-            // Footer styling for timeline mode - only if Event System is active
-            if (eventSystemActive) {
-                const footer = document.querySelector('footer');
-                if (footer) {
-                    footer.classList.add('timeline-loaded');
-                }
+            // NOTE: Footer styling removed - Event System Load Out handles this when it loads
+            
+            // If Event System is already loaded, create EventMarkerManager for Globe markers
+            console.log(`[ComponentOrchestrator] Checking marker creation: eventSystemActive=${this.isEventSystemLoadOutActive()}, globeController=${!!window.globeController?.sceneModel}, markerManager=${!!window.globeEventMarkerManager}`);
+            if (this.isEventSystemLoadOutActive() && window.globeController?.sceneModel && !window.globeEventMarkerManager) {
+                console.log('[ComponentOrchestrator] Creating EventMarkerManager for Globe...');
+                updateStatus('→ Event System detected, creating event markers...', 'info');
+                const { EventMarkerManager } = await import('../managers/EventMarkerManager.js');
+                window.globeEventMarkerManager = new EventMarkerManager(
+                    window.globeController.sceneModel,
+                    window.globeController.dataModel
+                );
+                console.log('[ComponentOrchestrator] EventMarkerManager created, adding markers...');
+                await window.globeEventMarkerManager.addEventMarkers(true);
+                console.log('[ComponentOrchestrator] Markers added successfully');
+                updateStatus('✓ Event markers added to Globe', 'success');
+            } else {
+                console.log('[ComponentOrchestrator] Skipping marker creation');
             }
-
+            
             // Ensure header hub state updates even when globe is started from the main menu button
             // (which runs loaders directly and doesn't go through appModeSwitch()).
             this.dispatchAppModeChange('globe');

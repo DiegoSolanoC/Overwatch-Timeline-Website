@@ -36,8 +36,43 @@ export class EventMarkerManager {
         const globe = this.sceneModel.getGlobe();
         const moonPlane = this.sceneModel.getMoonPlane ? this.sceneModel.getMoonPlane() : this.sceneModel.moonPlane;
         const marsPlane = this.sceneModel.getMarsPlane ? this.sceneModel.getMarsPlane() : this.sceneModel.marsPlane;
-        const events = this.dataModel.getEventsForCurrentPage(); // Use paginated events
+        
+        // NOTE: Use Event System's events and current page instead of Globe's dataModel
+        const eventsPerPage = 10;
+        const allEvents = window.eventManager?.events || [];
+        const currentPage = window.standaloneEventSlide?.currentPage || 1;
+        const startIndex = (currentPage - 1) * eventsPerPage;
+        const endIndex = startIndex + eventsPerPage;
+        const events = allEvents.slice(startIndex, endIndex);
 
+        console.log(`[addEventMarkers] Page ${currentPage}, creating ${events.length} markers:`, events.map(e => e.name));
+        
+        // CRITICAL: Clear ALL markers with event data (old markers may not have isEventMarker flag)
+        const markers = this.sceneModel.getMarkers();
+        const allEventMarkers = markers.filter(m => m?.userData?.event);
+        console.log(`[addEventMarkers] Found ${allEventMarkers.length} markers with event data to clear`);
+        if (allEventMarkers.length > 0) {
+            console.log(`[addEventMarkers] Existing marker events:`, allEventMarkers.map(m => m.userData?.event?.name || 'no name'));
+            let removedCount = 0;
+            allEventMarkers.forEach(marker => {
+                // Remove pin line if exists
+                if (marker.userData?.pinLine && marker.userData.pinLine.parent) {
+                    marker.userData.pinLine.parent.remove(marker.userData.pinLine);
+                }
+                // Remove marker from scene
+                if (marker.parent) {
+                    marker.parent.remove(marker);
+                    removedCount++;
+                }
+                // Remove from markers array
+                const index = markers.indexOf(marker);
+                if (index > -1) {
+                    markers.splice(index, 1);
+                }
+            });
+            console.log(`[addEventMarkers] Removed ${removedCount} markers, markers array now has ${markers.length}`);
+        }
+        
         // Collect all markers and pin lines for animation
         const newMarkers = [];
         const newPinLines = [];
@@ -51,6 +86,8 @@ export class EventMarkerManager {
         const marsShipSatellite = window.globeController && window.globeController.transportController
             ? window.globeController.transportController.findMarsShip?.()
             : null;
+        
+        console.log(`[addEventMarkers] Satellites found: ISS=${!!issSatellite}, MarsShip=${!!marsShipSatellite}`);
         
         events.forEach(event => {
             const isMultiEvent = event.variants && event.variants.length > 0;
@@ -100,6 +137,10 @@ export class EventMarkerManager {
         });
         
         // Animate markers and pin lines growing if requested
+        const totalAfter = this.sceneModel.getMarkers()?.length || 0;
+        console.log(`[addEventMarkers] Created ${newMarkers.length} markers. Total markers after: ${totalAfter}`);
+        console.log(`[addEventMarkers] New marker events:`, newMarkers.map(m => m.userData?.event?.name || 'no name'));
+        
         if (animate && (newMarkers.length > 0 || newPinLines.length > 0)) {
             return animateMarkersGrow(newMarkers, newPinLines);
         } else {
@@ -136,6 +177,8 @@ export class EventMarkerManager {
         // Collect event markers and their pin lines using helpers
         const eventMarkers = collectEventMarkers(this.sceneModel);
         const pinLines = collectEventMarkerPins(this.sceneModel);
+        
+        console.log(`[removeEventMarkers] Found ${eventMarkers.length} markers to remove:`, eventMarkers.map(m => m.userData?.event?.name || 'no name'));
         
         const markers = this.sceneModel.getMarkers();
         
@@ -211,6 +254,8 @@ export class EventMarkerManager {
      * @returns {Promise<void>|undefined}
      */
     refreshEventMarkers(animate = true, options = {}) {
+        console.log(`[refreshEventMarkers] Called with animate=${animate}, total markers before: ${this.sceneModel.getMarkers()?.length || 0}`);
+        
         const globe = this.sceneModel.getGlobe();
         if (!globe) {
             if (this.sceneModel.getMapViewEnabled?.()) {
@@ -256,16 +301,22 @@ export class EventMarkerManager {
         }
         
         return this.removeEventMarkers(animate).then(() => {
+            console.log('[refreshEventMarkers] Old markers removed, adding new markers...');
             return this.addEventMarkers(animate);
         }).then(() => {
+            console.log('[refreshEventMarkers] New markers added, applying filters...');
             return this.applyFilters({ ...options, domLiteFromRefresh: true, domLiteAnimate: animate });
         }).then(() => {
+            console.log('[refreshEventMarkers] Filters applied, updating plane visibility...');
             if (window.globeController && typeof window.globeController.updatePlaneVisibility === 'function') {
                 window.globeController.updatePlaneVisibility();
+            } else {
+                console.log('[refreshEventMarkers] updatePlaneVisibility not available');
             }
             if (window.globeController && typeof window.globeController.rebindOpenEventMarkerAfterRefresh === 'function') {
                 window.globeController.rebindOpenEventMarkerAfterRefresh();
             }
+            console.log('[refreshEventMarkers] Complete!');
         });
     }
 
@@ -276,12 +327,17 @@ export class EventMarkerManager {
      * @returns {Promise<void>}
      */
     applyFilters(options = {}) {
-        const activeFilters = this.sceneModel.activeFilters;
+        // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
+        // EventMarkerManager is now owned by Event System, not Globe
+        const activeFilters = window.standaloneActiveFilters || new Set();
+        console.log(`[EventMarkerManager.applyFilters] Filters: [${Array.from(activeFilters).join(', ')}], size: ${activeFilters.size}`);
+        
         const globe = this.sceneModel.getGlobe();
 
         if (!globe) {
             if (this.sceneModel.getMapViewEnabled?.()) {
                 if (activeFilters.size === 0) {
+                    console.log('[EventMarkerManager.applyFilters] Map view, no filters - unlocking all');
                     this.unlockAllEvents();
                 }
                 return delayThenSyncPagination(this, options);
@@ -291,24 +347,31 @@ export class EventMarkerManager {
 
         // If no filters active, unlock all and refresh number button states
         if (activeFilters.size === 0) {
+            console.log('[EventMarkerManager.applyFilters] No filters active - unlocking all events');
             this.unlockAllEvents();
             return delayThenSyncPagination(this, options);
         }
 
         // Helper function to check and lock/unlock a marker (multi-variant: unlock if any variant matches)
+        let lockedCount = 0;
+        let unlockedCount = 0;
         const processMarker = (child) => {
             if (child.userData && child.userData.isEventMarker) {
                 const event = child.userData.event;
                 if (!shouldEventBeLocked(event, activeFilters)) {
                     this.unlockEvent(child);
+                    unlockedCount++;
                 } else {
                     this.lockEvent(child);
+                    lockedCount++;
                 }
             }
         };
 
         // Check event markers using traversal helper
         traverseEventMarkers(this.sceneModel, processMarker);
+        
+        console.log(`[EventMarkerManager.applyFilters] Results: ${unlockedCount} unlocked, ${lockedCount} locked`);
 
         // Small delay so WebGL lock/unlock animations can start before we sync DOM map + pagination
         return delayThenSyncPagination(this, options);
@@ -320,33 +383,10 @@ export class EventMarkerManager {
      * @returns {Promise<void>}
      */
     async _syncPaginationUiAfterFilters(options = {}) {
-        const gc = window.globeController;
-        if (gc?.map2dLite?.syncMarkers && this.sceneModel.getMapViewEnabled?.()) {
-            const fromRefresh = options.domLiteFromRefresh === true;
-            const wantAnim = options.domLiteAnimate !== false;
-            if (fromRefresh && wantAnim) {
-                await gc.map2dLite.syncMarkers({ mode: 'pageTurn' });
-            } else if (fromRefresh && !wantAnim) {
-                await gc.map2dLite.syncMarkers({ mode: 'instant' });
-            } else {
-                await gc.map2dLite.syncMarkers({ mode: 'filter' });
-            }
-        }
-        const ui = gc?.uiView;
-        if (!ui) return;
-        if (options.preservePaginationThumbEntrance) {
-            if (typeof ui.updateNumberButtons === 'function') {
-                ui.updateNumberButtons(false, { preserveThumbEntrance: true });
-            }
-            return;
-        }
-        if (typeof ui.updateNumberButtons === 'function') {
-            ui.updateNumberButtons();
-        } else {
-            console.warn('[EventMarkerManager] updateNumberButtons function not found!');
-        }
-        if (typeof ui.updatePaginationUI === 'function') {
-            ui.updatePaginationUI();
+        // NOTE: Globe UI sync removed - Event System handles all pagination
+        // Only update Event System's pagination visual (green filter-hit lines)
+        if (typeof window.updateStandalonePaginationForFilters === 'function') {
+            window.updateStandalonePaginationForFilters();
         }
     }
 

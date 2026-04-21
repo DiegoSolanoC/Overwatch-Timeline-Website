@@ -250,6 +250,7 @@ export function loadSoundEffects(sounds, statusMessage = 'Loading sound effects.
  * @param {string} config.mobileParentId - Optional parentId override for mobile
  * @param {string} config.mobileBaseClass - Optional baseClass override for mobile
  * @param {string} config.mobileClassName - Optional className override for mobile
+ * @param {string} config.mode - Optional data-mode attribute for header hub mode switching
  * @returns {HTMLElement} - The created button element
  */
 export function createGlobeControlButton({
@@ -265,7 +266,8 @@ export function createGlobeControlButton({
     headerOrder = null,
     mobileParentId = null,
     mobileBaseClass = null,
-    mobileClassName = null
+    mobileClassName = null,
+    mode = null
 }) {
     if (document.getElementById(id)) {
         return document.getElementById(id);
@@ -285,6 +287,9 @@ export function createGlobeControlButton({
     button.title = title;
     if (title) {
         button.setAttribute('aria-label', title);
+    }
+    if (mode) {
+        button.dataset.mode = mode;
     }
     const isHeaderHubBtn = (resolvedBaseClass || '').includes('header-hub-btn');
 
