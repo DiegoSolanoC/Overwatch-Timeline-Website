@@ -1433,8 +1433,40 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             }
                             editor.style.display = 'block';
                             
+                            // Move description element into the description container
+                            const descContainer = document.getElementById('eventSlideEditDescriptionContainer');
+                            if (descContainer && textEl) {
+                                // Store original parent for restoration
+                                this.descriptionOriginalParent = textEl.parentNode;
+                                this.descriptionOriginalNextSibling = textEl.nextSibling;
+                                descContainer.appendChild(textEl);
+                            }
+                            
                             // Populate editor fields
                             this.populateInlineEditor(eventData, displayEvent);
+                            
+                            // Enable predictive/autocomplete behavior (same service used in EventManager edit modal)
+                            const filtersInput = document.getElementById('eventSlideEditFilters');
+                            const factionsInput = document.getElementById('eventSlideEditFactions');
+                            const npcsInput = document.getElementById('eventSlideEditNpcs');
+                            
+                            // Reset setup flag each time we enter edit mode so options stay in sync
+                            if (filtersInput) filtersInput.dataset.autocompleteSetup = 'false';
+                            if (factionsInput) factionsInput.dataset.autocompleteSetup = 'false';
+                            if (npcsInput) npcsInput.dataset.autocompleteSetup = 'false';
+                            
+                            const auto = window.eventManager?.formService?.autocompleteService || window.EventFormService?.autocompleteService;
+                            if (auto && typeof auto.setupAutocomplete === 'function') {
+                                const heroes = window.eventManager?.heroes || window.globeController?.dataModel?.heroes || [];
+                                const npcList = window.eventManager?.npcs || [];
+                                const factionList = window.eventManager?.factions?.length
+                                    ? window.eventManager.factions
+                                    : (window.globeController?.dataModel?.factions || []);
+                                
+                                if (filtersInput) auto.setupAutocomplete(filtersInput, heroes, 'heroes');
+                                if (factionsInput) auto.setupAutocomplete(factionsInput, factionList, 'factions');
+                                if (npcsInput && npcList.length > 0) auto.setupAutocomplete(npcsInput, npcList, 'npcs');
+                            }
                             
                             // Update buttons
                             editBtn.textContent = 'Cancel';
@@ -1451,6 +1483,47 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             editor.id = 'eventSlideInlineEditor';
                             editor.className = 'event-slide-inline-editor';
                             editor.innerHTML = `
+                                <div class="event-slide-inline-editor__placement" id="eventSlidePlacementBlock">
+                                    <div class="event-slide-inline-editor__row" id="eventSlideCityLookupRow">
+                                        <label class="event-slide-inline-editor__label" for="eventSlideEditCityLookup">City name (for coordinate lookup)</label>
+                                        <div class="event-slide-inline-editor__lookup-row">
+                                            <input class="event-slide-inline-editor__input event-slide-inline-editor__input--grow" id="eventSlideEditCityLookup" type="text" spellcheck="true" autocomplete="on" />
+                                            <label class="event-slide-inline-editor__inline-check"><input type="checkbox" id="eventSlideUseCodeLookup" checked /> Code lookup</label>
+                                            <button type="button" class="event-slide-inline-editor__small-btn" id="eventSlideLookupCityBtn">Lookup</button>
+                                        </div>
+                                    </div>
+                                    <div class="event-slide-inline-editor__row">
+                                        <div class="event-slide-inline-editor__label">Location type</div>
+                                        <div class="event-slide-inline-editor__loc-types" role="group" aria-label="Location type">
+                                            <button type="button" class="event-slide-loc-type-btn active" data-location-type="earth">Earth</button>
+                                            <button type="button" class="event-slide-loc-type-btn" data-location-type="moon">Moon</button>
+                                            <button type="button" class="event-slide-loc-type-btn" data-location-type="mars">Mars</button>
+                                            <button type="button" class="event-slide-loc-type-btn" data-location-type="station">Station</button>
+                                            <button type="button" class="event-slide-loc-type-btn" data-location-type="marsShip">Ship</button>
+                                        </div>
+                                        <input type="hidden" id="eventSlideEditLocationType" value="earth" />
+                                    </div>
+                                    <div class="event-slide-inline-editor__year-row" id="eventSlideLatLonRow" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; margin-bottom: 10px;">
+                                        <div class="event-slide-inline-editor__year-cell">
+                                            <label class="event-slide-inline-editor__label" for="eventSlideEditLat">Latitude</label>
+                                            <input class="event-slide-inline-editor__input" id="eventSlideEditLat" type="number" step="any" autocomplete="off" />
+                                        </div>
+                                        <div class="event-slide-inline-editor__year-cell">
+                                            <label class="event-slide-inline-editor__label" for="eventSlideEditLon">Longitude</label>
+                                            <input class="event-slide-inline-editor__input" id="eventSlideEditLon" type="number" step="any" autocomplete="off" />
+                                        </div>
+                                    </div>
+                                    <div class="event-slide-inline-editor__year-row" id="eventSlideXyRow" style="display: none; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; margin-bottom: 10px;">
+                                        <div class="event-slide-inline-editor__year-cell">
+                                            <label class="event-slide-inline-editor__label" for="eventSlideEditX">X (0–100)</label>
+                                            <input class="event-slide-inline-editor__input" id="eventSlideEditX" type="number" step="any" min="0" max="100" autocomplete="off" />
+                                        </div>
+                                        <div class="event-slide-inline-editor__year-cell">
+                                            <label class="event-slide-inline-editor__label" for="eventSlideEditY">Y (0–100)</label>
+                                            <input class="event-slide-inline-editor__input" id="eventSlideEditY" type="number" step="any" min="0" max="100" autocomplete="off" />
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="event-slide-inline-editor__row">
                                     <label class="event-slide-inline-editor__label" for="eventSlideEditCityDisplayName">Location label</label>
                                     <input class="event-slide-inline-editor__input" id="eventSlideEditCityDisplayName" type="text" spellcheck="true" autocomplete="on" />
@@ -1469,6 +1542,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     <label class="event-slide-inline-editor__label" for="eventSlideEditEraName">Era name (optional)</label>
                                     <input class="event-slide-inline-editor__input" id="eventSlideEditEraName" type="text" spellcheck="true" autocomplete="on" />
                                 </div>
+                                <div class="event-slide-inline-editor__row" id="eventSlideEditDescriptionContainer">
+                                    <label class="event-slide-inline-editor__label">Description</label>
+                                </div>
                                 <div class="event-slide-inline-editor__row">
                                     <label class="event-slide-inline-editor__label" for="eventSlideEditFilters">Heroes (comma-separated)</label>
                                     <input class="event-slide-inline-editor__input" id="eventSlideEditFilters" type="text" spellcheck="false" autocomplete="off" />
@@ -1483,7 +1559,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 </div>
                                 <div class="event-slide-inline-editor__row">
                                     <label class="event-slide-inline-editor__label" for="eventSlideEditHeadlines">Headlines (one per line)</label>
-                                    <textarea class="event-slide-inline-editor__textarea" id="eventSlideEditHeadlines" rows="3" spellcheck="true"></textarea>
+                                    <textarea class="event-slide-inline-editor__textarea" id="eventSlideEditHeadlines" rows="4" spellcheck="true"></textarea>
                                 </div>
                                 <div class="event-slide-inline-editor__row">
                                     <div class="event-slide-inline-editor__label">Sources</div>
@@ -1504,6 +1580,28 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 
                                 const deleteBtn = document.getElementById('eventSlideInlineDeleteBtn');
                                 deleteBtn?.addEventListener('click', () => this.deleteCurrentEvent());
+                                
+                                // Wire location type buttons
+                                const locBtns = document.querySelectorAll('.event-slide-loc-type-btn');
+                                locBtns.forEach(btn => {
+                                    btn.addEventListener('click', (e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const hid = document.getElementById('eventSlideEditLocationType');
+                                        if (hid) hid.value = btn.dataset.locationType || 'earth';
+                                        this.syncLocationTypeUI();
+                                    });
+                                });
+                                
+                                // Wire city lookup button
+                                const lookupBtn = document.getElementById('eventSlideLookupCityBtn');
+                                lookupBtn?.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (window.eventManager?.lookupCitySlide) {
+                                        window.eventManager.lookupCitySlide();
+                                    }
+                                });
                             }, 0);
                             
                             return editor;
@@ -1514,6 +1612,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             
                             // Set field values
                             const cityInput = document.getElementById('eventSlideEditCityDisplayName');
+                            const cityLookupInput = document.getElementById('eventSlideEditCityLookup');
                             const yearStartInput = document.getElementById('eventSlideEditYearStart');
                             const yearEndInput = document.getElementById('eventSlideEditYearEnd');
                             const eraInput = document.getElementById('eventSlideEditEraName');
@@ -1521,8 +1620,14 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const factionsInput = document.getElementById('eventSlideEditFactions');
                             const npcsInput = document.getElementById('eventSlideEditNpcs');
                             const headlinesInput = document.getElementById('eventSlideEditHeadlines');
+                            const locationTypeInput = document.getElementById('eventSlideEditLocationType');
+                            const latInput = document.getElementById('eventSlideEditLat');
+                            const lonInput = document.getElementById('eventSlideEditLon');
+                            const xInput = document.getElementById('eventSlideEditX');
+                            const yInput = document.getElementById('eventSlideEditY');
                             
                             if (cityInput) cityInput.value = target.cityDisplayName || '';
+                            if (cityLookupInput) cityLookupInput.value = (target.cityDisplayName || eventData.cityDisplayName || '').trim();
                             if (yearStartInput) yearStartInput.value = target.yearStart || target.year || '';
                             if (yearEndInput) yearEndInput.value = target.yearEnd || '';
                             if (eraInput) eraInput.value = target.eraName || '';
@@ -1531,8 +1636,51 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (npcsInput) npcsInput.value = (target.npcs || []).join(', ');
                             if (headlinesInput) headlinesInput.value = (target.headlines || []).join('\n');
                             
+                            // Set location type and coordinates
+                            const locType = target.locationType || eventData.locationType || 'earth';
+                            if (locationTypeInput) locationTypeInput.value = locType;
+                            
+                            if (latInput) latInput.value = '';
+                            if (lonInput) lonInput.value = '';
+                            if (xInput) xInput.value = '';
+                            if (yInput) yInput.value = '';
+                            
+                            if (locType === 'earth') {
+                                if (latInput && target.lat != null) latInput.value = String(target.lat);
+                                if (lonInput && target.lon != null) lonInput.value = String(target.lon);
+                            } else {
+                                if (xInput && target.x != null) xInput.value = String(target.x);
+                                if (yInput && target.y != null) yInput.value = String(target.y);
+                                if ((locType === 'station' || locType === 'marsShip') && xInput && yInput) {
+                                    if (!String(xInput.value).trim()) xInput.value = '50';
+                                    if (!String(yInput.value).trim()) yInput.value = '50';
+                                }
+                            }
+                            
+                            // Sync location type UI
+                            this.syncLocationTypeUI();
+                            
                             // Render sources
                             this.renderSourcesEditor(target.sources || []);
+                        },
+                        
+                        syncLocationTypeUI() {
+                            const hid = document.getElementById('eventSlideEditLocationType');
+                            const type = hid ? hid.value : 'earth';
+                            const latLonRow = document.getElementById('eventSlideLatLonRow');
+                            const xyRow = document.getElementById('eventSlideXyRow');
+                            const locBtns = document.querySelectorAll('.event-slide-loc-type-btn');
+                            
+                            if (latLonRow) latLonRow.style.display = type === 'earth' ? 'grid' : 'none';
+                            if (xyRow) xyRow.style.display = type === 'earth' ? 'none' : 'grid';
+                            
+                            locBtns.forEach(btn => {
+                                if (btn.dataset.locationType === type) {
+                                    btn.classList.add('active');
+                                } else {
+                                    btn.classList.remove('active');
+                                }
+                            });
                         },
                         
                         renderSourcesEditor(sources) {
@@ -1636,6 +1784,19 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 textEl.removeAttribute('spellcheck');
                             }
                             
+                            // Restore description element to its original location
+                            if (this.descriptionOriginalParent && textEl) {
+                                const originalParent = this.descriptionOriginalParent;
+                                const originalNextSibling = this.descriptionOriginalNextSibling;
+                                if (originalNextSibling) {
+                                    originalParent.insertBefore(textEl, originalNextSibling);
+                                } else {
+                                    originalParent.appendChild(textEl);
+                                }
+                                this.descriptionOriginalParent = null;
+                                this.descriptionOriginalNextSibling = null;
+                            }
+                            
                             // Hide editor
                             if (editor) editor.style.display = 'none';
                             eventSlide?.classList.remove('event-slide--inline-editing');
@@ -1663,6 +1824,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const factionsInput = document.getElementById('eventSlideEditFactions');
                             const npcsInput = document.getElementById('eventSlideEditNpcs');
                             const headlinesInput = document.getElementById('eventSlideEditHeadlines');
+                            const locationTypeInput = document.getElementById('eventSlideEditLocationType');
+                            const latInput = document.getElementById('eventSlideEditLat');
+                            const lonInput = document.getElementById('eventSlideEditLon');
+                            const xInput = document.getElementById('eventSlideEditX');
+                            const yInput = document.getElementById('eventSlideEditY');
                             const titleEl = document.getElementById('eventSlideTitle');
                             const textEl = document.getElementById('eventSlideText');
                             
@@ -1678,6 +1844,26 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 if (factionsInput) target.factions = factionsInput.value.split(',').map(s => s.trim()).filter(Boolean);
                                 if (npcsInput) target.npcs = npcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
                                 if (headlinesInput) target.headlines = headlinesInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+                                
+                                // Save location type and coordinates
+                                const locType = locationTypeInput ? locationTypeInput.value : 'earth';
+                                target.locationType = locType;
+                                
+                                if (locType === 'earth') {
+                                    const lat = latInput ? parseFloat(latInput.value) : null;
+                                    const lon = lonInput ? parseFloat(lonInput.value) : null;
+                                    if (!Number.isNaN(lat)) target.lat = lat;
+                                    if (!Number.isNaN(lon)) target.lon = lon;
+                                    delete target.x;
+                                    delete target.y;
+                                } else {
+                                    const x = xInput ? parseFloat(xInput.value) : null;
+                                    const y = yInput ? parseFloat(yInput.value) : null;
+                                    if (!Number.isNaN(x)) target.x = x;
+                                    if (!Number.isNaN(y)) target.y = y;
+                                    delete target.lat;
+                                    delete target.lon;
+                                }
                                 
                                 // Gather sources
                                 const sourceRows = document.querySelectorAll('#eventSlideEditSources .event-slide-inline-editor__source-row');
@@ -1703,6 +1889,19 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (textEl) {
                                 textEl.contentEditable = 'false';
                                 textEl.removeAttribute('spellcheck');
+                            }
+                            
+                            // Restore description element to its original location
+                            if (this.descriptionOriginalParent && textEl) {
+                                const originalParent = this.descriptionOriginalParent;
+                                const originalNextSibling = this.descriptionOriginalNextSibling;
+                                if (originalNextSibling) {
+                                    originalParent.insertBefore(textEl, originalNextSibling);
+                                } else {
+                                    originalParent.appendChild(textEl);
+                                }
+                                this.descriptionOriginalParent = null;
+                                this.descriptionOriginalNextSibling = null;
                             }
                             
                             // Hide editor

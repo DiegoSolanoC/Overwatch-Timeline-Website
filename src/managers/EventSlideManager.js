@@ -827,6 +827,9 @@ export class EventSlideManager {
                     <label class="event-slide-inline-editor__label" for="eventSlideEditEraName">Era name (optional)</label>
                     <input class="event-slide-inline-editor__input" id="eventSlideEditEraName" type="text" spellcheck="true" autocomplete="on" />
                 </div>
+                <div class="event-slide-inline-editor__row" id="eventSlideEditDescriptionContainer">
+                    <label class="event-slide-inline-editor__label">Description</label>
+                </div>
                 <div class="event-slide-inline-editor__row">
                     <label class="event-slide-inline-editor__label" for="eventSlideEditFilters">Heroes (comma-separated)</label>
                     <input class="event-slide-inline-editor__input" id="eventSlideEditFilters" type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none" />
@@ -845,7 +848,7 @@ export class EventSlideManager {
                 </div>
                 <div class="event-slide-inline-editor__row">
                     <label class="event-slide-inline-editor__label" for="eventSlideEditHeadlines">Headlines (one per line)</label>
-                    <textarea class="event-slide-inline-editor__textarea" id="eventSlideEditHeadlines" rows="4" spellcheck="true" autocomplete="on" autocorrect="on" autocapitalize="sentences"></textarea>
+                    <textarea class="event-slide-inline-editor__textarea" id="eventSlideEditHeadlines" rows="4" spellcheck="true"></textarea>
                 </div>
                 <div class="event-slide-inline-editor__row">
                     <div class="event-slide-inline-editor__label">Sources</div>
@@ -1087,6 +1090,15 @@ export class EventSlideManager {
             eventSlideText.setAttribute('contenteditable', 'true');
             eventSlideText.setAttribute('spellcheck', 'true');
 
+            // Move description element into the description container in the inline editor
+            const descContainer = document.getElementById('eventSlideEditDescriptionContainer');
+            if (descContainer && eventSlideText) {
+                // Store original parent for restoration
+                this._inlineDescEdit.descriptionOriginalParent = eventSlideText.parentNode;
+                this._inlineDescEdit.descriptionOriginalNextSibling = eventSlideText.nextSibling;
+                descContainer.appendChild(eventSlideText);
+            }
+
             if (editor) editor.style.display = 'block';
             this._populateInlineEditorFieldsFromTarget();
             this._renderSlideInlineVariantBar();
@@ -1197,6 +1209,20 @@ export class EventSlideManager {
         eventSlideText.removeAttribute('spellcheck');
         eventSlideTitle.removeAttribute('contenteditable');
         eventSlideTitle.removeAttribute('spellcheck');
+        
+        // Restore description element to its original location
+        if (this._inlineDescEdit.descriptionOriginalParent && eventSlideText) {
+            const originalParent = this._inlineDescEdit.descriptionOriginalParent;
+            const originalNextSibling = this._inlineDescEdit.descriptionOriginalNextSibling;
+            if (originalNextSibling) {
+                originalParent.insertBefore(eventSlideText, originalNextSibling);
+            } else {
+                originalParent.appendChild(eventSlideText);
+            }
+            this._inlineDescEdit.descriptionOriginalParent = null;
+            this._inlineDescEdit.descriptionOriginalNextSibling = null;
+        }
+        
         if (eventSlide) eventSlide.classList.remove('event-slide--inline-editing');
         if (saveBtn) saveBtn.style.display = 'none';
         if (editBtn) editBtn.textContent = 'Edit';
