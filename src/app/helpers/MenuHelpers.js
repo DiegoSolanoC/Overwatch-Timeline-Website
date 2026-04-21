@@ -258,23 +258,20 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
 
     menuButtons.appendChild(glossaryBtn);
 
-    // Only show Story Viewer if NOT on GitHub Pages
-    if (!isGitHubPages()) {
-        // Story Viewer button
-        const biographyBtn = createMenuButton({
-            id: 'runBiographyBtn',
-            title: 'Story Viewer',
-            imagePath: 'assets/images/menu/Character%20Bios.png',
-            label: 'Story Viewer',
-            description: 'Explore the Story of overwatch through a sequence of event slides'
-        });
+    // Story Viewer button - always show now
+    const biographyBtn = createMenuButton({
+        id: 'runBiographyBtn',
+        title: 'Story Viewer',
+        imagePath: 'assets/images/menu/Character%20Bios.png',
+        label: 'Story Viewer',
+        description: 'Explore the Story of overwatch through a sequence of event slides'
+    });
 
-        if (setupBiographyHandler) {
-            biographyBtn.button.addEventListener('click', setupBiographyHandler);
-        }
-
-        menuButtons.appendChild(biographyBtn);
+    if (setupBiographyHandler) {
+        biographyBtn.button.addEventListener('click', setupBiographyHandler);
     }
+
+    menuButtons.appendChild(biographyBtn);
 
     // Event System Load Out button (small, below main buttons)
     const testBtn = document.createElement('button');

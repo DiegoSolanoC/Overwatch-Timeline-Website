@@ -443,6 +443,10 @@
         if (isTypingContext(target)) return;
 
         if (lower === 'e') {
+            // Skip if Story Viewer is active (uses same panel)
+            if (document.getElementById('storyViewerContainer')) {
+                return;
+            }
             if (isEventSlideOpen()) {
                 if (clickIfEnabled('eventAllEventsBtn')) consumeEvent(e);
             } else if (clickIfEnabled('eventsManageToggle')) {

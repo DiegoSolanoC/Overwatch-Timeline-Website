@@ -175,6 +175,11 @@ export class ComponentOrchestrator {
     async runGlobeComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
 
+        // Close event slide panel if open
+        if (window.EventSlideManager?.instance?.hideEventSlide) {
+            window.EventSlideManager.instance.hideEventSlide();
+        }
+
         // Kill other modes first (mutual exclusion)
         const currentMode = localStorage.getItem('currentMode');
         if (currentMode === 'biography' && this.loadedComponents.biography) {
@@ -335,6 +340,11 @@ export class ComponentOrchestrator {
     async runGlossaryComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
 
+        // Close event slide panel if open
+        if (window.EventSlideManager?.instance?.hideEventSlide) {
+            window.EventSlideManager.instance.hideEventSlide();
+        }
+
         // Kill other modes first (mutual exclusion)
         const currentMode = localStorage.getItem('currentMode');
         if (currentMode === 'biography' && this.loadedComponents.biography) {
@@ -396,7 +406,12 @@ export class ComponentOrchestrator {
      */
     async runBiographyComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
-        
+
+        // Close event slide panel if open
+        if (window.EventSlideManager?.instance?.hideEventSlide) {
+            window.EventSlideManager.instance.hideEventSlide();
+        }
+
         // Kill other modes first (mutual exclusion)
         const currentMode = localStorage.getItem('currentMode');
         if (currentMode === 'globe' && this.loadedComponents.globeBase) {
@@ -468,6 +483,12 @@ export class ComponentOrchestrator {
         const testContainer = document.querySelector('.test-container');
         if (testContainer) {
             testContainer.style.display = 'none';
+        }
+
+        // Hide the Event Manager button since Story Viewer uses the panel
+        const eventManagerBtn = document.getElementById('eventsManageToggle');
+        if (eventManagerBtn) {
+            eventManagerBtn.style.setProperty('display', 'none', 'important');
         }
 
         // Get the actual eventsManagePanel and move it to center
@@ -1051,13 +1072,19 @@ export class ComponentOrchestrator {
             if (closeBtn) {
                 closeBtn.style.display = '';
             }
-            
+
+            // Show Event Manager button again
+            const eventManagerBtn = document.getElementById('eventsManageToggle');
+            if (eventManagerBtn) {
+                eventManagerBtn.style.display = '';
+            }
+
             // Remove story-viewer-header class from header
             const header = eventsManagePanel.querySelector('.story-viewer-header');
             if (header) {
                 header.classList.remove('story-viewer-header');
             }
-            
+
             // Move back to original parent
             this._originalEventsPanelParent.appendChild(eventsManagePanel);
         }
