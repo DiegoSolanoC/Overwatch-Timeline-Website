@@ -40,6 +40,234 @@ function thumbPageTurnGrowKeyframes(isThumbsDesktop, locked) {
 }
 
 /**
+ * Find WebGL marker for an event by global event index
+ * Used to trigger marker hover effects from dock thumbnails
+ */
+function findMarkerForEvent(event, globalEventIndex) {
+    if (!event) return null;
+    
+    const sceneModel = window.globeController?.sceneModel;
+    if (!sceneModel) return null;
+    
+    const markers = sceneModel.getMarkers?.() || [];
+    
+    // Find marker that matches this event
+    for (const marker of markers) {
+        if (!marker.userData?.isEventMarker) continue;
+        
+        const markerEvent = marker.userData.event;
+        if (!markerEvent) continue;
+        
+        // Match by name and location
+        const nameMatch = markerEvent.name === event.name;
+        const locationMatch = 
+            markerEvent.locationType === event.locationType &&
+            markerEvent.lat === event.lat &&
+            markerEvent.lon === event.lon;
+        
+        if (nameMatch || locationMatch) {
+            return marker;
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Create a stub marker for map view (similar to Map2DLiteLayer's makeStubMarker)
+ */
+function createStubForMapView(event, globalEventIndex) {
+    if (!event) return null;
+    
+    const filters = window.standaloneActiveFilters || new Set();
+    const locked = filters.size > 0 && window.MarkerCreationHelpers?.shouldEventBeLocked 
+        ? window.MarkerCreationHelpers.shouldEventBeLocked(event, filters)
+        : false;
+    
+    // Get display event (handle variants)
+    const isMultiEvent = Array.isArray(event.variants) && event.variants.length > 0;
+    const displayEvent = isMultiEvent && event.variants[0] 
+        ? { ...event, ...event.variants[0] } 
+        : event;
+    
+    return {
+        userData: {
+            isEventMarker: true,
+            isInteractive: true,
+            isLocked: locked,
+            event: event,
+            eventName: displayEvent.name || event.name,
+            locationType: displayEvent.locationType || event.locationType || 'earth',
+            variantIndex: 0,
+            isMainVariant: true,
+            originalColor: window.MarkerCreationHelpers?.getMarkerColor?.(true) || 0xffaa00,
+            isMap2dLiteProxy: true
+        }
+    };
+}
+
+/** Store camera state before thumbnail hover for restoration */
+let _thumbnailHoverCameraState = null;
+
+/**
+ * Smoothly center camera on a marker (hover preview - zooms in like zoomToMarker)
+ */
+function centerCameraOnMarker(marker) {
+    const sceneModel = window.globeController?.sceneModel;
+    if (!sceneModel || !marker) return;
+    
+    const isMapView = sceneModel.getMapViewEnabled?.() || !!sceneModel.isMapView;
+    
+    // Disable auto-rotate
+    sceneModel.setAutoRotate?.(false);
+    
+    if (isMapView) {
+        // Map view: use Map2DLiteLayer's flyToLatLon
+        const ev = marker.userData?.event;
+        if (ev?.lat != null && ev?.lon != null) {
+            // Store map state for restoration
+            const map2dLite = window.globeController?.map2dLite;
+            if (map2dLite && !_thumbnailHoverCameraState) {
+                _thumbnailHoverCameraState = {
+                    isMapView: true,
+                    tx: map2dLite._tx,
+                    ty: map2dLite._ty,
+                    scale: map2dLite._scale
+                };
+            }
+            window.globeController?.map2dLite?.flyToLatLon?.(ev.lat, ev.lon);
+        }
+    } else {
+        // Globe view: move Three.js camera
+        const camera = sceneModel.getCamera?.();
+        const globe = sceneModel.getGlobe?.();
+        if (!camera || !globe) return;
+        
+        // Store current state before moving (for restoration)
+        if (!_thumbnailHoverCameraState) {
+            _thumbnailHoverCameraState = {
+                cameraPosition: camera.position.clone(),
+                isMapView: false
+            };
+        }
+        
+        // Get marker world position
+        const markerWorldPos = new THREE.Vector3();
+        marker.getWorldPosition(markerWorldPos);
+        
+        // Globe view: move camera along radial direction toward marker (like zoomToMarker)
+        const targetDistance = 3.2; // Moderate zoom - closer than default (4-5) but not as close as click (2.5)
+        const direction = markerWorldPos.clone().normalize();
+        const targetPosition = direction.multiplyScalar(targetDistance);
+        
+        // Animate camera to target
+        const startPosition = camera.position.clone();
+        const startTime = Date.now();
+        const duration = 600; // ms
+        
+        function animateCamera() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+            
+            // Interpolate position
+            camera.position.lerpVectors(startPosition, targetPosition, ease);
+            
+            // Look at marker (accounting for globe rotation)
+            const currentMarkerPos = new THREE.Vector3();
+            marker.getWorldPosition(currentMarkerPos);
+            camera.lookAt(currentMarkerPos);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animateCamera);
+            }
+        }
+        
+        animateCamera();
+    }
+}
+
+/**
+ * Restore camera to position before thumbnail hover
+ */
+function restoreCameraFromThumbnailHover() {
+    if (!_thumbnailHoverCameraState) return;
+    
+    const sceneModel = window.globeController?.sceneModel;
+    if (!sceneModel) return;
+    
+    const state = _thumbnailHoverCameraState;
+    const isMapView = sceneModel.getMapViewEnabled?.() || !!sceneModel.isMapView;
+    
+    // Only restore if we're in the same view mode we started in
+    if (isMapView && state.isMapView) {
+        // Map view: animate back to original transform
+        const map2dLite = window.globeController?.map2dLite;
+        if (map2dLite && state.tx != null) {
+            const startTx = map2dLite._tx;
+            const startTy = map2dLite._ty;
+            const startScale = map2dLite._scale;
+            const targetTx = state.tx;
+            const targetTy = state.ty;
+            const targetScale = state.scale;
+            const startTime = Date.now();
+            const duration = 500;
+            
+            function animateRestore() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                
+                map2dLite._tx = startTx + (targetTx - startTx) * ease;
+                map2dLite._ty = startTy + (targetTy - startTy) * ease;
+                map2dLite._scale = startScale + (targetScale - startScale) * ease;
+                map2dLite._applyTransform();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateRestore);
+                }
+            }
+            animateRestore();
+        }
+    } else if (!isMapView && !state.isMapView && state.cameraPosition) {
+        // Globe view: animate camera back to original position
+        const camera = sceneModel.getCamera?.();
+        if (!camera) return;
+        
+        const startPos = camera.position.clone();
+        const targetPos = state.cameraPosition;
+        const startTime = Date.now();
+        const duration = 500;
+        
+        function animateRestore() {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            
+            camera.position.lerpVectors(startPos, targetPos, ease);
+            camera.lookAt(0, 0, 0); // Look at globe center
+            
+            if (progress < 1) {
+                requestAnimationFrame(animateRestore);
+            }
+        }
+        animateRestore();
+    }
+    
+    // Clear stored state
+    _thumbnailHoverCameraState = null;
+    
+    // Re-enable auto-rotate after a delay if enabled
+    if (sceneModel.getAutoRotateEnabled?.()) {
+        setTimeout(() => {
+            if (!sceneModel.eventMarker) {
+                sceneModel.setAutoRotate?.(true);
+            }
+        }, 1000);
+    }
+}
+
+/**
  * Updates standalone pagination thumbnails based on active filters
  * Locks (disables/dims) thumbnails for events that don't match filters
  */
@@ -1755,6 +1983,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         window.globeEventMarkerManager.refreshEventMarkers(true);
                                     }
                                     
+                                    // Refresh Map2DLiteLayer markers and celestial panels
+                                    if (window.globeController?.map2dLite?.syncMarkers) {
+                                        window.globeController.map2dLite.syncMarkers({ mode: 'pageTurn' });
+                                    }
+                                    
                                     // Skip sound during slider scrubbing - tick sounds play instead
                                     if (!options.skipSound && window.SoundEffectsManager?.play) {
                                         window.SoundEffectsManager.play('page');
@@ -1948,6 +2181,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
                                 if (nameEl) nameEl.textContent = plainName;
                                 
+                                // Check if event has description (unfinished indicator)
+                                const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
+                                newBtn.classList.toggle('event-number-btn--unfinished', !hasDescription);
+                                newBtn.title = hasDescription ? plainName : `${plainName} — Unfinished: missing description`;
+                                
                                 // Get image path using helper
                                 let imagePath = null;
                                 if (window.NavigationImageHelpers?.getEventImagePath) {
@@ -2060,10 +2298,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     };
                                 }
                                 
-                                // Hover effects - show preview badge only
+                                // Hover effects - show preview badge and trigger marker hover
                                 newBtn.onmouseenter = () => {
+                                    // Show preview badge
                                     if (window.EventsHoverPreviewBadge?.show && event) {
-                                        // Get era/year/flags using same method as globe
                                         const hoverLines = window.EventsHoverPreviewBadge.getHoverPreviewLines 
                                             ? window.EventsHoverPreviewBadge.getHoverPreviewLines(event)
                                             : { eraName: displayEvent.eraName || '', primaryRowFlag: null, otherRowFlags: [], yearLine: displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '' };
@@ -2081,11 +2319,64 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                             hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
                                         );
                                     }
+                                    
+                                    // Trigger marker hover effect based on view mode
+                                    const sceneModel = window.globeController?.sceneModel;
+                                    const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
+                                    
+                                    if (isMapView) {
+                                        // Map view: use stub with setDomLiteMarkerHover
+                                        const stub = createStubForMapView(event, globalEventIndex);
+                                        if (stub) {
+                                            const ms = window.globeController?.interactionController?.markerService;
+                                            ms?.setDomLiteMarkerHover?.(stub);
+                                            window.globeController?.map2dLite?.playHoverRadiateLoopForStub?.(stub);
+                                        }
+                                        // Center map on marker
+                                        if (event.lat != null && event.lon != null) {
+                                            window.globeController?.map2dLite?.flyToLatLon?.(event.lat, event.lon);
+                                        }
+                                    } else {
+                                        // Globe view: use WebGL marker with pulse
+                                        const marker = findMarkerForEvent(event, globalEventIndex);
+                                        if (marker) {
+                                            const ic = window.globeController?.interactionController;
+                                            if (ic?.pulseService) {
+                                                ic.pulseService.setHoveredMarker(marker); // Glow effect
+                                                ic.startEventMarkerPulse(marker); // Pulse rings
+                                            }
+                                            // Center camera on marker
+                                            centerCameraOnMarker(marker);
+                                        }
+                                    }
                                 };
                                 
                                 newBtn.onmouseleave = () => {
                                     if (window.EventsHoverPreviewBadge?.hide) {
                                         window.EventsHoverPreviewBadge.hide();
+                                    }
+                                    
+                                    // Clear marker hover effect based on view mode
+                                    const sceneModel = window.globeController?.sceneModel;
+                                    const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
+                                    
+                                    if (isMapView) {
+                                        // Map view: clear DOM-lite hover and reset to default view
+                                        const ms = window.globeController?.interactionController?.markerService;
+                                        ms?.setDomLiteMarkerHover?.(null);
+                                        window.globeController?.map2dLite?.stopHoverRadiateLoop?.();
+                                        window.globeController?.map2dLite?.resetView?.();
+                                    } else {
+                                        // Globe view: clear WebGL pulse effects and restore camera
+                                        const ic = window.globeController?.interactionController;
+                                        if (ic?.pulseService) {
+                                            const hoveredMarker = ic.pulseService.getHoveredMarker();
+                                            if (hoveredMarker) {
+                                                ic.stopEventMarkerPulse(hoveredMarker);
+                                                ic.pulseService.setHoveredMarker(null);
+                                            }
+                                        }
+                                        restoreCameraFromThumbnailHover();
                                     }
                                 };
                             });
@@ -2153,11 +2444,18 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             };
                             
                             buttons.forEach((btn, i) => {
-                                if (btn.style.display === 'none') return;
-                                
                                 // Get the event data for this button position
                                 const event = pageEvents[i];
                                 const globalEventIndex = (pageNum - 1) * 10 + i;
+                                
+                                // Handle case where there's no event for this button slot
+                                if (!event) {
+                                    btn.style.display = 'none';
+                                    return;
+                                }
+                                
+                                // Ensure button is visible (was hidden on pages with fewer events)
+                                btn.style.display = '';
                                 
                                 // IMMEDIATELY set up click handler with CORRECT index
                                 // (will be refreshed again in updateSingleButtonContent, but this ensures it's right from start)
@@ -2294,6 +2592,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
                             if (nameEl) nameEl.textContent = plainName;
                             
+                            // Check if event has description (unfinished indicator)
+                            const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
+                            btn.classList.toggle('event-number-btn--unfinished', !hasDescription);
+                            btn.title = hasDescription ? plainName : `${plainName} — Unfinished: missing description`;
+                            
                             // Get image
                             let imagePath = null;
                             if (window.NavigationImageHelpers?.getEventImagePath) {
@@ -2394,10 +2697,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 };
                             }
                             
-                            // Hover effects - show preview badge only
+                            // Hover effects - show preview badge and trigger marker hover
                             btn.onmouseenter = () => {
+                                // Show preview badge
                                 if (window.EventsHoverPreviewBadge?.show && event) {
-                                    // Get era/year/flags using same method as globe
                                     const hoverLines = window.EventsHoverPreviewBadge.getHoverPreviewLines 
                                         ? window.EventsHoverPreviewBadge.getHoverPreviewLines(event)
                                         : { eraName: displayEvent.eraName || '', primaryRowFlag: null, otherRowFlags: [], yearLine: displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '' };
@@ -2415,11 +2718,64 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
                                     );
                                 }
+                                
+                                // Trigger marker hover effect based on view mode
+                                const sceneModel = window.globeController?.sceneModel;
+                                const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
+                                
+                                if (isMapView) {
+                                    // Map view: use stub with setDomLiteMarkerHover
+                                    const stub = createStubForMapView(event, globalEventIndex);
+                                    if (stub) {
+                                        const ms = window.globeController?.interactionController?.markerService;
+                                        ms?.setDomLiteMarkerHover?.(stub);
+                                        window.globeController?.map2dLite?.playHoverRadiateLoopForStub?.(stub);
+                                    }
+                                    // Center map on marker
+                                    if (event.lat != null && event.lon != null) {
+                                        window.globeController?.map2dLite?.flyToLatLon?.(event.lat, event.lon);
+                                    }
+                                } else {
+                                    // Globe view: use WebGL marker with pulse
+                                    const marker = findMarkerForEvent(event, globalEventIndex);
+                                    if (marker) {
+                                        const ic = window.globeController?.interactionController;
+                                        if (ic?.pulseService) {
+                                            ic.pulseService.setHoveredMarker(marker); // Glow effect
+                                            ic.startEventMarkerPulse(marker); // Pulse rings
+                                        }
+                                        // Center camera on marker
+                                        centerCameraOnMarker(marker);
+                                    }
+                                }
                             };
                             
                             btn.onmouseleave = () => {
                                 if (window.EventsHoverPreviewBadge?.hide) {
                                     window.EventsHoverPreviewBadge.hide();
+                                }
+                                
+                                // Clear marker hover effect based on view mode
+                                const sceneModel = window.globeController?.sceneModel;
+                                const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
+                                
+                                if (isMapView) {
+                                    // Map view: clear DOM-lite hover and reset to default view
+                                    const ms = window.globeController?.interactionController?.markerService;
+                                    ms?.setDomLiteMarkerHover?.(null);
+                                    window.globeController?.map2dLite?.stopHoverRadiateLoop?.();
+                                    window.globeController?.map2dLite?.resetView?.();
+                                } else {
+                                    // Globe view: clear WebGL pulse effects and restore camera
+                                    const ic = window.globeController?.interactionController;
+                                    if (ic?.pulseService) {
+                                        const hoveredMarker = ic.pulseService.getHoveredMarker();
+                                        if (hoveredMarker) {
+                                            ic.stopEventMarkerPulse(hoveredMarker);
+                                            ic.pulseService.setHoveredMarker(null);
+                                        }
+                                    }
+                                    restoreCameraFromThumbnailHover();
                                 }
                             };
                         },

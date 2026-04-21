@@ -1514,6 +1514,11 @@ export function createMenuButtonsContainer(statusService) {
                                         window.globeEventMarkerManager.refreshEventMarkers(true);
                                     }
                                     
+                                    // Refresh Map2DLiteLayer markers and celestial panels
+                                    if (window.globeController?.map2dLite?.syncMarkers) {
+                                        window.globeController.map2dLite.syncMarkers({ mode: 'pageTurn' });
+                                    }
+                                    
                                     // Skip sound during slider scrubbing - tick sounds play instead
                                     if (!options.skipSound && window.SoundEffectsManager?.play) {
                                         window.SoundEffectsManager.play('page');
@@ -1842,11 +1847,18 @@ export function createMenuButtonsContainer(statusService) {
                             const waveToken = Date.now().toString();
                             
                             buttons.forEach((btn, i) => {
-                                if (btn.style.display === 'none') return;
-                                
                                 // Get the event data for this button position
                                 const event = pageEvents[i];
                                 const globalEventIndex = (pageNum - 1) * 10 + i;
+                                
+                                // Handle case where there's no event for this button slot
+                                if (!event) {
+                                    btn.style.display = 'none';
+                                    return;
+                                }
+                                
+                                // Ensure button is visible (was hidden on pages with fewer events)
+                                btn.style.display = '';
                                 
                                 btn.dataset.pageTurnToken = waveToken;
                                 const locked = btn.dataset.locked === 'true';
@@ -1956,6 +1968,11 @@ export function createMenuButtonsContainer(statusService) {
                             
                             const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
                             if (nameEl) nameEl.textContent = plainName;
+                            
+                            // Check if event has description (unfinished indicator)
+                            const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
+                            btn.classList.toggle('event-number-btn--unfinished', !hasDescription);
+                            btn.title = hasDescription ? plainName : `${plainName} — Unfinished: missing description`;
                             
                             // Get image
                             let imagePath = null;
