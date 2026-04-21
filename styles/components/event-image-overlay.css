@@ -31,22 +31,26 @@
 
 /* When event slide is open, image overlay starts after it */
 .event-image-overlay.slide-open {
-    left: 600px;
+    left: var(--user-panel-event-width, var(--panel-event-width, 600px));
 }
 
 .event-image-overlay.open {
     display: flex !important;
     opacity: 1;
-    pointer-events: none; /* Allow globe dragging, but JS will block event marker interactions */
+    pointer-events: auto; /* Capture clicks to allow hiding by clicking the image */
+    cursor: pointer; /* Show clickable cursor */
 }
 
 .event-image-overlay.fade-in {
     opacity: 1;
-    pointer-events: none; /* Allow globe dragging, but JS will block event marker interactions */
+    pointer-events: auto; /* Capture clicks to allow hiding by clicking the image */
+    cursor: pointer;
 }
 
 .event-image-overlay.fade-out {
     opacity: 0;
+    pointer-events: none; /* Allow clicks to pass through when fading out */
+    cursor: default;
 }
 
 .event-image-overlay img {
@@ -56,7 +60,7 @@
     box-shadow: none; /* Remove shadow */
     opacity: 0;
     transition: opacity 0.6s ease; /* Slower fade for more noticeable effect */
-    pointer-events: none; /* Allow clicks to pass through image to overlay */
+    pointer-events: auto; /* Capture clicks on the image itself */
     border-radius: 0; /* Remove rounded edges */
     margin: 0;
     padding: 0;
@@ -76,7 +80,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    pointer-events: none; /* Allow clicks to pass through */
+    pointer-events: auto; /* Capture clicks on the image container */
 }
 
 .event-image-container img {

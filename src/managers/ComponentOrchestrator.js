@@ -48,6 +48,58 @@ export class ComponentOrchestrator {
     }
 
     /**
+     * Auto-load Event System if "Auto preload" checkbox is enabled
+     * @returns {Promise<boolean>} - True if event system was loaded (or already loaded), false otherwise
+     */
+    async autoPreloadEventSystemIfEnabled() {
+        const autoPreloadEnabled = localStorage.getItem('autoPreloadEventSystem') === 'true';
+        
+        if (!autoPreloadEnabled) {
+            return true; // Continue without loading
+        }
+        
+        // Check if already loaded
+        if (this.isEventSystemLoadOutActive()) {
+            return true; // Already loaded, continue
+        }
+        
+        // Trigger event system load by clicking the testBtn
+        const testBtn = document.getElementById('testBtn');
+        if (testBtn) {
+            console.log('[ComponentOrchestrator] Auto-preloading Event System...');
+            
+            // Show loading overlay FIRST to mask the event system loading
+            showLoadingOverlay();
+            updateStatus('→ Auto-loading Event System...', 'info');
+            
+            testBtn.click();
+            
+            // Wait for event system to be fully loaded
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds max
+            while (!this.isEventSystemLoadOutActive() && attempts < maxAttempts) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+            
+            if (this.isEventSystemLoadOutActive()) {
+                console.log('[ComponentOrchestrator] Event System auto-loaded successfully');
+                updateStatus('✓ Event System auto-loaded', 'success');
+                await new Promise(r => setTimeout(r, 200)); // Small delay for stability
+                // Don't hide loading overlay here - let the mode loader handle it
+                return true;
+            } else {
+                console.warn('[ComponentOrchestrator] Event System auto-load timed out');
+                updateStatus('⚠ Event System auto-load timed out', 'warning');
+                hideLoadingOverlay();
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
      * Play mode switch sound effect
      * @param {boolean} isAutoLoad - If true, don't play sound
      */
@@ -176,9 +228,17 @@ export class ComponentOrchestrator {
     async runGlobeComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
 
-        // Close event slide panel if open
+        // Auto-load Event System if checkbox is enabled
+        if (!isAutoLoad) {
+            await this.autoPreloadEventSystemIfEnabled();
+        }
+
+        // Close event slide panel if open (both EventSlideManager and standalone event system)
         if (window.EventSlideManager?.instance?.hideEventSlide) {
             window.EventSlideManager.instance.hideEventSlide();
+        }
+        if (window.standaloneEventSlide?.hideEventSlide) {
+            window.standaloneEventSlide.hideEventSlide();
         }
 
         // Kill other modes first (mutual exclusion)
@@ -330,9 +390,17 @@ export class ComponentOrchestrator {
     async runGlossaryComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
 
-        // Close event slide panel if open
+        // Auto-load Event System if checkbox is enabled
+        if (!isAutoLoad) {
+            await this.autoPreloadEventSystemIfEnabled();
+        }
+
+        // Close event slide panel if open (both EventSlideManager and standalone event system)
         if (window.EventSlideManager?.instance?.hideEventSlide) {
             window.EventSlideManager.instance.hideEventSlide();
+        }
+        if (window.standaloneEventSlide?.hideEventSlide) {
+            window.standaloneEventSlide.hideEventSlide();
         }
 
         // Kill other modes first (mutual exclusion)
@@ -397,16 +465,21 @@ export class ComponentOrchestrator {
     async runBiographyComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
 
-        // Close event slide panel if open
+        // Auto-load Event System if checkbox is enabled
+        if (!isAutoLoad) {
+            await this.autoPreloadEventSystemIfEnabled();
+        }
+
+        // Close event slide panel if open (both EventSlideManager and standalone event system)
         if (window.EventSlideManager?.instance?.hideEventSlide) {
             window.EventSlideManager.instance.hideEventSlide();
+        }
+        if (window.standaloneEventSlide?.hideEventSlide) {
+            window.standaloneEventSlide.hideEventSlide();
         }
 
         // Kill other modes first (mutual exclusion)
         const currentMode = localStorage.getItem('currentMode');
-        if (currentMode === 'globe' && this.loadedComponents.globeBase) {
-            await this.killGlobeComponents();
-        }
         if (currentMode === 'glossary' && this.loadedComponents.glossary) {
             await this.killGlossaryComponents();
         }

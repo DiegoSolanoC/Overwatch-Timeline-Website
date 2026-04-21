@@ -277,11 +277,46 @@ export class ImageOverlayManager {
     
     /**
      * Setup image overlay interaction handlers
-     * The image will hide when globe is dragged (checked in animation loop)
+     * - Clicking the image hides it temporarily (5 seconds, then auto-restore)
+     * - Globe dragging also hides the image
      */
     setupImageOverlayHandlers(eventImageOverlay) {
-        // No direct handlers needed - dragging is detected via sceneModel.isDraggingState()
-        // in the checkAndAutoShowImage method
+        if (!eventImageOverlay) return;
+        
+        // Click on image overlay to hide temporarily (5 second auto-restore)
+        eventImageOverlay.addEventListener('click', (e) => {
+            // Only hide if clicking the image itself (not other controls)
+            if (e.target === eventImageOverlay || e.target.tagName === 'IMG') {
+                e.stopPropagation();
+                this.hideImageOverlayTemporarily(5000); // 5 seconds
+            }
+        });
+    }
+    
+    /**
+     * Hide image overlay temporarily with auto-restore after delay
+     * @param {number} delayMs - Milliseconds before auto-restoring (default 5000)
+     */
+    hideImageOverlayTemporarily(delayMs = 5000) {
+        if (!this.imageOverlayVisible) return;
+        
+        // Hide temporarily (preserves toggle state)
+        this.hideImageOverlay(true);
+        
+        // Clear any existing auto-show timeout
+        if (this.imageAutoHideTimeout) {
+            clearTimeout(this.imageAutoHideTimeout);
+            this.imageAutoHideTimeout = null;
+        }
+        
+        // Schedule auto-restore after delay
+        if (this.imageToggleState) {
+            this.imageAutoHideTimeout = setTimeout(() => {
+                if (this.imageToggleState && !this.imageOverlayVisible) {
+                    this.showImageOverlay();
+                }
+            }, delayMs);
+        }
     }
     
     /**

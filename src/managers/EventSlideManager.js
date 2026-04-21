@@ -1657,6 +1657,10 @@ export class EventSlideManager {
      * Hide event slide panel
      */
     hideEventSlide() {
+        const eventSlide = document.getElementById('eventSlide');
+        // Only play sound if panel was actually open
+        const wasOpen = eventSlide?.classList.contains('open');
+
         // Discard unsaved inline edits on close
         this._cancelInlineDescriptionEdit();
 
@@ -1664,17 +1668,12 @@ export class EventSlideManager {
         if (window.GlitchTextService) {
             window.GlitchTextService.stopAnimation();
         }
-        // Play event click sound when closing panel (for both globe markers and event system)
-        if (window.SoundEffectsManager) {
-            window.SoundEffectsManager.play('eventClick');
-        }
 
         // Restore plane visibility when closing event slide
         if (window.globeController && window.globeController.interactionController) {
             window.globeController.interactionController.restorePlanesVisibility();
         }
 
-        const eventSlide = document.getElementById('eventSlide');
         const eventImageOverlay = document.getElementById('eventImageOverlay');
         const eventImage = document.getElementById('eventImage');
 
@@ -1689,11 +1688,14 @@ export class EventSlideManager {
         // Hide image overlay immediately
         if (eventImageOverlay) {
             eventImageOverlay.classList.remove('slide-open', 'open', 'fade-in', 'fade-out');
+            eventImageOverlay.style.display = 'none';
+            eventImageOverlay.style.opacity = '0';
         }
 
         if (eventImage) {
             eventImage.classList.remove('fade-in', 'fade-out');
             eventImage.style.display = 'none';
+            eventImage.style.opacity = '0';
         }
 
         // Re-enable page navigation buttons when event slide is closed
@@ -1773,6 +1775,11 @@ export class EventSlideManager {
                 this.uiView.stillnessStartTime = null;
                 this.uiView.wasDragging = false;
             }
+        }
+
+        // Play event click sound when closing panel (only if it was actually open)
+        if (wasOpen && window.SoundEffectsManager) {
+            window.SoundEffectsManager.play('eventClick');
         }
     }
 

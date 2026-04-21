@@ -322,6 +322,10 @@
             if (uiHide && typeof uiHide.hideEventSlide === 'function' && slideOpen) {
                 clearHackedOverlays();
                 uiHide.hideEventSlide();
+                // Also hide image overlay to match X button behavior
+                if (uiHide.hideImageOverlay) {
+                    uiHide.hideImageOverlay();
+                }
                 return true;
             }
         } catch (_) {}

@@ -483,7 +483,18 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         globeBtn.button.addEventListener('click', setupGlobeHandler);
     }
 
-    menuButtons.appendChild(globeBtn);
+    // Container for the three main buttons (horizontal row)
+    const mainButtonsRow = document.createElement('div');
+    mainButtonsRow.style.cssText = `
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 30px;
+        width: 100%;
+    `;
+
+    mainButtonsRow.appendChild(globeBtn);
 
     // World Codex button (always shown now)
     const glossaryBtn = createMenuButton({
@@ -498,7 +509,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         glossaryBtn.button.addEventListener('click', setupGlossaryHandler);
     }
 
-    menuButtons.appendChild(glossaryBtn);
+    mainButtonsRow.appendChild(glossaryBtn);
 
     // Story Viewer button - always show now
     const biographyBtn = createMenuButton({
@@ -513,15 +524,73 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         biographyBtn.button.addEventListener('click', setupBiographyHandler);
     }
 
-    menuButtons.appendChild(biographyBtn);
+    mainButtonsRow.appendChild(biographyBtn);
+    menuButtons.appendChild(mainButtonsRow);
 
-    // Event System Load Out button (small, below main buttons)
+    // Visual separator between main buttons and event system controls
+    const separator = document.createElement('div');
+    separator.style.cssText = `
+        width: 60%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #555, transparent);
+        margin: 30px auto 10px auto;
+    `;
+    menuButtons.appendChild(separator);
+
+    // Container for Auto-preload checkbox and Event System Load Out button (horizontal row)
+    const eventSystemContainer = document.createElement('div');
+    eventSystemContainer.style.cssText = `
+        margin-top: 10px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        width: 100%;
+    `;
+
+    // Auto-preload checkbox (first)
+    const autoPreloadContainer = document.createElement('label');
+    autoPreloadContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #aaa;
+        cursor: pointer;
+        user-select: none;
+    `;
+    autoPreloadContainer.title = 'Automatically load Event System when opening Story Viewer, Interactive Globe, or World Codex';
+
+    const autoPreloadCheckbox = document.createElement('input');
+    autoPreloadCheckbox.type = 'checkbox';
+    autoPreloadCheckbox.id = 'autoPreloadEventSystem';
+    autoPreloadCheckbox.style.cssText = `
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+    `;
+    // Restore saved state
+    const savedAutoPreload = localStorage.getItem('autoPreloadEventSystem');
+    autoPreloadCheckbox.checked = savedAutoPreload === 'true';
+
+    const autoPreloadLabel = document.createElement('span');
+    autoPreloadLabel.textContent = 'Auto preload';
+
+    autoPreloadContainer.appendChild(autoPreloadCheckbox);
+    autoPreloadContainer.appendChild(autoPreloadLabel);
+
+    // Save checkbox state on change
+    autoPreloadCheckbox.addEventListener('change', () => {
+        localStorage.setItem('autoPreloadEventSystem', autoPreloadCheckbox.checked);
+    });
+
+    // Event System Load Out button (small, second)
     const testBtn = document.createElement('button');
     testBtn.id = 'testBtn';
     testBtn.className = 'test-btn';
     testBtn.textContent = 'LOAD Event System Load Out';
     testBtn.style.cssText = `
-        margin-top: 20px;
         padding: 8px 16px;
         font-size: 12px;
         background: #333;
@@ -529,8 +598,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         border: 1px solid #555;
         border-radius: 4px;
         cursor: pointer;
-        align-self: center;
     `;
+
+    eventSystemContainer.appendChild(autoPreloadContainer);
+    eventSystemContainer.appendChild(testBtn);
+    menuButtons.appendChild(eventSystemContainer);
+
     testBtn.addEventListener('click', async () => {
         const isLoaded = testBtn.dataset.loaded === 'true';
 
@@ -1520,15 +1593,15 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         hideEventSlide() {
                             console.log('[DEBUG] hideEventSlide called');
                             const eventSlide = document.getElementById('eventSlide');
+                            // Only play sound if panel was actually open
+                            const wasOpen = eventSlide?.classList.contains('open');
                             if (eventSlide) {
                                 eventSlide.classList.remove('open');
                                 this.hideImageOverlay();
                             }
                             this.cancelEdit();
-                            // Play close sound for event system
-                            console.log('[DEBUG] hideEventSlide: SoundEffectsManager available:', !!window.SoundEffectsManager?.play);
-                            if (window.SoundEffectsManager?.play) {
-                                console.log('[DEBUG] hideEventSlide: Playing eventClick');
+                            // Play close sound for event system only if it was actually closed
+                            if (wasOpen && window.SoundEffectsManager?.play) {
                                 window.SoundEffectsManager.play('eventClick');
                             }
                         },
@@ -1706,6 +1779,40 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             // Buttons always enabled since navigation loops around
                             if (prevBtn) prevBtn.disabled = false;
                             if (nextBtn) nextBtn.disabled = false;
+                        },
+                        
+                        // Hide event slide panel - used by ComponentOrchestrator when switching modes
+                        hideEventSlide() {
+                            const eventSlide = document.getElementById('eventSlide');
+                            const eventImageOverlay = document.getElementById('eventImageOverlay');
+                            const eventImage = document.getElementById('eventImage');
+                            
+                            // Only play sound if panel was actually open
+                            const wasOpen = eventSlide?.classList.contains('open');
+                            
+                            if (eventSlide) {
+                                eventSlide.classList.remove('open');
+                            }
+                            
+                            // Hide image overlay completely
+                            if (eventImageOverlay) {
+                                eventImageOverlay.classList.remove('slide-open', 'open', 'fade-in', 'fade-out');
+                                eventImageOverlay.style.display = 'none';
+                                eventImageOverlay.style.opacity = '0';
+                            }
+                            
+                            if (eventImage) {
+                                eventImage.classList.remove('fade-in', 'fade-out');
+                                eventImage.style.display = 'none';
+                                eventImage.style.opacity = '0';
+                            }
+                            
+                            this.cancelEdit();
+                            
+                            // Only play sound if panel was actually closed
+                            if (wasOpen && window.SoundEffectsManager?.play) {
+                                window.SoundEffectsManager.play('eventClick');
+                            }
                         },
                         
                         setupStandalonePagination() {
@@ -2801,6 +2908,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         showImageOverlay(imagePath) {
                             const overlay = document.getElementById('eventImageOverlay');
                             const img = document.getElementById('eventImage');
+                            const eventSlide = document.getElementById('eventSlide');
                             
                             if (overlay && img && imagePath) {
                                 img.src = imagePath;
@@ -2809,8 +2917,191 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 overlay.style.display = 'flex';
                                 overlay.style.opacity = '1';
                                 overlay.classList.add('open');
-                                // No slide-open class - matches Globe behavior (no slide animation)
+                                // Add slide-open class if event slide is open (positions image to the right of panel)
+                                if (eventSlide?.classList.contains('open')) {
+                                    overlay.classList.add('slide-open');
+                                }
+                                
+                                // Setup click-to-hide handler if not already set
+                                if (!overlay.dataset.clickHandlerSet) {
+                                    overlay.dataset.clickHandlerSet = 'true';
+                                    overlay.addEventListener('click', (e) => {
+                                        if (e.target === overlay || e.target.tagName === 'IMG') {
+                                            e.stopPropagation();
+                                            this.hideImageOverlayTemporarily(5000);
+                                        }
+                                    });
+                                }
                             }
+                        },
+                        
+                        hideImageOverlayTemporarily(delayMs = 5000) {
+                            const overlay = document.getElementById('eventImageOverlay');
+                            if (!overlay || !overlay.classList.contains('open')) return;
+                            
+                            // Hide temporarily
+                            this.hideImageOverlay();
+                            
+                            // Debug: track countdown
+                            let countdownMs = delayMs;
+                            const DEBUG_INTERVAL = 1000; // Log every second
+                            let activityListenersAttached = false;
+                            let restoreTimeoutId = null;
+                            let debugIntervalId = null;
+                            
+                            const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'];
+                            
+                            const resetTimer = () => {
+                                countdownMs = delayMs; // Reset to full 5 seconds
+                                console.log(`[IMAGE RESTORE] Activity detected! Timer reset to ${delayMs}ms`);
+                                
+                                // Clear and restart the restore timeout
+                                if (restoreTimeoutId) {
+                                    clearTimeout(restoreTimeoutId);
+                                }
+                                restoreTimeoutId = setTimeout(() => {
+                                    const img = document.getElementById('eventImage');
+                                    if (img && img.src) {
+                                        console.log('[IMAGE RESTORE] Timer complete! Starting gradual restore...');
+                                        this.showImageOverlayGradually(img.src, 1500);
+                                    }
+                                    // Cleanup
+                                    detachActivityListeners();
+                                    if (debugIntervalId) {
+                                        clearInterval(debugIntervalId);
+                                        debugIntervalId = null;
+                                    }
+                                    restoreTimeoutId = null;
+                                }, delayMs);
+                            };
+                            
+                            const attachActivityListeners = () => {
+                                if (activityListenersAttached) return;
+                                activityListenersAttached = true;
+                                activityEvents.forEach(event => {
+                                    // Use capture phase so we get events even if stopPropagation() is called
+                                    document.addEventListener(event, resetTimer, { passive: true, capture: true });
+                                });
+                            };
+                            
+                            const detachActivityListeners = () => {
+                                if (!activityListenersAttached) return;
+                                activityListenersAttached = false;
+                                activityEvents.forEach(event => {
+                                    // Must specify capture when removing too
+                                    document.removeEventListener(event, resetTimer, { capture: true });
+                                });
+                            };
+                            
+                            // Start tracking activity
+                            attachActivityListeners();
+                            
+                            // Watch for event slide closing - immediately cancel restore
+                            let slideObserver = null;
+                            const eventSlide = document.getElementById('eventSlide');
+                            if (eventSlide) {
+                                slideObserver = new MutationObserver((mutations) => {
+                                    mutations.forEach((mutation) => {
+                                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                                            if (!eventSlide.classList.contains('open')) {
+                                                console.log('[IMAGE RESTORE] Event slide closed - canceling timer early');
+                                                if (restoreTimeoutId) {
+                                                    clearTimeout(restoreTimeoutId);
+                                                    restoreTimeoutId = null;
+                                                }
+                                                if (debugIntervalId) {
+                                                    clearInterval(debugIntervalId);
+                                                    debugIntervalId = null;
+                                                }
+                                                detachActivityListeners();
+                                                if (slideObserver) {
+                                                    slideObserver.disconnect();
+                                                    slideObserver = null;
+                                                }
+                                            }
+                                        }
+                                    });
+                                });
+                                slideObserver.observe(eventSlide, { attributes: true, attributeFilter: ['class'] });
+                            }
+                            
+                            // Debug: log countdown every second
+                            debugIntervalId = setInterval(() => {
+                                countdownMs -= DEBUG_INTERVAL;
+                                console.log(`[IMAGE RESTORE] ${Math.max(0, countdownMs)}ms remaining...`);
+                            }, DEBUG_INTERVAL);
+                            
+                            // Initial restore timeout
+                            console.log(`[IMAGE RESTORE] Starting ${delayMs}ms countdown...`);
+                            restoreTimeoutId = setTimeout(() => {
+                                const eventSlide = document.getElementById('eventSlide');
+                                // Check if event slide is still open before restoring
+                                if (!eventSlide?.classList.contains('open')) {
+                                    console.log('[IMAGE RESTORE] Event slide closed - canceling image restore');
+                                    detachActivityListeners();
+                                    clearInterval(debugIntervalId);
+                                    debugIntervalId = null;
+                                    restoreTimeoutId = null;
+                                    return;
+                                }
+                                const img = document.getElementById('eventImage');
+                                if (img && img.src) {
+                                    console.log('[IMAGE RESTORE] Timer complete! Starting gradual restore...');
+                                    this.showImageOverlayGradually(img.src, 1500);
+                                }
+                                detachActivityListeners();
+                                clearInterval(debugIntervalId);
+                                debugIntervalId = null;
+                                restoreTimeoutId = null;
+                            }, delayMs);
+                        },
+                        
+                        showImageOverlayGradually(imagePath, durationMs = 1500) {
+                            const overlay = document.getElementById('eventImageOverlay');
+                            const img = document.getElementById('eventImage');
+                            const eventSlide = document.getElementById('eventSlide');
+                            
+                            if (!overlay || !img || !imagePath) return;
+                            
+                            img.src = imagePath;
+                            img.style.display = 'block';
+                            img.style.opacity = '0';
+                            overlay.style.display = 'flex';
+                            overlay.classList.add('open');
+                            // Add slide-open class if event slide is open (positions image to the right of panel)
+                            if (eventSlide?.classList.contains('open')) {
+                                overlay.classList.add('slide-open');
+                            }
+                            overlay.style.opacity = '0';
+                            
+                            // Gradual fade-in with progress logging
+                            const startTime = Date.now();
+                            const fadeInterval = 50; // Update every 50ms
+                            
+                            console.log(`[IMAGE RESTORE] Starting gradual fade-in over ${durationMs}ms...`);
+                            
+                            const fadeTimer = setInterval(() => {
+                                const elapsed = Date.now() - startTime;
+                                const progress = Math.min(elapsed / durationMs, 1);
+                                // Ease-in curve for smooth appearance
+                                const eased = progress * progress; // Quadratic ease-in
+                                const opacity = eased;
+                                
+                                overlay.style.opacity = String(opacity);
+                                img.style.opacity = String(opacity);
+                                
+                                // Log progress at 25%, 50%, 75%, 100%
+                                if (progress >= 0.25 && progress < 0.30) console.log('[IMAGE RESTORE] Fade 25%...');
+                                if (progress >= 0.50 && progress < 0.55) console.log('[IMAGE RESTORE] Fade 50%...');
+                                if (progress >= 0.75 && progress < 0.80) console.log('[IMAGE RESTORE] Fade 75%...');
+                                
+                                if (progress >= 1) {
+                                    clearInterval(fadeTimer);
+                                    overlay.style.opacity = '1';
+                                    img.style.opacity = '1';
+                                    console.log('[IMAGE RESTORE] Fade 100% - Image fully restored!');
+                                }
+                            }, fadeInterval);
                         },
                         
                         hideImageOverlay() {

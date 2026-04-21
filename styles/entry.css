@@ -143,8 +143,9 @@ body:has(footer.timeline-loaded):has(#paginationDock) #globe-container {
 /* Main menu button layout - for Menu Components */
 .main-menu-buttons {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     gap: 30px;
     width: 100%;
     padding: 40px;

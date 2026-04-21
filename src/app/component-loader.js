@@ -208,7 +208,45 @@ function loadHeaderNavButtons() {
             e.stopPropagation();
             e.preventDefault();
 
+            // Play mode switch sound (same as other mode buttons)
+            if (window.SoundEffectsManager) {
+                if (window.SoundEffectsManager.sounds && window.SoundEffectsManager.sounds['modeSwitch']) {
+                    window.SoundEffectsManager.play('modeSwitch');
+                } else {
+                    window.SoundEffectsManager.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
+                    setTimeout(() => {
+                        window.SoundEffectsManager.play('modeSwitch');
+                    }, 100);
+                }
+            }
+
             const currentMode = (localStorage.getItem('currentMode') || 'menu').toLowerCase();
+
+            // Show loading overlay to mask the unload process
+            showLoadingOverlay();
+            updateStatus('Returning to Home...', 'info');
+
+            // Close event slide panel if open (both EventSlideManager and standalone event system)
+            if (window.EventSlideManager?.instance?.hideEventSlide) {
+                window.EventSlideManager.instance.hideEventSlide();
+            }
+            if (window.standaloneEventSlide?.hideEventSlide) {
+                window.standaloneEventSlide.hideEventSlide();
+            }
+
+            // Close image overlay if open
+            if (window.imageOverlay?.hide) {
+                window.imageOverlay.hide();
+            }
+
+            // Unload Event System if loaded
+            const testBtn = document.getElementById('testBtn');
+            if (testBtn && testBtn.dataset.loaded === 'true') {
+                console.log('[Home Button] Unloading Event System...');
+                testBtn.click(); // Click to unload
+                // Wait for unload to complete
+                await new Promise(r => setTimeout(r, 500));
+            }
 
             // Kill Story Viewer if active
             if (currentMode === 'biography') {
@@ -236,6 +274,10 @@ function loadHeaderNavButtons() {
 
             // Clear stored mode so a refresh also starts clean
             localStorage.removeItem('currentMode');
+
+            // Hide loading overlay
+            hideLoadingOverlay();
+            updateStatus('✓ Returned to Home', 'success');
         });
     }
 
