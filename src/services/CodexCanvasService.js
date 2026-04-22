@@ -21,8 +21,17 @@ let codexImageObserver = null;
 let codexAllNodes = [];
 /** @type {Set<string>} */
 let codexRenderedNodeIds = new Set();
-/** Virtual scroll buffer in pixels around viewport - larger = more preloading */
-const CODEX_VIRTUAL_BUFFER_PX = 600;
+/** Map node ID to DOM element for O(1) lookups (performance optimization) */
+/** @type {Map<string, HTMLElement>} */
+let codexNodeElements = new Map();
+/** Virtual scroll buffer in pixels around viewport - larger = more preloading (increased from 600 to 1200 for fewer add/remove ops) */
+const CODEX_VIRTUAL_BUFFER_PX = 1200;
+/** Enable performance debugging logs for Codex operations */
+const CODEX_PERFORMANCE_DEBUG = true;
+/** Flag to skip edge redraws during initial batch loading */
+let codexSkipEdgeRedraw = false;
+/** Flag to skip edge redraws during node placement (more aggressive) */
+let codexSkipAllEdgeRedraws = false;
 
 /** Web Worker for parsing Codex JSON without blocking main thread */
 let codexParseWorker = null;
@@ -206,14 +215,19 @@ function scheduleUpdateCodexVirtualScroll() {
 /** Virtual Scrolling: Render only visible nodes, remove off-screen ones */
 function updateCodexVirtualScroll() {
     if (!root || codexAllNodes.length === 0) return;
-    
+
+    const startTime = performance.now();
+    if (CODEX_PERFORMANCE_DEBUG) {
+        console.log('[Codex Perf] updateCodexVirtualScroll started');
+    }
+
     const viewport = getCodexVirtualViewportBounds();
     if (!viewport) return;
-    
+
     // Determine which nodes should be visible
     const visibleNodeIds = new Set();
     const nodesToRender = [];
-    
+
     for (const node of codexAllNodes) {
         if (isNodeInVirtualViewport(node, viewport)) {
             visibleNodeIds.add(node.id);
@@ -222,7 +236,7 @@ function updateCodexVirtualScroll() {
             }
         }
     }
-    
+
     // Remove nodes that are no longer visible
     const nodesToRemove = [];
     for (const id of codexRenderedNodeIds) {
@@ -230,24 +244,42 @@ function updateCodexVirtualScroll() {
             nodesToRemove.push(id);
         }
     }
-    
-    // Remove off-screen nodes from DOM
+
+    if (CODEX_PERFORMANCE_DEBUG) {
+        console.log(`[Codex Perf] Nodes to add: ${nodesToRender.length}, Nodes to remove: ${nodesToRemove.length}, Total visible: ${visibleNodeIds.size}`);
+    }
+
+    // Remove off-screen nodes from DOM using Map for O(1) lookup
     for (const id of nodesToRemove) {
-        const el = root.querySelector(`[data-codex-node-id="${escapeForAttrSelector(id)}"]`);
+        const el = codexNodeElements.get(id); // O(1) lookup instead of querySelector
         if (el) {
             el.remove();
             codexRenderedNodeIds.delete(id);
+            codexNodeElements.delete(id);
         }
     }
-    
+
     // Add newly visible nodes to DOM immediately (batching caused lag)
     for (const node of nodesToRender) {
         placeLoadedCodexNodeRecord(node);
         codexRenderedNodeIds.add(node.id);
     }
-    
-    // Update edge visibility
-    scheduleRedrawCodexEdges();
+
+    // Update edge visibility (skip during batch operations for performance)
+    if (!codexSkipAllEdgeRedraws && !codexSkipEdgeRedraw) {
+        scheduleRedrawCodexEdges();
+    } else if (CODEX_PERFORMANCE_DEBUG) {
+        if (codexSkipAllEdgeRedraws) {
+            console.log('[Codex Perf] Skipping edge redraw (all skip mode)');
+        } else if (codexSkipEdgeRedraw) {
+            console.log('[Codex Perf] Skipping edge redraw during batch load');
+        }
+    }
+
+    const elapsed = performance.now() - startTime;
+    if (CODEX_PERFORMANCE_DEBUG) {
+        console.log(`[Codex Perf] updateCodexVirtualScroll completed in ${elapsed.toFixed(2)}ms`);
+    }
 }
 
 /** Clear all rendered nodes from DOM (keeps codexAllNodes data) */
@@ -255,6 +287,7 @@ function clearCodexVirtualScroll() {
     // NOTE: Do NOT clear codexAllNodes here - it holds the source data!
     // Only clear the rendered node tracking and remove DOM elements
     codexRenderedNodeIds.clear();
+    codexNodeElements.clear();
     if (codexWorldEl) {
         codexWorldEl.querySelectorAll('.codex-node').forEach(el => el.remove());
     }
@@ -349,8 +382,8 @@ const CODEX_JUNCTION_LAYOUT_MIN_VERSION = 4;
 const CODEX_ZOOM_MIN = 0.18;
 const CODEX_ZOOM_MAX = 2.25;
 const CODEX_ZOOM_FACTOR = 1.12;
-/** Starting / reset board zoom — closer in for better detail. */
-const CODEX_ZOOM_INITIAL = 1.15;
+/** Starting / reset board zoom — more zoomed out to see more context. */
+const CODEX_ZOOM_INITIAL = 0.9;
 /** Node portrait/junction scale clamp + defaults for newly placed nodes. */
 const CODEX_SCALE_MIN = 0.25;
 const CODEX_SCALE_MAX = 5;
@@ -642,9 +675,7 @@ function getCodexToolbarEndpointPreviewState() {
     if (codexInteractionMode === 'network' && networkLinkSourceId) {
         const srcEl =
             selected.find((n) => n.dataset.codexNodeId === networkLinkSourceId)
-            || root.querySelector(
-                `[data-codex-node-id="${escapeForAttrSelector(networkLinkSourceId)}"]`
-            );
+            || codexNodeElements.get(networkLinkSourceId); // Use Map for O(1) lookup
         if (srcEl && root.contains(srcEl)) {
             const srcInSel = selected.some((n) => n.dataset.codexNodeId === networkLinkSourceId);
             if (selected.length === 2 && srcInSel) {
@@ -654,12 +685,9 @@ function getCodexToolbarEndpointPreviewState() {
                     const idb = other.dataset.codexNodeId;
                     const e = findEdge(ida, idb) || findEdge(idb, ida);
                     if (e) {
-                        const fromEl = root.querySelector(
-                            `[data-codex-node-id="${escapeForAttrSelector(e.fromId)}"]`
-                        );
-                        const toEl = root.querySelector(
-                            `[data-codex-node-id="${escapeForAttrSelector(e.toId)}"]`
-                        );
+                        // Use Map for O(1) lookups instead of querySelector (performance optimization)
+                        const fromEl = codexNodeElements.get(e.fromId);
+                        const toEl = codexNodeElements.get(e.toId);
                         return { kind: 'edge', fromEl, toEl, edge: e };
                     }
                     return { kind: 'cord-pending', fromEl: srcEl, toEl: other };
@@ -674,12 +702,9 @@ function getCodexToolbarEndpointPreviewState() {
         const idb = selected[1].dataset.codexNodeId;
         const e = findEdge(ida, idb) || findEdge(idb, ida);
         if (e) {
-            const fromEl = root.querySelector(
-                `[data-codex-node-id="${escapeForAttrSelector(e.fromId)}"]`
-            );
-            const toEl = root.querySelector(
-                `[data-codex-node-id="${escapeForAttrSelector(e.toId)}"]`
-            );
+            // Use Map for O(1) lookups instead of querySelector (performance optimization)
+            const fromEl = codexNodeElements.get(e.fromId);
+            const toEl = codexNodeElements.get(e.toId);
             return { kind: 'edge', fromEl, toEl, edge: e };
         }
         return { kind: 'pair-no-edge', fromEl: selected[0], toEl: selected[1] };
@@ -1002,8 +1027,9 @@ function applyWorldCenterToNodeTopLeft(el, cx, cy) {
 }
 
 function codexNodeElById(nodeId) {
-    if (!root || !nodeId) return null;
-    return root.querySelector(`[data-codex-node-id="${escapeForAttrSelector(nodeId)}"]`);
+    if (!nodeId) return null;
+    // Use Map for O(1) lookup instead of querySelector (performance optimization)
+    return codexNodeElements.get(nodeId) || null;
 }
 
 /** Junction waypoint (“break”): cord packets may continue along outgoing directed edges. */
@@ -1037,8 +1063,9 @@ function nodeFrameIntersectsRect(el, r) {
 
 function buildPolylineForEdge(edge) {
     if (!root) return null;
-    const a = root.querySelector(`[data-codex-node-id="${escapeForAttrSelector(edge.fromId)}"]`);
-    const b = root.querySelector(`[data-codex-node-id="${escapeForAttrSelector(edge.toId)}"]`);
+    // Use Map for O(1) lookups instead of querySelector (performance optimization)
+    const a = codexNodeElements.get(edge.fromId);
+    const b = codexNodeElements.get(edge.toId);
     if (!a || !b) return null;
     const ca = getNodeCenterWorldPx(a);
     const cb = getNodeCenterWorldPx(b);
@@ -1560,7 +1587,7 @@ function selectCodexNode(el, opts = {}) {
         stripCodexSelectionFromDom();
         stripCodexBDescendantGlowFromDom();
         clearPendingCodexDeleteState();
-        redrawCodexEdges();
+        // Skip edge redraw on selection - edges don't change when selecting
         updateCodexToolbar();
         // Reset toolbar color picker and hex input to default when no node selected
         const colorPicker = root.querySelector('[data-codex-bg-color-picker]');
@@ -1619,7 +1646,7 @@ function selectCodexNode(el, opts = {}) {
     }
     applyCodexSelectionToDom();
     clearPendingCodexDeleteState();
-    redrawCodexEdges();
+    // Skip edge redraw on selection - edges don't change when selecting
     updateCodexToolbar();
 }
 
@@ -2592,10 +2619,11 @@ function ensureCodexCordAnimationLoop() {
 /** Batches edge redraws to one per animation frame during node drag and view zoom. */
 function scheduleRedrawCodexEdges() {
     if (codexEdgesRedrawRaf) return;
-    codexEdgesRedrawRaf = requestAnimationFrame(() => {
+    // Use setTimeout to debounce and coalesce multiple rapid requests
+    codexEdgesRedrawRaf = setTimeout(() => {
         codexEdgesRedrawRaf = 0;
-        redrawCodexEdges();
-    });
+        requestAnimationFrame(() => redrawCodexEdges());
+    }, 16); // ~1 frame at 60fps
 }
 
 /** Skip full paint for far-off nodes when the board is large (paired with CSS `content-visibility`). */
@@ -2633,16 +2661,41 @@ function syncCodexNodeDomCullFromView(nodeList) {
 }
 
 function redrawCodexEdges() {
+    // Aggressive skip during batch node placement to prevent O(n²) behavior
+    if (codexSkipAllEdgeRedraws) {
+        if (CODEX_PERFORMANCE_DEBUG) {
+            console.log('[Codex Perf] Skipping ALL edge redraws (batch mode)');
+        }
+        return;
+    }
+
+    // Skip edge redraws when flag is set (during zoom/pan operations)
+    if (codexSkipEdgeRedraw) {
+        if (CODEX_PERFORMANCE_DEBUG) {
+            console.log('[Codex Perf] Skipping edge redraw (skip flag set)');
+        }
+        return;
+    }
+
+    const startTime = performance.now();
+    if (CODEX_PERFORMANCE_DEBUG) {
+        console.log('[Codex Perf] redrawCodexEdges started');
+    }
+
     const svg = root?.querySelector('.codex-edges-layer');
     if (!svg || !root) return;
 
     if (codexEdgesRedrawRaf) {
-        cancelAnimationFrame(codexEdgesRedrawRaf);
+        clearTimeout(codexEdgesRedrawRaf);
         codexEdgesRedrawRaf = 0;
     }
 
     const nodeList = root.querySelectorAll('.codex-node');
     const nodeCount = nodeList.length;
+
+    if (CODEX_PERFORMANCE_DEBUG) {
+        console.log(`[Codex Perf] redrawCodexEdges: ${nodeCount} visible nodes, ${codexEdges.length} edges`);
+    }
 
     while (svg.firstChild) svg.removeChild(svg.firstChild);
 
@@ -2879,6 +2932,11 @@ function redrawCodexEdges() {
     }
 
     syncCodexNodeDomCullFromView(nodeList);
+
+    const elapsed = performance.now() - startTime;
+    if (CODEX_PERFORMANCE_DEBUG) {
+        console.log(`[Codex Perf] redrawCodexEdges completed in ${elapsed.toFixed(2)}ms`);
+    }
 }
 
 function handleNetworkNodeActivate(el) {
@@ -2930,25 +2988,25 @@ function handleNetworkNodeActivate(el) {
  */
 function serializeCodexState() {
     if (!root) return { nodes: [], edges: [] };
-    const nodes = Array.from(root.querySelectorAll('.codex-node')).map((el) => {
-        const kind = el.dataset.codexKind;
-        const x = parseFloat(el.style.left) || 0;
-        const y = parseFloat(el.style.top) || 0;
-        const id = el.dataset.codexNodeId || generateNodeId();
-        if (!el.dataset.codexNodeId) el.dataset.codexNodeId = id;
-        const scale = parseFloat(el.dataset.codexScale) || 1;
-        const bgColor = el.dataset.codexBgColor || null;
+    // Save ALL nodes from codexAllNodes, not just visible DOM nodes (critical bug fix)
+    const nodes = codexAllNodes.map((node) => {
+        const kind = node.kind;
+        const x = node.x;
+        const y = node.y;
+        const id = node.id;
+        const scale = node.scale || 1;
+        const bgColor = node.bgColor || null;
         if (kind === 'junction') {
             return { id, kind: 'junction', x, y, scale, bgColor };
         }
         if (kind === 'hero') {
-            return { id, kind: 'hero', heroName: el.dataset.codexHero || '', x, y, scale, bgColor };
+            return { id, kind: 'hero', heroName: node.heroName || '', x, y, scale, bgColor };
         }
         if (kind === 'country') {
             return {
                 id,
                 kind: 'country',
-                countryKey: el.dataset.codexCountryKey || '',
+                countryKey: node.countryKey || '',
                 x,
                 y,
                 scale,
@@ -2956,13 +3014,13 @@ function serializeCodexState() {
             };
         }
         if (kind === 'npc') {
-            return { id, kind: 'npc', npcName: el.dataset.codexNpc || '', x, y, scale, bgColor };
+            return { id, kind: 'npc', npcName: node.npcName || '', x, y, scale, bgColor };
         }
         return {
             id,
             kind: 'faction',
-            factionFilename: el.dataset.codexFactionFile || '',
-            factionDisplay: el.dataset.codexFactionDisplay || '',
+            factionFilename: node.factionFilename || '',
+            factionDisplay: node.factionDisplay || '',
             x,
             y,
             scale,
@@ -3300,15 +3358,27 @@ async function loadCodexState() {
     centerCodexViewOnNodes();
     applyCodexWorldTransformStyle();
 
+    // Skip ALL edge redraws during initial load for performance (O(n²) otherwise)
+    codexSkipAllEdgeRedraws = true;
+    codexSkipEdgeRedraw = true;
+
     // Then render visible nodes via virtual scroll
     updateCodexVirtualScroll();
-    
+
+    // Re-enable edge redraws and do one final redraw
+    codexSkipAllEdgeRedraws = false;
+    codexSkipEdgeRedraw = false;
+    scheduleRedrawCodexEdges();
+
     // Failsafe: if no nodes rendered after initial load, render all nodes
     if (codexRenderedNodeIds.size === 0 && nodes.length > 0) {
+        codexSkipAllEdgeRedraws = true;
+        codexSkipEdgeRedraw = true;
         for (const node of nodes) {
             placeLoadedCodexNodeRecord(node);
             codexRenderedNodeIds.add(node.id);
         }
+        // Don't reset flags or schedule redraw here - let the main redraw handle it
     }
 
     if (migratedNow) {
@@ -3326,7 +3396,7 @@ async function loadCodexState() {
         }
     }
 
-    requestAnimationFrame(() => redrawCodexEdges());
+    // Redraw already scheduled by scheduleRedrawCodexEdges() above
     if (!migratedNow) {
         codexLayoutDirty = false;
     }
@@ -3462,10 +3532,29 @@ function applyCodexWorldTransformStyle() {
     codexWorldEl.style.transform = `translate(${codexViewPanX}px, ${codexViewPanY}px) scale(${codexViewZoom})`;
 }
 
+let codexZoomDebounceTimer = null;
+
 function applyCodexViewTransform() {
     applyCodexWorldTransformStyle();
-    scheduleRedrawCodexEdges();
+    // Skip edge redraws during virtual scroll to prevent freeze (same as pan)
+    codexSkipAllEdgeRedraws = true;
+    codexSkipEdgeRedraw = true; // Also skip the internal redraw from updateCodexVirtualScroll
     scheduleUpdateCodexVirtualScroll();
+    // Cancel any pending RAF redraw to prevent duplicates
+    if (codexEdgesRedrawRaf) {
+        clearTimeout(codexEdgesRedrawRaf);
+        codexEdgesRedrawRaf = 0;
+    }
+    // Debounce the final redraw to prevent multiple rapid calls during zoom
+    if (codexZoomDebounceTimer) {
+        clearTimeout(codexZoomDebounceTimer);
+    }
+    codexZoomDebounceTimer = setTimeout(() => {
+        codexSkipAllEdgeRedraws = false;
+        codexSkipEdgeRedraw = false; // Reset before calling redrawCodexEdges
+        redrawCodexEdges(); // Call directly to bypass RAF throttling
+        codexZoomDebounceTimer = null;
+    }, 200);
 }
 
 /** Keep world point under (clientX, clientY) fixed while changing zoom (wheel / pinch / buttons). */
@@ -3677,6 +3766,20 @@ function beginActualBackgroundPan(prep, firstMoveEv) {
         /* Cords live under .codex-world; pan is CSS translate only — no full SVG rebuild per move. */
         applyCodexWorldTransformStyle();
         /* Skip expensive DOM culling during pan - only run after pan ends */
+        // Set skip flags during pan to prevent edge redraws
+        codexSkipAllEdgeRedraws = true;
+        codexSkipEdgeRedraw = true;
+        // Cancel any pending debounce timer
+        if (codexZoomDebounceTimer) {
+            clearTimeout(codexZoomDebounceTimer);
+        }
+        // Schedule debounced redraw after pan completes
+        codexZoomDebounceTimer = setTimeout(() => {
+            codexSkipAllEdgeRedraws = false;
+            codexSkipEdgeRedraw = false;
+            redrawCodexEdges();
+            codexZoomDebounceTimer = null;
+        }, 200);
     };
 
     applyClient(firstMoveEv.clientX, firstMoveEv.clientY);
@@ -3703,8 +3806,17 @@ function beginActualBackgroundPan(prep, firstMoveEv) {
         if (codexWorldEl) codexWorldEl.classList.remove('codex-world--panning');
         backgroundPanPointerId = null;
         syncCodexNodeDomCullFromView();
+
+        // Skip edge redraws during post-pan virtual scroll to prevent freeze
+        codexSkipAllEdgeRedraws = true;
+        codexSkipEdgeRedraw = true;
         scheduleUpdateCodexVirtualScroll();
-        redrawCodexEdges();
+        // Cancel any pending RAF redraw to prevent duplicates
+        if (codexEdgesRedrawRaf) {
+            cancelAnimationFrame(codexEdgesRedrawRaf);
+            codexEdgesRedrawRaf = 0;
+        }
+        // Note: Debounce timer is already managed by applyClient during pan
     };
 
     const onMove = (ev) => {
@@ -4241,7 +4353,13 @@ function ensureCodexToolbarImportExportRow(bar) {
             selectedNode.dataset.codexBgColor = hexColor;
             const bgEl = selectedNode.querySelector('.codex-node__bg');
             if (bgEl) {
-                bgEl.style.background = hexToRgba(hexColor, 0.3);
+                bgEl.style.background = hexToRgba(hexColor, 0.5);
+            }
+            // Sync to node object in codexAllNodes for save persistence
+            const nodeId = selectedNode.dataset.codexNodeId;
+            const nodeObj = codexAllNodes.find(n => n.id === nodeId);
+            if (nodeObj) {
+                nodeObj.bgColor = hexColor;
             }
             markCodexLayoutDirty();
             markNodeVisualUnsaved(selectedNode);
@@ -4264,7 +4382,13 @@ function ensureCodexToolbarImportExportRow(bar) {
                 selectedNode.dataset.codexBgColor = hexColor;
                 const bgEl = selectedNode.querySelector('.codex-node__bg');
                 if (bgEl) {
-                    bgEl.style.background = hexToRgba(hexColor, 0.3);
+                    bgEl.style.background = hexToRgba(hexColor, 0.5);
+                }
+                // Sync to node object in codexAllNodes for save persistence
+                const nodeId = selectedNode.dataset.codexNodeId;
+                const nodeObj = codexAllNodes.find(n => n.id === nodeId);
+                if (nodeObj) {
+                    nodeObj.bgColor = hexColor;
                 }
                 markCodexLayoutDirty();
                 markNodeVisualUnsaved(selectedNode);
@@ -4852,12 +4976,28 @@ function beginActualNodeDrag(prep, firstMoveEv) {
         codexActiveDragNodeIds.clear();
         const moved = lastTx !== 0 || lastTy !== 0;
         bases.forEach(({ el: nodeEl, baseLeft: bl, baseTop: bt }) => {
-            nodeEl.style.left = `${bl + lastTx}px`;
-            nodeEl.style.top = `${bt + lastTy}px`;
+            const newX = bl + lastTx;
+            const newY = bt + lastTy;
+            nodeEl.style.left = `${newX}px`;
+            nodeEl.style.top = `${newY}px`;
             nodeEl.style.transform = '';
             nodeEl.style.transformOrigin = '';
             nodeEl.style.willChange = '';
+            
+            // Sync position to codexAllNodes for save persistence
+            const nodeId = nodeEl.dataset.codexNodeId;
+            if (nodeId) {
+                const nodeObj = codexAllNodes.find(n => n.id === nodeId);
+                if (nodeObj) {
+                    nodeObj.x = newX;
+                    nodeObj.y = newY;
+                }
+            }
         });
+        // Trigger final edge redraw after drag completes
+        if (moved) {
+            scheduleRedrawCodexEdges();
+        }
         document.removeEventListener(moveEvent, onMove, usePointerRawUpdate ? rawOpts : capOpts);
         document.removeEventListener('pointerup', onUp, capOpts);
         document.removeEventListener('pointercancel', onUp, capOpts);
@@ -4871,7 +5011,6 @@ function beginActualNodeDrag(prep, firstMoveEv) {
             });
             markCodexLayoutDirty();
         }
-        redrawCodexEdges();
     };
 
     const onLost = () => {
@@ -5122,7 +5261,7 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
         bg.className = 'codex-node__bg';
         // Apply saved background color if exists, otherwise use default white
         const savedBgColor = el.dataset.codexBgColor || '#ffffff';
-        bg.style.background = hexToRgba(savedBgColor, 0.3);
+        bg.style.background = hexToRgba(savedBgColor, 0.5);
         imgWrapper.appendChild(bg);
         
         el.appendChild(frame);
@@ -5173,7 +5312,7 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
         bg.className = 'codex-node__bg';
         // Apply saved background color if exists, otherwise use default white
         const savedBgColor = el.dataset.codexBgColor || '#ffffff';
-        bg.style.background = hexToRgba(savedBgColor, 0.3);
+        bg.style.background = hexToRgba(savedBgColor, 0.5);
         clip.appendChild(bg);
         
         inner.appendChild(frame);
@@ -5205,7 +5344,34 @@ function placeCodexNode(x, y, kind, heroName, faction, opts = {}) {
     const fromSaved = opts.fromSaved === true;
     const el = createCodexNodeElement(cx, cy, kind, heroName, faction, { ...opts, scale });
     (codexWorldEl || root).appendChild(el);
+
+    // Add to Map for O(1) lookups (performance optimization)
+    const nodeId = el.dataset.codexNodeId;
+    if (nodeId) {
+        codexNodeElements.set(nodeId, el);
+    }
+
+    // Add to codexAllNodes for save persistence (only for new nodes, not loaded from save)
     if (!fromSaved) {
+        const newNode = {
+            id: nodeId,
+            kind: kind,
+            x: cx,
+            y: cy,
+            scale: scale
+        };
+        if (kind === 'hero' && heroName) {
+            newNode.heroName = heroName;
+        } else if (kind === 'faction' && faction) {
+            newNode.factionFilename = faction.filename;
+            newNode.factionDisplay = faction.displayName || faction.filename;
+        } else if (kind === 'npc' && heroName) {
+            newNode.npcName = heroName;
+        } else if (kind === 'country' && opts.countryKey) {
+            newNode.countryKey = opts.countryKey;
+        }
+        codexAllNodes.push(newNode);
+        
         markNodeVisualUnsaved(el);
         markCodexLayoutDirty();
         selectCodexNode(el);
@@ -5324,6 +5490,7 @@ export function destroyCodexCanvas() {
     disconnectCodexImageObserver();
     terminateCodexParseWorker();
     clearCodexVirtualScroll();
+    codexNodeElements.clear(); // Clear the node elements Map
     if (codexVirtualScrollRaf) {
         cancelAnimationFrame(codexVirtualScrollRaf);
         codexVirtualScrollRaf = 0;

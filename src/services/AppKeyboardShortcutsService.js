@@ -239,6 +239,42 @@
         return 'ok';
     }
 
+    /** Cycles through variant buttons using Tab key */
+    function cycleVariantButton(forward) {
+        var btns = getEventVariantToggleButtons();
+        if (!btns || btns.length === 0) return false;
+
+        // Find currently active variant button
+        var currentIndex = -1;
+        for (var i = 0; i < btns.length; i++) {
+            if (btns[i].classList.contains('active')) {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        // Calculate next index (with wraparound)
+        var nextIndex;
+        if (forward) {
+            nextIndex = currentIndex >= 0 ? (currentIndex + 1) % btns.length : 0;
+        } else {
+            nextIndex = currentIndex >= 0 ? (currentIndex - 1 + btns.length) % btns.length : btns.length - 1;
+        }
+
+        // Click the next button
+        var nextBtn = btns[nextIndex];
+        if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
+            // Play sound effect for variant toggle (switchEvent)
+            if (window.SoundEffectsManager && typeof window.SoundEffectsManager.play === 'function') {
+                window.SoundEffectsManager.play('switchEvent');
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     var PALETTE_ORDER = ['blue', 'gray', 'crimson', 'nulled'];
 
     function normalizeStoredPalette() {
@@ -516,6 +552,14 @@
                 return;
             }
             if (clickIfEnabled('zoomResetBtn')) consumeEvent(e);
+            return;
+        }
+        if (key === 'Tab') {
+            if (isEventSlideOpen()) {
+                if (cycleVariantButton(!e.shiftKey)) {
+                    consumeEvent(e);
+                }
+            }
             return;
         }
 

@@ -132,6 +132,19 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
 
 .codex-edge-segment {
     pointer-events: none;
+    /* Smooth fade-in when edges appear */
+    animation: codex-edge-fade-in 200ms ease-out;
+}
+
+@keyframes codex-edge-fade-in {
+    from {
+        opacity: 0;
+        stroke-dashoffset: 20;
+    }
+    to {
+        opacity: 1;
+        stroke-dashoffset: 0;
+    }
 }
 
 .codex-edge-elbow-parallelogram {
@@ -722,6 +735,17 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     contain: layout style paint;
     /* Promote to own compositor layer for smoother transforms */
     will-change: transform;
+    /* Smooth fade-in when nodes appear */
+    animation: codex-node-fade-in 300ms ease-out;
+}
+
+@keyframes codex-node-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* Large boards: skip rendering/paint for nodes outside the view (class toggled in CodexCanvasService). */
