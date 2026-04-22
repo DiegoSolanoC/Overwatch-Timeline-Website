@@ -103,6 +103,21 @@ const CODEX_VISUAL_DEFAULTS = {
 /** @type {typeof CODEX_VISUAL_DEFAULTS} */
 let codexVisualPrefs = { ...CODEX_VISUAL_DEFAULTS };
 
+/**
+ * Convert hex color to rgba with specified opacity
+ * @param {string} hex - Hex color (e.g., "#ff0000" or "ff0000")
+ * @param {number} opacity - Opacity value (0-1)
+ * @returns {string} rgba color string
+ */
+function hexToRgba(hex, opacity = 0.3) {
+    // Remove # if present
+    const cleanHex = hex.replace('#', '');
+    const r = parseInt(cleanHex.substring(0, 2), 16);
+    const g = parseInt(cleanHex.substring(2, 4), 16);
+    const b = parseInt(cleanHex.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
 const CODEX_IMG_BASE_PX = 144;
 const CODEX_FRAME_PATH = 'assets/images/Codex/Node';
 /** Luminance mask base path for variant-specific alpha images (Alpha Node1/2/3.png) */
@@ -1547,12 +1562,32 @@ function selectCodexNode(el, opts = {}) {
         clearPendingCodexDeleteState();
         redrawCodexEdges();
         updateCodexToolbar();
+        // Reset toolbar color picker and hex input to default when no node selected
+        const colorPicker = root.querySelector('[data-codex-bg-color-picker]');
+        const hexInput = root.querySelector('[data-codex-bg-hex-input]');
+        if (colorPicker) {
+            colorPicker.value = '#ffffff';
+        }
+        if (hexInput) {
+            hexInput.value = '#ffffff';
+        }
         return;
     }
     if (!root.contains(el)) return;
 
     // Debug: log node info when selected
     debugLogNodeInfo(el);
+
+    // Update toolbar color picker and hex input to show selected node's background color
+    const colorPicker = root.querySelector('[data-codex-bg-color-picker]');
+    const hexInput = root.querySelector('[data-codex-bg-hex-input]');
+    const savedBgColor = el.dataset.codexBgColor || '#ffffff';
+    if (colorPicker) {
+        colorPicker.value = savedBgColor;
+    }
+    if (hexInput) {
+        hexInput.value = savedBgColor;
+    }
 
     if (opts.network) {
         codexSelectedNodeEls.clear();
@@ -2902,11 +2937,12 @@ function serializeCodexState() {
         const id = el.dataset.codexNodeId || generateNodeId();
         if (!el.dataset.codexNodeId) el.dataset.codexNodeId = id;
         const scale = parseFloat(el.dataset.codexScale) || 1;
+        const bgColor = el.dataset.codexBgColor || null;
         if (kind === 'junction') {
-            return { id, kind: 'junction', x, y, scale };
+            return { id, kind: 'junction', x, y, scale, bgColor };
         }
         if (kind === 'hero') {
-            return { id, kind: 'hero', heroName: el.dataset.codexHero || '', x, y, scale };
+            return { id, kind: 'hero', heroName: el.dataset.codexHero || '', x, y, scale, bgColor };
         }
         if (kind === 'country') {
             return {
@@ -2915,11 +2951,12 @@ function serializeCodexState() {
                 countryKey: el.dataset.codexCountryKey || '',
                 x,
                 y,
-                scale
+                scale,
+                bgColor
             };
         }
         if (kind === 'npc') {
-            return { id, kind: 'npc', npcName: el.dataset.codexNpc || '', x, y, scale };
+            return { id, kind: 'npc', npcName: el.dataset.codexNpc || '', x, y, scale, bgColor };
         }
         return {
             id,
@@ -2928,7 +2965,8 @@ function serializeCodexState() {
             factionDisplay: el.dataset.codexFactionDisplay || '',
             x,
             y,
-            scale
+            scale,
+            bgColor
         };
     });
     return {
@@ -3069,7 +3107,8 @@ function placeLoadedCodexNodeRecord(L) {
         skipRedraw: true,
         skipLazyLoad: true, // Load images immediately for virtual scroll
         id: L.id,
-        scale: resolveCodexNodeScale(placeKind, L.scale)
+        scale: resolveCodexNodeScale(placeKind, L.scale),
+        bgColor: L.bgColor || null
     };
     if (L.kind === 'hero' && L.heroName) {
         placeCodexNode(L.x, L.y, 'hero', L.heroName, null, opts);
@@ -4171,6 +4210,69 @@ function ensureCodexToolbarImportExportRow(bar) {
         fileInput.click();
     });
 
+    // Add background color picker for selected node
+    const colorLabel = document.createElement('label');
+    colorLabel.className = 'codex-toolbar__bg-color-label';
+    colorLabel.textContent = 'Node bg:';
+    
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'codex-toolbar__bg-color-input';
+    colorInput.setAttribute('data-codex-bg-color-picker', 'true');
+    colorInput.value = '#ffffff';
+    colorInput.title = 'Background color for selected node';
+    
+    // Add text input for manual hex entry
+    const hexInput = document.createElement('input');
+    hexInput.type = 'text';
+    hexInput.className = 'codex-toolbar__bg-color-hex';
+    hexInput.setAttribute('data-codex-bg-hex-input', 'true');
+    hexInput.value = '#ffffff';
+    hexInput.placeholder = '#ffffff';
+    hexInput.maxLength = 7;
+    hexInput.title = 'Paste hex color directly (e.g., #ff0000)';
+    
+    // Sync color picker to text input
+    colorInput.addEventListener('input', (ev) => {
+        const hexColor = ev.target.value;
+        hexInput.value = hexColor;
+        const selectedNode = codexPrimarySelectedNodeEl;
+        if (selectedNode) {
+            selectedNode.dataset.codexBgColor = hexColor;
+            const bgEl = selectedNode.querySelector('.codex-node__bg');
+            if (bgEl) {
+                bgEl.style.background = hexToRgba(hexColor, 0.3);
+            }
+            markCodexLayoutDirty();
+            markNodeVisualUnsaved(selectedNode);
+            updateCodexToolbar();
+        }
+    });
+    
+    // Sync text input to color picker
+    hexInput.addEventListener('input', (ev) => {
+        let hexColor = ev.target.value.trim();
+        // Add # if missing
+        if (hexColor && !hexColor.startsWith('#')) {
+            hexColor = '#' + hexColor;
+        }
+        // Validate hex format
+        if (/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
+            colorInput.value = hexColor;
+            const selectedNode = codexPrimarySelectedNodeEl;
+            if (selectedNode) {
+                selectedNode.dataset.codexBgColor = hexColor;
+                const bgEl = selectedNode.querySelector('.codex-node__bg');
+                if (bgEl) {
+                    bgEl.style.background = hexToRgba(hexColor, 0.3);
+                }
+                markCodexLayoutDirty();
+                markNodeVisualUnsaved(selectedNode);
+                updateCodexToolbar();
+            }
+        }
+    });
+
     fileInput.addEventListener('change', () => {
         const f = fileInput.files && fileInput.files[0];
         fileInput.value = '';
@@ -4181,21 +4283,19 @@ function ensureCodexToolbarImportExportRow(bar) {
             importCodexLayoutFromJsonText(text).catch((e) => {
                 console.warn('Codex import failed', e);
                 if (typeof window.updateStatus === 'function') {
-                    window.updateStatus('Codex import failed — see console.', 'error');
+                    window.updateStatus('Codex import failed', 'error');
                 }
             });
         };
-        reader.onerror = () => {
-            if (typeof window.updateStatus === 'function') {
-                window.updateStatus('Codex import: could not read file.', 'error');
-            }
-        };
-        reader.readAsText(f, 'utf-8');
+        reader.readAsText(f);
     });
 
     row.appendChild(exportBtn);
-    row.appendChild(importBtn);
     row.appendChild(fileInput);
+    row.appendChild(importBtn);
+    row.appendChild(colorLabel);
+    row.appendChild(colorInput);
+    row.appendChild(hexInput);
 
     const footer = bar.querySelector('.codex-toolbar__row--footer');
     if (footer) {
@@ -4932,6 +5032,11 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
     el.dataset.codexNodeId = opts.id || generateNodeId();
 
     el.dataset.codexKind = kind;
+    
+    // Apply background color from opts if provided
+    if (opts.bgColor) {
+        el.dataset.codexBgColor = opts.bgColor;
+    }
     if (kind === 'junction') {
         el.classList.add('codex-node--junction');
         const dot = document.createElement('div');
@@ -5011,6 +5116,15 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
         else { frame.dataset.src = frameSrc; observeCodexImage(frame); }
 
         el.appendChild(imgWrapper);
+        
+        // Add background inside img-wrapper to inherit mask
+        const bg = document.createElement('div');
+        bg.className = 'codex-node__bg';
+        // Apply saved background color if exists, otherwise use default white
+        const savedBgColor = el.dataset.codexBgColor || '#ffffff';
+        bg.style.background = hexToRgba(savedBgColor, 0.3);
+        imgWrapper.appendChild(bg);
+        
         el.appendChild(frame);
     } else {
         // Legacy DOM: 8 elements with nested mask structure
@@ -5053,6 +5167,15 @@ function createCodexNodeElement(x, y, kind, heroName, faction, opts = {}) {
 
         inner.style.setProperty('--codex-hex-rotation', `${hexRotationDeg}deg`);
         inner.style.setProperty('--codex-portrait-counter-rotation', `${-hexRotationDeg}deg`);
+        
+        // Add background inside clip to inherit mask
+        const bg = document.createElement('div');
+        bg.className = 'codex-node__bg';
+        // Apply saved background color if exists, otherwise use default white
+        const savedBgColor = el.dataset.codexBgColor || '#ffffff';
+        bg.style.background = hexToRgba(savedBgColor, 0.3);
+        clip.appendChild(bg);
+        
         inner.appendChild(frame);
         el.appendChild(inner);
     }

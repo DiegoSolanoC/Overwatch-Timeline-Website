@@ -877,6 +877,28 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     pointer-events: none;
 }
 
+.codex-node__bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3); /* Default white with 30% opacity */
+    pointer-events: none;
+    z-index: -1; /* Behind the image */
+    /* Inherits mask from parent img-wrapper */
+}
+
+.codex-node__frame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transform-origin: center center;
+}
+
 /* Simplified DOM structure (5 elements): wrapper with variant-specific mask + frame */
 .codex-node--simplified {
     width: 144px;
