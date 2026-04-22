@@ -3697,6 +3697,26 @@ function ensureCodexWorld() {
     return w;
 }
 
+function ensureCodexBorderOverlay() {
+    if (!root) return null;
+    let border = root.querySelector('.codex-border-overlay');
+    if (!border) {
+        border = document.createElement('img');
+        border.className = 'codex-border-overlay';
+        border.src = 'assets/images/misc/Border.png';
+        border.alt = '';
+        border.style.position = 'absolute';
+        border.style.top = '0';
+        border.style.left = '0';
+        border.style.width = '100%';
+        border.style.height = '100%';
+        border.style.pointerEvents = 'none';
+        border.style.zIndex = '1';
+        root.appendChild(border);
+    }
+    return border;
+}
+
 function cancelBackgroundPanPointerPending() {
     if (!backgroundPanPointerPending) return;
     document.removeEventListener('pointermove', onBackgroundPanMoveMaybe, capOpts);
@@ -5047,6 +5067,8 @@ function bindCodexNodeInteraction(el) {
                 const ids = toRemove.map((n) => n.dataset.codexNodeId).filter(Boolean);
                 clearPendingCodexDeleteState();
                 removeEdgesTouchingNodeIds(ids);
+                // Remove from codexAllNodes for save persistence
+                codexAllNodes = codexAllNodes.filter(n => !ids.includes(n.id));
                 markCodexLayoutDirty();
                 codexSelectedNodeEls.clear();
                 codexPrimarySelectedNodeEl = null;
@@ -5071,6 +5093,8 @@ function bindCodexNodeInteraction(el) {
             clearPendingCodexDeleteState();
             const nid = el.dataset.codexNodeId;
             removeEdgesTouchingNodeId(nid);
+            // Remove from codexAllNodes for save persistence
+            codexAllNodes = codexAllNodes.filter(n => n.id !== nid);
             markCodexLayoutDirty();
             codexSelectedNodeEls.delete(el);
             if (codexPrimarySelectedNodeEl === el) {
@@ -5408,6 +5432,7 @@ export function initCodexCanvas(rootElement) {
     ensureCodexWorld();
     ensureHitLayer();
     ensureEdgesLayer();
+    ensureCodexBorderOverlay();
     if (codexEdgesSvgEl) {
         codexEdgesSvgEl.addEventListener('pointerdown', codexSvgPointerDownCapture, true);
     }

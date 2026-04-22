@@ -346,36 +346,39 @@
     function hideEventSlideIfOpen() {
         var slide = document.getElementById('eventSlide');
         var overlay = document.getElementById('eventImageOverlay');
-        
+
         // Check if slide is actually open before trying to close
         var slideOpen = slide && slide.classList.contains('open');
         var overlayOpen = overlay && overlay.classList.contains('open');
-        
+
         if (!slideOpen && !overlayOpen) return false;
-        
+
+        var closed = false;
+
         try {
             var uiHide = codexOrGlobeUiView();
-            if (uiHide && typeof uiHide.hideEventSlide === 'function' && slideOpen) {
+            if (uiHide && typeof uiHide.hideEventSlide === 'function') {
                 clearHackedOverlays();
                 uiHide.hideEventSlide();
                 // Also hide image overlay to match X button behavior
                 if (uiHide.hideImageOverlay) {
                     uiHide.hideImageOverlay();
                 }
-                return true;
+                closed = true;
             }
         } catch (_) {}
-        
-        if (slideOpen) {
+
+        if (!closed && slideOpen) {
             slide.classList.remove('open');
             if (overlay) overlay.classList.remove('slide-open', 'open', 'fade-in', 'fade-out');
-            return true;
+            closed = true;
         }
-        if (overlayOpen) {
+        if (!closed && overlayOpen) {
             overlay.classList.remove('slide-open', 'open', 'fade-in', 'fade-out');
-            return true;
+            closed = true;
         }
-        return false;
+
+        return closed;
     }
 
     /** @returns {boolean} whether something was closed */

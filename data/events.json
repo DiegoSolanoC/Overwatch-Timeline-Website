@@ -19,7 +19,8 @@
       "yearStart": 2015,
       "eraName": "The Age of Progress",
       "lat": 52.0799838,
-      "lon": 4.3113461
+      "lon": 4.3113461,
+      "npcs": []
     },
     {
       "name": "Reinhardt Wilhelm is Born",
@@ -1195,7 +1196,7 @@
       "name": "Olivia Colomar is Born",
       "locationType": "earth",
       "cityDisplayName": "Castillo, Mexico",
-      "description": "On December 31st of 2046, Olivia Colomar is born. One of the millions orphaned by the crisis, left to fend for herself in a country left to ruin and riddled with political scandals. From an early age, Olivia learned a constant truth in her life: If you have the information, you control everything.",
+      "description": "On December 31st of 2046, Olivia Colomar is born. One of the millions orphaned by the crisis, left to fend for herself in a country left to ruin and riddled with political scandals. From an early age, Olivia learned a constant truth in her life: If you have the information, you control everything. ",
       "image": "",
       "filters": [
         "Sombra"
@@ -1210,10 +1211,11 @@
       "headlines": [
         "Xibalbá God program is celebrated across Mexico"
       ],
-      "lat": 18,
-      "lon": -95,
+      "npcs": [],
+      "yearStart": 2046,
       "eraName": "The Age of Progress",
-      "yearStart": 2046
+      "lat": 18,
+      "lon": -95
     },
     {
       "name": "Specimen 28 is Born",
@@ -3221,7 +3223,7 @@
       "name": "One with the Iris",
       "locationType": "earth",
       "cityDisplayName": "Shambali Monastery, Nepal",
-      "description": "The newly awakened Omnics found themselves in a cold, hostage world. Many were persecuted if not outright hunted and killed, yet on top of it all, most ended up questioning the reason for their existance. How did they cope with being brought to life in such dire conditions? These Omnics traveled the world looking for answers, just like Aurora once did, and it wouldn't be long before they began following her path.\n\n\n\nA cult of travelers led by Tekhartha Mondatta, who dedicated his life to studying Aurora's life, trying to gather a complete picture to truly understand her choice, and his place in the world. His journey took the Omnics to Suravasa, where they would choose to abandon the secular world, and begin Aurora's pilgrimage into the Nepalese Himalayas, to honor her memory. Their journey would take the monks to the ruins of a monastery, Aurora's resting place, where she had finally found enlightenment. In there laid the Iris, a metaphysical anomaly formed as a result of the Awakening pulse. The Monks would mark the start of the Shambali religion, studying the Iris, harnessing its energy in hand-crafted orbs to use for meditation, and living under the ideal that unity and coexistence between Humans and Omnics was achievable, as the way they saw it, they are all one within the Iris.\n\n\n\nIt would be here where two Omnics, Ramattra and Zenyatta, would become as close as brothers. Ramattra had chosen to follow Mondatta, lost in grief by the suffering of his people. He later invited Zenyatta to join him, as he hoped together they could find a sense of purpose and harmony amidst conflict. The Shambali faith would quickly grow across the Omnic communities of the world and be a key factor in the Omnic rights movement. Dr. Mina Liao herself would often visit the Monastery, both for study of the Iris, and to organize meetings amongst leaders, like Mondatta, as she had grown to be quite the prominent Omnic right activist following the Awakening. The monks naturally welcomed her warmly, and shared her cause.",
+      "description": "The newly awakened Omnics found themselves in a cold, hostage world. Many were persecuted if not outright hunted and killed, yet on top of it all, most ended up questioning the reason for their existance. How did they cope with being brought to life in such dire conditions? These Omnics traveled the world looking for answers, just like Aurora once did, and it wouldn't be long before they began following her path.<br><br>A cult of travelers led by Tekhartha Mondatta, who dedicated his life to studying Aurora's life, trying to gather a complete picture to truly understand her choice, and his place in the world. His journey took the Omnics to Suravasa, where they would choose to abandon the secular world, and begin Aurora's pilgrimage into the Nepalese Himalayas, to honor her memory. Their journey would take the monks to the ruins of a monastery, Aurora's resting place, where she had finally found enlightenment. In there laid the Iris, a metaphysical anomaly formed as a result of the Awakening pulse. The Monks would mark the start of the Shambali religion, studying the Iris, harnessing its energy in hand-crafted orbs to use for meditation, and living under the ideal that unity and coexistence between Humans and Omnics was achievable, as the way they saw it, they are all one within the Iris.<br><br>It would be here where two Omnics, Ramattra and Zenyatta, would become as close as brothers. Ramattra had chosen to follow Mondatta, lost in grief by the suffering of his people. He later invited Zenyatta to join him, as he hoped together they could find a sense of purpose and harmony amidst conflict. The Shambali faith would quickly grow across the Omnic communities of the world and be a key factor in the Omnic rights movement. Dr. Mina Liao herself would often visit the Monastery, both for study of the Iris, and to organize meetings amongst leaders, like Mondatta, as she had grown to be quite the prominent Omnic right activist following the Awakening. The monks naturally welcomed her warmly, and shared her cause.",
       "image": "",
       "filters": [
         "Ramattra",
@@ -3243,13 +3245,20 @@
       "lon": 84.124,
       "npcs": [
         "Mondatta"
+      ],
+      "headlines": [
+        "Meet the Shamblai, the new Omnic Religion",
+        "Omnics across the world pilgrim towards the Himalayas"
+      ],
+      "secondaryCountryFlags": [
+        "India.png"
       ]
     },
     {
       "name": "Undercover",
       "locationType": "earth",
       "cityDisplayName": "París, France",
-      "description": "While Morrison had his hands full, expanding across the globe, Reyes was beginning to set up his Blackwatch Division, a small team for covert operations that would allow him to pursue justice outside red tape and protocol. Gérard Lacroix, from the administrative and diplomatic division, would come in to fill the role as Reyes's primary partner. A Parisian diplomat with extensive intelligence work, which quickly drew him into Reyes's orbit. Lacroix himself was recently married to a renowned ballerina, Amélie Lacroix, who gave little thought of her husband's career, as it mostly made for a conversation topic at parties in her eyes. \n\n\n\nTogether, Reyes and Lacroix would prove the merits of Blackwatch and quickly begin a take-down campaign on crime and violence across the world.\n",
+      "description": "While Morrison had his hands full, expanding across the globe, Reyes was beginning to set up his Blackwatch Division, a small team for covert operations that would allow him to pursue justice outside red tape and protocol. Gérard Lacroix, from the administrative and diplomatic division, would come in to fill the role as Reyes's primary partner. A Parisian diplomat with extensive intelligence work, which quickly drew him into Reyes's orbit. Lacroix himself was recently married to a renowned ballerina, Amélie Lacroix, who gave little thought of her husband's career, as it mostly made for a conversation topic at parties in her eyes. <br><br>Together, Reyes and Lacroix would prove the merits of Blackwatch and quickly begin a take-down campaign on crime and violence across the world.<br>",
       "image": "",
       "filters": [
         "Reaper",
@@ -3272,7 +3281,11 @@
       "yearEnd": 2060,
       "eraName": "The Golden Age",
       "lat": 48.8588897,
-      "lon": 2.320041
+      "lon": 2.320041,
+      "secondaryCountryFlags": [],
+      "headlines": [
+        "Overwatch expands personnel for Reyes lead operations"
+      ]
     },
     {
       "locationType": "earth",
@@ -3280,7 +3293,7 @@
       "variants": [
         {
           "name": "Australian Liberation",
-          "description": "After the crisis, most Omnium factories remained mostly intact, quarantined from Anubis' grasp, so most governors elected to keep the facilities around for study and potentially to find a better use for them. Some countries instead chose to leave them untouched, to serve as cultural landmarks of Omnic culture, though even among Omnics this idea was heavily debated with mixed results. In reality, there was a bigger reason why the Omniums remained standing after the Crisis, and that was the dangerous fusion reactors deep in their core.\n\n\n\nIn Australia, the government chose to lend the Outback Omnium and  the surrounding land to the Omnics, as a peace offering. But in doing so, this displaced many indigenous residents, rural communities, solar farmers and survivalists who fought hard during the crisis to keep their homes. Their protests over the decision would go unheard, and lead to the creation of the Australian Liberation Front, an extremist group that sought the complete removal of the Omnic presence from their nation. The ALF grew quickly and caught Overwatch's eyes, but while they monitored them closely, what happened next took everyone by surprise.\n\n\n\nMembers of the ALF manage to break into the Omnium and, in their attempt to seize it, sabotage the fusion core, resulting in a nuclear explosion visible throughout the entirety of Australia, turning the Outback into an irritated wasteland and decimating the Omnic population beyond repair, leaving the survivors to turn feral from the harsh conditions of the Outback. The ALF settled themselves in the ruins of the Omnium, and established an unofficial Monarchy in what would become Junkertown. Overwatch was about to intervene when the government determined the situation to be a lost cause and a public relations nightmare. Overwatch stood down, and the Junkers remained, though closely monitored, living miserable lives in an apocalypse of their own making.",
+          "description": "After the crisis, most Omnium factories remained mostly intact, quarantined from Anubis' grasp, so most governors elected to keep the facilities around for study and potentially to find a better use for them. Some countries instead chose to leave them untouched, to serve as cultural landmarks of Omnic culture, though even among Omnics this idea was heavily debated with mixed results. In reality, there was a bigger reason why the Omniums remained standing after the Crisis, and that was the dangerous fusion reactors deep in their core.<br><br>In Australia, the government chose to lend the Outback Omnium and  the surrounding land to the Omnics, as a peace offering. But in doing so, this displaced many indigenous residents, rural communities, solar farmers and survivalists who fought hard during the crisis to keep their homes. Their protests over the decision would go unheard, and lead to the creation of the Australian Liberation Front, an extremist group that sought the complete removal of the Omnic presence from their nation. The ALF grew quickly and caught Overwatch's eyes, but while they monitored them closely, what happened next took everyone by surprise.<br><br>Members of the ALF manage to break into the Omnium and, in their attempt to seize it, sabotage the fusion core, resulting in a nuclear explosion visible throughout the entirety of Australia, turning the Outback into an irritated wasteland and decimating the Omnic population beyond repair, leaving the survivors to turn feral from the harsh conditions of the Outback. The ALF settled themselves in the ruins of the Omnium, and established an unofficial Monarchy in what would become Junkertown. Overwatch was about to intervene when the government determined the situation to be a lost cause and a public relations nightmare. Overwatch stood down, and the Junkers remained, though closely monitored, living miserable lives in an apocalypse of their own making.",
           "filters": [
             "Roadhog"
           ],
@@ -3300,35 +3313,47 @@
           "lon": 135,
           "npcs": [
             "Mason"
+          ],
+          "yearStart": 2053,
+          "yearEnd": 2060,
+          "eraName": "The Golden Age",
+          "secondaryCountryFlags": [],
+          "headlines": [
+            "ALF extremist group causes nuclear fallout in the Outback",
+            "Tensions between humans and Omnics intensify in Australia"
           ]
         },
         {
           "name": "Outcasted",
-          "description": "As politics settled among the chaos of the Junkers, King Mason Howl would be crowned the leader of the city. Howl was a ruthless self centric king who quickly turned his back against his people when questioned. The Stones were a family of settlers that ran town watch and negotiated trade, but one day the King decided to vanish the entire family.\n\n\n\nLiving in the wasteland, young Dez Stone would quickly learn to fight to survive, as one by one every member of her family perished to the wasteland, and the feral Omnics lurking in the Outback.",
+          "description": "As politics settled among the chaos of the Junkers, King Mason Howl would be crowned the leader of the city. Howl was a ruthless self centric king who quickly turned his back against his people when questioned. The Stones were a family of settlers that ran town watch and negotiated trade, but one day the King decided to vanish the entire family.<br><br>Living in the wasteland, young Dez Stone would quickly learn to fight to survive, as one by one every member of her family perished to the wasteland, and the feral Omnics lurking in the Outback.",
           "filters": [
-            "Junker Queen"
+            "Roadhog"
           ],
           "factions": [
             "Junker Monarchy"
           ],
           "image": "",
           "locationType": "earth",
-          "cityDisplayName": "Outback Wasteland, Australia",
+          "cityDisplayName": "Junkertown, Australia",
           "npcs": [
             "Mason"
           ],
           "sources": [
             {
-              "text": "Overwatch Website, Junker Queen",
-              "url": "https://overwatch.blizzard.com/en-us/heroes/junker-queen/"
-            },
-            {
-              "text": "The Wastelander",
-              "url": "https://www.youtube.com/watch?v=8-nXN9ZMl8o"
+              "text": "Overwatch Declassified",
+              "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
           ],
-          "lat": -20.7274568,
-          "lon": 139.49896
+          "lat": -25,
+          "lon": 135,
+          "yearStart": 2053,
+          "yearEnd": 2060,
+          "eraName": "The Golden Age",
+          "secondaryCountryFlags": [],
+          "headlines": [
+            "\"Junker Monarchy\" vanishes collaborators to the wasteland",
+            "Australia refuses to negotiate with Junkers"
+          ]
         }
       ],
       "lat": -25,
@@ -3341,7 +3366,7 @@
       "name": "Anima Weaponry",
       "locationType": "earth",
       "cityDisplayName": "Hanamura, Japan",
-      "description": "The ancient Shimada clan remained strong even after the crisis. A family of criminals that had a choke hold over Tokyo, but unlike many of the rival clans, they had gained the trust and even loyalty of the locals, seeing themselves as rulers and ruled. As such, inspired by their shady nature, the people of the Kanezaka region respected the clan as protectors, and the Shimada in turn kept opposing clans away, preventing them from hurting their people.\n\n\n\nA big part of the Shimada's success was owned by the blacksmith Toshiro Yamagami, creator of the Anima blades. Toshiro was a weapon smith in possession of unique avatar technology, capable of imbuing traditional weaponry with an ethereal, malleable energy. These weapons were not only enhanced by the Anima's energy, but with enough discipline, their users would be able to manifest projections spirits at will. Toshiro would serve the clan, designing blades for their family, which in turn used them to suppress the opposition and solidify their cultural position as the rulers of the region.\n\n\n\nWhile the clan forbid Toshiro from making any Anima Avatars after forging dragon blades for the Shimada heirs, Toshiro had one last masterpiece that he kept a secret from the clan. The man had planned to propose to what would be his wife, Asa Yamagami, a skilled sword master, daughter to the shrine maiden of the local Fox shrine. To win her mother's heart, Toshiro crafted Ofuda Talismans imbued with Anima technology, which would bring the Fox spirit to life, and assist the old lady in her Miko duties.",
+      "description": "The ancient Shimada clan remained strong even after the crisis. A family of criminals that had a choke hold over Tokyo, but unlike many of the rival clans, they had gained the trust and even loyalty of the locals, seeing themselves as rulers and ruled. As such, inspired by their shady nature, the people of the Kanezaka region respected the clan as protectors, and the Shimada in turn kept opposing clans away, preventing them from hurting their people.<br><br>A big part of the Shimada's success was owned by the blacksmith Toshiro Yamagami, creator of the Anima blades. Toshiro was a weapon smith in possession of unique avatar technology, capable of imbuing traditional weaponry with an ethereal, malleable energy. These weapons were not only enhanced by the Anima's energy, but with enough discipline, their users would be able to manifest projections spirits at will. Toshiro would serve the clan, designing blades for their family, which in turn used them to suppress the opposition and solidify their cultural position as the rulers of the region.<br><br>While the clan forbid Toshiro from making any Anima Avatars after forging dragon blades for the Shimada heirs, Toshiro had one last masterpiece that he kept a secret from the clan. The man had planned to propose to what would be his wife, Asa Yamagami, a skilled sword master, daughter to the shrine maiden of the local Fox shrine. To win her mother's heart, Toshiro crafted Ofuda Talismans imbued with Anima technology, which would bring the Fox spirit to life, and assist the old lady in her Miko duties.",
       "image": "",
       "filters": [
         "Kiriko"
@@ -3363,13 +3388,18 @@
       "yearEnd": 2060,
       "eraName": "The Golden Age",
       "lat": 35.6762,
-      "lon": 139.6503
+      "lon": 139.6503,
+      "secondaryCountryFlags": [],
+      "headlines": [
+        "Gang violence in Japa slows down, but Shimada activity is at an all time high",
+        "Shimada Clan operators wield unknown energy swords during confrontation with rival groups"
+      ]
     },
     {
       "name": "Miracle Worker",
       "locationType": "earth",
       "cityDisplayName": "Zurich, Switzerland",
-      "description": "Like many others around the world, young Angela Zeigler had lost her parents to the Crisis, while they volunteered at a local hospital. This traumatic event would serve to keep her focus on her studies. The girl would go on to become one of the youngest graduates of the medical program at the University of Zurich and quickly rose up to be quite the name in the scientific world, meeting brilliant minds like Siebren de Kuiper while at school. She would later enroll at Chalmers University in Gothenburg, where she focused on nanobiology and developed several breakthroughs in the field and its uses in medicinal science.\n\n\n\nAngela had visited Torbjörn at the hospital following his injury during Operation White Dome, as her family were close friends with the Linholms. During the visit, he was so impressed by her papers on nanobiotics that he sent a recommendation to Morrison to fund her schooling and offer monetary support. On Linholm's advice, Angela had also begun volunteering for Overwatch's medical staff, becoming one of very few civilians allowed to tour Watchpoints. With their funding and guidance, Zeigler was a brilliant mind with an even brighter future lying ahead of her.",
+      "description": "Like many others around the world, young Angela Zeigler had lost her parents to the Crisis, while they volunteered at a local hospital. This traumatic event would serve to keep her focus on her studies. The girl would go on to become one of the youngest graduates of the medical program at the University of Zurich and quickly rose up to be quite the name in the scientific world, meeting brilliant minds like Siebren de Kuiper while at school. She would later enroll at Chalmers University in Gothenburg, where she focused on nanobiology and developed several breakthroughs in the field and its uses in medicinal science.<br><br>Angela had visited Torbjörn at the hospital following his injury during Operation White Dome, as her family were close friends with the Linholms. During the visit, he was so impressed by her papers on nanobiotics that he sent a recommendation to Morrison to fund her schooling and offer monetary support. On Linholm's advice, Angela had also begun volunteering for Overwatch's medical staff, becoming one of very few civilians allowed to tour Watchpoints. With their funding and guidance, Zeigler was a brilliant mind with an even brighter future lying ahead of her.",
       "image": "",
       "filters": [
         "Mercy",
@@ -3396,29 +3426,47 @@
       "yearEnd": 2060,
       "eraName": "The Golden Age",
       "lat": 47.3744489,
-      "lon": 8.5410422
+      "lon": 8.5410422,
+      "headlines": [
+        "Meet the new face of naoobiotics",
+        "Yet another medical breakthrough thanks  to Dr. Angela Zeigler"
+      ]
     },
     {
       "name": "Sierra Turner Woods is Born",
-      "description": "Following the Omnic Crisis, most SEP subjects chose to lie low and fade into private lives, Soldier 00 included. Kendra Banks would meet a Virginian park ranger, James Turner, while she was off the grid. They settled down in the secluded Appalachian mountains and soon enough they would have a kid. On April 17th of 2054, Sierra Turner Woods is born.\n\n\n\nSierra was unknowingly the daughter of a super soldier, and seemingly inherited her mother's gifts. Sadly, however, this soon enough would put a target on both of their backs.",
+      "description": "Following the Omnic Crisis, most SEP subjects chose to lie low and fade into private lives, Soldier 00 included. Kendra Banks would meet a Virginian park ranger, James Turner, while she was off the grid. They settled down in the secluded Appalachian mountains and soon enough they would have a kid. On April 17th of 2054, Sierra Turner Woods is born.<br><br>Sierra was unknowingly the daughter of a super soldier, and seemingly inherited her mother's gifts. Sadly, however, this soon enough would put a target on both of their backs.",
       "locationType": "earth",
       "filters": [
         "Sierra"
       ],
       "factions": [],
-      "npcs": [],
+      "npcs": [
+        "Kendra"
+      ],
       "image": "",
       "cityDisplayName": "Appalachian Virginia, United States",
       "yearStart": 2054,
       "eraName": "The Golden Age",
       "lat": 36.9034309,
-      "lon": -82.7853107
+      "lon": -82.7853107,
+      "yearEnd": null,
+      "secondaryCountryFlags": [],
+      "headlines": [
+        "SEP subjects go silent across America",
+        "Naugthon research to be classified and kept under lock"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website, Sierra",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/sierra/"
+        }
+      ]
     },
     {
       "name": "Findlay Docherty is Born",
       "locationType": "earth",
       "cityDisplayName": "Glasgow, United Kingdom",
-      "description": "",
+      "description": "On November 11th of 2054, Findlay Dorchety was born to veterans of the Omnic Crisis. He grew up poor in a world that was still adjusting after the war, surrounded by stories of violence and a system that kept failing the people. The crisis had taken a heavy toll on his parents, causing hardship and arguments. His mother died when he was only four, and his father became absent and unkind, leaving Findlay to fend for himself.",
       "image": "",
       "filters": [
         "Hazard"
@@ -3433,13 +3481,19 @@
         }
       ],
       "eraName": "The Golden Age",
-      "yearStart": 2054
+      "yearStart": 2054,
+      "yearEnd": null,
+      "npcs": [],
+      "secondaryCountryFlags": [],
+      "headlines": [
+        "Crisis veterans struggle to substain their families after the war"
+      ]
     },
     {
       "name": "Deadlock Rebels",
       "locationType": "earth",
       "cityDisplayName": "Bellaire, United States",
-      "description": "",
+      "description": "Years of neglect led Ashe to constantly breaking the law, and gaining a reputation with the authorities. On one occasion, she was arrested for armed assault inspired by it being in self-defense. While spending time in jail, waiting to be bailed out, she met Cole Cassidy in the cell block. Like many others around the area, he was employed by nearby Megafarms after they lost their Omnic staff. The farms were filled with refugees during the war, and eventually they came to be used for cheap labor. Cass had ended up locked after a brawl broke out among the farmhands. Ashe came to envy her new friend, for the freedom he had as a ruffian, drifting away without having to answer to anybody.\n\n\n\nAfter the bailout, Ashe was greeted by disapproving parents on a holoscreen, not even trying to listen to her side of the story. They had grown tired of her actions and decided that once she turned 18, they would cut off from the family and its finances. In a fit of anger, Ashe plotted how to get back at her family for how they treated her, and realized selling Arbalest goods to the black market would be the best way to bite back, but in order to do so she needed to pull a heist. Ashe and B.O.B would then drive by the Ace Valentine megafarm to pick up Cassidy, and together they started to assemble a team to steal from the Arbalest facilities her family controlled. \n\n\n\nA fellow farmhand, demolitionist Julian, a hired hacker going by Frankie, and the champion of the local hovercycle racetrack, Dezba joined the operation of what would later become the Deadlock Rebels, a gang of thieves who primarily targeted Arbalest, and quickly grew in notoriety and scope across America. The harsh life after the crisis had led to the rise of gang activity across the now called \"New West\" and Ashe used her business skills to form alliances across the many gangs looking for a piece of the pie. Without her family, she had established her own weapons trading empire, as well as a newfound family of her own.",
       "image": "",
       "filters": [
         "Cassidy",
@@ -3451,29 +3505,62 @@
       "lat": 29.7057858,
       "lon": -95.4588299,
       "yearStart": 2055,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearEnd": null,
+      "npcs": [
+        "B.O.B"
+      ],
+      "secondaryCountryFlags": [],
+      "headlines": [
+        "Gang violence in the new Wild West increases",
+        "Arbalest reports assets stolen after repeated heists"
+      ],
+      "sources": [
+        {
+          "text": "Deadlock Rebels",
+          "url": "https://www.amazon.com/Deadlock-Rebels-AFK-Book-Overwatch-ebook/dp/B0912HD7Q2"
+        }
+      ]
     },
     {
       "name": "Rebuilding the Past",
       "locationType": "earth",
       "cityDisplayName": "Colosseo, Italy",
-      "description": "",
+      "description": "A notable trend across the world following the Crisis was the return to classical architecture. As many cities had been leveled by the war, many of them needed to rebuild from the ground up, changing greatly from how they used to look years prior. With the construction of the Temple of Anubis, Cairo gained a new Pyramid. As Lumérico built power plants across Mexico, their architecture was inspired by Aztec and Mayan architecture. And this trend can be seen across the world on many other sites. In Greece, a small Aegean island renamed itself to Illios and built a giant statue on the nearby coast, echoing stories of the Colossus of Rhodes. In Iraq, the ever-growing spire of the Oasis University calls back to the tales of the Tower of Babel, a never-ending spear or information growing into the sky.\n\nBut perhaps none of these rebuilt structures stands out more than the Colosseo Gladiatori. Italy had rebuilt the Colosseum and reopened it for the masses. The newly  formed Gladiator games were a pageant that became a cultural touchstone of Rome in the wake of the crisis. Within the Arena Victoriae of the Colosseo, all sorts of events would be hosted to entertain both the public and the European elite. From one-to-one gladiator matches, to robotic chariot races, mech fights and even stand-offs against machines designed for war, much like those Anubis used in The Crisis.\n\nThe Colosseo grew over the years, and the champions of the Arena would quickly become influential figures in Europe too, as the Elites visiting the Colosseo would often sponsor their fights and take in profits from their victories.",
       "image": "",
       "filters": [],
       "factions": [
-        "17Colloseo Gladiatori"
+        "Colloseo Gladiatori",
+        "Oasis Ministries"
       ],
       "lat": 41.8909421,
       "lon": 12.491903,
       "eraName": "The Golden Age",
       "yearStart": 2053,
-      "yearEnd": 2060
+      "yearEnd": 2060,
+      "npcs": [],
+      "secondaryCountryFlags": [
+        "Mexico.png",
+        "Egypt.png",
+        "Greece.png",
+        "Iraq.png"
+      ],
+      "headlines": [
+        "Recontruction of old world strucutres begins across Europe",
+        "The newly build Colosseo opens to the public"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Website, Vendetta",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/vendetta/"
+        }
+      ]
     },
     {
       "name": "Ye Anran is Born",
       "locationType": "earth",
       "cityDisplayName": "Chengdu, China",
-      "description": "",
+      "description": "On August 8th of 2056, Ye Anran was born. Raised to be the perfect prodigy, aspiring to transcend the sky-high expectations set by her parents, both of them Fire College graduates of Wuxing that commanded operations during the Crisis. At the age of three, they both personally trained her in academic and martial arts, enrolling her in competitive Wushu-taolu and classical dance classes as she grew older. Anran persevered through the pressure, training through injuries and breaking records every year, never finishing off the podium.",
       "image": "",
       "filters": [
         "Anran"
@@ -3488,7 +3575,11 @@
       "lat": 30.659867,
       "lon": 104.063315,
       "eraName": "The Golden Age",
-      "yearStart": 2056
+      "yearStart": 2056,
+      "yearEnd": null,
+      "npcs": [],
+      "secondaryCountryFlags": [],
+      "headlines": []
     },
     {
       "name": "The New West",
@@ -5149,15 +5240,16 @@
           ],
           "image": "",
           "locationType": "earth",
-          "lat": 1.357107,
-          "lon": 103.8194992,
-          "cityDisplayName": "Singapore",
+          "cityDisplayName": "Singapore, Singapore",
           "sources": [
             {
               "text": "Overwatch Declassified",
               "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
             }
-          ]
+          ],
+          "lat": 1.357107,
+          "lon": 103.8194992,
+          "npcs": []
         },
         {
           "name": "Open Talon",
@@ -5184,10 +5276,10 @@
           ]
         }
       ],
-      "lat": 1.357107,
-      "lon": 103.8194992,
       "yearStart": 2070,
-      "eraName": "The Fall of Overwatch"
+      "eraName": "The Fall of Overwatch",
+      "lat": 1.357107,
+      "lon": 103.8194992
     },
     {
       "name": "Colateral Damage",
@@ -7081,7 +7173,7 @@
     },
     {
       "name": "Stalemate",
-      "description": "279",
+      "description": "",
       "locationType": "earth",
       "filters": [
         "Ramattra"
@@ -7093,12 +7185,12 @@
       ],
       "npcs": [],
       "image": "",
+      "cityDisplayName": "Secret Omnium",
       "yearStart": 2079,
       "yearEnd": 2080,
       "eraName": "The Null Sector Invasion",
       "lat": -75.1,
-      "lon": 123.35,
-      "cityDisplayName": "Secret Omnium"
+      "lon": 123.35
     },
     {
       "name": "Water Fighter",
@@ -7738,7 +7830,11 @@
       "yearStart": 2080,
       "eraName": "The Reign of Talon",
       "lat": 39.1131257,
-      "lon": -108.0127646
+      "lon": -108.0127646,
+      "yearEnd": null,
+      "npcs": [],
+      "headlines": [],
+      "secondaryCountryFlags": []
     }
   ]
 }

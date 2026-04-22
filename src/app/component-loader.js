@@ -21,7 +21,6 @@ import { initializeMusicManager, createBackgroundMusicElement } from './helpers/
 import { clearEventManager, removeAllEventMarkers } from './helpers/EventCleanupHelpers.js';
 import { removeElementById, removeElementBySelector, removeElementsByIds } from './helpers/ComponentUnloadHelpers.js';
 import { setupEventUIComponents, loadEventSoundEffects, initializeFilterPanel, setupEventListenersDelayed } from './helpers/EventsLoadHelpers.js';
-import { isTimelineInlineLoadActive, showGlobeInlineLoader } from './helpers/GlobeInlineLoadHelpers.js';
 import { createOrchestratorDelegations } from './helpers/ComponentOrchestratorDelegationHelpers.js';
 
 // Track which components are loaded
@@ -338,7 +337,7 @@ async function loadGlobeBase() {
     }
     
     // Use LoadingOverlayManager (not the module-local flag): orchestrator sets this during runGlobeComponents.
-    if (!getRunOperation() && !isTimelineInlineLoadActive()) {
+    if (!getRunOperation()) {
         showLoadingOverlay();
     }
     setButtonState('loadGlobeBaseBtn', 'loading');
@@ -349,9 +348,6 @@ async function loadGlobeBase() {
         const container = document.getElementById('globe-container');
         if (container) {
             setupGlobeContainer(container);
-            if (isTimelineInlineLoadActive()) {
-                showGlobeInlineLoader(container);
-            }
         }
         
         // Import and initialize GlobeController using helpers

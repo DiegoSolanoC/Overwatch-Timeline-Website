@@ -570,15 +570,26 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         height: 14px;
         cursor: pointer;
     `;
-    // Restore saved state
+    // Restore saved state, default to checked for GitHub Pages
     const savedAutoPreload = localStorage.getItem('autoPreloadEventSystem');
-    autoPreloadCheckbox.checked = savedAutoPreload === 'true';
+    const isGitHubPages = window.location.hostname.includes('github.io');
+    if (savedAutoPreload === null) {
+        autoPreloadCheckbox.checked = isGitHubPages ? true : false;
+        localStorage.setItem('autoPreloadEventSystem', autoPreloadCheckbox.checked);
+    } else {
+        autoPreloadCheckbox.checked = savedAutoPreload === 'true';
+    }
 
     const autoPreloadLabel = document.createElement('span');
     autoPreloadLabel.textContent = 'Auto preload';
 
     autoPreloadContainer.appendChild(autoPreloadCheckbox);
     autoPreloadContainer.appendChild(autoPreloadLabel);
+
+    // Hide auto preload container on GitHub Pages
+    if (isGitHubPages) {
+        autoPreloadContainer.style.display = 'none';
+    }
 
     // Save checkbox state on change
     autoPreloadCheckbox.addEventListener('change', () => {
@@ -599,6 +610,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         border-radius: 4px;
         cursor: pointer;
     `;
+
+    // Hide event system load out button on GitHub Pages
+    if (isGitHubPages) {
+        testBtn.style.display = 'none';
+    }
 
     eventSystemContainer.appendChild(autoPreloadContainer);
     eventSystemContainer.appendChild(testBtn);
@@ -969,14 +985,14 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         setTimeout(wireGlitchClickToggle, 100);
                                         // Play sound
                                         if (window.SoundEffectsManager?.play) {
-                                            window.SoundEffectsManager.play(newEnabled ? 'glitchOn' : 'glitchOff');
+                                            window.SoundEffectsManager.play(newEnabled ? 'hackOn' : 'hackOff');
                                         }
                                     };
                                     // Start animation if enabled
                                     if (window.GlitchTextService?.isEnabled?.()) {
                                         window.GlitchTextService.startAnimation?.();
                                         if (window.SoundEffectsManager?.play) {
-                                            setTimeout(() => window.SoundEffectsManager.play('glitchOn'), 50);
+                                            setTimeout(() => window.SoundEffectsManager.play('hackOn'), 50);
                                         }
                                     }
                                 } else {
@@ -1869,8 +1885,52 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 
                                 const formSvc = window.eventManager?.formService || window.EventFormService;
                                 const locTypeForSecondary = target.locationType || eventData.locationType || 'earth';
+                                console.log('[MenuHelpers] secondaryCountriesInput:', secondaryCountriesInput);
+                                console.log('[MenuHelpers] secondaryCountriesInput.value:', secondaryCountriesInput?.value);
+                                console.log('[MenuHelpers] formSvc:', formSvc);
+                                console.log('[MenuHelpers] parseSecondaryCountryList function:', formSvc?.parseSecondaryCountryList);
                                 if (secondaryCountriesInput && formSvc && typeof formSvc.parseSecondaryCountryList === 'function') {
-                                    target.secondaryCountryFlags = formSvc.parseSecondaryCountryList(secondaryCountriesInput.value, locTypeForSecondary);
+                                    const parsed = formSvc.parseSecondaryCountryList(secondaryCountriesInput.value, locTypeForSecondary);
+                                    console.log('[MenuHelpers] Parsed secondary countries:', parsed);
+                                    target.secondaryCountryFlags = parsed;
+                                } else if (secondaryCountriesInput) {
+                                    // Fallback: parse secondary countries manually
+                                    const rawValue = secondaryCountriesInput.value.trim();
+                                    console.log('[MenuHelpers] Raw value:', rawValue);
+                                    if (rawValue) {
+                                        const lh = window.LocationFlagHelpers;
+                                        const countryNames = rawValue.split(',').map(s => s.trim()).filter(Boolean);
+                                        console.log('[MenuHelpers] Country names:', countryNames);
+                                        const flagFiles = countryNames.map(name => {
+                                            console.log('[MenuHelpers] Resolving country:', name);
+                                            if (lh && typeof lh.getResolvedFlagFilename === 'function') {
+                                                const resolved = lh.getResolvedFlagFilename(name, locTypeForSecondary);
+                                                console.log('[MenuHelpers] getResolvedFlagFilename returned:', resolved);
+                                                if (resolved) return resolved;
+                                            }
+                                            // Fallback: try to find in FLAG_FILE_BY_COMMON
+                                            const commonMap = window.FLAG_FILE_BY_COMMON;
+                                            console.log('[MenuHelpers] FLAG_FILE_BY_COMMON:', commonMap ? 'exists' : 'missing');
+                                            if (commonMap) {
+                                                for (const [common, file] of Object.entries(commonMap)) {
+                                                    if (common.toLowerCase() === name.toLowerCase()) {
+                                                        console.log('[MenuHelpers] Found in FLAG_FILE_BY_COMMON:', file);
+                                                        return file;
+                                                    }
+                                                }
+                                            }
+                                            // Last resort: assume it's already a filename
+                                            const fallback = name.endsWith('.png') ? name : `${name}.png`;
+                                            console.log('[MenuHelpers] Using fallback filename:', fallback);
+                                            return fallback;
+                                        }).filter(Boolean);
+                                        console.log('[MenuHelpers] Fallback parsed secondary countries:', flagFiles);
+                                        target.secondaryCountryFlags = flagFiles;
+                                    } else {
+                                        target.secondaryCountryFlags = [];
+                                    }
+                                } else {
+                                    console.error('[MenuHelpers] Cannot save secondary countries - missing input');
                                 }
                                 
                                 if (headlinesInput) target.headlines = headlinesInput.value.split('\n').map(s => s.trim()).filter(Boolean);
@@ -1903,11 +1963,15 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 })).filter(s => s.text || s.url);
                             }
                             
-                            // Mark as unsaved
+                            // Mark as unsaved and persist to localStorage
                             if (window.eventManager) {
                                 const idx = window.eventManager.events.indexOf(eventData);
                                 if (idx >= 0) {
                                     window.eventManager.unsavedEventIndices.add(idx);
+                                }
+                                // Persist changes to localStorage immediately
+                                if (window.eventManager.dataService && typeof window.eventManager.dataService.saveEvents === 'function') {
+                                    window.eventManager.dataService.saveEvents();
                                 }
                             }
                             
@@ -2272,6 +2336,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 const currentPageEvents = getEventsForPage(currentPage);
                                 this.updateNumberButtons(currentPageEvents, currentPage);
                                 
+                                // Update news ticker with current page events
+                                if (window.newsTickerService) {
+                                    window.newsTickerService.updateTicker(currentPageEvents);
+                                }
+                                
                                 // Show/hide pagination
                                 const pagination = document.getElementById('eventPagination');
                                 if (pagination) {
@@ -2322,6 +2391,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     // Refresh Map2DLiteLayer markers and celestial panels
                                     if (window.globeController?.map2dLite?.syncMarkers) {
                                         window.globeController.map2dLite.syncMarkers({ mode: 'pageTurn' });
+                                    }
+                                    
+                                    // Update news ticker with current page events
+                                    if (window.newsTickerService) {
+                                        const currentPageEvents = getEventsForPage(validPage);
+                                        window.newsTickerService.updateTicker(currentPageEvents);
                                     }
                                     
                                     // Skip sound during slider scrubbing - tick sounds play instead
@@ -2495,6 +2570,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 newBtn.classList.toggle('locked', isLocked);
                                 newBtn.dataset.isLocked = isLocked ? 'true' : 'false';
                                 newBtn.dataset.eventIndex = globalEventIndex;
+                                // Set data-position to page position (1-10)
+                                newBtn.dataset.position = String(index + 1);
                                 
                                 // Update button number
                                 const numEl = newBtn.querySelector('.event-number-btn__num');
@@ -2515,7 +2592,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 
                                 // Get plain name
                                 const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
-                                if (nameEl) nameEl.textContent = plainName;
+                                if (nameEl) {
+                                    if (window.GlitchTextService) {
+                                        nameEl.innerHTML = window.GlitchTextService.getDisplayEventName(plainName);
+                                    } else {
+                                        nameEl.textContent = plainName;
+                                    }
+                                }
                                 
                                 // Check if event has description (unfinished indicator)
                                 const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
@@ -2572,12 +2655,20 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         console.error(`[FILTERS] 🚨 LOCKED EVENT CLICKED: #${globalEventIndex} "${event.name || 'unnamed'}"`);
                                         return; // Don't open locked events
                                     }
-                                    
+
+                                    // Clear hover state when clicking thumbnail
+                                    if (window.globeController?.interactionController) {
+                                        window.globeController.interactionController.hoveredEventMarker = null;
+                                    }
+                                    if (window.globeController?.markerPulseService) {
+                                        window.globeController.markerPulseService.hoveredEventMarker = null;
+                                    }
+
                                     // Show event in standalone panel
                                     if (window.standaloneEventSlide) {
                                         window.standaloneEventSlide.showEvent(globalEventIndex);
                                     }
-                                    
+
                                     if (window.SoundEffectsManager?.play) {
                                         window.SoundEffectsManager.play('eventClick');
                                     }
@@ -2878,9 +2969,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 btn.style.display = 'none';
                                 return;
                             }
-                            
+
                             btn.style.display = '';
-                            btn.dataset.position = String(globalEventIndex % 10);
+                            // Calculate page position from global index (1-10)
+                            const pagePosition = (globalEventIndex % 10) + 1;
+                            btn.dataset.position = String(pagePosition);
                             btn.dataset.eventIndex = globalEventIndex;
                             
                             // Check filter lock state (like wireNumberButtons does)
@@ -2926,7 +3019,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 : event;
                             
                             const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
-                            if (nameEl) nameEl.textContent = plainName;
+                            if (nameEl) {
+                                if (window.GlitchTextService) {
+                                    nameEl.innerHTML = window.GlitchTextService.getDisplayEventName(plainName);
+                                } else {
+                                    nameEl.textContent = plainName;
+                                }
+                            }
                             
                             // Check if event has description (unfinished indicator)
                             const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
@@ -3118,6 +3217,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         
                         toggleImageOverlay(imagePath) {
                             const overlay = document.getElementById('eventImageOverlay');
+                            const toggleBtn = document.getElementById('eventImageToggle');
                             console.log('[DEBUG MenuHelpers] toggleImageOverlay called, overlay:', !!overlay, 'SoundEffectsManager:', !!window.SoundEffectsManager);
                             if (!overlay) return;
                             
@@ -3129,8 +3229,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             
                             if (overlay.classList.contains('open')) {
                                 this.hideImageOverlay();
+                                if (toggleBtn) toggleBtn.textContent = 'Show Image';
                             } else if (imagePath) {
                                 this.showImageOverlay(imagePath);
+                                if (toggleBtn) toggleBtn.textContent = 'Hide Image';
                             }
                         },
                         
@@ -3138,6 +3240,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const overlay = document.getElementById('eventImageOverlay');
                             const img = document.getElementById('eventImage');
                             const eventSlide = document.getElementById('eventSlide');
+                            const toggleBtn = document.getElementById('eventImageToggle');
                             
                             if (overlay && img && imagePath) {
                                 img.src = imagePath;
@@ -3150,6 +3253,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 if (eventSlide?.classList.contains('open')) {
                                     overlay.classList.add('slide-open');
                                 }
+                                
+                                // Update button text
+                                if (toggleBtn) toggleBtn.textContent = 'Hide Image';
                                 
                                 // Setup click-to-hide handler if not already set
                                 if (!overlay.dataset.clickHandlerSet) {
@@ -3335,9 +3441,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         
                         hideImageOverlay() {
                             const overlay = document.getElementById('eventImageOverlay');
+                            const eventSlide = document.getElementById('eventSlide');
+                            const toggleBtn = document.getElementById('eventImageToggle');
                             if (overlay) {
-                                overlay.classList.remove('open', 'slide-open');
+                                overlay.classList.remove('open');
+                                // Only remove slide-open if event slide is closed
+                                if (!eventSlide?.classList.contains('open')) {
+                                    overlay.classList.remove('slide-open');
+                                }
                                 overlay.style.opacity = '0';
+                                // Update button text
+                                if (toggleBtn) toggleBtn.textContent = 'Show Image';
                                 setTimeout(() => {
                                     if (!overlay.classList.contains('open')) {
                                         overlay.style.display = 'none';

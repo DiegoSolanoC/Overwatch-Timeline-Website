@@ -487,6 +487,7 @@
         
         <!-- Event Slide Panel (left side) -->
         <div class="event-slide" id="eventSlide">
+            <button class="event-slide-action-btn event-slide-save-btn" id="eventSlideSaveBtn" title="Save description" type="button" style="display: none;">Save</button>
             <div class="event-slide-close" id="eventSlideClose">&times;</div>
             <div class="event-slide-content" id="eventSlideContent">
                 <div class="event-slide-top" id="eventSlideTop">
@@ -499,7 +500,6 @@
                 <div class="event-slide-mid-controls" id="eventSlideMidControls" aria-label="Event display options">
                     <div class="event-control-buttons">
                         <button type="button" id="eventFullTextToggle" class="event-full-text-toggle-btn" aria-pressed="false">Full Text Display</button>
-                        <button type="button" id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
                     </div>
                 </div>
                 <div class="event-slide-scrollable" id="eventSlideScrollable">
@@ -514,12 +514,14 @@
                 </div>
                 <div class="event-slide-bottom" id="eventSlideBottom">
                     <div class="event-control-buttons">
-                        <button type="button" id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;" aria-label="Glitch effect" aria-pressed="false"><span class="event-glitch-toggle-btn__icon" aria-hidden="true"></span></button>
                     </div>
                     <div class="event-navigation-buttons">
                         <button type="button" id="eventPrevBtn" class="event-nav-btn event-nav-btn--pagination-arrow" title="Previous Event" aria-label="Previous event"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="26" height="26" decoding="async" /></button>
+                        <button type="button" id="eventImageToggle" class="event-image-toggle-btn">Show Image</button>
                         <button id="eventAllEventsBtn" class="event-all-events-btn" title="View All Events">All Events</button>
                         <button type="button" id="eventNextBtn" class="event-nav-btn event-nav-btn--pagination-arrow" title="Next Event" aria-label="Next event"><img class="ui-pagination-arrow ui-pagination-arrow--flip-h" src="assets/images/icons/Arrow Icon.png" alt="" width="26" height="26" decoding="async" /></button>
+                        <button type="button" id="eventGlitchToggle" class="event-glitch-toggle-btn" style="display: none;" aria-label="Glitch effect" aria-pressed="false"><span class="event-glitch-toggle-btn__icon" aria-hidden="true"></span></button>
+                        <button class="event-slide-action-btn event-slide-edit-btn" id="eventSlideEditBtn" title="Edit description" type="button">Edit</button>
                     </div>
                 </div>
             </div>

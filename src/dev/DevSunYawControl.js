@@ -53,10 +53,30 @@ let _installed = false;
 
 /** @param {{ sceneModel: object, globeView: object }} controller */
 export function maybeInstallDevSunYawControl(controller) {
-    if (_installed || !controller?.sceneModel) return;
-    if (!isDevSunUiEnabled()) return;
+    console.log('[DevSunYawControl] maybeInstallDevSunYawControl called, _installed:', _installed, 'controller exists:', !!controller?.sceneModel);
+    if (!controller?.sceneModel) return;
+    if (!isDevSunUiEnabled()) {
+        console.log('[DevSunYawControl] Dev sun UI not enabled');
+        return;
+    }
+
+    // Check if slider element already exists in DOM
+    const sliderExists = document.querySelector('.dev-sun-yaw-panel__range') !== null;
+    console.log('[DevSunYawControl] Slider exists in DOM:', sliderExists);
+    
+    if (_installed && sliderExists) {
+        console.log('[DevSunYawControl] Already installed and slider exists, skipping');
+        return;
+    }
+
+    // Reset installed flag if slider doesn't exist (it was removed)
+    if (_installed && !sliderExists) {
+        console.log('[DevSunYawControl] Slider was removed, resetting installed flag');
+        _installed = false;
+    }
 
     _installed = true;
+    console.log('[DevSunYawControl] Installing dev sun yaw control');
 
     const wrap = document.createElement('div');
     wrap.setAttribute('data-dev-sun-yaw', '');
@@ -75,8 +95,17 @@ export function maybeInstallDevSunYawControl(controller) {
     range.value = String(Math.round(((initial % 360) + 360) % 360));
 
     range.addEventListener('input', () => {
-        writeStoredYaw(Number(range.value));
-        applyYawToScene(controller, Number(range.value));
+        const value = Number(range.value);
+        console.log('[DevSunYawControl] Sun slider input event, value:', value);
+        writeStoredYaw(value);
+        applyYawToScene(controller, value);
+        const sunBg = controller.sceneModel.getSunBackground?.() ?? controller.sceneModel.sunBackground;
+        if (sunBg && sunBg.sprite) {
+            console.log('[DevSunYawControl] Sun sprite position:', sunBg.sprite.position);
+        }
+        if (sunBg && sunBg.light) {
+            console.log('[DevSunYawControl] Sun light position:', sunBg.light.position);
+        }
     });
 
     if (typeof range.setPointerCapture === 'function') {
@@ -108,6 +137,8 @@ export function maybeInstallDevSunYawControl(controller) {
 
     const host = document.getElementById('globe-container') || document.body;
     host.appendChild(wrap);
+    console.log('[DevSunYawControl] Slider appended to host, host id:', host.id);
+    console.log('[DevSunYawControl] Slider element exists in DOM:', document.querySelector('.dev-sun-yaw-panel__range') !== null);
 
     applyYawToScene(controller, Number(range.value));
 }

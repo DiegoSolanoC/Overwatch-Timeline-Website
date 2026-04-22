@@ -28,7 +28,9 @@ function showDetails(feature) {
 
 function closeModal() {
     const modal = document.getElementById('modal');
-    modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 // Close modal when clicking outside of it

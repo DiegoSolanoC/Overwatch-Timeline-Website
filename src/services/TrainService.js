@@ -64,13 +64,14 @@ class TrainService {
                     // Only apply material if it's not already a trail (which uses MeshBasicMaterial)
                     // Check if material exists and is not MeshBasicMaterial, or create new one
                     if (!child.material || child.material.type !== 'MeshBasicMaterial') {
-                        child.material = new THREE.MeshPhongMaterial({
+                        child.material = new THREE.MeshStandardMaterial({
                             color: trainColor,
-                            emissive: trainEmissive,
-                            emissiveIntensity: 0.3,
+                            emissive: trainColor,
+                            emissiveIntensity: 1.0,
                             transparent: true,
                             opacity: 0.85,
-                            shininess: 30
+                            roughness: 0.5,
+                            metalness: 0.5
                         });
                     }
                     child.visible = true;

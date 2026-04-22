@@ -37,13 +37,14 @@ class SatelliteService {
         const applySatelliteMaterial = (model) => {
             model.traverse((child) => {
                 if (child.isMesh) {
-                    child.material = new THREE.MeshPhongMaterial({
+                    child.material = new THREE.MeshStandardMaterial({
                         color: color,
-                        emissive: type === 'ISS' ? 0x004488 : type === 'MarsShip' ? 0x440000 : 0x004488,
-                        emissiveIntensity: 0.3,
+                        emissive: color,
+                        emissiveIntensity: 1.0,
                         transparent: true,
                         opacity: 0.9,
-                        shininess: 30
+                        roughness: 0.5,
+                        metalness: 0.5
                     });
                     child.visible = true;
                     if (child.geometry) {
@@ -77,12 +78,14 @@ class SatelliteService {
                     console.error('Error loading Station.glb:', error);
                     const size = 0.015;
                     const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
-                    const material = new THREE.MeshPhongMaterial({
+                    const material = new THREE.MeshStandardMaterial({
                         color: color,
-                        emissive: 0x004488,
-                        emissiveIntensity: 0.3,
+                        emissive: color,
+                        emissiveIntensity: 1.0,
                         transparent: true,
-                        opacity: 0.9
+                        opacity: 0.9,
+                        roughness: 0.5,
+                        metalness: 0.5
                     });
                     const satelliteMesh = new THREE.Mesh(geometry, material);
                     satelliteGroup.add(satelliteMesh);
@@ -90,12 +93,14 @@ class SatelliteService {
             } else {
                 const size = 0.015;
                 const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
-                const material = new THREE.MeshPhongMaterial({
+                const material = new THREE.MeshStandardMaterial({
                     color: color,
-                    emissive: 0x004488,
-                    emissiveIntensity: 0.3,
+                    emissive: color,
+                    emissiveIntensity: 1.0,
                     transparent: true,
-                    opacity: 0.9
+                    opacity: 0.9,
+                    roughness: 0.5,
+                    metalness: 0.5
                 });
                 const satelliteMesh = new THREE.Mesh(geometry, material);
                 satelliteGroup.add(satelliteMesh);
@@ -137,12 +142,14 @@ class SatelliteService {
                     console.error('Error loading Satellite.glb:', error);
                     const size = type === 'MarsShip' ? 0.010 : 0.006;
                     const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
-                    const material = new THREE.MeshPhongMaterial({
+                    const material = new THREE.MeshStandardMaterial({
                         color: color,
-                        emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
-                        emissiveIntensity: 0.3,
+                        emissive: color,
+                        emissiveIntensity: 1.0,
                         transparent: true,
-                        opacity: 0.9
+                        opacity: 0.9,
+                        roughness: 0.5,
+                        metalness: 0.5
                     });
                     const satelliteMesh = new THREE.Mesh(geometry, material);
                     satelliteGroup.add(satelliteMesh);
@@ -150,12 +157,14 @@ class SatelliteService {
             } else {
                 const size = type === 'MarsShip' ? 0.010 : 0.006;
                 const geometry = new THREE.BoxGeometry(size, size, size * 1.5);
-                const material = new THREE.MeshPhongMaterial({
+                const material = new THREE.MeshStandardMaterial({
                     color: color,
-                    emissive: type === 'MarsShip' ? 0x440000 : 0x004488,
-                    emissiveIntensity: 0.3,
+                    emissive: color,
+                    emissiveIntensity: 1.0,
                     transparent: true,
-                    opacity: 0.9
+                    opacity: 0.9,
+                    roughness: 0.5,
+                    metalness: 0.5
                 });
                 const satelliteMesh = new THREE.Mesh(geometry, material);
                 satelliteGroup.add(satelliteMesh);

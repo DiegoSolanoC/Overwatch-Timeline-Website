@@ -45,13 +45,14 @@ class BoatService {
                     const boatEmissive = 0x004488;
                     model.traverse((child) => {
                         if (child.isMesh) {
-                            child.material = new THREE.MeshPhongMaterial({
+                            child.material = new THREE.MeshStandardMaterial({
                                 color: boatColor,
-                                emissive: boatEmissive,
-                                emissiveIntensity: 0.3,
+                                emissive: boatColor,
+                                emissiveIntensity: 1.0,
                                 transparent: true,
                                 opacity: 0.85,
-                                shininess: 30
+                                roughness: 0.5,
+                                metalness: 0.5
                             });
                             child.visible = true;
                             if (child.geometry) {
@@ -67,12 +68,14 @@ class BoatService {
                 (error) => {
                     console.warn('⚠️ Boat model not found, using fallback geometry');
                     const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
-                    const boatMaterial = new THREE.MeshPhongMaterial({
+                    const boatMaterial = new THREE.MeshStandardMaterial({
                         color: 0x0088cc,
-                        emissive: 0x440000,
-                        emissiveIntensity: 0.3,
+                        emissive: 0x0088cc,
+                        emissiveIntensity: 1.0,
                         transparent: true,
-                        opacity: 0.85
+                        opacity: 0.85,
+                        roughness: 0.5,
+                        metalness: 0.5
                     });
                     const boatMesh = new THREE.Mesh(boatGeometry, boatMaterial);
                     boatMesh.rotation.x = Math.PI / 2;
@@ -81,12 +84,14 @@ class BoatService {
             );
         } else {
             const boatGeometry = new THREE.BoxGeometry(0.03, 0.01, 0.08);
-            const boatMaterial = new THREE.MeshPhongMaterial({
+            const boatMaterial = new THREE.MeshStandardMaterial({
                 color: 0xff0000,
-                emissive: 0x440000,
-                emissiveIntensity: 0.3,
+                emissive: 0xff0000,
+                emissiveIntensity: 1.0,
                 transparent: true,
-                opacity: 0.85
+                opacity: 0.85,
+                roughness: 0.5,
+                metalness: 0.5
             });
             const boatMesh = new THREE.Mesh(boatGeometry, boatMaterial);
             boatMesh.rotation.x = Math.PI / 2;

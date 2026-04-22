@@ -14,16 +14,12 @@ class ProgressService {
         const percentage = (completed / this.globeComponentsProgress.total) * 100;
         const mainBar = document.getElementById('loadingProgressBar');
         if (mainBar) mainBar.style.width = `${percentage}%`;
-        const inlineBar = document.getElementById('globeInlineLoadingProgressBar');
-        if (inlineBar) inlineBar.style.width = `${percentage}%`;
     }
 
     resetGlobeComponentsProgress() {
         this.globeComponentsProgress.completed = 0;
         const mainBar = document.getElementById('loadingProgressBar');
         if (mainBar) mainBar.style.width = '0%';
-        const inlineBar = document.getElementById('globeInlineLoadingProgressBar');
-        if (inlineBar) inlineBar.style.width = '0%';
     }
 }
 

@@ -111,8 +111,82 @@ export class UIView {
         this.imageOverlayManager.checkAndAutoShowImage();
     }
 
-    // NOTE: Event slide removed - Globe no longer handles events
-    
+    /**
+     * Show event slide (for Map2DLiteLayer compatibility)
+     * @param {string} eventName - Event name
+     * @param {string} eventImage - Event image path
+     * @param {string} desc - Event description
+     * @param {Object} stub - Marker stub
+     * @param {Object} fullEvent - Full event data
+     */
+    showEventSlide(eventName, eventImage, desc, stub, fullEvent) {
+        // This is called by Map2DLiteLayer when clicking markers
+        // Store the current event marker for reference
+        this.currentEventMarker = stub;
+
+        // Open the event slide panel (left-side panel with event details)
+        const eventSlide = document.getElementById('eventSlide');
+        if (eventSlide) {
+            eventSlide.classList.add('open');
+            // Reset display property to ensure it's visible
+            eventSlide.style.display = '';
+        }
+
+        // Set the image source if provided
+        if (eventImage) {
+            const eventImageEl = document.getElementById('eventImage');
+            if (eventImageEl) {
+                eventImageEl.src = eventImage;
+                eventImageEl.style.display = '';
+            }
+        }
+
+        // Show the image overlay
+        this.imageOverlayManager.showImageOverlay();
+    }
+
+    /**
+     * Hide event slide (for Map2DLiteLayer compatibility)
+     */
+    hideEventSlide() {
+        // This is called by Map2DLiteLayer when clicking markers
+        // Clear the current event marker
+        this.currentEventMarker = null;
+
+        // Stop hover radiate loop
+        if (window.globeController?.map2dLite?.stopHoverRadiateLoop) {
+            window.globeController.map2dLite.stopHoverRadiateLoop();
+        }
+        // Clear synthetic marker hover
+        if (window.globeController?.map2dLite?.clearSyntheticMarkerHover) {
+            window.globeController.map2dLite.clearSyntheticMarkerHover();
+        }
+        // Clear hover state
+        if (window.globeController?.interactionController) {
+            window.globeController.interactionController.hoveredEventMarker = null;
+        }
+        if (window.globeController?.markerPulseService) {
+            window.globeController.markerPulseService.hoveredEventMarker = null;
+        }
+
+        // Close the event slide panel (match X button behavior)
+        const eventSlide = document.getElementById('eventSlide');
+        if (eventSlide) {
+            eventSlide.classList.remove('open');
+        }
+
+        // Play sound effect (match X button behavior)
+        if (window.SoundEffectsManager?.play) {
+            window.SoundEffectsManager.play('eventClick');
+        }
+
+        // Reset globe immediately when closing
+        this.resetToDefault();
+
+        // Hide the image overlay
+        this.imageOverlayManager.hideImageOverlay();
+    }
+
     /**
      * Zoom out from event and restore original camera position and globe rotation
      * Delegates to CameraViewManager

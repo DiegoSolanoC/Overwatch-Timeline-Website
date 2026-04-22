@@ -77,11 +77,24 @@ class MarkerInteractionService {
             badge.hide();
             return;
         }
-        const dataModel = window.globeController && window.globeController.dataModel;
-        const n =
-            window.EventSlideShowHelpers && typeof window.EventSlideShowHelpers.getGlobalEventNumber1Based === 'function'
-                ? window.EventSlideShowHelpers.getGlobalEventNumber1Based(eventObj, dataModel)
-                : null;
+
+        // Use Event System data to get global event number
+        let n = null;
+        if (window.eventManager?.events) {
+            const allEvents = window.eventManager.events;
+            const index = allEvents.findIndex(e => e === eventObj);
+            if (index >= 0) {
+                n = index + 1; // 1-based index
+            }
+        }
+
+        // Fallback to old dataModel if Event System not available
+        if (n === null) {
+            const dataModel = window.globeController && window.globeController.dataModel;
+            if (window.EventSlideShowHelpers && typeof window.EventSlideShowHelpers.getGlobalEventNumber1Based === 'function') {
+                n = window.EventSlideShowHelpers.getGlobalEventNumber1Based(eventObj, dataModel);
+            }
+        }
         const variantIndex =
             marker.userData && marker.userData.variantIndex !== undefined
                 ? marker.userData.variantIndex
@@ -246,10 +259,22 @@ class MarkerInteractionService {
 
         if (!marker || !marker.userData || !marker.userData.event) return;
 
-        const dataModel = window.globeController && window.globeController.dataModel;
-        if (!dataModel) return;
+        // Use Event System data instead of old dataModel
+        let currentPageEvents = [];
+        if (window.eventManager?.events && window.standaloneEventSlide?.currentPage) {
+            const allEvents = window.eventManager.events;
+            const currentPage = window.standaloneEventSlide.currentPage;
+            const eventsPerPage = 10;
+            const startIndex = (currentPage - 1) * eventsPerPage;
+            const endIndex = startIndex + eventsPerPage;
+            currentPageEvents = allEvents.slice(startIndex, endIndex);
+        } else {
+            // Fallback to old dataModel
+            const dataModel = window.globeController && window.globeController.dataModel;
+            if (!dataModel) return;
+            currentPageEvents = dataModel.getEventsForCurrentPage();
+        }
 
-        const currentPageEvents = dataModel.getEventsForCurrentPage();
         const event = marker.userData.event;
         let index = currentPageEvents.findIndex(e => e === event);
         if (index < 0) {
@@ -352,7 +377,23 @@ class MarkerInteractionService {
         if (intersects.length > 0) {
             const clickedMarker = intersects[0].object;
             console.log('[onMarkerClick] Processing clicked marker');
-            
+
+            // Clear hover state when clicking a marker
+            if (window.globeController?.interactionController) {
+                window.globeController.interactionController.hoveredEventMarker = null;
+            }
+            if (window.globeController?.markerPulseService) {
+                window.globeController.markerPulseService.hoveredEventMarker = null;
+            }
+            // Stop hover radiate sound loop
+            if (window.globeController?.map2dLite?.stopHoverRadiateLoop) {
+                window.globeController.map2dLite.stopHoverRadiateLoop();
+            }
+            // Clear synthetic marker hover
+            if (window.globeController?.map2dLite?.clearSyntheticMarkerHover) {
+                window.globeController.map2dLite.clearSyntheticMarkerHover();
+            }
+
             // Handle event marker click
             if (clickedMarker.userData && clickedMarker.userData.isEventMarker) {
                 console.log('[onMarkerClick] It is an event marker - proceeding');

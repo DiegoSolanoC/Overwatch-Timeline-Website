@@ -5,10 +5,6 @@
 
 import { showLoadingOverlay, hideLoadingOverlay, setRunOperation, getRunOperation } from './LoadingOverlayManager.js';
 import { updateStatus, updateGlobeComponentsProgress, resetGlobeComponentsProgress } from './StatusManager.js';
-import {
-    beginTimelineInlineLoadIfCodex,
-    endTimelineInlineLoad
-} from '../app/helpers/GlobeInlineLoadHelpers.js';
 
 /**
  * ComponentOrchestrator class
@@ -244,56 +240,47 @@ export class ComponentOrchestrator {
         // Kill other modes first (mutual exclusion)
         const currentMode = localStorage.getItem('currentMode');
         if (currentMode === 'biography' && this.loadedComponents.biography) {
-            await this.killBiographyComponents();
+            await this.killBiographyComponents(false); // Don't restore menu when switching to Globe
         }
         if (currentMode === 'glossary' && this.loadedComponents.glossary) {
             await this.killGlossaryComponents();
         }
 
-        const inlineFromCodex = beginTimelineInlineLoadIfCodex();
-        
         // Save current mode to localStorage
         localStorage.setItem('currentMode', 'globe');
-        
+
         const runBtn = document.getElementById('runGlobeBtn');
         if (runBtn) {
             runBtn.disabled = true;
         }
-        
+
         // Reset progress
         resetGlobeComponentsProgress();
-        
+
         // Hide the test-container completely (which contains the main menu buttons)
         const testContainer = document.querySelector('.test-container');
         if (testContainer) {
             testContainer.style.display = 'none';
             updateStatus('→ Hiding menu container...', 'info');
         }
-        
+
         const globeContainer = document.getElementById('globe-container');
         if (globeContainer) {
             globeContainer.style.width = '100%';
             globeContainer.style.height = '100%';
-            if (!inlineFromCodex) {
-                globeContainer.style.display = 'none';
-                updateStatus('→ Preparing globe container...', 'info');
-            } else {
-                globeContainer.style.display = 'block';
-                updateStatus('→ Preparing timeline in view…', 'info');
-            }
+            globeContainer.style.display = 'none';
+            updateStatus('→ Preparing globe container...', 'info');
         }
-        
+
         updateStatus('🚀 Starting Globe Components auto-load...', 'info');
-        
+
         const isRunOperation = getRunOperation();
         // Note: isRunOperation and overlay should already be set by the button click handler
         // But if called directly (not from button), set them here
         if (!isRunOperation) {
             setRunOperation(true);
-            if (!inlineFromCodex) {
-                showLoadingOverlay();
-                await new Promise(r => setTimeout(r, 50));
-            }
+            showLoadingOverlay();
+            await new Promise(r => setTimeout(r, 50));
         }
         
         try {
@@ -334,18 +321,55 @@ export class ComponentOrchestrator {
                 updateGlobeComponentsProgress(2);
             }
             
-            // Load Controls
-            if (!this.loadedComponents.controls) {
-                updateStatus('→ Loading Controls...', 'info');
-                await this.loaders.controls();
-                updateGlobeComponentsProgress(3);
-                await new Promise(r => setTimeout(r, 300));
-            } else {
-                globeContainer.style.opacity = '1';
-                globeContainer.style.pointerEvents = 'auto';
-                globeContainer.style.display = 'block';
-                globeContainer.classList.add('loaded');
+            // Load Controls (always reload to ensure rotation slider is repositioned)
+            updateStatus('→ Loading Controls...', 'info');
+            // Reset sceneModel to globe mode BEFORE loading controls so setupMapViewToggle uses correct state
+            if (window.globeController?.sceneModel) {
+                if (window.globeController.sceneModel.setMapViewEnabled) {
+                    window.globeController.sceneModel.setMapViewEnabled(false);
+                } else {
+                    window.globeController.sceneModel.isMapView = false;
+                }
+                console.log('[ComponentOrchestrator] Reset sceneModel to globe mode before loading controls');
             }
+            await this.loaders.controls();
+            // Debug: Check if map toggle button exists
+            const mapToggleBtn = document.getElementById('mapViewToggle');
+            console.log('[ComponentOrchestrator] Map toggle button exists:', !!mapToggleBtn, 'display:', mapToggleBtn?.style.display);
+            // Call setupMapViewToggle again after loading controls to ensure correct state
+            if (window.globeController?.uiView?.setupMapViewToggle) {
+                window.globeController.uiView.setupMapViewToggle();
+                console.log('[ComponentOrchestrator] setupMapViewToggle called after controls load');
+            }
+            // Ensure rotate-subbar-open class is set on body (shows rotation slider) - do this AFTER setupMapViewToggle
+            document.body.classList.add('rotate-subbar-open');
+            console.log('[ComponentOrchestrator] rotate-subbar-open class added to body (after setupMapViewToggle)');
+            // Show rotation subbar and reset position
+            const rotateSubBar = document.getElementById('headerRotateSubBar');
+            if (rotateSubBar) {
+                rotateSubBar.style.display = 'block';
+                rotateSubBar.style.top = '0';
+                rotateSubBar.style.left = '0';
+                const computedStyle = window.getComputedStyle(rotateSubBar);
+                console.log('[ComponentOrchestrator] Rotation subbar made visible and position reset');
+                console.log('[ComponentOrchestrator] Rotation subbar computed display:', computedStyle.display);
+                console.log('[ComponentOrchestrator] Rotation subbar computed position:', computedStyle.position, 'top:', computedStyle.top, 'left:', computedStyle.left);
+                console.log('[ComponentOrchestrator] Rotation subbar rect:', rotateSubBar.getBoundingClientRect());
+                const inner = document.getElementById('headerRotateSubBarInner');
+                if (inner) {
+                    console.log('[ComponentOrchestrator] Rotation subbar inner transform:', window.getComputedStyle(inner).transform);
+                    console.log('[ComponentOrchestrator] Rotation subbar inner children count:', inner.children.length);
+                }
+                // Debug map toggle button position
+                const mapToggleBtn = document.getElementById('mapViewToggle');
+                if (mapToggleBtn) {
+                    console.log('[ComponentOrchestrator] Map toggle button rect:', mapToggleBtn.getBoundingClientRect());
+                }
+            } else {
+                console.log('[ComponentOrchestrator] Rotation subbar element not found!');
+            }
+            updateGlobeComponentsProgress(3);
+            await new Promise(r => setTimeout(r, 300));
             
             // NOTE: Footer styling removed - Event System Load Out handles this when it loads
             
@@ -375,7 +399,6 @@ export class ComponentOrchestrator {
             updateStatus(`✗ Error in Globe Components auto-load: ${error.message}`, 'error');
         } finally {
             setRunOperation(false);
-            endTimelineInlineLoad();
             hideLoadingOverlay();
             if (runBtn) {
                 runBtn.disabled = false;
@@ -407,6 +430,9 @@ export class ComponentOrchestrator {
         const currentMode = localStorage.getItem('currentMode');
         if (currentMode === 'biography' && this.loadedComponents.biography) {
             await this.killBiographyComponents();
+        }
+        if (currentMode === 'globe' && this.loadedComponents.globeBase) {
+            await this.killGlobeComponents();
         }
 
         // Save current mode to localStorage
@@ -482,6 +508,9 @@ export class ComponentOrchestrator {
         const currentMode = localStorage.getItem('currentMode');
         if (currentMode === 'glossary' && this.loadedComponents.glossary) {
             await this.killGlossaryComponents();
+        }
+        if (currentMode === 'globe' && this.loadedComponents.globeBase) {
+            await this.killGlobeComponents();
         }
 
         // Save current mode to localStorage
@@ -956,8 +985,9 @@ export class ComponentOrchestrator {
     /**
      * Restore main menu (show test-container, hide globe)
      * Make it globally accessible
+     * @param {boolean} preserveNewsTicker - If true, preserve the news ticker instead of clearing it
      */
-    async restoreMainMenu() {
+    async restoreMainMenu(preserveNewsTicker = false) {
         const testContainer = document.querySelector('.test-container');
         const globeContainer = document.getElementById('globe-container');
         
@@ -991,16 +1021,24 @@ export class ComponentOrchestrator {
             globeContainer.style.top = '';
             globeContainer.style.left = '';
         }
+
+        // Hide rotation subbar when returning to menu
+        const rotateSubBar = document.getElementById('headerRotateSubBar');
+        if (rotateSubBar) {
+            rotateSubBar.style.display = 'none';
+        }
         
-        // Restore footer to dark blue with text when returning to main menu
+        // Restore footer to dark blue with text when returning to main menu (unless preserving for mode switch)
         const footer = document.querySelector('footer');
-        if (footer) {
+        if (footer && !preserveNewsTicker) {
             footer.classList.remove('timeline-loaded');
         }
 
-        // Clear/hide headlines ticker when returning to main menu
-        if (window.newsTickerService && typeof window.newsTickerService.clear === 'function') {
-            window.newsTickerService.clear();
+        // Clear/hide headlines ticker when returning to main menu (unless preserving for mode switch)
+        if (!preserveNewsTicker) {
+            if (window.newsTickerService && typeof window.newsTickerService.clear === 'function') {
+                window.newsTickerService.clear();
+            }
         }
         
         // Close any open panels
@@ -1056,7 +1094,8 @@ export class ComponentOrchestrator {
         
         // Restore the menu (test-container) when killing globe components
         // This will also load menu if not already loaded
-        await this.restoreMainMenu();
+        // Preserve news ticker when switching to other modes (not actually returning to menu)
+        await this.restoreMainMenu(true);
         
         // Clear mode from localStorage (consistent with other modes)
         localStorage.removeItem('currentMode');
@@ -1096,8 +1135,9 @@ export class ComponentOrchestrator {
 
     /**
      * Kill all Biography Components (Story Viewer)
+     * @param {boolean} [restoreMenu=true] - Whether to restore main menu (false when switching to another mode)
      */
-    async killBiographyComponents() {
+    async killBiographyComponents(restoreMenu = true) {
         updateStatus('Exiting Story Viewer...', 'info');
         
         // Restore Event Manager panel to its original location
@@ -1161,8 +1201,10 @@ export class ComponentOrchestrator {
             }, 300);
         }
 
-        // Restore the menu (test-container) - consistent with other modes
-        await this.restoreMainMenu();
+        // Restore the menu (test-container) only if not switching to another mode
+        if (restoreMenu) {
+            await this.restoreMainMenu();
+        }
 
         localStorage.removeItem('currentMode');
         this.loadedComponents.biography = false;

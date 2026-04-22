@@ -1387,15 +1387,6 @@
       "y": 9499.5,
       "scale": 3,
       "bgColor": null
-    },
-    {
-      "id": "cn-1776836756145-suxl1jzd",
-      "kind": "country",
-      "countryKey": "Numbani",
-      "x": 10284.786490885417,
-      "y": 9353.609545159537,
-      "scale": 1.5,
-      "bgColor": null
     }
   ],
   "edges": [

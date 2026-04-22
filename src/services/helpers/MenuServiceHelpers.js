@@ -364,9 +364,7 @@ export function createMenuButtonsContainer(statusService) {
                 }
                 window.newsTickerService.init();
 
-                // Update ticker with all events
-                const events = window.eventManager.events || [];
-                window.newsTickerService.updateTicker(events);
+                // Note: News ticker will be updated by pagination system with current page events
 
                 // Wire up Event Manager panel (decoupled from globe)
                 if (window.eventManager && !window.eventManager.listenersSetup) {
@@ -620,13 +618,13 @@ export function createMenuButtonsContainer(statusService) {
                                         if (eventSlideText) eventSlideText.innerHTML = applyGlitch(currentEvent?.description || description) || 'No description available.';
                                         setTimeout(wireGlitchClickToggle, 100);
                                         if (window.SoundEffectsManager?.play) {
-                                            window.SoundEffectsManager.play(newEnabled ? 'glitchOn' : 'glitchOff');
+                                            window.SoundEffectsManager.play(newEnabled ? 'hackOn' : 'hackOff');
                                         }
                                     };
                                     if (window.GlitchTextService?.isEnabled?.()) {
                                         window.GlitchTextService.startAnimation?.();
                                         if (window.SoundEffectsManager?.play) {
-                                            setTimeout(() => window.SoundEffectsManager.play('glitchOn'), 50);
+                                            setTimeout(() => window.SoundEffectsManager.play('hackOn'), 50);
                                         }
                                     }
                                 } else {
@@ -940,6 +938,8 @@ export function createMenuButtonsContainer(statusService) {
                         saveFullEdit(eventData, editBtn, saveBtn) {
                             if (!this.isEditing || !this.editTarget) return;
                             
+                            console.log('[MenuServiceHelpers] saveFullEdit called for event:', eventData.name);
+                            
                             const isMultiEvent = eventData.variants && eventData.variants.length > 0;
                             const target = isMultiEvent ? eventData.variants[this.currentVariantIndex || 0] : eventData;
                             
@@ -963,11 +963,24 @@ export function createMenuButtonsContainer(statusService) {
                                     text: row.querySelector('[data-role="source-text"]')?.value || '',
                                     url: row.querySelector('[data-role="source-url"]')?.value || ''
                                 })).filter(s => s.text || s.url);
+                                
+                                console.log('[MenuServiceHelpers] Updated target description:', target.description);
                             }
                             
                             if (window.eventManager) {
                                 const idx = window.eventManager.events.indexOf(eventData);
                                 if (idx >= 0) window.eventManager.unsavedEventIndices.add(idx);
+                                console.log('[MenuServiceHelpers] Marked event', idx, 'as unsaved');
+                                // Persist changes to localStorage immediately
+                                if (window.eventManager.dataService && typeof window.eventManager.dataService.saveEvents === 'function') {
+                                    console.log('[MenuServiceHelpers] Calling saveEvents()...');
+                                    window.eventManager.dataService.saveEvents();
+                                    console.log('[MenuServiceHelpers] saveEvents() completed');
+                                } else {
+                                    console.error('[MenuServiceHelpers] dataService.saveEvents not available!');
+                                }
+                            } else {
+                                console.error('[MenuServiceHelpers] window.eventManager not available!');
                             }
                             
                             if (titleEl) { titleEl.contentEditable = 'false'; titleEl.removeAttribute('spellcheck'); }
@@ -1681,28 +1694,32 @@ export function createMenuButtonsContainer(statusService) {
                             buttons.forEach((btn, index) => {
                                 const newBtn = btn.cloneNode(true);
                                 btn.parentNode.replaceChild(newBtn, btn);
-                                
+
                                 const event = pageEvents?.[index];
                                 const globalEventIndex = baseIndex + index;
-                                
+
                                 if (!event) {
                                     newBtn.disabled = true;
                                     newBtn.style.opacity = '0.3';
                                     newBtn.style.display = 'none';
                                     return;
                                 }
-                                
+
                                 newBtn.disabled = false;
                                 newBtn.style.opacity = '1';
                                 newBtn.style.display = '';
-                                
+
+                                // Set data-position to page position (1-10)
+                                newBtn.dataset.position = String(index + 1);
+                                newBtn.dataset.eventIndex = globalEventIndex;
+
                                 const numEl = newBtn.querySelector('.event-number-btn__num');
                                 const nameEl = newBtn.querySelector('.event-number-btn__name');
                                 const imgEl = newBtn.querySelector('.event-number-btn__img');
                                 const imgWrap = newBtn.querySelector('.event-number-btn__img-wrap');
                                 const variantBadge = newBtn.querySelector('.event-number-btn__variant-badge');
                                 const keyEl = newBtn.querySelector('.event-number-btn__key');
-                                
+
                                 if (numEl) numEl.textContent = globalEventIndex + 1;
                                 if (keyEl) keyEl.textContent = index + 1;
                                 
@@ -1714,7 +1731,13 @@ export function createMenuButtonsContainer(statusService) {
                                 
                                 // Get plain name
                                 const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
-                                if (nameEl) nameEl.textContent = plainName;
+                                if (nameEl) {
+                                    if (window.GlitchTextService) {
+                                        nameEl.innerHTML = window.GlitchTextService.getDisplayEventName(plainName);
+                                    } else {
+                                        nameEl.textContent = plainName;
+                                    }
+                                }
                                 
                                 // Get image path using helper
                                 let imagePath = null;
@@ -1754,6 +1777,15 @@ export function createMenuButtonsContainer(statusService) {
                                 newBtn.addEventListener('click', (e) => {
                                     e.stopPropagation();
                                     if (e.target.closest('.event-number-btn__variant-badge')) return;
+
+                                    // Clear hover state when clicking thumbnail
+                                    if (window.globeController?.interactionController) {
+                                        window.globeController.interactionController.hoveredEventMarker = null;
+                                    }
+                                    if (window.globeController?.markerPulseService) {
+                                        window.globeController.markerPulseService.hoveredEventMarker = null;
+                                    }
+
                                     if (window.standaloneEventSlide) {
                                         window.standaloneEventSlide.showEvent(globalEventIndex);
                                         if (window.SoundEffectsManager?.play) {
@@ -1951,9 +1983,11 @@ export function createMenuButtonsContainer(statusService) {
                                 btn.style.display = 'none';
                                 return;
                             }
-                            
+
                             btn.style.display = '';
-                            btn.dataset.position = String(globalEventIndex % 10);
+                            // Calculate page position from global index (1-10)
+                            const pagePosition = (globalEventIndex % 10) + 1;
+                            btn.dataset.position = String(pagePosition);
                             btn.dataset.eventIndex = globalEventIndex;
                             
                             // Check filter lock state
@@ -2001,7 +2035,13 @@ export function createMenuButtonsContainer(statusService) {
                                 : event;
                             
                             const plainName = displayEvent.name || event.name || `Event ${globalEventIndex + 1}`;
-                            if (nameEl) nameEl.textContent = plainName;
+                            if (nameEl) {
+                                if (window.GlitchTextService) {
+                                    nameEl.innerHTML = window.GlitchTextService.getDisplayEventName(plainName);
+                                } else {
+                                    nameEl.textContent = plainName;
+                                }
+                            }
                             
                             // Check if event has description (unfinished indicator)
                             const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;

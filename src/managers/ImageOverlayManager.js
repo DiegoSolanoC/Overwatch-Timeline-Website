@@ -65,27 +65,32 @@ export class ImageOverlayManager {
     showImageOverlay() {
         const eventImageOverlay = document.getElementById('eventImageOverlay');
         const eventImage = document.getElementById('eventImage');
-        
+
         if (!eventImageOverlay) return;
-        
+
         // Clear any pending auto-show timeout
         if (this.imageAutoHideTimeout) {
             clearTimeout(this.imageAutoHideTimeout);
             this.imageAutoHideTimeout = null;
         }
-        
+
+        // Reset display and opacity for opening
+        eventImageOverlay.style.display = '';
+        eventImageOverlay.style.opacity = '';
+        eventImageOverlay.style.setProperty('pointer-events', '');
+
         // Show: show overlay, fade to black, then fade in image
         eventImageOverlay.classList.remove('fade-out');
         eventImageOverlay.classList.add('open');
-        
+
         setTimeout(() => {
             eventImageOverlay.classList.add('fade-in');
-            
+
             if (eventImage && eventImage.style.display !== 'none') {
                 setTimeout(() => {
                     eventImage.classList.remove('fade-out');
                     eventImage.classList.add('fade-in');
-                    
+
                     // Disable page navigation buttons when image is fully visible
                     // Wait for image fade-in to complete (600ms transition)
                     setTimeout(() => {
@@ -98,7 +103,7 @@ export class ImageOverlayManager {
                     this.disablePageNavigationButtons(true);
                 }, 600);
             }
-            
+
             this.imageOverlayVisible = true;
         }, 50);
     }
@@ -110,36 +115,54 @@ export class ImageOverlayManager {
     hideImageOverlay(temporary = false) {
         const eventImageOverlay = document.getElementById('eventImageOverlay');
         const eventImage = document.getElementById('eventImage');
-        
+
         if (!eventImageOverlay) return;
-        
+
         // Re-enable page navigation buttons immediately when hiding starts
         this.disablePageNavigationButtons(false);
-        
-        // Hide: fade out image, then fade to black, then hide overlay
-        // Start fade immediately for faster response
-        if (eventImage && eventImage.style.display !== 'none') {
+
+        // Match X button behavior exactly
+        eventImageOverlay.classList.remove('open', 'slide-open');
+        eventImageOverlay.style.opacity = '0';
+        // Immediately disable pointer events to allow clicks through
+        eventImageOverlay.style.setProperty('pointer-events', 'none');
+
+        // Stop hover radiate sound loop
+        if (window.globeController?.map2dLite?.stopHoverRadiateLoop) {
+            window.globeController.map2dLite.stopHoverRadiateLoop();
+        }
+        // Clear synthetic marker hover
+        if (window.globeController?.map2dLite?.clearSyntheticMarkerHover) {
+            window.globeController.map2dLite.clearSyntheticMarkerHover();
+        }
+        // Clear hover state
+        if (window.globeController?.interactionController) {
+            window.globeController.interactionController.hoveredEventMarker = null;
+        }
+        if (window.globeController?.markerPulseService) {
+            window.globeController.markerPulseService.hoveredEventMarker = null;
+        }
+
+        // Hide the image element
+        if (eventImage) {
             eventImage.classList.remove('fade-in');
             eventImage.classList.add('fade-out');
+            eventImage.style.display = 'none';
+            eventImage.src = '';
         }
-        
-        // Start overlay fade immediately (don't wait for image fade)
-        eventImageOverlay.classList.remove('fade-in');
-        eventImageOverlay.classList.add('fade-out');
-        
-        // After fade completes, hide overlay
+
+        // After 600ms, set display to none if still not open (matches X button)
         setTimeout(() => {
-            eventImageOverlay.classList.remove('open', 'fade-out');
-            if (eventImage) {
-                eventImage.classList.remove('fade-out');
+            if (!eventImageOverlay.classList.contains('open')) {
+                eventImageOverlay.style.display = 'none';
             }
             this.imageOverlayVisible = false;
-            
+
             // If temporary hide, don't change toggle state
             if (!temporary) {
                 this.imageToggleState = false;
             }
-        }, 350); // Faster fade-out (matches CSS transition of 0.3s + small buffer)
+        }, 600);
     }
     
     /**

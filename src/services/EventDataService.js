@@ -217,7 +217,7 @@ class EventDataService {
                     
                     // On localhost: Use file if it has more events (even just 1 more), otherwise prefer localStorage
                     if (fileEventCount > localStorageCount) {
-                        console.log(`EventDataService [Localhost]: Using events.json (${fileEventCount} events, file has more than localStorage (${localStorageCount}))`);
+                        console.log(`[EventDataService] [Localhost]: Using events.json (${fileEventCount} events, file has more than localStorage (${localStorageCount}))`);
                         this.updateStatus(`EventDataService: Using events.json (${fileEventCount} events, file has more than localStorage)`, 'info');
                         this.events = fileEvents;
                         // Clear old localStorage and save fresh data
@@ -227,14 +227,14 @@ class EventDataService {
                     }
                     
                     // On localhost: localStorage has same or more events, prefer it (user's saved changes)
-                    console.log('EventDataService [Localhost]: Using localStorage version (user\'s saved changes) -', localStorageCount, 'events');
+                    console.log('[EventDataService] [Localhost]: Using localStorage version (user\'s saved changes) -', localStorageCount, 'events');
                     this.updateStatus(`EventDataService: Using localStorage (${localStorageCount} events, user's saved changes)`, 'info');
                 }
                 
                 // Use localStorage (user's saved changes take priority on localhost)
                 this.events = localStorageEvents;
-                console.log('EventDataService: Using localStorage version (', this.events.length, 'events)');
-                console.log('EventDataService: Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
+                console.log('[EventDataService] Using localStorage version (', this.events.length, 'events)');
+                console.log('[EventDataService] Event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
                 this.updateStatus(`EventDataService: Using ${this.events.length} events from localStorage`, 'success');
 
                 if (fileEvents && fileEventCount === this.events.length) {
@@ -242,7 +242,7 @@ class EventDataService {
                 }
                 
                 // CRITICAL: On GitHub Pages, always prefer file if it has more events (even if localStorage exists)
-                // On localhost, update if file has significantly more events (5+ more) or localStorage is outdated
+                // On localhost, only update if file has significantly more events (5+ more)
                 if (fileEvents && fileEventCount > 0) {
                     if (isGitHubPages && fileEventCount > this.events.length) {
                         // GitHub Pages: Always use file if it has more events
@@ -255,14 +255,6 @@ class EventDataService {
                     } else if (!isGitHubPages && fileEventCount > this.events.length + 4) {
                         // Localhost: Only update if file has 5+ more events (user might have local edits)
                         console.warn(`EventDataService [Localhost]: localStorage has ${this.events.length} events, but events.json has ${fileEventCount} (${fileEventCount - this.events.length} more). Using events.json.`);
-                        this.updateStatus(`EventDataService: Updating from events.json (${fileEventCount} events, localStorage had ${this.events.length})`, 'warning');
-                        this.events = fileEvents;
-                        localStorage.removeItem('timelineEvents');
-                        this.saveEvents();
-                        return { events: this.events, source: 'file', shouldSync: true };
-                    } else if (!isGitHubPages && this.events.length < 58 && fileEventCount >= 58) {
-                        // Localhost: Update if localStorage is clearly outdated (< 58) and file has current data
-                        console.warn(`EventDataService: localStorage has ${this.events.length} events (outdated), but events.json has ${fileEventCount}. Using events.json.`);
                         this.updateStatus(`EventDataService: Updating from events.json (${fileEventCount} events, localStorage had ${this.events.length})`, 'warning');
                         this.events = fileEvents;
                         localStorage.removeItem('timelineEvents');
@@ -380,7 +372,8 @@ class EventDataService {
      */
     saveEvents() {
         localStorage.setItem('timelineEvents', JSON.stringify(this.events));
-        console.log('EventDataService: Events saved to localStorage');
+        console.log('[EventDataService] Events saved to localStorage, count:', this.events.length);
+        console.log('[EventDataService] Saved event names:', this.events.map(e => e.name || (e.variants && e.variants[0]?.name) || 'Unnamed'));
 
         // Dev server enhancement: if running locally, also persist to data/events.json via API.
         // (Not available on GitHub Pages, and we keep that read-only.)

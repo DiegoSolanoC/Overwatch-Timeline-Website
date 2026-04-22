@@ -123,10 +123,6 @@
     cursor: not-allowed;
 }
 
-.event-slide-edit-btn {
-    right: 140px; /* sits left of Save */
-}
-
 .event-slide-save-btn {
     right: 75px; /* sits left of X (right: 15px, width 50px) */
 }
@@ -190,7 +186,7 @@
     background: rgba(255, 255, 255, 0.06);
     color: white;
     padding: 10px 10px;
-    font-size: 14px;
+    font-size: 18px;
     box-sizing: border-box;
 }
 

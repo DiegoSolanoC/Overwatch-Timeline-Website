@@ -136,13 +136,14 @@ class PlaneService {
             
             planeModel.traverse((child) => {
                 if (child.isMesh) {
-                    child.material = new THREE.MeshPhongMaterial({
+                    child.material = new THREE.MeshStandardMaterial({
                         color: 0x0088cc,
-                        emissive: 0x004488,
-                        emissiveIntensity: 0.3,
+                        emissive: 0x0088cc,
+                        emissiveIntensity: 1.0,
                         transparent: true,
                         opacity: 0.85,
-                        shininess: 30
+                        roughness: 0.5,
+                        metalness: 0.5
                     });
                     child.visible = true;
                 }
@@ -160,13 +161,14 @@ class PlaneService {
                 
                 model.traverse((child) => {
                     if (child.isMesh) {
-                        child.material = new THREE.MeshPhongMaterial({
+                        child.material = new THREE.MeshStandardMaterial({
                             color: 0x0088cc,
-                            emissive: 0x004400,
-                            emissiveIntensity: 0.3,
+                            emissive: 0x0088cc,
+                            emissiveIntensity: 1.0,
                             transparent: true,
                             opacity: 0.85,
-                            shininess: 30
+                            roughness: 0.5,
+                            metalness: 0.5
                         });
                         child.visible = true;
                         if (child.geometry) {

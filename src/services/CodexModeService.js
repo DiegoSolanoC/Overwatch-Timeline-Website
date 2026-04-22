@@ -1,47 +1,24 @@
 /**
  * Codex mode: alternate to the timeline globe/map. Unloads WebGL + map layer while keeping events UI.
- * Loading uses the same in-stage black panel as timeline inline load (header/footer/docks stay visible).
  */
 
-import {
-    hideCodexEntryInlineLoader,
-    showCodexEntryInlineLoader
-} from '../app/helpers/GlobeInlineLoadHelpers.js';
 import { initCodexCanvas, destroyCodexCanvas } from './CodexCanvasService.js';
 
 const CODEX_ROOT_ID = 'codex-view-root';
 
 function codexLoadingStatusHostEl() {
-    return (
-        document.getElementById('codexEntryInlineOverlayStatusContent')
-        || document.getElementById('overlayStatusContent')
-    );
+    return document.getElementById('overlayStatusContent');
 }
 
 function setCodexOverlayStatusLine(text) {
-    const oc = codexLoadingStatusHostEl();
-    if (!oc) return;
-    oc.innerHTML = '';
-    const item = document.createElement('div');
-    item.className = 'test-status-item info';
-    item.textContent = text;
-    oc.appendChild(item);
+    // Use the standard updateStatus function for status messages
+    if (typeof window.updateStatus === 'function') {
+        window.updateStatus(text, 'info');
+    }
 }
 
 function setCodexEntryOverlayChrome(active) {
-    const loader = document.getElementById('codex-entry-inline-loader');
-    const h3 = loader?.querySelector('h3');
-    const bar = document.getElementById('codexEntryInlineLoadingProgressBar');
-    if (active) {
-        if (h3) h3.textContent = 'Loading Codex…';
-        if (bar) bar.style.width = '100%';
-        setCodexOverlayStatusLine('Preparing your Codex board…');
-    } else {
-        if (h3) h3.textContent = 'Loading Status';
-        if (bar) bar.style.width = '';
-        const oc = codexLoadingStatusHostEl();
-        if (oc) oc.innerHTML = '';
-    }
+    // No-op - main loading overlay handles chrome
 }
 
 /**
@@ -95,17 +72,6 @@ export async function applyCodexShell() {
     container.classList.add('codex-mode');
     document.body.classList.add('codex-mode-active');
 
-    /* innerHTML removed the first inline loader; put the same panel back above Codex while init runs. */
-    if (typeof window !== 'undefined' && window.__codexInlineLoaderActive) {
-        showCodexEntryInlineLoader(container);
-        const loader = document.getElementById('codex-entry-inline-loader');
-        const h3 = loader?.querySelector('h3');
-        if (h3) h3.textContent = 'Loading Codex…';
-        const bar = document.getElementById('codexEntryInlineLoadingProgressBar');
-        if (bar) bar.style.width = '100%';
-        setCodexOverlayStatusLine('Building Codex canvas and loading your layout…');
-    }
-
     await initCodexCanvas(root);
 
     try {
@@ -129,7 +95,6 @@ export async function enterCodexMode() {
     }
 
     window.__codexInlineLoaderActive = true;
-    showCodexEntryInlineLoader(container);
     setCodexEntryOverlayChrome(true);
     window.__codexSetLoadingOverlayLine = setCodexOverlayStatusLine;
 
@@ -170,7 +135,6 @@ export async function enterCodexMode() {
             requestAnimationFrame(() => requestAnimationFrame(resolve));
         });
         setCodexEntryOverlayChrome(false);
-        hideCodexEntryInlineLoader();
     }
 
     if (!opened) return;
