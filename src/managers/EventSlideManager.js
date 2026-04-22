@@ -1122,6 +1122,7 @@ export class EventSlideManager {
                     && typeof window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete === 'function'
                     ? window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete()
                     : [];
+                
                 if (filtersInput) auto.setupAutocomplete(filtersInput, heroes, 'heroes');
                 if (factionsInput) auto.setupAutocomplete(factionsInput, factionList, 'factions');
                 if (npcsInputAuto && npcList.length > 0) auto.setupAutocomplete(npcsInputAuto, npcList, 'npcs');

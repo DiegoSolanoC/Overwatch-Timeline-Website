@@ -1,0 +1,32 @@
+/* ========================================
+   CUSTOM OVERRIDE - Remove Map Edge Glow Effects
+   ======================================== */
+
+/* Option 1: Completely hide all map edge glow effects */
+.map-edge-glow {
+    display: none !important;
+}
+
+/* Option 2: Only hide top and bottom edge segments (keeps left/right edges) */
+/*
+.map-edge-glow__edge--top,
+.map-edge-glow__edge--bottom {
+    display: none !important;
+}
+*/
+
+/* Option 3: Make edge segments fully transparent (keeps layout but removes visual effect) */
+/*
+.map-edge-glow__edge--top,
+.map-edge-glow__edge--bottom {
+    opacity: 0 !important;
+}
+*/
+
+/* Option 4: Reduce height to make them less noticeable */
+/*
+.map-edge-glow__edge--top,
+.map-edge-glow__edge--bottom {
+    height: 0px !important;
+}
+*/

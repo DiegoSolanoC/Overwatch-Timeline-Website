@@ -247,6 +247,16 @@ export function createMenuButtonsContainer(statusService) {
     const menuButtons = document.createElement('div');
     menuButtons.className = 'main-menu-buttons';
 
+    // Story Viewer button (always shown)
+    const biographyBtn = createMenuButton({
+        id: 'runBiographyBtn',
+        title: 'Story Viewer',
+        imagePath: 'assets/images/menu/Character%20Bios.png',
+        label: 'Story Viewer',
+        description: 'Study the story of Overwatch through character biographies and narrative'
+    });
+    menuButtons.appendChild(biographyBtn);
+
     // Interactive Globe button (always shown)
     const globeBtn = createMenuButton({
         id: 'runGlobeBtn',
@@ -267,18 +277,6 @@ export function createMenuButtonsContainer(statusService) {
     });
     menuButtons.appendChild(glossaryBtn);
 
-    // Only show Character Bios if NOT on GitHub Pages (still unimplemented)
-    if (!isGitHubPages()) {
-        const biographyBtn = createMenuButton({
-            id: 'runBiographyBtn',
-            title: 'Character Bios',
-            imagePath: 'assets/images/menu/Character%20Bios.png',
-            label: 'Character Bios',
-            description: 'Coming Soon...'
-        });
-        menuButtons.appendChild(biographyBtn);
-    }
-
     // Event System Load Out button (small, below main buttons)
     const testBtn = document.createElement('button');
     testBtn.id = 'testBtn';
@@ -296,7 +294,9 @@ export function createMenuButtonsContainer(statusService) {
         align-self: center;
     `;
     testBtn.addEventListener('click', async () => {
+        console.log('[MenuServiceHelpers] testBtn clicked');
         const isLoaded = testBtn.dataset.loaded === 'true';
+        console.log('[MenuServiceHelpers] isLoaded =', isLoaded);
 
         if (!isLoaded) {
             // LOAD
@@ -2385,6 +2385,7 @@ export function createMenuButtonsContainer(statusService) {
             }
         } else {
             // UNLOAD
+            console.log('[MenuServiceHelpers] UNLOAD branch entered');
             if (statusService) statusService.update('Unloading news ticker...', 'info');
 
             // Clear news ticker
@@ -2464,11 +2465,20 @@ export function createMenuButtonsContainer(statusService) {
             if (window.FilterService?.stateManager) {
                 window.FilterService.stateManager.clear();
             }
+            console.log('[MenuServiceHelpers] Calling FilterService.reset()...');
+            console.log('[MenuServiceHelpers] window.FilterService exists:', !!window.FilterService);
+            console.log('[MenuServiceHelpers] window.FilterService.reset exists:', !!(window.FilterService?.reset));
+            if (window.FilterService?.reset) {
+                window.FilterService.reset();
+                console.log('[MenuServiceHelpers] FilterService.reset() called successfully');
+            } else {
+                console.log('[MenuServiceHelpers] FilterService.reset() not called - method not available');
+            }
 
-            // Hide filters toggle button
+            // Remove filters toggle button
             const filtersToggle = document.getElementById('filtersToggle');
             if (filtersToggle) {
-                filtersToggle.style.setProperty('display', 'none', 'important');
+                filtersToggle.remove();
             }
 
             // Close and remove filters panel

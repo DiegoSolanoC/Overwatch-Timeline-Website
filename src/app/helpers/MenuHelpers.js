@@ -470,17 +470,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
     const menuButtons = document.createElement('div');
     menuButtons.className = 'main-menu-buttons';
 
-    // Interactive Globe button
-    const globeBtn = createMenuButton({
-        id: 'runGlobeBtn',
-        title: 'Interactive Globe',
-        imagePath: 'assets/images/menu/Global%20Timeline.png',
-        label: 'Interactive Globe',
-        description: 'Visualize the story of Overwatch through an interactive map, or a 3D globe'
+    // Story Viewer button - always show now
+    const biographyBtn = createMenuButton({
+        id: 'runBiographyBtn',
+        title: 'Story Viewer',
+        imagePath: 'assets/images/menu/Character%20Bios.png',
+        label: 'Story Viewer',
+        description: 'Explore the Story of overwatch through a sequence of event slides'
     });
 
-    if (setupGlobeHandler) {
-        globeBtn.button.addEventListener('click', setupGlobeHandler);
+    if (setupBiographyHandler) {
+        biographyBtn.button.addEventListener('click', setupBiographyHandler);
     }
 
     // Container for the three main buttons (horizontal row)
@@ -493,6 +493,21 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         gap: 30px;
         width: 100%;
     `;
+
+    mainButtonsRow.appendChild(biographyBtn);
+
+    // Interactive Globe button
+    const globeBtn = createMenuButton({
+        id: 'runGlobeBtn',
+        title: 'Interactive Globe',
+        imagePath: 'assets/images/menu/Global%20Timeline.png',
+        label: 'Interactive Globe',
+        description: 'Visualize the story of Overwatch through an interactive map, or a 3D globe'
+    });
+
+    if (setupGlobeHandler) {
+        globeBtn.button.addEventListener('click', setupGlobeHandler);
+    }
 
     mainButtonsRow.appendChild(globeBtn);
 
@@ -510,21 +525,6 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
     }
 
     mainButtonsRow.appendChild(glossaryBtn);
-
-    // Story Viewer button - always show now
-    const biographyBtn = createMenuButton({
-        id: 'runBiographyBtn',
-        title: 'Story Viewer',
-        imagePath: 'assets/images/menu/Character%20Bios.png',
-        label: 'Story Viewer',
-        description: 'Explore the Story of overwatch through a sequence of event slides'
-    });
-
-    if (setupBiographyHandler) {
-        biographyBtn.button.addEventListener('click', setupBiographyHandler);
-    }
-
-    mainButtonsRow.appendChild(biographyBtn);
     menuButtons.appendChild(mainButtonsRow);
 
     // Visual separator between main buttons and event system controls
@@ -1449,11 +1449,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const filtersInput = document.getElementById('eventSlideEditFilters');
                             const factionsInput = document.getElementById('eventSlideEditFactions');
                             const npcsInput = document.getElementById('eventSlideEditNpcs');
+                            const secondaryCountriesInput = document.getElementById('eventSlideEditSecondaryCountries');
                             
                             // Reset setup flag each time we enter edit mode so options stay in sync
                             if (filtersInput) filtersInput.dataset.autocompleteSetup = 'false';
                             if (factionsInput) factionsInput.dataset.autocompleteSetup = 'false';
                             if (npcsInput) npcsInput.dataset.autocompleteSetup = 'false';
+                            if (secondaryCountriesInput) secondaryCountriesInput.dataset.autocompleteSetup = 'false';
                             
                             const auto = window.eventManager?.formService?.autocompleteService || window.EventFormService?.autocompleteService;
                             if (auto && typeof auto.setupAutocomplete === 'function') {
@@ -1462,10 +1464,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 const factionList = window.eventManager?.factions?.length
                                     ? window.eventManager.factions
                                     : (window.globeController?.dataModel?.factions || []);
+                                const countryOptions = window.LocationFlagHelpers
+                                    && typeof window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete === 'function'
+                                    ? window.LocationFlagHelpers.getCountryCommonNamesForAutocomplete()
+                                    : [];
                                 
                                 if (filtersInput) auto.setupAutocomplete(filtersInput, heroes, 'heroes');
                                 if (factionsInput) auto.setupAutocomplete(factionsInput, factionList, 'factions');
                                 if (npcsInput && npcList.length > 0) auto.setupAutocomplete(npcsInput, npcList, 'npcs');
+                                if (secondaryCountriesInput && countryOptions.length > 0) {
+                                    auto.setupAutocomplete(secondaryCountriesInput, countryOptions, 'countries');
+                                }
                             }
                             
                             // Update buttons
@@ -1558,6 +1567,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     <input class="event-slide-inline-editor__input" id="eventSlideEditNpcs" type="text" spellcheck="false" autocomplete="off" />
                                 </div>
                                 <div class="event-slide-inline-editor__row">
+                                    <label class="event-slide-inline-editor__label" for="eventSlideEditSecondaryCountries">Secondary countries (comma-separated)</label>
+                                    <input class="event-slide-inline-editor__input" id="eventSlideEditSecondaryCountries" type="text" spellcheck="false" autocomplete="off" placeholder="Also match country filter (optional)" />
+                                </div>
+                                <div class="event-slide-inline-editor__row">
                                     <label class="event-slide-inline-editor__label" for="eventSlideEditHeadlines">Headlines (one per line)</label>
                                     <textarea class="event-slide-inline-editor__textarea" id="eventSlideEditHeadlines" rows="4" spellcheck="true"></textarea>
                                 </div>
@@ -1619,6 +1632,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const filtersInput = document.getElementById('eventSlideEditFilters');
                             const factionsInput = document.getElementById('eventSlideEditFactions');
                             const npcsInput = document.getElementById('eventSlideEditNpcs');
+                            const secondaryCountriesInput = document.getElementById('eventSlideEditSecondaryCountries');
                             const headlinesInput = document.getElementById('eventSlideEditHeadlines');
                             const locationTypeInput = document.getElementById('eventSlideEditLocationType');
                             const latInput = document.getElementById('eventSlideEditLat');
@@ -1634,6 +1648,14 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (filtersInput) filtersInput.value = (target.filters || []).join(', ');
                             if (factionsInput) factionsInput.value = (target.factions || []).join(', ');
                             if (npcsInput) npcsInput.value = (target.npcs || []).join(', ');
+                            
+                            const formSvc = window.eventManager?.formService || window.EventFormService;
+                            if (secondaryCountriesInput) {
+                                secondaryCountriesInput.value = formSvc && typeof formSvc.secondaryFlagsToFormString === 'function'
+                                    ? formSvc.secondaryFlagsToFormString(target.secondaryCountryFlags)
+                                    : '';
+                            }
+                            
                             if (headlinesInput) headlinesInput.value = (target.headlines || []).join('\n');
                             
                             // Set location type and coordinates
@@ -1823,6 +1845,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const filtersInput = document.getElementById('eventSlideEditFilters');
                             const factionsInput = document.getElementById('eventSlideEditFactions');
                             const npcsInput = document.getElementById('eventSlideEditNpcs');
+                            const secondaryCountriesInput = document.getElementById('eventSlideEditSecondaryCountries');
                             const headlinesInput = document.getElementById('eventSlideEditHeadlines');
                             const locationTypeInput = document.getElementById('eventSlideEditLocationType');
                             const latInput = document.getElementById('eventSlideEditLat');
@@ -1843,6 +1866,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 if (filtersInput) target.filters = filtersInput.value.split(',').map(s => s.trim()).filter(Boolean);
                                 if (factionsInput) target.factions = factionsInput.value.split(',').map(s => s.trim()).filter(Boolean);
                                 if (npcsInput) target.npcs = npcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+                                
+                                const formSvc = window.eventManager?.formService || window.EventFormService;
+                                const locTypeForSecondary = target.locationType || eventData.locationType || 'earth';
+                                if (secondaryCountriesInput && formSvc && typeof formSvc.parseSecondaryCountryList === 'function') {
+                                    target.secondaryCountryFlags = formSvc.parseSecondaryCountryList(secondaryCountriesInput.value, locTypeForSecondary);
+                                }
+                                
                                 if (headlinesInput) target.headlines = headlinesInput.value.split('\n').map(s => s.trim()).filter(Boolean);
                                 
                                 // Save location type and coordinates
@@ -3442,11 +3472,14 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
             if (window.FilterService?.stateManager) {
                 window.FilterService.stateManager.clear();
             }
+            if (window.FilterService?.reset) {
+                window.FilterService.reset();
+            }
 
-            // Hide filters toggle button
+            // Remove filters toggle button
             const filtersToggle = document.getElementById('filtersToggle');
             if (filtersToggle) {
-                filtersToggle.style.setProperty('display', 'none', 'important');
+                filtersToggle.remove();
             }
 
             // Close and remove filters panel

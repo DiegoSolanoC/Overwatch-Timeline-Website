@@ -144,6 +144,31 @@ class FilterService {
     }
     
     /**
+     * Reset initialization state - call when event system is unloaded
+     * This allows FilterService to be re-initialized on next load
+     */
+    reset() {
+        console.log('[FilterService] Resetting initialization state...');
+        this.initialized = false;
+        this.filtersButton = null;
+        this.filtersPanel = null;
+        this.filtersPanelClose = null;
+        this.filtersGrid = null;
+        this.clearFiltersBtn = null;
+        this.confirmFiltersBtn = null;
+        this.heroesTab = null;
+        this.factionsTab = null;
+        this.npcsTab = null;
+        this.buttonCache = {
+            heroes: null,
+            factions: null,
+            npcs: null,
+            music: null
+        };
+        console.log('[FilterService] Reset complete. initialized =', this.initialized);
+    }
+    
+    /**
      * Get sceneModel from globeController.
      * Always prefers the latest global window.globeController so we don't
      * depend on construction-time load order.

@@ -109,7 +109,33 @@ function loadHeaderNavButtons() {
     // standalone Event System Load Out only (via testBtn click)
     // Globe no longer creates these buttons
 
-    // Interactive Globe button (was Map/Globe toggle) - launches globe timeline
+    // Story Viewer button - launches story mode
+    createGlobeControlButton({
+        id: 'headerStoryViewerBtn',
+        className: '',
+        title: 'Story Viewer',
+        label: 'Story Viewer',
+        iconPath: 'assets/images/icons/Story%20Icon.png',
+        iconAlt: 'Story Viewer',
+        parentId: 'headerHub',
+        baseClass: 'header-hub-btn header-hub-btn--icon',
+        iconSpanId: 'headerStoryViewerIcon',
+        headerOrder: 15
+    });
+
+    // Bootstrap handler: clicking Story Viewer launches story mode
+    const headerStoryBtn = document.getElementById('headerStoryViewerBtn');
+    if (headerStoryBtn) {
+        headerStoryBtn.addEventListener('click', function bootstrapStory(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (typeof window.runBiographyComponents === 'function') {
+                void window.runBiographyComponents(false);
+            }
+        }, true);
+    }
+
+    // Interactive Globe button - launches globe timeline
     createGlobeControlButton({
         id: 'headerInteractiveGlobeBtn',
         className: '',
@@ -120,7 +146,7 @@ function loadHeaderNavButtons() {
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
         iconSpanId: 'headerInteractiveGlobeIcon',
-        headerOrder: 20
+        headerOrder: 16
     });
 
     // Bootstrap handler: clicking Interactive Globe launches globe components
@@ -135,7 +161,7 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
-    // World Codex button (was Codex) - launches codex/glossary mode
+    // World Codex button - launches codex/glossary mode
     createGlobeControlButton({
         id: 'headerWorldCodexBtn',
         className: '',
@@ -146,7 +172,7 @@ function loadHeaderNavButtons() {
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
         iconSpanId: 'headerWorldCodexIcon',
-        headerOrder: 15
+        headerOrder: 17
     });
 
     // Bootstrap handler: clicking World Codex launches glossary/codex components
@@ -157,32 +183,6 @@ function loadHeaderNavButtons() {
             e.preventDefault();
             if (typeof window.runGlossaryComponents === 'function') {
                 void window.runGlossaryComponents(false);
-            }
-        }, true);
-    }
-
-    // Story Viewer button - launches story mode
-    createGlobeControlButton({
-        id: 'headerStoryViewerBtn',
-        className: '',
-        title: 'Story Viewer',
-        label: 'Story Viewer',
-        iconPath: 'assets/images/icons/Story%20Icon.png',
-        iconAlt: 'Story Viewer',
-        parentId: 'headerHub',
-        baseClass: 'header-hub-btn header-hub-btn--icon',
-        iconSpanId: 'headerStoryViewerIcon',
-        headerOrder: 16
-    });
-
-    // Bootstrap handler: clicking Story Viewer launches story mode
-    const headerStoryBtn = document.getElementById('headerStoryViewerBtn');
-    if (headerStoryBtn) {
-        headerStoryBtn.addEventListener('click', function bootstrapStory(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            if (typeof window.runBiographyComponents === 'function') {
-                void window.runBiographyComponents(false);
             }
         }, true);
     }

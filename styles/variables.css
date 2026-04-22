@@ -167,12 +167,15 @@
     --border-radius-small: 6px;
     --shadow-default: 0 4px 12px rgba(0, 0, 0, 0.3);
     --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.4);
-
+    
     /* Event info panel: hero/faction image chip background (match Filters panel) */
     --event-filter-icon-bg: #122E49;
 
     /* Pagination dock Pattern.png tint — matches GlobeInitHelpers getPaletteAccentHex (gray = white for pattern) */
     --dock-pattern-tint-rgb: 33, 150, 243;
+
+    /* Pattern image path — palette-specific */
+    --pattern-image: url('../assets/images/pattern/Pattern Blue.png');
 }
 
 /* Gray Color Palette Override */
@@ -202,6 +205,7 @@ body.color-palette-gray {
     --event-filter-icon-bg: #383838;
 
     --dock-pattern-tint-rgb: 255, 255, 255;
+    --pattern-image: url('../assets/images/pattern/Pattern Dark.png');
 }
 
 /* Crimson Color Palette Override */
@@ -229,6 +233,7 @@ body.color-palette-crimson {
     --event-filter-icon-bg: #3d1a1f;
 
     --dock-pattern-tint-rgb: 239, 83, 80;
+    --pattern-image: url('../assets/images/pattern/Pattern Crimson.png');
 }
 
 /* Nulled (purple) Color Palette Override */
@@ -255,4 +260,5 @@ body.color-palette-nulled {
     --event-filter-icon-bg: #2a1f3d;
 
     --dock-pattern-tint-rgb: 179, 136, 255;
+    --pattern-image: url('../assets/images/pattern/Pattern Nulled.png');
 }

@@ -134,7 +134,7 @@ export class GlobeView {
 
         // Pattern overlay on globe - tinted by palette
         const patternTint = getPaletteAccentHex(paletteKey);
-        const globePattern = createGlobePatternOverlay(textureLoader, renderer, patternTint, 0.15);
+        const globePattern = createGlobePatternOverlay(textureLoader, renderer, patternTint, 0.15, paletteKey);
         if (globePattern) {
             this._globePatternOverlay = globePattern;
             globePattern.scale.set(1, oblate, 1);
@@ -226,6 +226,22 @@ export class GlobeView {
                 console.log('Preloaded and cached alternate texture:', path);
             });
         });
+
+        // Preload pattern textures for quick palette switching
+        const allPatternTextures = [
+            'assets/images/pattern/Pattern Blue.png',
+            'assets/images/pattern/Pattern Dark.png',
+            'assets/images/pattern/Pattern Crimson.png',
+            'assets/images/pattern/Pattern Nulled.png'
+        ];
+        const currentPatternPath = window.GlobeInitHelpers?.getPalettePatternPath?.(paletteKey) || 'assets/images/pattern/Pattern Blue.png';
+        allPatternTextures.forEach((path) => {
+            if (path === currentPatternPath || this.textureCache.has(path)) return;
+            loadTexture(textureLoader, path, renderer, (texture) => {
+                this.textureCache.set(path, texture);
+                console.log('Preloaded and cached pattern texture:', path);
+            });
+        });
         
         // Create Moon and Mars planes
         setupCelestialPlanes({
@@ -256,11 +272,57 @@ export class GlobeView {
             a.material.uniforms.uIntensity.value = ai;
         }
         applyGlobeCloudPaletteTint(this._cloudLayer, color);
+        
+        // Update pattern overlay texture and tint
+        this.updateGlobePatternPalette(p);
+    }
+
+    /**
+     * Update globe pattern overlay texture and tint when palette changes.
+     * @param {string} palette - 'blue' | 'gray' | 'crimson' | 'nulled'
+     */
+    updateGlobePatternPalette(palette) {
+        if (!this._globePatternOverlay || !window.GlobeInitHelpers?.getPalettePatternPath) {
+            return;
+        }
+
+        const p = String(palette).toLowerCase();
+        const patternPath = window.GlobeInitHelpers.getPalettePatternPath(p);
         const patternTint = getPaletteAccentHex(p);
         const tintColor = new THREE.Color(patternTint);
-        if (this._globePatternOverlay && this._globePatternOverlay.material && this._globePatternOverlay.material.uniforms) {
-            this._globePatternOverlay.material.uniforms.uTintColor.value.set(tintColor.r, tintColor.g, tintColor.b);
+
+        const renderer = this.sceneModel.getRenderer();
+
+        // Check if texture is already cached (like changeGlobeTexture does)
+        if (this.textureCache.has(patternPath)) {
+            const cachedTexture = this.textureCache.get(patternPath);
+            console.log('Using cached pattern texture:', patternPath);
+            if (this._globePatternOverlay && this._globePatternOverlay.material) {
+                this._globePatternOverlay.material.uniforms.uPatternMap.value = cachedTexture;
+                this._globePatternOverlay.material.uniforms.uTintColor.value.set(tintColor.r, tintColor.g, tintColor.b);
+            }
+            return;
         }
+
+        const textureLoader = new THREE.TextureLoader();
+
+        // Load new pattern texture and cache it
+        loadTexture(
+            textureLoader,
+            patternPath,
+            renderer,
+            (texture) => {
+                this.textureCache.set(patternPath, texture);
+                if (this._globePatternOverlay && this._globePatternOverlay.material) {
+                    this._globePatternOverlay.material.uniforms.uPatternMap.value = texture;
+                    this._globePatternOverlay.material.uniforms.uTintColor.value.set(tintColor.r, tintColor.g, tintColor.b);
+                    console.log('Globe pattern overlay texture updated to:', patternPath);
+                }
+            },
+            (err) => {
+                console.warn('Error loading pattern texture:', patternPath, err);
+            }
+        );
     }
 
     /**
@@ -773,7 +835,7 @@ export class GlobeView {
      */
     setGlobeLightingVisible(visible) {
         const v = !!visible;
-        
+
         // 1. Sun background (sprite + light source)
         const sunBg = this.sceneModel.getSunBackground();
         if (sunBg) {
@@ -795,6 +857,11 @@ export class GlobeView {
         const earthAmb = this.sceneModel.earthAmbientLayer1;
         if (earthAmb) {
             earthAmb.intensity = v ? 0.002 : 0.72;
+        }
+
+        // 4. Pattern overlay: disable sun shading when lighting is off so wave is visible everywhere
+        if (this._globePatternOverlay && this._globePatternOverlay.material && this._globePatternOverlay.material.uniforms) {
+            this._globePatternOverlay.material.uniforms.uShadeBySun.value = v ? 1.0 : 0.0;
         }
     }
 

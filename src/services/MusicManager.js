@@ -122,14 +122,14 @@ class MusicManager {
         const musicRect = btn.getBoundingClientRect();
         const gap = 2;
 
-        // If the Home button exists, center the badge between Music and Home
+        // If the Home button exists, position badge closer to Home (70% towards Home)
         const homeBtn = document.getElementById('homeBtn');
         let cx;
         if (homeBtn) {
             const homeRect = homeBtn.getBoundingClientRect();
-            const leftEdge = musicRect.left;
-            const rightEdge = homeRect.right;
-            cx = ((leftEdge + rightEdge) / 2) / scale;
+            const musicCenter = musicRect.left + musicRect.width / 2;
+            const homeCenter = homeRect.left + homeRect.width / 2;
+            cx = (musicCenter + (homeCenter - musicCenter) * 0.95) / scale;
         } else {
             cx = (musicRect.left + musicRect.width / 2) / scale;
         }

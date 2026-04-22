@@ -139,9 +139,9 @@ varying vec3 vWorldNormal;
 void main() {
     vec4 texColor = texture2D(uPatternMap, vUv);
     
-    // Create a horizontal wave that sweeps from left to right
+    // Create a horizontal wave that sweeps from right to left (counter-rotation)
     // Wave position moves based on time (0 to 1 range, looping)
-    float wavePos = fract(uTime * 0.08); // Slower wave sweep
+    float wavePos = fract(-uTime * 0.08); // Counter-clockwise wave sweep
     
     // Calculate distance from wave center (horizontal)
     float dist = abs(vUv.x - wavePos);
@@ -152,23 +152,27 @@ void main() {
     float waveWidth = 0.28;
     float waveRaw = 1.0 - smoothstep(0.0, waveWidth, dist);
     
-    // Minimum 10% visibility so pattern is never truly gone
-    float wave = 0.1 + waveRaw * 0.9;
-    
-    // Intensity boost at the center of the wave (glow effect)
+    // Minimum 35% visibility so pattern is always noticeable (increased from 10%)
+    float wave = 0.35 + waveRaw * 0.65;
+
+    // Intensity boost at the center of the wave (glow effect) - increased for more visibility
     float centerIntensity = pow(waveRaw, 0.6); // Sharper peak at center
-    float glowBoost = 1.0 + centerIntensity * 2.5; // Up to 3.5x brighter at center
-    
-    // Apply wave to opacity with glow
-    float finalOpacity = texColor.a * uBaseOpacity * wave;
-    
+    float glowBoost = 1.0 + centerIntensity * 5.0; // Up to 6x brighter at center (increased from 3.5x)
+
+    // Apply wave to opacity with glow - increased base multiplier for more visibility
+    float finalOpacity = texColor.a * uBaseOpacity * wave * 1.5;
+
+    // Dim pattern at the poles to hide where texture wraps
+    // vUv.y goes from 0 (south pole) to 1 (north pole)
+    float polarFade = 1.0 - smoothstep(0.75, 0.95, abs(vUv.y - 0.5) * 2.0);
+    finalOpacity *= polarFade;
+
     // Glow color - brighten the tint at the wave center
     vec3 glowColor = uTintColor * glowBoost;
     vec3 outRgb = glowColor * texColor.rgb;
 
-    float ndl = max(0.0, dot(normalize(vWorldNormal), normalize(uSunDirWorld)));
-    float sunMul = mix(0.008, 1.0, pow(ndl, 0.32));
-    outRgb *= mix(1.0, sunMul, uShadeBySun);
+    // Pattern never dims based on sun position - uniform visibility everywhere
+    // (Sun shading removed for consistent pattern visibility)
 
     gl_FragColor = vec4(outRgb, finalOpacity);
 }
@@ -210,20 +214,22 @@ function createPatternWaveMaterial(patternTexture, tintColor, opacity, doubleSid
  * @param {THREE.WebGLRenderer} renderer - Renderer
  * @param {number} [tintColor=0x2196F3] - Tint color (hex)
  * @param {number} [opacity=0.12] - Overlay opacity
+ * @param {string} [paletteKey='blue'] - Palette key for pattern image
  * @returns {THREE.Mesh}
  */
-export function createGlobePatternOverlay(textureLoader, renderer, tintColor = 0x2196F3, opacity = 0.15) {
+export function createGlobePatternOverlay(textureLoader, renderer, tintColor = 0x2196F3, opacity = 0.15, paletteKey = 'blue') {
     const geometry = new THREE.SphereGeometry(1.002, 64, 64); // Slightly larger than globe
     
+    const patternPath = getPalettePatternPath(paletteKey);
     const patternTexture = loadTexture(
         textureLoader,
-        'assets/images/maps/Pattern.png',
+        patternPath,
         renderer,
         null,
         null
     );
     
-    const material = createPatternWaveMaterial(patternTexture, tintColor, opacity, false, true);
+    const material = createPatternWaveMaterial(patternTexture, tintColor, opacity, false, false);
     
     return new THREE.Mesh(geometry, material);
 }
@@ -234,16 +240,18 @@ export function createGlobePatternOverlay(textureLoader, renderer, tintColor = 0
  * @param {THREE.WebGLRenderer} renderer - Renderer
  * @param {number} [tintColor=0x2196F3] - Tint color (hex)
  * @param {number} [opacity=0.12] - Overlay opacity
+ * @param {string} [paletteKey='blue'] - Palette key for pattern image
  * @returns {THREE.Mesh}
  */
-export function createMapPatternOverlay(textureLoader, renderer, tintColor = 0x2196F3, opacity = 0.15) {
+export function createMapPatternOverlay(textureLoader, renderer, tintColor = 0x2196F3, opacity = 0.15, paletteKey = 'blue') {
     const planeWidth = 2.0;
     const planeHeight = 1.0;
     const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
     
+    const patternPath = getPalettePatternPath(paletteKey);
     const patternTexture = loadTexture(
         textureLoader,
-        'assets/images/maps/Pattern.png',
+        patternPath,
         renderer,
         null,
         null
@@ -268,17 +276,33 @@ export function updatePatternWave(patternMesh, deltaTime) {
 }
 
 /**
- * Get palette accent color as hex
- * @param {string} palette - Palette name
+ * Gets the accent color hex for a palette key
+ * @param {string} paletteKey - Palette key (e.g., 'blue', 'gray', 'crimson', 'nulled')
  * @returns {number} Hex color
  */
-export function getPaletteAccentHex(palette) {
-    switch (palette) {
-        case 'gray': return 0xffffff; // White
-        case 'crimson': return 0xef5350; // Red
-        case 'nulled': return 0xb388ff; // Purple
-        default: return 0x2196F3; // Blue
-    }
+export function getPaletteAccentHex(paletteKey = 'blue') {
+    const paletteAccents = {
+        blue: 0x2196F3,
+        gray: 0xffffff,
+        crimson: 0xef5350,
+        nulled: 0xb388ff
+    };
+    return paletteAccents[paletteKey] || 0x2196F3;
+}
+
+/**
+ * Gets the pattern image path for a palette key
+ * @param {string} paletteKey - Palette key (e.g., 'blue', 'gray', 'crimson', 'nulled')
+ * @returns {string} Path to pattern image
+ */
+export function getPalettePatternPath(paletteKey = 'blue') {
+    const patternPaths = {
+        blue: 'assets/images/pattern/Pattern Blue.png',
+        gray: 'assets/images/pattern/Pattern Dark.png',
+        crimson: 'assets/images/pattern/Pattern Crimson.png',
+        nulled: 'assets/images/pattern/Pattern Nulled.png'
+    };
+    return patternPaths[paletteKey] || 'assets/images/pattern/Pattern Blue.png';
 }
 
 /** Ring radius in the horizontal (XZ) plane; matches legacy 3D offset length (~84). */
@@ -1191,5 +1215,6 @@ if (typeof window !== 'undefined') {
     window.GlobeInitHelpers.createGlobePatternOverlay = createGlobePatternOverlay;
     window.GlobeInitHelpers.createMapPatternOverlay = createMapPatternOverlay;
     window.GlobeInitHelpers.getPaletteAccentHex = getPaletteAccentHex;
+    window.GlobeInitHelpers.getPalettePatternPath = getPalettePatternPath;
     window.GlobeInitHelpers.updatePatternWave = updatePatternWave;
 }

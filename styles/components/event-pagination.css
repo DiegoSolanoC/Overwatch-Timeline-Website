@@ -277,15 +277,32 @@ body.color-palette-gray .events-pagination-input:focus {
         inset: 0;
         z-index: 0;
         pointer-events: none;
-        background-image: url('../../assets/images/maps/Pattern.png');
+        background-image: url('../../../assets/images/pattern/Pattern Blue.png');
         background-repeat: repeat;
         /*
          * One length + `auto` preserves the PNG aspect ratio (no horizontal/vertical squash).
          * Larger scale so the loop reads; repeat still tiles the dock.
          */
-        background-size: clamp(520px, 42vw, 960px) auto;
+        background-size: clamp(720px, 58vw, 1360px) auto;
         background-position: center center;
         opacity: 0.62;
+    }
+
+    /* Palette-specific pattern images for dock */
+    body.color-palette-blue:has(#paginationDock) .pagination-dock::before {
+        background-image: url('../../../assets/images/pattern/Pattern Blue.png');
+    }
+
+    body.color-palette-gray:has(#paginationDock) .pagination-dock::before {
+        background-image: url('../../../assets/images/pattern/Pattern Dark.png');
+    }
+
+    body.color-palette-crimson:has(#paginationDock) .pagination-dock::before {
+        background-image: url('../../../assets/images/pattern/Pattern Crimson.png');
+    }
+
+    body.color-palette-nulled:has(#paginationDock) .pagination-dock::before {
+        background-image: url('../../../assets/images/pattern/Pattern Nulled.png');
     }
 
     body:has(#paginationDock) .pagination-dock::after {
