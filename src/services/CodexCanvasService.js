@@ -4049,6 +4049,12 @@ function onHitLayerBackgroundPanPointerDown(e) {
     cancelBackgroundPanPointerPending();
     cancelPointerPending();
     clearPendingCodexDeleteState();
+    
+    // In View Mode, deselect nodes when clicking background
+    if (codexMode === 'view') {
+        selectCodexNode(null);
+    }
+    
     // Skip edge redraw in View Mode (edges are static, pan uses CSS transforms)
     if (codexMode !== 'view') {
         redrawCodexEdges();
@@ -5372,8 +5378,16 @@ function bindCodexNodeInteraction(el) {
         clearPendingCodexDeleteState();
         redrawCodexEdges();
         
-        // Prevent all editing in view mode
-        if (codexMode === 'view') return;
+        // In View Mode, allow selection but not editing/moving
+        if (codexMode === 'view') {
+            // Play node select sound
+            if (window.SoundEffectsManager?.play) {
+                window.SoundEffectsManager.play('nodeSelect');
+            }
+            // Select the node
+            selectCodexNode(el);
+            return;
+        }
         
         if (codexInteractionMode === 'network') {
             e.preventDefault();

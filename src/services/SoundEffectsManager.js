@@ -298,6 +298,12 @@ class SoundEffectsManager {
         this.loadSound('spacePanelOn', 'assets/audio/sfx/Space Panel On.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Space Panel Off.mp3');
         this.loadSound('spacePanelOff', 'assets/audio/sfx/Space Panel Off.mp3');
+        if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Node Select.mp3');
+        // Node select: faster playback (1.7x) and lower volume (10% of normal)
+        const nodeSelectAudio = new Audio('assets/audio/sfx/Node Select.mp3');
+        nodeSelectAudio.volume = this.volume * 0.1;
+        nodeSelectAudio.playbackRate = 1.7;
+        this.sounds['nodeSelect'] = nodeSelectAudio;
         
         // Load saved volume and apply it
         const savedVolume = this.loadVolume();
