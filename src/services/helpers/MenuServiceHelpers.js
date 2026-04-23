@@ -257,35 +257,209 @@ export function createMenuButtonsContainer(statusService) {
     const menuButtons = document.createElement('div');
     menuButtons.className = 'main-menu-buttons';
 
-    // Story Viewer button (always shown)
+    // Story Archive button (always shown)
     const biographyBtn = createMenuButton({
         id: 'runBiographyBtn',
-        title: 'Story Viewer',
+        title: 'Story Archive',
         imagePath: 'assets/images/menu/Character%20Bios.png',
-        label: 'Story Viewer',
-        description: 'Study the story of Overwatch through character biographies and narrative'
+        label: 'Story Archive',
+        description: 'Explore the Story and Concepts through a series of Slides'
     });
     menuButtons.appendChild(biographyBtn);
 
-    // Interactive Globe button (always shown)
+    // Interactive Globe/Map button (always shown)
+    const startOnMap = localStorage.getItem('mapGlobePreToggle') === 'true';
     const globeBtn = createMenuButton({
         id: 'runGlobeBtn',
-        title: 'Interactive Globe',
+        title: startOnMap ? 'Interactive Map' : 'Interactive Globe',
         imagePath: 'assets/images/menu/Global%20Timeline.png',
-        label: 'Interactive Globe',
-        description: 'Visualize the story of Overwatch through an interactive map, or a 3D globe'
+        label: startOnMap ? 'Interactive Map' : 'Interactive Globe',
+        description: startOnMap 
+            ? 'Visualize the story of Overwatch through a 2D map'
+            : 'Visualize the story of Overwatch through a 3D globe'
     });
     menuButtons.appendChild(globeBtn);
 
-    // World Codex button (always shown now)
+    // Connection Codex button (always shown now)
     const glossaryBtn = createMenuButton({
         id: 'runGlossaryBtn',
-        title: 'World Codex',
+        title: 'Connection Codex',
         imagePath: 'assets/images/menu/Concept%20Glossary.png',
-        label: 'World Codex',
-        description: 'Study how characters and factions of Overwatch connect with each other across history'
+        label: 'Connection Codex',
+        description: 'Study how everything Connects in the Conspiracy Board'
     });
     menuButtons.appendChild(glossaryBtn);
+
+    // Auto-preload checkbox (first)
+    const autoPreloadContainer = document.createElement('label');
+    autoPreloadContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #aaa;
+        cursor: pointer;
+        user-select: none;
+    `;
+    autoPreloadContainer.title = 'Automatically load Event System when opening Story Archive, Interactive Globe, or Connection Codex';
+
+    const autoPreloadCheckbox = document.createElement('input');
+    autoPreloadCheckbox.type = 'checkbox';
+    autoPreloadCheckbox.id = 'autoPreloadEventSystem';
+    autoPreloadCheckbox.style.cssText = `
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+    `;
+    // Restore saved state, default to checked for GitHub Pages
+    const savedAutoPreload = localStorage.getItem('autoPreloadEventSystem');
+    const isGitHubPages = window.location.hostname.includes('github.io');
+    if (savedAutoPreload === null) {
+        autoPreloadCheckbox.checked = isGitHubPages ? true : false;
+        localStorage.setItem('autoPreloadEventSystem', autoPreloadCheckbox.checked);
+    } else {
+        autoPreloadCheckbox.checked = savedAutoPreload === 'true';
+    }
+
+    const autoPreloadLabel = document.createElement('span');
+    autoPreloadLabel.textContent = 'Auto preload';
+
+    autoPreloadContainer.appendChild(autoPreloadCheckbox);
+    autoPreloadContainer.appendChild(autoPreloadLabel);
+
+    // Hide auto preload container on GitHub Pages
+    if (isGitHubPages) {
+        autoPreloadContainer.style.display = 'none';
+    }
+
+    // Save checkbox state on change
+    autoPreloadCheckbox.addEventListener('change', () => {
+        localStorage.setItem('autoPreloadEventSystem', autoPreloadCheckbox.checked);
+    });
+
+    // Map/Globe pre-toggle badge (second) - styled like globe-control-btn
+    const mapGlobeToggleContainer = document.createElement('button');
+    mapGlobeToggleContainer.className = 'globe-control-btn';
+    mapGlobeToggleContainer.style.cssText = `
+        position: relative;
+        inset: auto;
+        width: auto;
+        min-width: 160px;
+        height: 40px;
+        background: rgba(13, 71, 161, 0.35);
+        border-style: solid;
+        border-width: 2px 2px 2px 6px;
+        border-color: rgba(255, 255, 255, 0.93);
+        border-radius: 4px;
+        padding: 0 12px;
+        transform: skewX(-11deg);
+        gap: 8px;
+        color: white;
+        font-family: var(--font-control-bold, var(--font-default));
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.45);
+        user-select: none;
+        line-height: 1;
+    `;
+    mapGlobeToggleContainer.title = 'Select starting view for Interactive Globe: Globe (3D) or Map (2D)';
+
+    // Icon span
+    const mapGlobeIcon = document.createElement('span');
+    mapGlobeIcon.id = 'mapGlobePreToggleIcon';
+    mapGlobeIcon.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        transform: skewX(11deg);
+    `;
+    // Default to map on mobile, globe on desktop (if not already set in localStorage)
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    const savedMapGlobeToggle = localStorage.getItem('mapGlobePreToggle');
+    let startOnMapInitial;
+    if (savedMapGlobeToggle === null) {
+        startOnMapInitial = isMobile; // Mobile = map, Desktop = globe
+        localStorage.setItem('mapGlobePreToggle', startOnMapInitial.toString());
+    } else {
+        startOnMapInitial = savedMapGlobeToggle === 'true';
+    }
+    mapGlobeIcon.innerHTML = `<img src="${startOnMapInitial ? 'assets/images/icons/Switch to Flat Icon.png' : 'assets/images/icons/Switch to Globe Icon.png'}" alt="Map/Globe" style="width: 100%; height: 100%; object-fit: contain;">`;
+
+    const mapGlobeLabel = document.createElement('span');
+    mapGlobeLabel.id = 'mapGlobePreToggleLabel';
+    mapGlobeLabel.textContent = startOnMapInitial ? 'Starts on Map' : 'Starts on Globe';
+    mapGlobeLabel.style.cssText = `
+        transform: skewX(11deg);
+        white-space: nowrap;
+    `;
+
+    mapGlobeToggleContainer.appendChild(mapGlobeIcon);
+    mapGlobeToggleContainer.appendChild(mapGlobeLabel);
+
+    // Toggle state on click
+    mapGlobeToggleContainer.addEventListener('click', () => {
+        const currentStartOnMap = localStorage.getItem('mapGlobePreToggle') === 'true';
+        const newStartOnMap = !currentStartOnMap;
+        localStorage.setItem('mapGlobePreToggle', newStartOnMap);
+        
+        // Play switch map sound
+        if (window.SoundEffectsManager) {
+            window.SoundEffectsManager.play('switchMap');
+        }
+        
+        // Orange flash feedback
+        if (typeof window.flashButton === 'function') {
+            window.flashButton(mapGlobeToggleContainer, 'flash-orange');
+        } else {
+            // Manual flash if flashButton not available
+            mapGlobeToggleContainer.style.transition = 'background 0.15s ease';
+            const originalBg = mapGlobeToggleContainer.style.background;
+            mapGlobeToggleContainer.style.background = 'rgba(255, 152, 0, 0.6)';
+            setTimeout(() => {
+                mapGlobeToggleContainer.style.background = originalBg;
+            }, 150);
+        }
+        
+        // Update icon
+        const iconImg = mapGlobeIcon.querySelector('img');
+        if (iconImg) {
+            iconImg.src = newStartOnMap ? 'assets/images/icons/Switch to Flat Icon.png' : 'assets/images/icons/Switch to Globe Icon.png';
+        }
+        
+        // Update label text
+        mapGlobeLabel.textContent = newStartOnMap ? 'Starts on Map' : 'Starts on Globe';
+        
+        // Update header button name/description
+        const headerGlobeBtn = document.getElementById('headerInteractiveGlobeBtn');
+        if (headerGlobeBtn) {
+            const labelEl = headerGlobeBtn.querySelector('.header-hub-btn-label');
+            if (labelEl) labelEl.textContent = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+            headerGlobeBtn.title = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+            const iconSpan = document.getElementById('headerInteractiveGlobeIcon');
+            if (iconSpan) iconSpan.alt = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+        }
+        
+        // Update main menu button name/description
+        const mainMenuGlobeBtn = document.getElementById('runGlobeBtn');
+        if (mainMenuGlobeBtn) {
+            const labelEl = mainMenuGlobeBtn.querySelector('.main-menu-label');
+            const descEl = mainMenuGlobeBtn.querySelector('.main-menu-description');
+            if (labelEl) labelEl.textContent = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+            if (descEl) {
+                descEl.textContent = newStartOnMap 
+                    ? 'Visualize the story of Overwatch through a 2D map'
+                    : 'Visualize the story of Overwatch through a 3D globe';
+            }
+            mainMenuGlobeBtn.title = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+        }
+    });
 
     // Event System Load Out button (small, below main buttons)
     const testBtn = document.createElement('button');
@@ -2725,6 +2899,8 @@ export function createMenuButtonsContainer(statusService) {
             if (statusService) statusService.update('✓ News ticker unloaded', 'success');
         }
     });
+    menuButtons.appendChild(autoPreloadContainer);
+    menuButtons.appendChild(mapGlobeToggleContainer);
     menuButtons.appendChild(testBtn);
 
     return menuButtons;

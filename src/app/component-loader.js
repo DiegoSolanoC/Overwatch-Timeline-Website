@@ -108,21 +108,21 @@ function loadHeaderNavButtons() {
     // standalone Event System Load Out only (via testBtn click)
     // Globe no longer creates these buttons
 
-    // Story Viewer button - launches story mode
+    // Story Archive button - launches story mode
     createGlobeControlButton({
         id: 'headerStoryViewerBtn',
         className: '',
-        title: 'Story Viewer',
-        label: 'Story Viewer',
+        title: 'Story Archive',
+        label: 'Story Archive',
         iconPath: 'assets/images/icons/Story%20Icon.png',
-        iconAlt: 'Story Viewer',
+        iconAlt: 'Story Archive',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
         iconSpanId: 'headerStoryViewerIcon',
         headerOrder: 15
     });
 
-    // Bootstrap handler: clicking Story Viewer launches story mode
+    // Bootstrap handler: clicking Story Archive launches story mode
     const headerStoryBtn = document.getElementById('headerStoryViewerBtn');
     if (headerStoryBtn) {
         headerStoryBtn.addEventListener('click', function bootstrapStory(e) {
@@ -134,14 +134,15 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
-    // Interactive Globe button - launches globe timeline
+    // Interactive Globe/Map button - launches globe timeline
+    const startOnMap = localStorage.getItem('mapGlobePreToggle') === 'true';
     createGlobeControlButton({
         id: 'headerInteractiveGlobeBtn',
         className: '',
-        title: 'Interactive Globe',
-        label: 'Interactive Globe',
+        title: startOnMap ? 'Interactive Map' : 'Interactive Globe',
+        label: startOnMap ? 'Interactive Map' : 'Interactive Globe',
         iconPath: 'assets/images/icons/Timeline Icon.png',
-        iconAlt: 'Interactive Globe',
+        iconAlt: startOnMap ? 'Interactive Map' : 'Interactive Globe',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
         iconSpanId: 'headerInteractiveGlobeIcon',
@@ -160,21 +161,21 @@ function loadHeaderNavButtons() {
         }, true);
     }
 
-    // World Codex button - launches codex/glossary mode
+    // Connection Codex button - launches codex/glossary mode
     createGlobeControlButton({
         id: 'headerWorldCodexBtn',
         className: '',
-        title: 'World Codex',
-        label: 'World Codex',
+        title: 'Connection Codex',
+        label: 'Connection Codex',
         iconPath: 'assets/images/icons/Codex%20Icon.png',
-        iconAlt: 'World Codex',
+        iconAlt: 'Connection Codex',
         parentId: 'headerHub',
         baseClass: 'header-hub-btn header-hub-btn--icon',
         iconSpanId: 'headerWorldCodexIcon',
         headerOrder: 17
     });
 
-    // Bootstrap handler: clicking World Codex launches glossary/codex components
+    // Bootstrap handler: clicking Connection Codex launches glossary/codex components
     const headerCodexBtn = document.getElementById('headerWorldCodexBtn');
     if (headerCodexBtn) {
         headerCodexBtn.addEventListener('click', function bootstrapCodex(e) {
@@ -200,7 +201,7 @@ function loadHeaderNavButtons() {
         headerOrder: 70
     });
 
-    // Wire up Home button click — unloads globe, glossary/codex, or story viewer, returns to clean state
+    // Wire up Home button click — unloads globe, glossary/codex, or story archive, returns to clean state
     const homeButton = document.getElementById('homeBtn');
     if (homeButton) {
         homeButton.addEventListener('click', async function(e) {
@@ -247,7 +248,7 @@ function loadHeaderNavButtons() {
                 await new Promise(r => setTimeout(r, 500));
             }
 
-            // Kill Story Viewer if active
+            // Kill Story Archive if active
             if (currentMode === 'biography') {
                 if (typeof window.killBiographyComponents === 'function') {
                     await window.killBiographyComponents();

@@ -108,7 +108,7 @@ function positionBadge() {
     const gap = 2;
     
     // Position closer to the left side (1/4 from left edge instead of center)
-    // This aligns better with the events/world codex buttons area
+    // This aligns better with the events/connection codex buttons area
     const cx = (rect.left + (rect.width / 4)) / scale;
     const top = (rect.bottom + gap) / scale;
 

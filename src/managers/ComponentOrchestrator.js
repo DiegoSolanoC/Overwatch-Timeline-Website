@@ -194,7 +194,7 @@ export class ComponentOrchestrator {
                 updateStatus('⬛ Palette already loaded, skipping...', 'info');
             }
 
-            // Always ensure header nav buttons exist (Interactive Globe, World Codex, Story Viewer, Home)
+            // Always ensure header nav buttons exist (Interactive Globe, Connection Codex, Story Archive, Home)
             // NOTE: Events and Filters buttons are now created by standalone Event System Load Out only
             if (this.loaders.headerNav) {
                 this.loaders.headerNav();
@@ -323,50 +323,33 @@ export class ComponentOrchestrator {
             
             // Load Controls (always reload to ensure rotation slider is repositioned)
             updateStatus('→ Loading Controls...', 'info');
-            // Reset sceneModel to globe mode BEFORE loading controls so setupMapViewToggle uses correct state
+            // Check localStorage for map/globe pre-toggle preference
+            const startOnMap = localStorage.getItem('mapGlobePreToggle') === 'true';
+            // Set sceneModel to the preferred view BEFORE loading controls so setupMapViewToggle uses correct state
             if (window.globeController?.sceneModel) {
                 if (window.globeController.sceneModel.setMapViewEnabled) {
-                    window.globeController.sceneModel.setMapViewEnabled(false);
+                    window.globeController.sceneModel.setMapViewEnabled(startOnMap);
                 } else {
-                    window.globeController.sceneModel.isMapView = false;
+                    window.globeController.sceneModel.isMapView = startOnMap;
                 }
-                console.log('[ComponentOrchestrator] Reset sceneModel to globe mode before loading controls');
+            }
+            // Also call controller's setMapViewEnabled to actually trigger the view switch
+            if (window.globeController && typeof window.globeController.setMapViewEnabled === 'function') {
+                window.globeController.setMapViewEnabled(startOnMap);
             }
             await this.loaders.controls();
-            // Debug: Check if map toggle button exists
-            const mapToggleBtn = document.getElementById('mapViewToggle');
-            console.log('[ComponentOrchestrator] Map toggle button exists:', !!mapToggleBtn, 'display:', mapToggleBtn?.style.display);
             // Call setupMapViewToggle again after loading controls to ensure correct state
             if (window.globeController?.uiView?.setupMapViewToggle) {
                 window.globeController.uiView.setupMapViewToggle();
-                console.log('[ComponentOrchestrator] setupMapViewToggle called after controls load');
             }
             // Ensure rotate-subbar-open class is set on body (shows rotation slider) - do this AFTER setupMapViewToggle
             document.body.classList.add('rotate-subbar-open');
-            console.log('[ComponentOrchestrator] rotate-subbar-open class added to body (after setupMapViewToggle)');
             // Show rotation subbar and reset position
             const rotateSubBar = document.getElementById('headerRotateSubBar');
             if (rotateSubBar) {
                 rotateSubBar.style.display = 'block';
                 rotateSubBar.style.top = '0';
                 rotateSubBar.style.left = '0';
-                const computedStyle = window.getComputedStyle(rotateSubBar);
-                console.log('[ComponentOrchestrator] Rotation subbar made visible and position reset');
-                console.log('[ComponentOrchestrator] Rotation subbar computed display:', computedStyle.display);
-                console.log('[ComponentOrchestrator] Rotation subbar computed position:', computedStyle.position, 'top:', computedStyle.top, 'left:', computedStyle.left);
-                console.log('[ComponentOrchestrator] Rotation subbar rect:', rotateSubBar.getBoundingClientRect());
-                const inner = document.getElementById('headerRotateSubBarInner');
-                if (inner) {
-                    console.log('[ComponentOrchestrator] Rotation subbar inner transform:', window.getComputedStyle(inner).transform);
-                    console.log('[ComponentOrchestrator] Rotation subbar inner children count:', inner.children.length);
-                }
-                // Debug map toggle button position
-                const mapToggleBtn = document.getElementById('mapViewToggle');
-                if (mapToggleBtn) {
-                    console.log('[ComponentOrchestrator] Map toggle button rect:', mapToggleBtn.getBoundingClientRect());
-                }
-            } else {
-                console.log('[ComponentOrchestrator] Rotation subbar element not found!');
             }
             updateGlobeComponentsProgress(3);
             await new Promise(r => setTimeout(r, 300));
@@ -486,7 +469,7 @@ export class ComponentOrchestrator {
 
     /**
      * Run all Biography Components sequentially
-     * Story Viewer mode - displays events in a centered panel
+     * Story Archive mode - displays events in a centered panel
      */
     async runBiographyComponents(isAutoLoad = false) {
         this.playModeSwitchSound(isAutoLoad);
@@ -526,7 +509,7 @@ export class ComponentOrchestrator {
             setRunOperation(true);
             showLoadingOverlay();
         }
-        updateStatus('🚀 Starting Story Viewer...', 'info');
+        updateStatus('🚀 Starting Story Archive...', 'info');
         
         try {
             // Hide test-container (consistent with other modes)
@@ -536,7 +519,7 @@ export class ComponentOrchestrator {
                 updateStatus('→ Hiding menu container...', 'info');
             }
             
-            // Create and show the Story Viewer panel
+            // Create and show the Story Archive panel
             await this.createStoryViewerPanel();
             
             // Minimum loading time for visual consistency (800ms)
@@ -546,10 +529,10 @@ export class ComponentOrchestrator {
             this.dispatchAppModeChange('biography');
             
             this.loadedComponents.biography = true;
-            updateStatus('✓ Story Viewer loaded!', 'success');
+            updateStatus('✓ Story Archive loaded!', 'success');
         } catch (error) {
-            console.error('Error in Story Viewer load:', error);
-            updateStatus(`✗ Error in Story Viewer load: ${error.message}`, 'error');
+            console.error('Error in Story Archive load:', error);
+            updateStatus(`✗ Error in Story Archive load: ${error.message}`, 'error');
         } finally {
             setRunOperation(false);
             hideLoadingOverlay();
@@ -560,7 +543,7 @@ export class ComponentOrchestrator {
     }
 
     /**
-     * Create the Story Viewer - takes over center space like Globe/Codex
+     * Create the Story Archive - takes over center space like Globe/Codex
      * Uses actual Event Manager panel but displayed in center
      */
     async createStoryViewerPanel() {
@@ -577,7 +560,7 @@ export class ComponentOrchestrator {
             testContainer.style.display = 'none';
         }
 
-        // Hide the Event Manager button since Story Viewer uses the panel
+        // Hide the Event Manager button since Story Archive uses the panel
         const eventManagerBtn = document.getElementById('eventsManageToggle');
         if (eventManagerBtn) {
             eventManagerBtn.style.setProperty('display', 'none', 'important');
@@ -590,12 +573,12 @@ export class ComponentOrchestrator {
             return;
         }
 
-        // Create story viewer container
+        // Create story archive container
         storyContainer = document.createElement('div');
         storyContainer.id = 'storyViewerContainer';
         storyContainer.className = 'story-viewer-container';
         
-        // Move the eventsManagePanel into story container
+        // Move the eventsManagePanel into story archive container
         // Store original parent to restore later
         this._originalEventsPanelParent = eventsManagePanel.parentNode;
         this._originalEventsPanelClasses = eventsManagePanel.className;
@@ -622,12 +605,12 @@ export class ComponentOrchestrator {
         // Update title
         const title = eventsManagePanel.querySelector('.events-manage-title');
         if (title) {
-            title.textContent = 'Story Viewer';
+            title.textContent = 'Story Archive';
             title.classList.remove('events-manage-title');
             title.classList.add('story-viewer-title');
         }
         
-        // Move Add/Save/Export buttons to center position in story mode
+        // Move Add/Save/Export buttons to center position in story archive mode
         const addBtn = document.getElementById('addEventBtn');
         const saveBtn = document.getElementById('saveEventsBtn');
         const exportBtn = document.getElementById('exportEventsBtn');
@@ -663,11 +646,11 @@ export class ComponentOrchestrator {
             storyContainer.classList.add('active');
         });
 
-        updateStatus('✓ Story Viewer loaded with full Event Manager functionality', 'success');
+        updateStatus('✓ Story Archive loaded with full Event Manager functionality', 'success');
     }
 
     /**
-     * Wire up event handlers for Story Viewer - mirrors Event Manager
+     * Wire up event handlers for Story Archive - mirrors Event Manager
      */
     wireStoryViewerHandlers() {
         const self = this;
@@ -749,11 +732,11 @@ export class ComponentOrchestrator {
             });
         }
 
-        updateStatus('✓ Story Viewer handlers wired', 'success');
+        updateStatus('✓ Story Archive handlers wired', 'success');
     }
 
     /**
-     * Filter events in Story Viewer - mirrors Event Manager logic
+     * Filter events in Story Archive - mirrors Event Manager logic
      */
     filterStoryViewerEvents() {
         if (!window.eventManager || !window.eventManager.events) return;
@@ -825,7 +808,7 @@ export class ComponentOrchestrator {
     }
 
     /**
-     * Render events in Story Viewer - mirrors Event Manager rendering
+     * Render events in Story Archive - mirrors Event Manager rendering
      */
     renderStoryViewerEvents(events) {
         const list = document.getElementById('storyViewerList');
@@ -880,7 +863,7 @@ export class ComponentOrchestrator {
     }
 
     /**
-     * Render pagination for Story Viewer
+     * Render pagination for Story Archive
      */
     renderStoryViewerPagination(total, perPage) {
         const pagination = document.getElementById('storyViewerPagination');
@@ -901,11 +884,11 @@ export class ComponentOrchestrator {
     }
 
     /**
-     * Go to specific page in Story Viewer
+     * Go to specific page in Story Archive
      */
     goToStoryViewerPage(page, perPage) {
         // Implementation would track current page and re-render
-        updateStatus(`Story Viewer: Page ${page} selected`, 'info');
+        updateStatus(`Story Archive: Page ${page} selected`, 'info');
     }
 
     /**
@@ -926,7 +909,7 @@ export class ComponentOrchestrator {
     }
 
     /**
-     * Clear all search filters in Story Viewer
+     * Clear all search filters in Story Archive
      */
     clearStoryViewerSearch() {
         const searchInput = document.getElementById('storyViewerSearchInput');
@@ -1137,13 +1120,13 @@ export class ComponentOrchestrator {
     }
 
     /**
-     * Kill all Biography Components (Story Viewer)
+     * Kill all Biography Components (Story Archive)
      * @param {boolean} [restoreMenu=true] - Whether to restore main menu (false when switching to another mode)
      */
     async killBiographyComponents(restoreMenu = true) {
-        updateStatus('Exiting Story Viewer...', 'info');
+        updateStatus('Exiting Story Archive...', 'info');
         
-        // Restore Event Manager panel to its original location
+        // Restore Event Manager panel to its original location (from story archive)
         const eventsManagePanel = document.getElementById('eventsManagePanel');
         if (eventsManagePanel && this._originalEventsPanelParent) {
             // Restore original classes
@@ -1195,7 +1178,7 @@ export class ComponentOrchestrator {
             this._originalEventsPanelParent.appendChild(eventsManagePanel);
         }
         
-        // Remove story viewer container
+        // Remove story archive container
         const storyContainer = document.getElementById('storyViewerContainer');
         if (storyContainer) {
             storyContainer.classList.remove('active');
@@ -1212,6 +1195,6 @@ export class ComponentOrchestrator {
         localStorage.removeItem('currentMode');
         this.loadedComponents.biography = false;
         
-        updateStatus('✓ Story Viewer exited!', 'success');
+        updateStatus('✓ Story Archive exited!', 'success');
     }
 }
