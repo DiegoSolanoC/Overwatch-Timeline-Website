@@ -298,7 +298,17 @@ class MarkerInteractionService {
      */
     onMarkerClick(event, onZoomToMarker, onResetCamera) {
         console.log('[onMarkerClick] Click detected');
-        
+        console.log('[onMarkerClick] window.globeController:', window.globeController);
+        console.log('[onMarkerClick] window.globeController?.map2dLite:', window.globeController?.map2dLite);
+        console.log('[onMarkerClick] window.globeController?.map2dLite?.isVisible:', window.globeController?.map2dLite?.isVisible);
+        console.log('[onMarkerClick] window.globeController?.map2dLite?.isVisible?.():', window.globeController?.map2dLite?.isVisible?.());
+
+        // Skip globe marker clicks when map view is active (DOM markers handle it)
+        if (window.globeController?.map2dLite?.isVisible?.()) {
+            console.log('[onMarkerClick] Ignored - map view is active, DOM markers handle clicks');
+            return;
+        }
+
         // Don't register click if mouse was dragged
         if (window.mouseMoved) {
             console.log('[onMarkerClick] Ignored - mouse was dragged');

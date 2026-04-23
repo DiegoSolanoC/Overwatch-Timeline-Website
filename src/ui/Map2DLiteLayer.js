@@ -270,6 +270,15 @@ export class Map2DLiteLayer {
         this.world = null;
         this.img = null;
         this.markersEl = null;
+        this._moonHost = null;
+        this._moonImg = null;
+        this._moonMarkersEl = null;
+        this._marsHost = null;
+        this._marsImg = null;
+        this._marsMarkersEl = null;
+        this._orbitHost = null;
+        this._orbitImg = null;
+        this._orbitMarkersEl = null;
         /** Fixed 2:1 logical size (equirectangular); markers use % of this box. */
         this._MAP_BASE_W = 1000;
         this._MAP_BASE_H = 500;
@@ -294,117 +303,14 @@ export class Map2DLiteLayer {
         this._marsImg = null;
         this._moonHost = null;
         this._marsHost = null;
-        this._moonMarkersEl = null;
-        this._marsMarkersEl = null;
         this._orbitImg = null;
         this._orbitHost = null;
-        this._orbitMarkersEl = null;
-        /** Rebuild moon/mars marker dots after filter/page sync. */
-        this._celMarkersDirty = true;
-        this._lastCelMoonW = -1;
-        this._lastCelMarsW = -1;
-        this._lastCelOrbitW = -1;
-        /** Last map pan-zoom scale; dots must rescale when it changes (they sit outside scaled world). */
-        this._lastCelMapScale = -1;
-        /** `'pageTurn'` while rebuilding so celestial hosts/dots use enter animation. */
-        this._domLiteCelestialEnterMode = 'instant';
         this._onResize = () => {
             if (this.isVisible()) this._syncCoverScaleToViewport();
         };
         this._wheelHandler = (e) => this._onWheel(e);
         this._boundUp = (e) => this._onPointerUp(e);
         this._boundMove = (e) => this._onPointerMove(e);
-        /** Stub currently driving {@link playHoverRadiateLoopForStub} */
-        this._radiateStub = null;
-        this._radiateIntervalId = null;
-    }
-
-    /**
-     * Play `radiate` on interval while hovering a DOM map marker (WebGL plays it each {@link MarkerPulseService#createPulseRing}).
-     * @param {{ userData: object }} stub
-     */
-    playHoverRadiateLoopForStub(stub) {
-        this.stopHoverRadiateLoop();
-        if (!stub?.userData || stub.userData.isLocked) return;
-        this._radiateStub = stub;
-        const play = () => {
-            if (window.SoundEffectsManager && typeof window.SoundEffectsManager.play === 'function') {
-                window.SoundEffectsManager.play('radiate');
-            }
-        };
-        play();
-        const ms = isMap2dLiteAwakeningEvent(stub.userData.event)
-            ? DOM_LITE_RADIATE_INTERVAL_AWAKENING_MS
-            : DOM_LITE_RADIATE_INTERVAL_NORMAL_MS;
-        this._radiateIntervalId = window.setInterval(play, ms);
-    }
-
-    stopHoverRadiateLoop() {
-        if (this._radiateIntervalId != null) {
-            window.clearInterval(this._radiateIntervalId);
-            this._radiateIntervalId = null;
-        }
-        this._radiateStub = null;
-    }
-
-    stopHoverRadiateLoopIfStub(stub) {
-        if (this._radiateStub === stub) {
-            this.stopHoverRadiateLoop();
-        }
-    }
-
-    /** Remove thumbnail-driven “hover” visuals from map dots (see {@link setSyntheticHoverFromStub}). */
-    clearSyntheticMarkerHover() {
-        const sel = '.map-2d-lite__marker--synthetic-hover';
-        [this.markersEl, this._moonMarkersEl, this._marsMarkersEl, this._orbitMarkersEl].forEach((root) => {
-            root?.querySelectorAll(sel).forEach((el) => {
-                el.classList.remove('map-2d-lite__marker--synthetic-hover');
-            });
-        });
-    }
-
-    /**
-     * Apply the same CSS as pointer :hover on the matching Earth marker when pagination thumbnails are hovered.
-     * @param {{ userData: { event?: object, variantIndex?: number } }} stub
-     */
-    setSyntheticHoverFromStub(stub) {
-        if (!stub?.userData) return;
-        const ev = stub.userData.event;
-        const vi = stub.userData.variantIndex ?? 0;
-        if (!ev) return;
-        const roots = [this.markersEl, this._moonMarkersEl, this._marsMarkersEl, this._orbitMarkersEl].filter(Boolean);
-        for (let r = 0; r < roots.length; r++) {
-            const markers = roots[r].querySelectorAll('.map-2d-lite__marker:not(:disabled)');
-            for (let i = 0; i < markers.length; i++) {
-                const b = markers[i];
-                const id = b.__map2dLiteIdentity;
-                if (id && id.event === ev && (id.variantIndex ?? 0) === vi) {
-                    b.classList.add('map-2d-lite__marker--synthetic-hover');
-                    return;
-                }
-            }
-        }
-    }
-
-    /**
-     * DOM-lite navigation stub for a variant (Earth + moon/mars panels).
-     * @param {object} eventData
-     * @param {number} variantIndex
-     * @returns {{ userData: object } | null}
-     */
-    getStubForVariant(eventData, variantIndex) {
-        const vi = variantIndex ?? 0;
-        const roots = [this.markersEl, this._moonMarkersEl, this._marsMarkersEl, this._orbitMarkersEl].filter(Boolean);
-        for (let r = 0; r < roots.length; r++) {
-            const btns = roots[r].querySelectorAll('.map-2d-lite__marker');
-            for (let i = 0; i < btns.length; i++) {
-                const id = btns[i].__map2dLiteIdentity;
-                if (id && id.event === eventData && (id.variantIndex ?? 0) === vi) {
-                    return btns[i].__map2dLiteStub || null;
-                }
-            }
-        }
-        return null;
     }
 
     ensureDom() {
@@ -420,8 +326,6 @@ export class Map2DLiteLayer {
         this.img.className = 'map-2d-lite__map-img';
         this.img.alt = '';
         this.img.draggable = false;
-        this.markersEl = document.createElement('div');
-        this.markersEl.className = 'map-2d-lite__markers';
 
         const celest = document.createElement('div');
         celest.className = 'map-2d-lite__celestials';
@@ -433,7 +337,7 @@ export class Map2DLiteLayer {
         this._moonImg.alt = '';
         this._moonImg.draggable = false;
         this._moonMarkersEl = document.createElement('div');
-        this._moonMarkersEl.className = 'map-2d-lite__celestial-markers';
+        this._moonMarkersEl.className = 'map-2d-lite__markers map-2d-lite__markers--moon';
         this._moonHost.appendChild(this._moonImg);
         this._moonHost.appendChild(this._moonMarkersEl);
 
@@ -444,7 +348,7 @@ export class Map2DLiteLayer {
         this._marsImg.alt = '';
         this._marsImg.draggable = false;
         this._marsMarkersEl = document.createElement('div');
-        this._marsMarkersEl.className = 'map-2d-lite__celestial-markers';
+        this._marsMarkersEl.className = 'map-2d-lite__markers map-2d-lite__markers--mars';
         this._marsHost.appendChild(this._marsImg);
         this._marsHost.appendChild(this._marsMarkersEl);
 
@@ -455,13 +359,16 @@ export class Map2DLiteLayer {
         this._orbitImg.alt = '';
         this._orbitImg.draggable = false;
         this._orbitMarkersEl = document.createElement('div');
-        this._orbitMarkersEl.className = 'map-2d-lite__celestial-markers';
+        this._orbitMarkersEl.className = 'map-2d-lite__markers map-2d-lite__markers--orbit';
         this._orbitHost.appendChild(this._orbitImg);
         this._orbitHost.appendChild(this._orbitMarkersEl);
 
         celest.appendChild(this._moonHost);
         celest.appendChild(this._marsHost);
         celest.appendChild(this._orbitHost);
+
+        this.markersEl = document.createElement('div');
+        this.markersEl.className = 'map-2d-lite__markers';
 
         this.world.appendChild(this.img);
         this.world.appendChild(this.markersEl);
@@ -526,15 +433,8 @@ export class Map2DLiteLayer {
 
     hide() {
         window.removeEventListener('resize', this._onResize);
-        this.stopHoverRadiateLoop();
-        this.clearSyntheticMarkerHover();
-        window.globeController?.interactionController?.markerService?.setDomLiteMarkerHover?.(null);
         this._lastVw = -1;
         this._lastVh = -1;
-        this._lastCelMoonW = -1;
-        this._lastCelMarsW = -1;
-        this._lastCelOrbitW = -1;
-        this._lastCelMapScale = -1;
         if (this.root) {
             this.root.classList.remove('map-2d-lite--visible');
         }
@@ -729,78 +629,81 @@ export class Map2DLiteLayer {
             this._lastCelOrbitW = orw;
             this._lastCelMapScale = mapScale;
             this._celMarkersDirty = false;
-            this._syncCelestialMarkers();
         }
     }
 
     /**
-     * Moon / Mars / Orbit panel event dots (WebGL markers are hidden behind DOM map).
+     * Rebuild Earth and celestial markers for the current page (matches globe marker behavior).
+     * @param {{ mode?: 'pageTurn' | 'instant' }} [opts] - `pageTurn` = exit+grow; `instant` = replace.
+     * @returns {Promise<void>}
      */
-    _syncCelestialMarkers() {
-        console.log('[_syncCelestialMarkers] Syncing celestial markers...');
-        if (!this.isVisible() || !this._moonMarkersEl || !this._marsMarkersEl || !this._orbitMarkersEl) {
-            console.log('[_syncCelestialMarkers] Not visible or celestial elements missing, skipping');
-            return;
-        }
+    async syncMarkers(opts = {}) {
+        const mode = opts.mode || 'instant';
+        if (!this.markersEl || !this.isVisible()) return;
 
-        this._moonMarkersEl.replaceChildren();
-        this._marsMarkersEl.replaceChildren();
-        this._orbitMarkersEl.replaceChildren();
-
-        const ui = window.globeController?.uiView;
-        if (!ui) {
-            console.log('[_syncCelestialMarkers] No uiView found, skipping');
-            return;
-        }
-
+        this.markersEl.replaceChildren();
+        this._moonMarkersEl?.replaceChildren();
+        this._marsMarkersEl?.replaceChildren();
+        this._orbitMarkersEl?.replaceChildren();
         const events = this._getCurrentPageEvents();
-        console.log(`[_syncCelestialMarkers] Processing ${events.length} events`);
 
-        const addOne = (fullEvent, displayEvent, variantIndex, locationType) => {
-            let host;
-            let markersContainer;
-            if (locationType === 'moon') {
+        const addMarkerEl = (fullEvent, displayEvent, variantIndex) => {
+            const lt = displayEvent.locationType || fullEvent.locationType || 'earth';
+            let host, markersContainer;
+
+            if (lt === 'moon') {
                 host = this._moonHost;
                 markersContainer = this._moonMarkersEl;
-            } else if (locationType === 'mars') {
+            } else if (lt === 'mars') {
                 host = this._marsHost;
                 markersContainer = this._marsMarkersEl;
-            } else if (locationType === 'station' || locationType === 'marsShip') {
+            } else if (lt === 'station' || lt === 'marsShip') {
                 host = this._orbitHost;
                 markersContainer = this._orbitMarkersEl;
             } else {
-                return;
+                // Earth marker
+                host = null;
+                markersContainer = this.markersEl;
             }
-            if (!host || host.style.display === 'none' || !markersContainer) return;
 
-            const xRaw = displayEvent.x !== undefined ? displayEvent.x : fullEvent.x;
-            const yRaw = displayEvent.y !== undefined ? displayEvent.y : fullEvent.y;
-            if ((locationType === 'moon' || locationType === 'mars') && (xRaw == null || yRaw == null)) {
-                return;
-            }
-            const x = locationType === 'station' || locationType === 'marsShip' ? (xRaw != null ? xRaw : 50) : xRaw;
-            const y = locationType === 'station' || locationType === 'marsShip' ? (yRaw != null ? yRaw : 50) : yRaw;
-
-            const stub = makeStubMarker(fullEvent, displayEvent, variantIndex, this.sceneModel);
-            stub.userData.locationType = locationType;
-            const isMain = stub.userData.isMainVariant;
-            const panelW = Math.max(1, markersContainer.clientWidth || markersContainer.parentElement?.clientWidth || 80);
-            const panelH = Math.max(1, markersContainer.clientHeight || markersContainer.parentElement?.clientHeight || panelW);
-            /* Earth dots live under world transform scale(_scale); celestial hosts do not — match on-screen size. */
-            const d = Math.max(
-                6,
-                Math.round(getMap2dLiteMarkerDiameterPx(this._baseW, isMain) * this._scale)
-            );
+            if (!markersContainer) return;
 
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'map-2d-lite__marker map-2d-lite__marker--celestial';
-            btn.style.left = `${x}%`;
-            btn.style.top = `${y}%`;
+            btn.className = 'map-2d-lite__marker';
+            if (lt !== 'earth') {
+                btn.classList.add('map-2d-lite__marker--celestial');
+            }
+            const stub = makeStubMarker(fullEvent, displayEvent, variantIndex, this.sceneModel);
+            btn.__map2dLiteIdentity = {
+                event: fullEvent,
+                displayEvent,
+                variantIndex: variantIndex ?? 0
+            };
+            btn.__map2dLiteStub = stub;
+
+            const isMain = stub.userData.isMainVariant;
+            // Use larger size for celestial markers since panels are smaller
+            const baseWidth = (lt === 'earth') ? this._baseW : (this._baseW * 2.5);
+            const d = getMap2dLiteMarkerDiameterPx(baseWidth, isMain);
             btn.style.width = `${d}px`;
             btn.style.height = `${d}px`;
-            btn.__map2dLiteStub = stub;
-            btn.__map2dLiteIdentity = { event: fullEvent, displayEvent, variantIndex: variantIndex ?? 0 };
+
+            if (lt === 'earth') {
+                const lat = displayEvent.lat !== undefined ? displayEvent.lat : fullEvent.lat;
+                const lon = displayEvent.lon !== undefined ? displayEvent.lon : fullEvent.lon;
+                if (lat == null || lon == null) return;
+                const u = (lon + 180) / 360;
+                const v = (90 - lat) / 180;
+                btn.style.left = `${u * 100}%`;
+                btn.style.top = `${v * 100}%`;
+            } else {
+                const x = displayEvent.x !== undefined ? displayEvent.x : fullEvent.x;
+                const y = displayEvent.y !== undefined ? displayEvent.y : fullEvent.y;
+                if (x == null || y == null) return;
+                btn.style.left = `${x}%`;
+                btn.style.top = `${y}%`;
+            }
 
             const fillHex = stub.userData.isLocked ? EVENT_MARKER_LOCKED_HEX : getMarkerColor(isMain);
             const fr = hexToRgb(fillHex);
@@ -812,8 +715,10 @@ export class Map2DLiteLayer {
             btn.style.setProperty('--map2d-pulse-rgb', `${wr.r},${wr.g},${wr.b}`);
 
             const awakening = isMap2dLiteAwakeningEvent(fullEvent);
+
             const body = document.createElement('span');
             body.className = 'map-2d-lite__marker-body';
+
             const disk = document.createElement('span');
             disk.className = 'map-2d-lite__marker-disk';
 
@@ -823,13 +728,13 @@ export class Map2DLiteLayer {
                 btn.disabled = true;
                 btn.setAttribute('aria-disabled', 'true');
             } else {
-                if (awakening) {
+                if (awakening && lt === 'earth') {
                     btn.classList.add('map-2d-lite__marker--awakening');
-                    const u = x / 100;
-                    const v = y / 100;
+                    const u = parseFloat(btn.style.left) / 100;
+                    const v = parseFloat(btn.style.top) / 100;
                     btn.style.setProperty(
                         '--map2d-wave-max-scale',
-                        String(awakeningWaveMaxScale(u, v, panelW, panelH, d))
+                        String(awakeningWaveMaxScale(u, v, this._baseW, this._baseH, d))
                     );
                 }
                 disk.style.backgroundColor = hexToCss(getMarkerColor(isMain));
@@ -840,66 +745,85 @@ export class Map2DLiteLayer {
             }
             body.appendChild(disk);
             btn.appendChild(body);
-            btn.title = displayEvent.name || fullEvent.name || 'Event';
 
+            // Hover handler - match globe marker behavior
             if (!isTouchHoverDisabled()) {
-                const ms = window.globeController?.interactionController?.markerService;
                 btn.addEventListener('mouseenter', () => {
                     if (stub.userData.isLocked) return;
+                    const ms = window.globeController?.interactionController?.markerService;
                     ms?.setDomLiteMarkerHover?.(stub);
-                    this.playHoverRadiateLoopForStub(stub);
+                    // Play hover radiate sound
+                    if (window.SoundEffectsManager?.play) {
+                        window.SoundEffectsManager.play('radiate');
+                    }
                 });
                 btn.addEventListener('mouseleave', () => {
-                    this.stopHoverRadiateLoopIfStub(stub);
+                    const ms = window.globeController?.interactionController?.markerService;
                     ms?.clearDomLiteMarkerHoverIf?.(stub);
                 });
             }
 
+            // Click handler - match globe marker behavior exactly
             btn.addEventListener('click', (ev) => {
                 ev.stopPropagation();
-                if (stub.userData.isLocked) return;
-                const overlay = document.getElementById('eventImageOverlay');
-                if (overlay && overlay.classList.contains('open')) {
-                    const opacity = parseFloat(window.getComputedStyle(overlay).opacity);
-                    if (opacity > 0.1) return;
-                }
-                const current = ui.currentEventMarker;
-                const cud = current?.userData;
-                if (cud?.isMap2dLiteProxy && cud.event === fullEvent
-                    && (cud.variantIndex ?? 0) === (variantIndex ?? 0)) {
-                    ui.hideEventSlide();
+
+                // Match globe marker logic - only allow clicks on interactive markers
+                if (stub.userData.isInteractive === false) {
                     return;
                 }
-                const eventName = displayEvent.name || fullEvent.name;
-                const desc = displayEvent.description || fullEvent.description || 'Placeholder text for event information.';
-                const eventImage = resolveEventImagePath(displayEvent, eventName);
-                ui.showEventSlide(eventName, eventImage, desc, stub, fullEvent);
+
+                if (stub.userData.isLocked) {
+                    return;
+                }
+
+                // Don't allow event marker clicks when image overlay is visible
+                const eventImageOverlay = document.getElementById('eventImageOverlay');
+                if (eventImageOverlay && eventImageOverlay.classList.contains('open')) {
+                    const opacity = parseFloat(window.getComputedStyle(eventImageOverlay).opacity);
+                    if (opacity > 0.1) {
+                        return;
+                    }
+                }
+
+                // Find event index in Event System (match globe marker logic)
+                const events = window.eventManager?.events || [];
+                const eventData = stub.userData.event;
+                let eventIndex = events.findIndex(e => e === eventData);
+                if (eventIndex < 0) {
+                    const name = eventData?.name;
+                    eventIndex = events.findIndex(e => (e.name || '').trim() === (name || '').trim());
+                }
+
+                // Check if same event is already open (match globe marker logic)
+                const currentIndex = window.standaloneEventSlide?.currentEventIndex;
+                if (eventIndex >= 0 && eventIndex === currentIndex) {
+                    const eventSlide = document.getElementById('eventSlide');
+                    if (eventSlide) eventSlide.classList.remove('open');
+                    return;
+                }
+
+                // Open Event System's standalone event slide (match globe marker logic)
+                if (eventIndex >= 0 && window.standaloneEventSlide) {
+                    window.standaloneEventSlide.showEvent(eventIndex);
+                    if (window.SoundEffectsManager?.play) {
+                        window.SoundEffectsManager.play('eventClick');
+                    }
+                }
             });
 
             markersContainer.appendChild(btn);
 
-            if (this._domLiteCelestialEnterMode === 'pageTurn') {
-                body.classList.add('map-2d-lite__marker-body--grow');
-                window.setTimeout(() => {
-                    body.classList.remove('map-2d-lite__marker-body--grow');
-                    if (!stub.userData.isLocked) {
-                        disk.classList.add('map-2d-lite__marker-disk--pulse');
-                    }
-                }, DOM_LITE_MARKER_TRANSITION_MS);
-            } else if (!stub.userData.isLocked) {
+            if (!stub.userData.isLocked) {
                 disk.classList.add('map-2d-lite__marker-disk--pulse');
             }
         };
 
-        for (let ei = 0; ei < events.length; ei++) {
-            const event = events[ei];
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
             if (event.variants && event.variants.length > 0) {
-                const v = event.variants[0];
-                const lt = v.locationType || event.locationType || 'earth';
-                addOne(event, v, 0, lt);
+                addMarkerEl(event, event.variants[0], 0);
             } else {
-                const lt = event.locationType || 'earth';
-                addOne(event, event, null, lt);
+                addMarkerEl(event, event, null);
             }
         }
     }
@@ -1230,214 +1154,90 @@ export class Map2DLiteLayer {
         });
     }
 
-    /**
-     * Update lock state on existing DOM markers (filter confirm) — matches WebGL lock/unlock, not page-turn shrink-to-zero.
-     * @returns {Promise<void>}
-     */
-    _syncMarkersFilterInPlace() {
-        const events = this._getCurrentPageEvents();
-        if (countRenderableEarthMarkers(events) !== this.markersEl.children.length) {
-            return this._performMarkersRebuild('instant');
-        }
-        // NOTE: Use standaloneActiveFilters instead of sceneModel.activeFilters
-        const filters = window.standaloneActiveFilters || new Set();
-        const tasks = [];
-        for (const btn of [...this.markersEl.children]) {
-            const id = btn.__map2dLiteIdentity;
-            const stub = btn.__map2dLiteStub;
-            if (!id?.event || !stub?.userData) continue;
-            const locked = shouldEventBeLocked(id.event, filters);
-            const domLocked = btn.classList.contains('map-2d-lite__marker--locked');
-            if (locked === domLocked) continue;
-            if (locked) tasks.push(this._animateDomMarkerToLocked(btn, stub));
-            else tasks.push(this._animateDomMarkerToUnlocked(btn, stub));
-        }
-        return Promise.all(tasks).then(() => {
-            this._celMarkersDirty = true;
-            this.layoutCelestialPanelsFromCamera();
-        });
-    }
-
-    /**
-     * Full marker rebuild (optional page-turn exit animation before replace).
-     * @param {'pageTurn' | 'instant'} mode
-     * @returns {Promise<void>}
-     */
-    async _performMarkersRebuild(mode) {
-        const pageTurn = mode === 'pageTurn';
-        if (!this.markersEl || !this.isVisible()) return;
-
-        if (pageTurn) {
-            await Promise.all([
-                this._animateDomMarkersExit(),
-                this._animateCelestialHostsExitIfVisible()
-            ]);
-        }
-
-        this.stopHoverRadiateLoop();
-        this.clearSyntheticMarkerHover();
-        window.globeController?.interactionController?.markerService?.setDomLiteMarkerHover?.(null);
-        this.markersEl.replaceChildren();
-        const events = this._getCurrentPageEvents();
-        console.log(`[_performMarkersRebuild] Got ${events.length} events for current page`);
+    _onClick(e) {
+        if (this._moved) return;
+        if (e.target.closest('.map-2d-lite__marker')) return;
         const ui = window.globeController?.uiView;
-        if (!ui) {
-            console.log('[_performMarkersRebuild] No uiView found, updating celestial panels only');
-            this._domLiteCelestialEnterMode = pageTurn ? 'pageTurn' : 'instant';
-            this._celMarkersDirty = true;
-            this.layoutCelestialPanelsFromCamera();
-            this._domLiteCelestialEnterMode = 'instant';
-            return;
+        if (ui?.currentEventMarker) {
+            ui.hideEventSlide();
         }
-
-        const addMarkerEl = (fullEvent, displayEvent, variantIndex) => {
-                const lt = displayEvent.locationType || fullEvent.locationType || 'earth';
-                if (lt !== 'earth') return;
-
-                const lat = displayEvent.lat !== undefined ? displayEvent.lat : fullEvent.lat;
-                const lon = displayEvent.lon !== undefined ? displayEvent.lon : fullEvent.lon;
-                if (lat == null || lon == null) return;
-
-                const u = (lon + 180) / 360;
-                const v = (90 - lat) / 180;
-
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'map-2d-lite__marker';
-                const stub = makeStubMarker(fullEvent, displayEvent, variantIndex, this.sceneModel);
-                btn.__map2dLiteIdentity = {
-                    event: fullEvent,
-                    displayEvent,
-                    variantIndex: variantIndex ?? 0
-                };
-                btn.__map2dLiteStub = stub;
-                btn.style.left = `${u * 100}%`;
-                btn.style.top = `${v * 100}%`;
-                const isMain = stub.userData.isMainVariant;
-                const d = getMap2dLiteMarkerDiameterPx(this._baseW, isMain);
-                btn.style.width = `${d}px`;
-                btn.style.height = `${d}px`;
-                const fillHex = stub.userData.isLocked ? EVENT_MARKER_LOCKED_HEX : getMarkerColor(isMain);
-                const fr = hexToRgb(fillHex);
-                btn.style.setProperty('--map2d-fill-rgb', `${fr.r},${fr.g},${fr.b}`);
-                const waveHex = Number.isFinite(stub.userData.originalColor)
-                    ? stub.userData.originalColor
-                    : 0xffaa00;
-                const wr = hexToRgb(waveHex);
-                btn.style.setProperty('--map2d-pulse-rgb', `${wr.r},${wr.g},${wr.b}`);
-
-                const awakening = isMap2dLiteAwakeningEvent(fullEvent);
-
-                const body = document.createElement('span');
-                body.className = 'map-2d-lite__marker-body';
-
-                const disk = document.createElement('span');
-                disk.className = 'map-2d-lite__marker-disk';
-
-                if (stub.userData.isLocked) {
-                    btn.classList.add('map-2d-lite__marker--locked');
-                    disk.style.backgroundColor = hexToCss(EVENT_MARKER_LOCKED_HEX);
-                    btn.disabled = true;
-                    btn.setAttribute('aria-disabled', 'true');
-                } else {
-                    if (awakening) {
-                        btn.classList.add('map-2d-lite__marker--awakening');
-                        btn.style.setProperty(
-                            '--map2d-wave-max-scale',
-                            String(awakeningWaveMaxScale(u, v, this._baseW, this._baseH, d))
-                        );
-                    }
-                    disk.style.backgroundColor = hexToCss(getMarkerColor(isMain));
-                    const wave = document.createElement('span');
-                    wave.className = 'map-2d-lite__marker-wave';
-                    wave.setAttribute('aria-hidden', 'true');
-                    body.appendChild(wave);
-                }
-                body.appendChild(disk);
-                btn.appendChild(body);
-                btn.title = displayEvent.name || fullEvent.name || 'Event';
-
-                if (!isTouchHoverDisabled()) {
-                    const ms = window.globeController?.interactionController?.markerService;
-                    btn.addEventListener('mouseenter', () => {
-                        if (stub.userData.isLocked) return;
-                        ms?.setDomLiteMarkerHover?.(stub);
-                        this.playHoverRadiateLoopForStub(stub);
-                    });
-                    btn.addEventListener('mouseleave', () => {
-                        this.stopHoverRadiateLoopIfStub(stub);
-                        ms?.clearDomLiteMarkerHoverIf?.(stub);
-                    });
-                }
-
-                btn.addEventListener('click', (ev) => {
-                    ev.stopPropagation();
-                    if (stub.userData.isLocked) return;
-                    const overlay = document.getElementById('eventImageOverlay');
-                    if (overlay && overlay.classList.contains('open')) {
-                        const opacity = parseFloat(window.getComputedStyle(overlay).opacity);
-                        if (opacity > 0.1) return;
-                    }
-                    const current = ui.currentEventMarker;
-                    const cud = current?.userData;
-                    if (cud?.isMap2dLiteProxy && cud.event === fullEvent
-                        && (cud.variantIndex ?? 0) === (variantIndex ?? 0)) {
-                        ui.hideEventSlide();
-                        return;
-                    }
-
-                    const eventName = displayEvent.name || fullEvent.name;
-                    const desc = displayEvent.description || fullEvent.description || 'Placeholder text for event information.';
-                    const eventImage = resolveEventImagePath(displayEvent, eventName);
-                    ui.showEventSlide(eventName, eventImage, desc, stub, fullEvent);
-                });
-
-                this.markersEl.appendChild(btn);
-
-                if (pageTurn) {
-                    body.classList.add('map-2d-lite__marker-body--grow');
-                    window.setTimeout(() => {
-                        body.classList.remove('map-2d-lite__marker-body--grow');
-                        if (!stub.userData.isLocked) {
-                            disk.classList.add('map-2d-lite__marker-disk--pulse');
-                        }
-                    }, DOM_LITE_MARKER_TRANSITION_MS);
-                } else if (!stub.userData.isLocked) {
-                    disk.classList.add('map-2d-lite__marker-disk--pulse');
-                }
-            };
-
-        // One visible dot per multi-event: variant 0 only (non-main meshes stay hidden in WebGL until slide UX).
-        for (const event of events) {
-            if (event.variants && event.variants.length > 0) {
-                addMarkerEl(event, event.variants[0], 0);
-            } else {
-                addMarkerEl(event, event, null);
-            }
+        if (typeof window.closeTimelineMusicFiltersPanelsIfOpen === 'function') {
+            window.closeTimelineMusicFiltersPanelsIfOpen();
         }
-
-        this._domLiteCelestialEnterMode = pageTurn ? 'pageTurn' : 'instant';
-        this._celMarkersDirty = true;
-        this.layoutCelestialPanelsFromCamera();
-        this._domLiteCelestialEnterMode = 'instant';
     }
 
     /**
-     * Rebuild Earth markers for the current page (and lock/filter styling).
-     * @param {{ mode?: 'pageTurn' | 'instant' | 'filter', animate?: boolean }} [opts] - `pageTurn` = exit+grow; `instant` = replace; `filter` = in-place lock/unlock (WebGL parity). Legacy `animate: true` → pageTurn.
+     * Squash celestial panel hosts out (pairs with WebGL {@link PlaneManager#animatePlaneScale} hide timing feel).
      * @returns {Promise<void>}
      */
-    syncMarkers(opts = {}) {
-        let mode = opts.mode;
-        if (mode == null) {
-            mode = opts.animate === true ? 'pageTurn' : 'instant';
-        }
-        if (!this.markersEl || !this.isVisible()) {
-            return Promise.resolve();
-        }
-        if (mode === 'filter') {
-            return this._syncMarkersFilterInPlace();
-        }
-        return this._performMarkersRebuild(mode === 'pageTurn' ? 'pageTurn' : 'instant');
+    _animateCelestialHostsExitIfVisible() {
+        const hosts = [this._moonHost, this._marsHost, this._orbitHost].filter(Boolean);
+        const visible = hosts.filter((h) => {
+            try {
+                return window.getComputedStyle(h).display !== 'none';
+            } catch (_) {
+                return false;
+            }
+        });
+        if (visible.length === 0) return Promise.resolve();
+        return Promise.all(
+            visible.map(
+                (host) =>
+                    new Promise((resolve) => {
+                        host.classList.remove('map-2d-lite__celestial-host--enter');
+                        host.style.transition = `transform ${DOM_LITE_MARKER_TRANSITION_MS}ms cubic-bezier(0.32, 0, 0.67, 1)`;
+                        host.style.transformOrigin = '50% 50%';
+                        host.style.transform = 'scaleY(0)';
+                        window.setTimeout(() => {
+                            host.style.transition = '';
+                            host.style.transform = '';
+                            resolve();
+                        }, DOM_LITE_MARKER_TRANSITION_MS + 50);
+                    })
+            )
+        ).then(() => {});
+    }
+
+    /**
+     * Shrink-out Earth + moon/mars marker bodies (matches {@link animateMarkersShrink} timing).
+     * @returns {Promise<void>}
+     */
+    _animateDomMarkersExit() {
+        const earth = [...this.markersEl.querySelectorAll('.map-2d-lite__marker-body')];
+        const moon = this._moonMarkersEl
+            ? [...this._moonMarkersEl.querySelectorAll('.map-2d-lite__marker-body')]
+            : [];
+        const mars = this._marsMarkersEl
+            ? [...this._marsMarkersEl.querySelectorAll('.map-2d-lite__marker-body')]
+            : [];
+        const orbit = this._orbitMarkersEl
+            ? [...this._orbitMarkersEl.querySelectorAll('.map-2d-lite__marker-body')]
+            : [];
+        const bodies = [...earth, ...moon, ...mars, ...orbit];
+        if (bodies.length === 0) return Promise.resolve();
+        bodies.forEach((body) => {
+            body.querySelector('.map-2d-lite__marker-disk')?.classList.remove('map-2d-lite__marker-disk--pulse');
+        });
+        return Promise.all(
+            bodies.map(
+                (body) =>
+                    new Promise((resolve) => {
+                        let settled = false;
+                        const finish = () => {
+                            if (settled) return;
+                            settled = true;
+                            body.removeEventListener('animationend', onEnd);
+                            resolve();
+                        };
+                        const onEnd = (e) => {
+                            const n = e.animationName || '';
+                            if (n.includes('map2d-lite-marker-exit')) finish();
+                        };
+                        body.addEventListener('animationend', onEnd);
+                        body.classList.add('map-2d-lite__marker-body--exit');
+                        window.setTimeout(finish, DOM_LITE_MARKER_TRANSITION_MS + 80);
+                    })
+            )
+        ).then(() => {});
     }
 }

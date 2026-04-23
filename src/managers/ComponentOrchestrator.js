@@ -1096,10 +1096,13 @@ export class ComponentOrchestrator {
         // This will also load menu if not already loaded
         // Preserve news ticker when switching to other modes (not actually returning to menu)
         await this.restoreMainMenu(true);
-        
+
+        // Clear globeEventMarkerManager to ensure markers are recreated on reload
+        window.globeEventMarkerManager = null;
+
         // Clear mode from localStorage (consistent with other modes)
         localStorage.removeItem('currentMode');
-        
+
         updateStatus('✓ All Globe Components killed!', 'success');
     }
 

@@ -159,7 +159,6 @@ body.color-palette-nulled .map-2d-lite__world::after {
 .map-2d-lite__markers {
     position: absolute;
     inset: 0;
-    pointer-events: none;
 }
 
 .map-2d-lite__marker {

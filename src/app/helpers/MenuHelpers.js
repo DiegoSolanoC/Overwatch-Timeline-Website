@@ -40,36 +40,79 @@ function thumbPageTurnGrowKeyframes(isThumbsDesktop, locked) {
 }
 
 /**
- * Find WebGL marker for an event by global event index
+ * Find marker for an event by global event index
  * Used to trigger marker hover effects from dock thumbnails
+ * Handles both WebGL markers (globe view) and DOM markers (map view)
  */
 function findMarkerForEvent(event, globalEventIndex) {
     if (!event) return null;
-    
+
     const sceneModel = window.globeController?.sceneModel;
     if (!sceneModel) return null;
-    
+
+    const isMapView = sceneModel.getMapViewEnabled?.() || !!sceneModel.isMapView;
+
+    if (isMapView) {
+        // Map view: find DOM marker in map2dLite layer
+        const map2dLite = window.globeController?.map2dLite;
+        if (!map2dLite) return createStubForMapView(event, globalEventIndex);
+
+        // Check all marker containers (earth, moon, mars, orbit)
+        const containers = [map2dLite.markersEl, map2dLite._moonMarkersEl, map2dLite._marsMarkersEl, map2dLite._orbitMarkersEl];
+
+        for (const container of containers) {
+            if (!container) continue;
+            const buttons = container.querySelectorAll('.map-2d-lite__marker');
+            for (const btn of buttons) {
+                const identity = btn.__map2dLiteIdentity;
+                if (!identity) continue;
+
+                const markerEvent = identity.event;
+                if (!markerEvent) continue;
+
+                // Match by name and location
+                const nameMatch = markerEvent.name === event.name;
+                const locationMatch =
+                    markerEvent.locationType === event.locationType &&
+                    markerEvent.lat === event.lat &&
+                    markerEvent.lon === event.lon &&
+                    markerEvent.x === event.x &&
+                    markerEvent.y === event.y;
+
+                if (nameMatch || locationMatch) {
+                    // Return the stub from the button with the button element attached
+                    const stub = btn.__map2dLiteStub || createStubForMapView(event, globalEventIndex);
+                    stub.__domMarkerButton = btn;
+                    return stub;
+                }
+            }
+        }
+
+        // No DOM marker found, return stub for map view
+        return createStubForMapView(event, globalEventIndex);
+    }
+
+    // Globe view: find WebGL marker
     const markers = sceneModel.getMarkers?.() || [];
-    
-    // Find marker that matches this event
+
     for (const marker of markers) {
         if (!marker.userData?.isEventMarker) continue;
-        
+
         const markerEvent = marker.userData.event;
         if (!markerEvent) continue;
-        
+
         // Match by name and location
         const nameMatch = markerEvent.name === event.name;
-        const locationMatch = 
+        const locationMatch =
             markerEvent.locationType === event.locationType &&
             markerEvent.lat === event.lat &&
             markerEvent.lon === event.lon;
-        
+
         if (nameMatch || locationMatch) {
             return marker;
         }
     }
-    
+
     return null;
 }
 
@@ -108,6 +151,9 @@ function createStubForMapView(event, globalEventIndex) {
 
 /** Store camera state before thumbnail hover for restoration */
 let _thumbnailHoverCameraState = null;
+
+/** Store sound interval for continuous radiate sound */
+let _thumbnailHoverSoundInterval = null;
 
 /**
  * Smoothly center camera on a marker (hover preview - zooms in like zoomToMarker)
@@ -2746,18 +2792,35 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                             hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
                                         );
                                     }
-                                    
+
                                     // Trigger marker hover effect based on view mode
                                     const sceneModel = window.globeController?.sceneModel;
                                     const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
-                                    
+
                                     if (isMapView) {
-                                        // Map view: use stub with setDomLiteMarkerHover
-                                        const stub = createStubForMapView(event, globalEventIndex);
-                                        if (stub) {
+                                        // Map view: find DOM marker and set hover
+                                        const marker = findMarkerForEvent(event, globalEventIndex);
+                                        if (marker) {
                                             const ms = window.globeController?.interactionController?.markerService;
-                                            ms?.setDomLiteMarkerHover?.(stub);
-                                            window.globeController?.map2dLite?.playHoverRadiateLoopForStub?.(stub);
+                                            ms?.setDomLiteMarkerHover?.(marker);
+                                            // Play radiate sound effect and start continuous loop
+                                            if (window.SoundEffectsManager?.play) {
+                                                window.SoundEffectsManager.play('radiate');
+                                                // Clear any existing sound loop
+                                                if (_thumbnailHoverSoundInterval) {
+                                                    clearInterval(_thumbnailHoverSoundInterval);
+                                                }
+                                                // Start continuous sound loop (every 1.2s matches wave animation)
+                                                _thumbnailHoverSoundInterval = setInterval(() => {
+                                                    if (window.SoundEffectsManager?.play) {
+                                                        window.SoundEffectsManager.play('radiate');
+                                                    }
+                                                }, 1200);
+                                            }
+                                            // Add hover class to DOM marker button to trigger wave animation
+                                            if (marker.__domMarkerButton) {
+                                                marker.__domMarkerButton.classList.add('map-2d-lite__marker--synthetic-hover');
+                                            }
                                         }
                                         // Center map on marker
                                         if (event.lat != null && event.lon != null) {
@@ -2782,16 +2845,25 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     if (window.EventsHoverPreviewBadge?.hide) {
                                         window.EventsHoverPreviewBadge.hide();
                                     }
-                                    
+
                                     // Clear marker hover effect based on view mode
                                     const sceneModel = window.globeController?.sceneModel;
                                     const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
-                                    
+
                                     if (isMapView) {
                                         // Map view: clear DOM-lite hover and reset to default view
                                         const ms = window.globeController?.interactionController?.markerService;
                                         ms?.setDomLiteMarkerHover?.(null);
-                                        window.globeController?.map2dLite?.stopHoverRadiateLoop?.();
+                                        // Remove hover class from DOM marker button
+                                        const marker = findMarkerForEvent(event, globalEventIndex);
+                                        if (marker?.__domMarkerButton) {
+                                            marker.__domMarkerButton.classList.remove('map-2d-lite__marker--synthetic-hover');
+                                        }
+                                        // Clear continuous sound loop
+                                        if (_thumbnailHoverSoundInterval) {
+                                            clearInterval(_thumbnailHoverSoundInterval);
+                                            _thumbnailHoverSoundInterval = null;
+                                        }
                                         window.globeController?.map2dLite?.resetView?.();
                                     } else {
                                         // Globe view: clear WebGL pulse effects and restore camera
@@ -3153,18 +3225,35 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         hoverLines.yearLine || (displayEvent.yearStart ? `${displayEvent.yearStart}${displayEvent.yearEnd ? `–${displayEvent.yearEnd}` : ''}` : '')
                                     );
                                 }
-                                
+
                                 // Trigger marker hover effect based on view mode
                                 const sceneModel = window.globeController?.sceneModel;
                                 const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
-                                
+
                                 if (isMapView) {
-                                    // Map view: use stub with setDomLiteMarkerHover
-                                    const stub = createStubForMapView(event, globalEventIndex);
-                                    if (stub) {
+                                    // Map view: find DOM marker and set hover
+                                    const marker = findMarkerForEvent(event, globalEventIndex);
+                                    if (marker) {
                                         const ms = window.globeController?.interactionController?.markerService;
-                                        ms?.setDomLiteMarkerHover?.(stub);
-                                        window.globeController?.map2dLite?.playHoverRadiateLoopForStub?.(stub);
+                                        ms?.setDomLiteMarkerHover?.(marker);
+                                        // Play radiate sound effect and start continuous loop
+                                        if (window.SoundEffectsManager?.play) {
+                                            window.SoundEffectsManager.play('radiate');
+                                            // Clear any existing sound loop
+                                            if (_thumbnailHoverSoundInterval) {
+                                                clearInterval(_thumbnailHoverSoundInterval);
+                                            }
+                                            // Start continuous sound loop (every 1.2s matches wave animation)
+                                            _thumbnailHoverSoundInterval = setInterval(() => {
+                                                if (window.SoundEffectsManager?.play) {
+                                                    window.SoundEffectsManager.play('radiate');
+                                                }
+                                            }, 1200);
+                                        }
+                                        // Add hover class to DOM marker button to trigger wave animation
+                                        if (marker.__domMarkerButton) {
+                                            marker.__domMarkerButton.classList.add('map-2d-lite__marker--synthetic-hover');
+                                        }
                                     }
                                     // Center map on marker
                                     if (event.lat != null && event.lon != null) {
@@ -3184,21 +3273,30 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     }
                                 }
                             };
-                            
+
                             btn.onmouseleave = () => {
                                 if (window.EventsHoverPreviewBadge?.hide) {
                                     window.EventsHoverPreviewBadge.hide();
                                 }
-                                
+
                                 // Clear marker hover effect based on view mode
                                 const sceneModel = window.globeController?.sceneModel;
                                 const isMapView = sceneModel?.getMapViewEnabled?.() || !!sceneModel?.isMapView;
-                                
+
                                 if (isMapView) {
                                     // Map view: clear DOM-lite hover and reset to default view
                                     const ms = window.globeController?.interactionController?.markerService;
                                     ms?.setDomLiteMarkerHover?.(null);
-                                    window.globeController?.map2dLite?.stopHoverRadiateLoop?.();
+                                    // Remove hover class from DOM marker button
+                                    const marker = findMarkerForEvent(event, globalEventIndex);
+                                    if (marker?.__domMarkerButton) {
+                                        marker.__domMarkerButton.classList.remove('map-2d-lite__marker--synthetic-hover');
+                                    }
+                                    // Clear continuous sound loop
+                                    if (_thumbnailHoverSoundInterval) {
+                                        clearInterval(_thumbnailHoverSoundInterval);
+                                        _thumbnailHoverSoundInterval = null;
+                                    }
                                     window.globeController?.map2dLite?.resetView?.();
                                 } else {
                                     // Globe view: clear WebGL pulse effects and restore camera

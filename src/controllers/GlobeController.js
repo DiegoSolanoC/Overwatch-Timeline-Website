@@ -501,6 +501,10 @@ export class GlobeController {
             if (moonRig) moonRig.visible = true;
             if (marsRig) marsRig.visible = true;
             if (orbitRig) orbitRig.visible = true;
+            // Recreate globe markers when switching back from map to globe
+            if (window.globeEventMarkerManager && typeof window.globeEventMarkerManager.addEventMarkers === 'function') {
+                void window.globeEventMarkerManager.addEventMarkers(false);
+            }
         }
 
         if (this.globeView && typeof this.globeView.setGlobeSkyVisible === 'function') {
