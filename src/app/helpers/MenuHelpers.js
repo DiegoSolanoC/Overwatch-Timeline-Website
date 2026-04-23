@@ -531,6 +531,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
 
     // Container for the three main buttons (horizontal row)
     const mainButtonsRow = document.createElement('div');
+    mainButtonsRow.className = 'main-menu-buttons-row';
     mainButtonsRow.style.cssText = `
         display: flex;
         flex-direction: row;
