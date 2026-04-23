@@ -2707,6 +2707,67 @@ function syncCodexNodeDomCullFromView(nodeList) {
 /** @type {boolean} Track if View Mode has done its initial edge render */
 let codexViewModeInitialRenderDone = false;
 
+/** Check if a Codex node matches the active filters */
+function codexNodeMatchesFilters(nodeEl) {
+    if (!window.standaloneActiveFilters || window.standaloneActiveFilters.size === 0) {
+        return true; // No filters active, all nodes match
+    }
+    
+    const kind = nodeEl.dataset.codexKind;
+    const hero = nodeEl.dataset.codexHero || '';
+    const npc = nodeEl.dataset.codexNpc || '';
+    const faction = nodeEl.dataset.codexFactionFile || '';
+    const country = nodeEl.dataset.codexCountryKey || '';
+    
+    // Build filter keys for this node
+    const nodeFilterKeys = new Set();
+    if (kind === 'hero' && hero) {
+        nodeFilterKeys.add(hero);
+        nodeFilterKeys.add(`hero:${hero}`);
+    } else if (kind === 'npc' && npc) {
+        nodeFilterKeys.add(npc);
+        nodeFilterKeys.add(`npc:${npc}`);
+    } else if (kind === 'faction' && faction) {
+        nodeFilterKeys.add(faction);
+        nodeFilterKeys.add(`faction:${faction}`);
+    } else if (kind === 'country' && country) {
+        nodeFilterKeys.add(country);
+        nodeFilterKeys.add(`country:${country}`);
+    }
+    
+    // Check if any of the node's filter keys are in the active filters
+    for (const filter of window.standaloneActiveFilters) {
+        if (nodeFilterKeys.has(filter)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/** Apply filter state to all Codex nodes */
+function applyCodexFilterState() {
+    if (!root) return;
+    
+    const nodes = root.querySelectorAll('.codex-node');
+    nodes.forEach((nodeEl) => {
+        const matches = codexNodeMatchesFilters(nodeEl);
+        
+        if (matches) {
+            nodeEl.classList.remove('codex-node--filtered-out');
+            nodeEl.classList.add('codex-node--filter-match');
+        } else {
+            nodeEl.classList.add('codex-node--filtered-out');
+            nodeEl.classList.remove('codex-node--filter-match');
+        }
+    });
+}
+
+// Expose to window for FilterService to call
+if (typeof window !== 'undefined') {
+    window.applyCodexFilterState = applyCodexFilterState;
+}
+
 function redrawCodexEdges() {
     console.log('[Codex Redraw] redrawCodexEdges called - mode=' + codexMode);
     
@@ -5377,6 +5438,11 @@ function bindCodexNodeInteraction(el) {
         e.stopPropagation();
         clearPendingCodexDeleteState();
         redrawCodexEdges();
+        
+        // Prevent selection of filtered-out nodes
+        if (el.classList.contains('codex-node--filtered-out')) {
+            return;
+        }
         
         // In View Mode, allow selection but not editing/moving
         if (codexMode === 'view') {

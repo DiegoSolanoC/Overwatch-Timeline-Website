@@ -223,6 +223,11 @@ class FilterService {
         } else if (window.globeController?.eventMarkerManager) {
             window.globeController.eventMarkerManager.applyFilters();
         }
+        
+        // Apply filter state to Codex nodes
+        if (typeof window.applyCodexFilterState === 'function') {
+            window.applyCodexFilterState();
+        }
     }
     
     /**
@@ -754,6 +759,11 @@ class FilterService {
                 // Clear standalone filters and refresh UI (works even when globe is loaded)
                 if (window.standaloneActiveFilters) {
                     window.standaloneActiveFilters.clear();
+                }
+                
+                // Apply filter state to Codex nodes (clears filtered-out state)
+                if (typeof window.applyCodexFilterState === 'function') {
+                    window.applyCodexFilterState();
                 }
                 
                 // Log clear with matches (should be all events)
