@@ -76,8 +76,8 @@
       "kind": "faction",
       "factionFilename": "25Shambali Order",
       "factionDisplay": "Shambali Order",
-      "x": 8721.86,
-      "y": 7198.31,
+      "x": 8602.045658009138,
+      "y": 7837.300412080155,
       "scale": 4,
       "bgColor": "#D99012"
     },
@@ -96,8 +96,8 @@
       "kind": "faction",
       "factionFilename": "23The Chernobog Conspiracy",
       "factionDisplay": "The Chernobog Conspiracy",
-      "x": 9941.666028159982,
-      "y": 9250.9194734822,
+      "x": 9848.729391674266,
+      "y": 9259.5,
       "scale": 4,
       "bgColor": "#BB2516"
     },
@@ -116,8 +116,8 @@
       "kind": "faction",
       "factionFilename": "12The Anubis Omnic Crisis",
       "factionDisplay": "The Anubis Omnic Crisis",
-      "x": 8604.62,
-      "y": 8073.73,
+      "x": 8932.09907787406,
+      "y": 8345.304223918096,
       "scale": 3,
       "bgColor": "#FEAE3E"
     },
@@ -346,8 +346,8 @@
       "kind": "faction",
       "factionFilename": "24Oasis Ministries",
       "factionDisplay": "Oasis Ministries",
-      "x": 8942.93,
-      "y": 8736.94,
+      "x": 9006.822807088618,
+      "y": 8928.640302389907,
       "scale": 3,
       "bgColor": "#8C71BE"
     },

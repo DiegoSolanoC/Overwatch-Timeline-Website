@@ -92,6 +92,7 @@ const CODEX_DEBUG_UI_PREF_KEY = 'timelineCodexShowDebugging';
 /** @deprecated read for migration only */
 const CODEX_DEBUG_UI_PREF_KEY_LEGACY = 'timelineCodexShowJunctionControls';
 const CODEX_VISUAL_PREFS_KEY = 'timelineCodexVisualPrefs';
+const CODEX_MODE_PREF_KEY = 'timelineCodexMode';
 
 /** Default cord/packet SVG look (matches original hard-coded constants). */
 const CODEX_VISUAL_DEFAULTS = {
@@ -221,6 +222,43 @@ function updateCodexVirtualScroll() {
         console.log('[Codex Perf] updateCodexVirtualScroll started');
     }
 
+    // In View Mode, render ALL nodes (no virtual scrolling)
+    // This ensures edges render correctly since all endpoints are in DOM
+    if (codexMode === 'view') {
+        const nodesToRender = [];
+        for (const node of codexAllNodes) {
+            if (!codexRenderedNodeIds.has(node.id)) {
+                nodesToRender.push(node);
+            }
+        }
+        
+        if (CODEX_PERFORMANCE_DEBUG) {
+            console.log(`[Codex Perf] View Mode: Rendering all ${nodesToRender.length} nodes`);
+        }
+        
+        // Add all nodes
+        for (const node of nodesToRender) {
+            placeLoadedCodexNodeRecord(node);
+        }
+        
+        // Never remove nodes in View Mode
+        codexSkipAllEdgeRedraws = false;
+        codexSkipEdgeRedraw = false;
+        
+        // Trigger edge redraw after all nodes are rendered
+        if (nodesToRender.length > 0) {
+            console.log('[Codex Perf] View Mode: Triggering edge redraw after rendering nodes');
+            redrawCodexEdges();
+        }
+        
+        const elapsed = performance.now() - startTime;
+        if (CODEX_PERFORMANCE_DEBUG) {
+            console.log(`[Codex Perf] updateCodexVirtualScroll completed in ${elapsed.toFixed(2)}ms`);
+        }
+        return;
+    }
+
+    // Dev Mode: Use virtual scrolling
     const viewport = getCodexVirtualViewportBounds();
     if (!viewport) return;
 
@@ -434,6 +472,8 @@ function resolveCodexNodeScale(kind, optsScale) {
 
 /** @type {'drag'|'network'} */
 let codexInteractionMode = 'drag';
+/** @type {'dev'|'view'} */
+let codexMode = 'view';
 /** First node id picked in network mode (waiting for second tap to draw a link). */
 let networkLinkSourceId = null;
 /** @type {{ fromId: string, toId: string }[]} */
@@ -880,6 +920,8 @@ function ensureCodexNodeCoordLabel(el) {
 /** @param {NodeListOf<Element>|Element[]|undefined} [nodeList] */
 function syncCodexNodeCoordLabels(nodeList) {
     if (!root || !codexDebugUiVisible) return;
+    // Skip in View Mode for performance
+    if (codexMode === 'view') return;
     const list = nodeList || root.querySelectorAll('.codex-node');
     list.forEach((nodeEl) => {
         if (!root.contains(nodeEl)) return;
@@ -2618,6 +2660,8 @@ function ensureCodexCordAnimationLoop() {
 
 /** Batches edge redraws to one per animation frame during node drag and view zoom. */
 function scheduleRedrawCodexEdges() {
+    // In View Mode, skip scheduling after initial render (edges are static)
+    if (codexMode === 'view' && codexViewModeInitialRenderDone) return;
     if (codexEdgesRedrawRaf) return;
     // Use setTimeout to debounce and coalesce multiple rapid requests
     codexEdgesRedrawRaf = setTimeout(() => {
@@ -2660,17 +2704,51 @@ function syncCodexNodeDomCullFromView(nodeList) {
     syncCodexNodeOffscreenContentVisibility(rect, list);
 }
 
-function redrawCodexEdges() {
-    // Aggressive skip during batch node placement to prevent O(n²) behavior
-    if (codexSkipAllEdgeRedraws) {
-        if (CODEX_PERFORMANCE_DEBUG) {
-            console.log('[Codex Perf] Skipping ALL edge redraws (batch mode)');
-        }
-        return;
-    }
+/** @type {boolean} Track if View Mode has done its initial edge render */
+let codexViewModeInitialRenderDone = false;
 
+function redrawCodexEdges() {
+    console.log('[Codex Redraw] redrawCodexEdges called - mode=' + codexMode);
+    
+    // In View Mode, skip all redraws after initial render (edges are static)
+    if (codexMode === 'view') {
+        if (codexViewModeInitialRenderDone) {
+            console.log('[Codex Redraw] Skipping redraw in View Mode (already rendered)');
+            if (CODEX_PERFORMANCE_DEBUG) {
+                console.log('[Codex Perf] Skipping redraw in View Mode (already rendered)');
+            }
+            return;
+        }
+        console.log('[Codex Redraw] View Mode initial render - forcing through all skips');
+        if (CODEX_PERFORMANCE_DEBUG) {
+            console.log('[Codex Perf] View Mode initial render - forcing through all skips');
+        }
+    }
+    
+    console.log('[Codex Redraw] Skip flags - skipAll=' + codexSkipAllEdgeRedraws + ', skipEdge=' + codexSkipEdgeRedraw);
+    
+    // Aggressive skip during batch node placement to prevent O(n²) behavior
+    // BUT: allow initial View Mode render attempts
+    if (codexSkipAllEdgeRedraws) {
+        const isViewModeInitialRender = codexMode === 'view' && !codexViewModeInitialRenderDone;
+        if (!isViewModeInitialRender) {
+            console.log('[Codex Redraw] Skipping ALL edge redraws (batch mode), isViewModeInitialRender=' + isViewModeInitialRender);
+            if (CODEX_PERFORMANCE_DEBUG) {
+                console.log('[Codex Perf] Skipping ALL edge redraws (batch mode), isViewModeInitialRender=' + isViewModeInitialRender);
+            }
+            return;
+        } else {
+            console.log('[Codex Redraw] Bypassing batch skip for View Mode initial render');
+            if (CODEX_PERFORMANCE_DEBUG) {
+                console.log('[Codex Perf] Bypassing batch skip for View Mode initial render');
+            }
+        }
+    }
+    
     // Skip edge redraws when flag is set (during zoom/pan operations)
-    if (codexSkipEdgeRedraw) {
+    // BUT: allow initial View Mode render attempts
+    if (codexSkipEdgeRedraw && !(codexMode === 'view' && !codexViewModeInitialRenderDone)) {
+        console.log('[Codex Redraw] Skipping edge redraw (skip flag set)');
         if (CODEX_PERFORMANCE_DEBUG) {
             console.log('[Codex Perf] Skipping edge redraw (skip flag set)');
         }
@@ -2683,7 +2761,11 @@ function redrawCodexEdges() {
     }
 
     const svg = root?.querySelector('.codex-edges-layer');
-    if (!svg || !root) return;
+    if (!svg || !root) {
+        console.log('[Codex Redraw] No SVG or root found, aborting');
+        return;
+    }
+    console.log('[Codex Redraw] SVG found, proceeding with render');
 
     if (codexEdgesRedrawRaf) {
         clearTimeout(codexEdgesRedrawRaf);
@@ -2692,6 +2774,7 @@ function redrawCodexEdges() {
 
     const nodeList = root.querySelectorAll('.codex-node');
     const nodeCount = nodeList.length;
+    console.log('[Codex Redraw] Found ' + nodeCount + ' nodes in DOM');
 
     if (CODEX_PERFORMANCE_DEBUG) {
         console.log(`[Codex Perf] redrawCodexEdges: ${nodeCount} visible nodes, ${codexEdges.length} edges`);
@@ -2706,7 +2789,8 @@ function redrawCodexEdges() {
     svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
     svg.setAttribute('width', String(vw));
     svg.setAttribute('height', String(vh));
-    const useViewportCull =
+    // In View Mode, disable viewport culling so all edges render
+    const useViewportCull = codexMode === 'view' ? false :
         codexActiveDragNodeIds.size === 0
         && (nodeCount >= CODEX_VIEWPORT_CULL_MIN_NODES || codexEdges.length >= CODEX_VIEWPORT_CULL_MIN_EDGES);
     const visibleRect = getCodexVisibleWorldBoundsExpanded(CODEX_EDGE_CULL_MARGIN_PX);
@@ -2840,9 +2924,17 @@ function redrawCodexEdges() {
             hit.dataset.codexEdgeFrom = fromId;
             hit.dataset.codexEdgeTo = toId;
             hit.dataset.codexSeg = String(seg);
+            
+            // Skip hit targets in View Mode (no editing needed)
+            if (codexMode === 'view') continue;
+            
             hit.addEventListener('contextmenu', (evt) => {
                 evt.preventDefault();
                 evt.stopPropagation();
+                
+                // Prevent edge deletion in view mode
+                if (codexMode === 'view') return;
+                
                 const ed = findEdge(fromId, toId);
                 if (!ed) return;
                 const k = codexUnorderedPairKey(fromId, toId);
@@ -2922,18 +3014,34 @@ function redrawCodexEdges() {
     }
 
     syncCodexCordPacketState(edgePolys);
+    // Animate packets in both View Mode and Dev Mode
     if (edgePolys.length === 0) {
         codexStopCordAnimRafOnly();
     } else {
         const pktG = document.createElementNS(ns, 'g');
         pktG.classList.add('codex-edge-packets');
         contentRoot.appendChild(pktG);
+        
+        // Animate packets in both View Mode and Dev Mode
         ensureCodexCordAnimationLoop();
     }
 
     syncCodexNodeDomCullFromView(nodeList);
 
+    // Mark View Mode initial render as done after first render
+    // In View Mode, all nodes are rendered at once, so first render is complete
+    if (codexMode === 'view' && !codexViewModeInitialRenderDone) {
+        const visibleNodeCount = nodeList ? nodeList.length : 0;
+        console.log('[Codex Redraw] View Mode render complete - visibleNodeCount=' + visibleNodeCount);
+        codexViewModeInitialRenderDone = true;
+        console.log('[Codex Redraw] Marking View Mode initial render as DONE');
+        if (CODEX_PERFORMANCE_DEBUG) {
+            console.log('[Codex Perf] View Mode initial render complete with ' + visibleNodeCount + ' visible nodes');
+        }
+    }
+
     const elapsed = performance.now() - startTime;
+    console.log('[Codex Redraw] Completed in ' + elapsed.toFixed(2) + 'ms');
     if (CODEX_PERFORMANCE_DEBUG) {
         console.log(`[Codex Perf] redrawCodexEdges completed in ${elapsed.toFixed(2)}ms`);
     }
@@ -3344,6 +3452,9 @@ async function loadCodexState() {
     // Clear previously rendered nodes
     clearCodexVirtualScroll();
     
+    // Reset View Mode initial render flag when loading new layout
+    codexViewModeInitialRenderDone = false;
+    
     if (!nodes.length) {
         centerCodexViewOnWorldCenter();
         applyCodexWorldTransformStyle();
@@ -3368,7 +3479,14 @@ async function loadCodexState() {
     // Re-enable edge redraws and do one final redraw
     codexSkipAllEdgeRedraws = false;
     codexSkipEdgeRedraw = false;
-    scheduleRedrawCodexEdges();
+    
+    // In View Mode, force a redraw after nodes are loaded
+    if (codexMode === 'view') {
+        codexViewModeInitialRenderDone = false;
+        redrawCodexEdges();
+    } else {
+        scheduleRedrawCodexEdges();
+    }
 
     // Failsafe: if no nodes rendered after initial load, render all nodes
     if (codexRenderedNodeIds.size === 0 && nodes.length > 0) {
@@ -3717,6 +3835,64 @@ function ensureCodexBorderOverlay() {
     return border;
 }
 
+function ensureCodexModeToggle() {
+    if (!root) return null;
+    let modeBtn = root.querySelector('.codex-mode-toggle-btn');
+    if (!modeBtn) {
+        modeBtn = document.createElement('button');
+        modeBtn.type = 'button';
+        modeBtn.className = 'globe-control-btn codex-mode-toggle-btn';
+        modeBtn.title = 'Toggle Dev Mode (edit) / View Mode (read-only)';
+        
+        const label = document.createElement('span');
+        label.className = 'codex-mode-toggle-label';
+        label.textContent = 'Dev Mode';
+        
+        modeBtn.appendChild(label);
+        
+        modeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            codexMode = codexMode === 'view' ? 'dev' : 'view';
+            persistCodexModePref();
+            syncCodexModeClass();
+            
+            // Update button state
+            label.textContent = codexMode === 'dev' ? 'Dev Mode' : 'View Mode';
+            
+            // Play sound effect
+            if (window.SoundEffectsManager?.play) {
+                window.SoundEffectsManager.play('switchMap');
+            }
+            
+            // Flash effect
+            if (window.flashButton) {
+                window.flashButton(modeBtn);
+            } else {
+                // Fallback flash
+                modeBtn.style.transition = 'background-color 0.1s ease-out';
+                const originalBg = modeBtn.style.backgroundColor;
+                modeBtn.style.backgroundColor = 'rgba(255, 152, 0, 0.5)';
+                setTimeout(() => {
+                    modeBtn.style.backgroundColor = originalBg;
+                }, 100);
+            }
+            
+            updateCodexToolbar();
+        });
+        
+        root.appendChild(modeBtn);
+    }
+    
+    // Update initial state
+    const label = modeBtn.querySelector('.codex-mode-toggle-label');
+    if (label) {
+        label.textContent = codexMode === 'dev' ? 'Dev Mode' : 'View Mode';
+    }
+    
+    return modeBtn;
+}
+
 function cancelBackgroundPanPointerPending() {
     if (!backgroundPanPointerPending) return;
     document.removeEventListener('pointermove', onBackgroundPanMoveMaybe, capOpts);
@@ -3793,13 +3969,15 @@ function beginActualBackgroundPan(prep, firstMoveEv) {
         if (codexZoomDebounceTimer) {
             clearTimeout(codexZoomDebounceTimer);
         }
-        // Schedule debounced redraw after pan completes
-        codexZoomDebounceTimer = setTimeout(() => {
-            codexSkipAllEdgeRedraws = false;
-            codexSkipEdgeRedraw = false;
-            redrawCodexEdges();
-            codexZoomDebounceTimer = null;
-        }, 200);
+        // Schedule debounced redraw after pan completes (skip in View Mode)
+        if (codexMode !== 'view') {
+            codexZoomDebounceTimer = setTimeout(() => {
+                codexSkipAllEdgeRedraws = false;
+                codexSkipEdgeRedraw = false;
+                redrawCodexEdges();
+                codexZoomDebounceTimer = null;
+            }, 200);
+        }
     };
 
     applyClient(firstMoveEv.clientX, firstMoveEv.clientY);
@@ -3871,7 +4049,10 @@ function onHitLayerBackgroundPanPointerDown(e) {
     cancelBackgroundPanPointerPending();
     cancelPointerPending();
     clearPendingCodexDeleteState();
-    redrawCodexEdges();
+    // Skip edge redraw in View Mode (edges are static, pan uses CSS transforms)
+    if (codexMode !== 'view') {
+        redrawCodexEdges();
+    }
     armCodexBackgroundPanPendingFromEvent(e);
 }
 
@@ -3981,6 +4162,17 @@ function loadCodexDebugUiPref() {
     }
 }
 
+function loadCodexModePref() {
+    try {
+        const raw = localStorage.getItem(CODEX_MODE_PREF_KEY);
+        if (raw === 'dev' || raw === 'view') {
+            codexMode = raw;
+        }
+    } catch (_) {
+        /* keep default (view) */
+    }
+}
+
 function persistCodexDebugUiPref() {
     try {
         localStorage.setItem(CODEX_DEBUG_UI_PREF_KEY, codexDebugUiVisible ? '1' : '0');
@@ -3989,9 +4181,35 @@ function persistCodexDebugUiPref() {
     }
 }
 
+function persistCodexModePref() {
+    try {
+        localStorage.setItem(CODEX_MODE_PREF_KEY, codexMode);
+    } catch (_) {
+        /* ignore */
+    }
+}
+
 function syncCodexDebugUiClass() {
     if (!root) return;
     root.classList.toggle('codex--debug-ui-hidden', !codexDebugUiVisible);
+}
+
+function syncCodexModeClass() {
+    if (!root) return;
+    const oldMode = codexMode;
+    root.classList.toggle('codex--view-mode', codexMode === 'view');
+    root.classList.toggle('codex--dev-mode', codexMode === 'dev');
+    
+    console.log('[Codex Mode] Switching from ' + oldMode + ' to ' + codexMode);
+    
+    // Reset View Mode initial render flag when switching to View Mode
+    // This allows the first natural redraw (when nodes are loaded) to execute
+    if (codexMode === 'view') {
+        codexViewModeInitialRenderDone = false;
+        console.log('[Codex Mode] Reset View Mode initial render flag');
+        // Trigger redraw to render edges in View Mode
+        redrawCodexEdges();
+    }
 }
 
 function ensureCodexToolbarDebugToggle(bar) {
@@ -4024,6 +4242,37 @@ function ensureCodexToolbarDebugToggle(bar) {
     }
     const cb = row.querySelector('.codex-toolbar__junction-toggle');
     if (cb) cb.checked = codexDebugUiVisible;
+}
+
+function ensureCodexToolbarModeToggle(bar) {
+    if (!bar) return;
+    let row = bar.querySelector('.codex-toolbar__row--mode-toggle');
+    if (!row) {
+        row = document.createElement('div');
+        row.className = 'codex-toolbar__row codex-toolbar__row--mode-toggle';
+        const lbl = document.createElement('label');
+        lbl.className = 'codex-toolbar__mode-toggle-label';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'codex-toolbar__mode-toggle';
+        cb.title = 'Check to enable Dev Mode (edit nodes, cords, layout). Uncheck for View Mode (read-only, pan/zoom only).';
+        cb.addEventListener('change', () => {
+            codexMode = cb.checked ? 'dev' : 'view';
+            persistCodexModePref();
+            syncCodexModeClass();
+            updateCodexToolbar();
+        });
+        lbl.appendChild(cb);
+        const span = document.createElement('span');
+        span.textContent = 'Dev Mode';
+        lbl.appendChild(span);
+        row.appendChild(lbl);
+        const firstRow = bar.querySelector('.codex-toolbar__row');
+        if (firstRow) bar.insertBefore(row, firstRow);
+        else bar.appendChild(row);
+    }
+    const cb = row.querySelector('.codex-toolbar__mode-toggle');
+    if (cb) cb.checked = codexMode === 'dev';
 }
 
 function codexVisualPanelQueryHost() {
@@ -5055,6 +5304,10 @@ function bindCodexNodeInteraction(el) {
     el.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Prevent deletion in view mode
+        if (codexMode === 'view') return;
+        
         const now = Date.now();
         pruneStaleCodexSelection();
         const inSelection = codexSelectedNodeEls.has(el);
@@ -5118,6 +5371,10 @@ function bindCodexNodeInteraction(el) {
         e.stopPropagation();
         clearPendingCodexDeleteState();
         redrawCodexEdges();
+        
+        // Prevent all editing in view mode
+        if (codexMode === 'view') return;
+        
         if (codexInteractionMode === 'network') {
             e.preventDefault();
             handleNetworkNodeActivate(el);
@@ -5413,8 +5670,10 @@ export function initCodexCanvas(rootElement) {
     if (!root) return Promise.resolve();
 
     loadCodexDebugUiPref();
+    loadCodexModePref();
     loadCodexVisualPrefs();
     syncCodexDebugUiClass();
+    syncCodexModeClass();
 
     codexLayoutDirty = false;
     codexToolbarEl = null;
@@ -5433,6 +5692,7 @@ export function initCodexCanvas(rootElement) {
     ensureHitLayer();
     ensureEdgesLayer();
     ensureCodexBorderOverlay();
+    ensureCodexModeToggle();
     if (codexEdgesSvgEl) {
         codexEdgesSvgEl.addEventListener('pointerdown', codexSvgPointerDownCapture, true);
     }
@@ -5455,6 +5715,9 @@ export function initCodexCanvas(rootElement) {
         e.preventDefault();
         clearPendingCodexDeleteState();
         redrawCodexEdges();
+
+        // Prevent picker from opening in view mode
+        if (codexMode === 'view') return;
 
         let px;
         let py;
@@ -5484,6 +5747,10 @@ export function initCodexCanvas(rootElement) {
             if (t.isContentEditable) return;
         }
         if (pickerEl) return;
+        
+        // Prevent mode toggle in view mode
+        if (codexMode === 'view') return;
+        
         try {
             ev.preventDefault();
         } catch (_) { /* ignore */ }
