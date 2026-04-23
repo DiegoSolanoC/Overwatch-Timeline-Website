@@ -311,6 +311,8 @@ export class Map2DLiteLayer {
         this._wheelHandler = (e) => this._onWheel(e);
         this._boundUp = (e) => this._onPointerUp(e);
         this._boundMove = (e) => this._onPointerMove(e);
+        /** Store sound interval for continuous radiate sound on marker hover */
+        this._hoverSoundInterval = null;
     }
 
     ensureDom() {
@@ -752,14 +754,29 @@ export class Map2DLiteLayer {
                     if (stub.userData.isLocked) return;
                     const ms = window.globeController?.interactionController?.markerService;
                     ms?.setDomLiteMarkerHover?.(stub);
-                    // Play hover radiate sound
+                    // Play hover radiate sound and start continuous loop
                     if (window.SoundEffectsManager?.play) {
                         window.SoundEffectsManager.play('radiate');
+                        // Clear any existing sound loop
+                        if (this._hoverSoundInterval) {
+                            clearInterval(this._hoverSoundInterval);
+                        }
+                        // Start continuous sound loop (every 1.2s matches wave animation)
+                        this._hoverSoundInterval = setInterval(() => {
+                            if (window.SoundEffectsManager?.play) {
+                                window.SoundEffectsManager.play('radiate');
+                            }
+                        }, 1200);
                     }
                 });
                 btn.addEventListener('mouseleave', () => {
                     const ms = window.globeController?.interactionController?.markerService;
                     ms?.clearDomLiteMarkerHoverIf?.(stub);
+                    // Clear continuous sound loop
+                    if (this._hoverSoundInterval) {
+                        clearInterval(this._hoverSoundInterval);
+                        this._hoverSoundInterval = null;
+                    }
                 });
             }
 
@@ -796,9 +813,10 @@ export class Map2DLiteLayer {
 
                 // Check if same event is already open (match globe marker logic)
                 const currentIndex = window.standaloneEventSlide?.currentEventIndex;
-                if (eventIndex >= 0 && eventIndex === currentIndex) {
-                    const eventSlide = document.getElementById('eventSlide');
-                    if (eventSlide) eventSlide.classList.remove('open');
+                const eventSlide = document.getElementById('eventSlide');
+                if (eventIndex >= 0 && eventIndex === currentIndex && eventSlide && eventSlide.classList.contains('open')) {
+                    // Same event and slide is open - close it
+                    eventSlide.classList.remove('open');
                     return;
                 }
 

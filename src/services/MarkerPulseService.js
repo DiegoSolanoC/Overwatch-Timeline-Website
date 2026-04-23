@@ -186,23 +186,34 @@ class MarkerPulseService {
             ? marker.userData.pulseWaveDurationMs
             : 1200;
         const nextDelay = ringDuration + 300; // small buffer to ensure the wave completes
-        
+
         // Schedule next pulse after current duration
         marker.userData.pulseInterval = setTimeout(() => {
             // Only create new pulse if still hovering this marker
             if (this.hoveredEventMarker === marker) {
+                // Check if image overlay is visible - if so, don't create pulse
+                const eventImageOverlay = document.getElementById('eventImageOverlay');
+                if (eventImageOverlay && eventImageOverlay.classList.contains('open')) {
+                    const opacity = parseFloat(window.getComputedStyle(eventImageOverlay).opacity);
+                    if (opacity > 0.1) {
+                        // Image is visible - stop pulsing
+                        this.stopEventMarkerPulse(marker);
+                        return;
+                    }
+                }
+
                 // Check if there are any active rings
                 const activeRings = marker.userData.pulseRings.filter(ring => {
                     if (!ring || !ring.userData) return false;
                     const elapsed = Date.now() - ring.userData.startTime;
                     return elapsed < ring.userData.duration;
                 });
-                
+
                 // Only create new ring if no active rings
                 if (activeRings.length === 0) {
                     this.createPulseRing(marker);
                 }
-                
+
                 // Schedule next pulse
                 this.scheduleNextPulse(marker);
             } else {

@@ -3382,7 +3382,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             let restoreTimeoutId = null;
                             let debugIntervalId = null;
                             
-                            const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'];
+                            const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'wheel', 'mouseenter'];
+
+                            // Listen for custom markerhover event from MarkerInteractionService
+                            const onMarkerHover = () => {
+                                resetTimer();
+                            };
+                            window.addEventListener('markerhover', onMarkerHover);
                             
                             const resetTimer = () => {
                                 countdownMs = delayMs; // Reset to full 5 seconds
@@ -3424,6 +3430,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     // Must specify capture when removing too
                                     document.removeEventListener(event, resetTimer, { capture: true });
                                 });
+                                // Remove markerhover event listener
+                                window.removeEventListener('markerhover', onMarkerHover);
                             };
                             
                             // Start tracking activity

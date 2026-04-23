@@ -229,6 +229,14 @@ class MarkerInteractionService {
                 this.highlightNumberButtonForMarker(hoveredMarker);
             }
             this._syncEventsHoverPreviewFromMarker(hoveredMarker);
+
+            // Reset image auto-show timer when hovering (prevent image from coming back while interacting)
+            const imageOverlayService = window.globeController?.globeView?.imageOverlayManager;
+            if (imageOverlayService) {
+                imageOverlayService.stillnessStartTime = null;
+            }
+            // Dispatch custom event to reset image restore timer in MenuHelpers
+            window.dispatchEvent(new CustomEvent('markerhover'));
         } else {
             // Not hovering any event marker - resume auto-rotate if enabled
             const currentHovered = this.pulseService.getHoveredMarker();
@@ -395,6 +403,14 @@ class MarkerInteractionService {
             if (window.globeController?.markerPulseService) {
                 window.globeController.markerPulseService.hoveredEventMarker = null;
             }
+            // Stop pulse animation on the clicked marker
+            const hoveredMarker = this.pulseService.getHoveredMarker();
+            if (hoveredMarker) {
+                this.pulseService.stopEventMarkerPulse(hoveredMarker);
+                this.pulseService.setHoveredMarker(null);
+                this.highlightNumberButtonForMarker(null);
+                this._syncEventsHoverPreviewFromMarker(null);
+            }
             // Stop hover radiate sound loop
             if (window.globeController?.map2dLite?.stopHoverRadiateLoop) {
                 window.globeController.map2dLite.stopHoverRadiateLoop();
@@ -433,10 +449,10 @@ class MarkerInteractionService {
                 const eventData = clickedMarker.userData.event;
                 const eventIndex = events.findIndex(e => e === eventData || e.name === eventData.name);
                 const currentIndex = window.standaloneEventSlide?.currentEventIndex;
-                if (eventIndex >= 0 && eventIndex === currentIndex) {
-                    // Same event - close the event slide instead of reopening
-                    const eventSlide = document.getElementById('eventSlide');
-                    if (eventSlide) eventSlide.classList.remove('open');
+                const eventSlide = document.getElementById('eventSlide');
+                if (eventIndex >= 0 && eventIndex === currentIndex && eventSlide && eventSlide.classList.contains('open')) {
+                    // Same event and slide is open - close it
+                    eventSlide.classList.remove('open');
                     return;
                 }
                 
@@ -531,6 +547,14 @@ class MarkerInteractionService {
             this._syncEventsHoverPreviewFromMarker(markerOrNull);
             this._domLiteHoverStub = markerOrNull;
             window.globeController?.map2dLite?.setSyntheticHoverFromStub?.(markerOrNull);
+
+            // Reset image auto-show timer when hovering (prevent image from coming back while interacting)
+            const imageOverlayService = window.globeController?.globeView?.imageOverlayManager;
+            if (imageOverlayService) {
+                imageOverlayService.stillnessStartTime = null;
+            }
+            // Dispatch custom event to reset image restore timer in MenuHelpers
+            window.dispatchEvent(new CustomEvent('markerhover'));
             return;
         }
 
