@@ -419,6 +419,8 @@ async function loadToggles() {
             baseClass: 'globe-control-btn',
             iconSpanId: 'mapViewToggleIcon',
             headerOrder: 10,
+            mobileParentId: 'dockGlobeRailLeft',
+            mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'dock-globe-rail__btn'
         });
 
@@ -449,8 +451,6 @@ async function loadToggles() {
             baseClass: 'globe-control-btn',
             iconSpanId: 'weatherEffectsIcon',
             headerOrder: 30,
-            mobileParentId: 'dockGlobeRailLeft',
-            mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'weather-effects-btn dock-globe-rail__btn'
         });
 
@@ -481,7 +481,7 @@ async function loadToggles() {
             baseClass: 'globe-control-btn',
             iconSpanId: 'rotateIcon',
             headerOrder: 50,
-            mobileParentId: 'dockGlobeRailRight',
+            mobileParentId: 'dockGlobeRailLeft',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'dock-globe-rail__btn'
         });
@@ -566,7 +566,7 @@ async function loadControls() {
             baseClass: 'globe-control-btn',
             iconSpanId: 'mapViewToggleIcon',
             headerOrder: 10,
-            mobileParentId: 'dockGlobeRailRight',
+            mobileParentId: 'dockGlobeRailLeft',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'dock-globe-rail__btn'
         });
@@ -582,7 +582,7 @@ async function loadControls() {
             baseClass: 'globe-control-btn',
             iconSpanId: 'rotateIcon',
             headerOrder: 50,
-            mobileParentId: 'dockGlobeRailRight',
+            mobileParentId: 'dockGlobeRailLeft',
             mobileBaseClass: 'globe-control-btn',
             mobileClassName: 'dock-globe-rail__btn'
         });

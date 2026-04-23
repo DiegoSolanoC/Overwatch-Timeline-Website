@@ -205,15 +205,33 @@ class CameraControlService {
      * @param {Function} onPlanesVisibilityRestore - Callback to restore plane visibility
      */
     resetCameraToDefault(onPlanesVisibilityRestore) {
+        console.log('[CameraControlService.resetCameraToDefault] Called');
+        
+        // CRITICAL: Stop any station/marsShip following first
+        console.log('[CameraControlService.resetCameraToDefault] Stopping station/marsShip follow');
+        if (window.globeController?.interactionController) {
+            window.globeController.interactionController.stopFollowingStation();
+        }
+        
         const camera = this.sceneModel.getCamera();
         const globe = this.sceneModel.getGlobe();
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
         const renderer = this.sceneModel.getRenderer();
         
-        if (!camera || !globe) return;
+        console.log('[CameraControlService.resetCameraToDefault] isMapView:', isMapView);
+        console.log('[CameraControlService.resetCameraToDefault] camera exists:', !!camera);
+        console.log('[CameraControlService.resetCameraToDefault] globe exists:', !!globe);
+        console.log('[CameraControlService.resetCameraToDefault] camera position before:', camera ? camera.position.clone() : 'no camera');
+        console.log('[CameraControlService.resetCameraToDefault] globe rotation before:', globe ? { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z } : 'no globe');
+        
+        if (!camera || !globe) {
+            console.log('[CameraControlService.resetCameraToDefault] Early return - missing camera or globe');
+            return;
+        }
 
         if (isMapView) {
+            console.log('[CameraControlService.resetCameraToDefault] Map view mode - calling map2dLite.resetView');
             if (onPlanesVisibilityRestore) {
                 onPlanesVisibilityRestore();
             }
@@ -223,15 +241,22 @@ class CameraControlService {
                 this.sceneModel.autoRotateTimeout = null;
             }
             window.globeController?.map2dLite?.resetView?.();
+            console.log('[CameraControlService.resetCameraToDefault] Map view reset complete');
             return;
         }
         
         // Restore plane visibility for Moon/Mars events (they might have been hidden by Earth event zoom)
         if (onPlanesVisibilityRestore) {
+            console.log('[CameraControlService.resetCameraToDefault] Restoring plane visibility');
             onPlanesVisibilityRestore();
+        } else {
+            // If no callback provided, try to restore via interactionController
+            console.log('[CameraControlService.resetCameraToDefault] No restore callback, trying interactionController');
+            window.globeController?.interactionController?.restorePlanesVisibility?.();
         }
         
         // Disable auto-rotate
+        console.log('[CameraControlService.resetCameraToDefault] Disabling auto-rotate');
         this.sceneModel.setAutoRotate(false);
         if (this.sceneModel.autoRotateTimeout) {
             clearTimeout(this.sceneModel.autoRotateTimeout);
@@ -241,10 +266,13 @@ class CameraControlService {
         // Default camera position and (optionally) globe rotation
         // On mobile portrait, use more zoomed out position to show Moon/Mars panels
         const isMobilePortrait = this.sceneModel.isMobilePortrait || (window.innerWidth <= 768 && window.innerHeight > window.innerWidth);
-        let defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+        let defaultZoom = isMobilePortrait ? 7.0 : 3.5;
+        console.log('[CameraControlService.resetCameraToDefault] isMobilePortrait:', isMobilePortrait);
+        console.log('[CameraControlService.resetCameraToDefault] defaultZoom:', defaultZoom);
 
         // Map view: fit whole map (same perspective 3D pipeline as Moon/Mars planes).
         if (isMapView && camera && earthMapPlane && renderer) {
+            console.log('[CameraControlService.resetCameraToDefault] Calculating map fit zoom');
             const rect = renderer.domElement.getBoundingClientRect();
             const viewportW = Math.max(1, rect.width);
             const viewportH = Math.max(1, rect.height);
@@ -256,28 +284,36 @@ class CameraControlService {
             const fitDistH = halfMapH / tan;
             const fitDistW = halfMapW / (tan * aspect);
             defaultZoom = Math.max(1.6, Math.min(fitDistH, fitDistW) * 0.98);
+            console.log('[CameraControlService.resetCameraToDefault] Calculated map fit zoom:', defaultZoom);
         }
 
         const targetPosition = new THREE.Vector3(0, 0, defaultZoom);
         const targetRotation = { x: 0, y: 0, z: 0 };
+        console.log('[CameraControlService.resetCameraToDefault] targetPosition:', targetPosition);
+        console.log('[CameraControlService.resetCameraToDefault] targetRotation:', targetRotation);
 
-        // Map: snap to default framing (no lerp) — avoids “flying into” the plane while staying true perspective 3D.
+        // Map: snap to default framing (no lerp) — avoids "flying into" the plane while staying true perspective 3D.
         if (isMapView && earthMapPlane && renderer) {
+            console.log('[CameraControlService.resetCameraToDefault] Map view - snapping to position');
             camera.position.copy(targetPosition);
             const clamped = this._clampMapXY(camera.position.x, camera.position.y, camera.position.z);
             camera.position.x = clamped.x;
             camera.position.y = clamped.y;
             camera.lookAt(camera.position.x, camera.position.y, 0);
+            console.log('[CameraControlService.resetCameraToDefault] Map view snap complete, final position:', camera.position.clone());
             return;
         }
         
         // Animate camera to default position (globe)
+        console.log('[CameraControlService.resetCameraToDefault] Globe view - animating to default');
         const startPosition = camera.position.clone();
         const startRotation = {
             x: globe.rotation.x,
             y: globe.rotation.y,
             z: globe.rotation.z
         };
+        console.log('[CameraControlService.resetCameraToDefault] startPosition:', startPosition);
+        console.log('[CameraControlService.resetCameraToDefault] startRotation:', startRotation);
         
         const duration = 500; // 0.5 second animation
         const startTime = Date.now();
@@ -306,12 +342,16 @@ class CameraControlService {
                 camera.position.y = clamped.y;
                 camera.lookAt(camera.position.x, camera.position.y, 0);
             } else {
-                // Globe view: look at origin.
+                // Globe view: look at origin (earth globe center).
                 camera.lookAt(0, 0, 0);
             }
             
             if (progress < 1) {
                 requestAnimationFrame(animate);
+            } else {
+                console.log('[CameraControlService.resetCameraToDefault] Animation complete');
+                console.log('[CameraControlService.resetCameraToDefault] Final camera position:', camera.position.clone());
+                console.log('[CameraControlService.resetCameraToDefault] Final globe rotation:', { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z });
             }
         };
         

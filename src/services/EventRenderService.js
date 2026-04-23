@@ -690,7 +690,15 @@ class EventRenderService {
         // Don't use cache busting for initial loads - let browser cache work for performance
         const imagePathWithCache = imagePath || null;
         
-        const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
+        // Use same logic as eventRootSlotMissingDescription
+        const d = displayEvent.description;
+        let hasDescription = false;
+        if (d) {
+            const textContent = d.replace(/<[^>]*>/g, '').trim();
+            if (textContent !== 'No description available.' && textContent !== 'No description available' && textContent.length > 0) {
+                hasDescription = true;
+            }
+        }
         const isUnfinished = !hasDescription;
         item.classList.toggle('event-item--unfinished', isUnfinished);
 

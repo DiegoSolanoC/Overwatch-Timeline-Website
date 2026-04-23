@@ -59,10 +59,147 @@
         font-size: 12px !important;
     }
 
-    body.map-view-enabled .dock-globe-rail--right > .globe-control-btn#autoRotateToggle {
+    /* Remove gap from dock rail on mobile */
+    .dock-globe-rail {
+        gap: 8px !important;
+        justify-content: center !important;
+    }
+
+    /* Center left dock rail on mobile portrait (has 3 buttons) */
+    .dock-globe-rail--left {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+
+    /* Keep right dock rail on right side (has 2 buttons) */
+    .dock-globe-rail--right {
+        left: auto !important;
+        right: 20px !important;
+        transform: none !important;
+    }
+
+    /* Hide labels on dock rail buttons on mobile - show only icons */
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn .header-hub-btn-label,
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn span:not([id$="Icon"]) {
+        display: none !important;
+    }
+
+    /* Center icons in dock rail buttons on mobile */
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn {
+        justify-content: center !important;
+        padding: 0 !important;
+    }
+
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn [id$="Icon"] {
+        margin-right: 0 !important;
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Make page input container smaller on mobile portrait */
+    body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-input-container {
+        flex: 0 1 auto !important;
+        width: auto !important;
+        max-width: 280px !important;
+        min-width: auto !important;
+        padding: 6px 12px !important;
+        gap: 8px !important;
+    }
+
+    /* Style Events and Filters buttons in page controls row on mobile portrait */
+    .page-controls-row--mobile-only #eventsManageToggle,
+    .page-controls-row--mobile-only #filtersToggle {
+        position: relative !important;
+        inset: auto !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        max-width: 44px !important;
+        min-height: 44px !important;
+        max-height: 44px !important;
+        aspect-ratio: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        pointer-events: auto !important;
+        transform: skewX(-11deg) !important;
+        border-radius: 8px !important;
+        gap: 0 !important;
+        background: var(--btn-primary-bg) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Hide labels for Events and Filters buttons in page controls row */
+    .page-controls-row--mobile-only #eventsManageToggle .header-hub-btn-label,
+    .page-controls-row--mobile-only #filtersToggle .header-hub-btn-label,
+    .page-controls-row--mobile-only #eventsManageToggle span:not([id$="Icon"]),
+    .page-controls-row--mobile-only #filtersToggle span:not([id$="Icon"]) {
+        display: none !important;
+    }
+
+    /* Icon sizing for Events and Filters buttons in page controls row */
+    .page-controls-row--mobile-only #eventsManageToggle [id$="Icon"],
+    .page-controls-row--mobile-only #filtersToggle [id$="Icon"] {
+        width: 28px !important;
+        height: 28px !important;
+        margin: 0 !important;
+    }
+
+    /* Adjust page label and total font size for smaller container */
+    body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-label,
+    body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-total {
+        font-size: clamp(13px, 3vmin, 16px) !important;
+    }
+
+    body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-input {
+        font-size: clamp(15px, 3.5vmin, 18px) !important;
+        width: 3.5rem !important;
+        max-width: 70px !important;
+        min-width: 50px !important;
+        height: 32px !important;
+    }
+
+    /* Center pagination dock on mobile portrait */
+    body.pagination-dock-mobile-locked:has(#paginationDock) .pagination-dock {
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    body.pagination-dock-mobile-locked:has(#paginationDock) .event-pagination {
+        align-items: center !important;
+        justify-content: center !important;
+        /* Override asymmetric padding to center the content */
+        padding-left: calc(env(safe-area-inset-left, 0px) + clamp(28px, 5vw, 88px)) !important;
+        padding-right: calc(env(safe-area-inset-right, 0px) + clamp(28px, 5vw, 88px)) !important;
+    }
+
+    /* Override timeline-loaded padding on mobile portrait for centering */
+    body.pagination-dock-mobile-locked:has(#paginationDock):has(footer.timeline-loaded) .event-pagination {
+        padding-left: calc(env(safe-area-inset-left, 0px) + clamp(28px, 5vw, 88px)) !important;
+        padding-right: calc(env(safe-area-inset-right, 0px) + clamp(28px, 5vw, 88px)) !important;
+    }
+
+    /* Hide codex controls on mobile portrait */
+    .codex-toolbar,
+    .codex-visual-panel {
         display: none !important;
         visibility: hidden !important;
         pointer-events: none !important;
+    }
+
+    /* Globe-locked state for map view - same as desktop */
+    .globe-control-btn.globe-locked {
+        opacity: 0.25 !important;
+        pointer-events: none !important;
+        filter: grayscale(0.8) !important;
+        cursor: default !important;
     }
 
     .globe-control-btn.bottom-right-btn {
@@ -183,7 +320,7 @@
         padding: 0 !important;
         border: none !important;
         transform: translateY(100%);
-        transition: transform 0.3s ease !important;
+        transition: transform 0.3s ease, top 0.3s ease !important;
         box-sizing: border-box !important;
         visibility: hidden !important;
         opacity: 0 !important;
@@ -201,21 +338,26 @@
         opacity: 1 !important;
     }
 
-    /* Full Text Display: sheet fills header→footer like filters/music; covers globe + image strip */
-    .event-slide.open.event-slide--mobile-full-text {
+    /* Full screen mode when image is hidden on mobile - higher specificity */
+    .event-slide.open.full-screen:not(.event-slide--mobile-full-text) {
         top: 60px !important;
         bottom: var(--footer-height) !important;
-        transform: translateY(0) !important;
-        z-index: 210 !important;
+        height: auto !important;
+        transition: transform 0.3s ease, top 0.3s ease !important;
     }
 
-    .event-slide.open.event-slide--mobile-full-text ~ .event-image-overlay {
-        visibility: hidden !important;
+    /* Ensure image overlay is hidden when not open on mobile */
+    .event-image-overlay:not(.open) {
+        display: none !important;
         opacity: 0 !important;
-        pointer-events: none !important;
+        visibility: hidden !important;
         height: 0 !important;
-        min-height: 0 !important;
-        overflow: hidden !important;
+        width: 0 !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        position: absolute !important;
     }
 
     .event-slide-close {

@@ -15,10 +15,12 @@ class StationFollowService {
      * @param {Object} marker - The station marker to follow
      */
     startFollowingStation(marker) {
+        console.log('[StationFollowService.startFollowingStation] Called with marker:', marker);
         // Stop any existing following
         this.stopFollowingStation();
         
         this.followingStationMarker = marker;
+        this.isFollowingActive = true; // Flag to track if follow is active
         
         // Store original camera position if not already stored
         const camera = this.sceneModel.getCamera();
@@ -34,7 +36,9 @@ class StationFollowService {
         
         // Start continuous following animation
         const followStation = () => {
-            if (!this.followingStationMarker) {
+            // CRITICAL: Check if follow is still active before each frame
+            if (!this.isFollowingActive || !this.followingStationMarker) {
+                console.log('[StationFollowService.followStation] Follow deactivated, stopping animation');
                 return; // Stop if no longer following
             }
             
@@ -43,6 +47,7 @@ class StationFollowService {
             const earthMapPlane = this.sceneModel.getEarthMapPlane ? this.sceneModel.getEarthMapPlane() : this.sceneModel.earthMapPlane;
             const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
             if (!camera || !marker) {
+                console.log('[StationFollowService.followStation] Missing camera or marker, stopping');
                 this.stopFollowingStation();
                 return;
             }
@@ -114,11 +119,41 @@ class StationFollowService {
      * Stop following the station marker
      */
     stopFollowingStation() {
-        this.followingStationMarker = null;
+        console.log('[StationFollowService.stopFollowingStation] Called');
+        console.log('[StationFollowService.stopFollowingStation] followingStationMarker:', this.followingStationMarker);
+        console.log('[StationFollowService.stopFollowingStation] followStationAnimationId:', this.followStationAnimationId);
+        console.log('[StationFollowService.stopFollowingStation] isFollowingActive:', this.isFollowingActive);
+        
+        // CRITICAL: Set flag to false first to prevent animation loop from continuing
+        this.isFollowingActive = false;
+        
+        // Cancel animation frame
         if (this.followStationAnimationId !== null) {
+            console.log('[StationFollowService.stopFollowingStation] Canceling animation frame');
             cancelAnimationFrame(this.followStationAnimationId);
             this.followStationAnimationId = null;
         }
+        
+        // Clear the marker reference
+        this.followingStationMarker = null;
+        
+        // CRITICAL: Force camera to look at earth globe center to break any follow lock
+        const camera = this.sceneModel.getCamera();
+        const globe = this.sceneModel.getGlobe();
+        if (camera && globe) {
+            console.log('[StationFollowService.stopFollowingStation] Forcing camera to look at earth center');
+            console.log('[StationFollowService.stopFollowingStation] Camera position before force:', camera.position.clone());
+            console.log('[StationFollowService.stopFollowingStation] Globe position:', globe.position.clone());
+            console.log('[StationFollowService.stopFollowingStation] Globe rotation:', { x: globe.rotation.x, y: globe.rotation.y, z: globe.rotation.z });
+            
+            // Force camera to look at globe center (world position)
+            camera.lookAt(0, 0, 0);
+            
+            console.log('[StationFollowService.stopFollowingStation] Camera position after force:', camera.position.clone());
+            console.log('[StationFollowService.stopFollowingStation] Camera quaternion after force:', camera.quaternion.clone());
+        }
+        
+        console.log('[StationFollowService.stopFollowingStation] Complete - followingStationMarker:', this.followingStationMarker, 'followStationAnimationId:', this.followStationAnimationId, 'isFollowingActive:', this.isFollowingActive);
     }
 
     /**

@@ -3493,7 +3493,7 @@
       "name": "Deadlock Rebels",
       "locationType": "earth",
       "cityDisplayName": "Bellaire, United States",
-      "description": "Years of neglect led Ashe to constantly breaking the law, and gaining a reputation with the authorities. On one occasion, she was arrested for armed assault inspired by it being in self-defense. While spending time in jail, waiting to be bailed out, she met Cole Cassidy in the cell block. Like many others around the area, he was employed by nearby Megafarms after they lost their Omnic staff. The farms were filled with refugees during the war, and eventually they came to be used for cheap labor. Cass had ended up locked after a brawl broke out among the farmhands. Ashe came to envy her new friend, for the freedom he had as a ruffian, drifting away without having to answer to anybody.\n\n\n\nAfter the bailout, Ashe was greeted by disapproving parents on a holoscreen, not even trying to listen to her side of the story. They had grown tired of her actions and decided that once she turned 18, they would cut off from the family and its finances. In a fit of anger, Ashe plotted how to get back at her family for how they treated her, and realized selling Arbalest goods to the black market would be the best way to bite back, but in order to do so she needed to pull a heist. Ashe and B.O.B would then drive by the Ace Valentine megafarm to pick up Cassidy, and together they started to assemble a team to steal from the Arbalest facilities her family controlled. \n\n\n\nA fellow farmhand, demolitionist Julian, a hired hacker going by Frankie, and the champion of the local hovercycle racetrack, Dezba joined the operation of what would later become the Deadlock Rebels, a gang of thieves who primarily targeted Arbalest, and quickly grew in notoriety and scope across America. The harsh life after the crisis had led to the rise of gang activity across the now called \"New West\" and Ashe used her business skills to form alliances across the many gangs looking for a piece of the pie. Without her family, she had established her own weapons trading empire, as well as a newfound family of her own.",
+      "description": "Years of neglect led Ashe to constantly breaking the law, and gaining a reputation with the authorities. On one occasion, she was arrested for armed assault inspired by it being in self-defense. While spending time in jail, waiting to be bailed out, she met Cole Cassidy in the cell block. Like many others around the area, he was employed by nearby Megafarms after they lost their Omnic staff. The farms were filled with refugees during the war, and eventually they came to be used for cheap labor. Cass had ended up locked after a brawl broke out among the farmhands. Ashe came to envy her new friend, for the freedom he had as a ruffian, drifting away without having to answer to anybody.<br><br>After the bailout, Ashe was greeted by disapproving parents on a holoscreen, not even trying to listen to her side of the story. They had grown tired of her actions and decided that once she turned 18, they would cut off from the family and its finances. In a fit of anger, Ashe plotted how to get back at her family for how they treated her, and realized selling Arbalest goods to the black market would be the best way to bite back, but in order to do so she needed to pull a heist. Ashe and B.O.B would then drive by the Ace Valentine megafarm to pick up Cassidy, and together they started to assemble a team to steal from the Arbalest facilities her family controlled. <br><br>A fellow farmhand, demolitionist Julian, a hired hacker going by Frankie, and the champion of the local hovercycle racetrack, Dezba joined the operation of what would later become the Deadlock Rebels, a gang of thieves who primarily targeted Arbalest, and quickly grew in notoriety and scope across America. The harsh life after the crisis had led to the rise of gang activity across the now called \"New West\" and Ashe used her business skills to form alliances across the many gangs looking for a piece of the pie. Without her family, she had established her own weapons trading empire, as well as a newfound family of her own.",
       "image": "",
       "filters": [
         "Cassidy",
@@ -3508,7 +3508,8 @@
       "eraName": "The Golden Age",
       "yearEnd": null,
       "npcs": [
-        "B.O.B"
+        "B.O.B",
+        "Frankie"
       ],
       "secondaryCountryFlags": [],
       "headlines": [
@@ -7770,7 +7771,7 @@
       "name": "From the Ashes",
       "locationType": "earth",
       "cityDisplayName": "Watchpoint Gibraltar",
-      "description": "",
+      "description": "<br>",
       "image": "",
       "filters": [
         "Ana",
@@ -7796,20 +7797,25 @@
         "Jetpack Cat"
       ],
       "factions": [
-        "00Overwatch",
-        "34Talon Empire"
+        "Overwatch",
+        "Talon Empire"
       ],
       "lat": 36.1408,
       "lon": -5.3536,
       "eraName": "The Reign of Talon",
-      "yearStart": 2080
+      "yearStart": 2080,
+      "yearEnd": null,
+      "npcs": [],
+      "secondaryCountryFlags": [],
+      "headlines": [],
+      "sources": []
     },
     {
       "locationType": "earth",
       "cityDisplayName": "Watchpoint: Grand Mesa, United States",
       "image": "",
-      "name": "Summit Breach",
-      "description": "",
+      "name": "Crossroads",
+      "description": "<br>",
       "filters": [
         "Sierra",
         "Sojourn",
@@ -7834,7 +7840,73 @@
       "yearEnd": null,
       "npcs": [],
       "headlines": [],
-      "secondaryCountryFlags": []
+      "secondaryCountryFlags": [],
+      "variants": [
+        {
+          "name": "Crossroads",
+          "description": "<br>",
+          "filters": [
+            "Sierra",
+            "Sojourn",
+            "Freja",
+            "Emre"
+          ],
+          "factions": [
+            "Helix Securities",
+            "Overwatch",
+            "Talon Empire"
+          ],
+          "npcs": [],
+          "sources": [
+            {
+              "text": "Cross Roads",
+              "url": "https://overwatch.blizzard.com/en-us/media/comic/crossroads/"
+            }
+          ],
+          "headlines": [],
+          "locationType": "earth",
+          "lat": 39.1131257,
+          "lon": -108.0127646,
+          "cityDisplayName": "Watchpoint: Grand Mesa, United States",
+          "yearStart": 2080,
+          "yearEnd": null,
+          "eraName": "The Reign of Talon",
+          "secondaryCountryFlags": []
+        },
+        {
+          "name": "Summit Breach",
+          "description": "<br>",
+          "cityDisplayName": "Watchpoint: Grand Mesa, United States",
+          "yearStart": "2080",
+          "yearEnd": "",
+          "eraName": "The Reign of Talon",
+          "filters": [
+            "Sierra",
+            "Sojourn",
+            "Freja",
+            "Emre"
+          ],
+          "factions": [
+            "Helix Securities",
+            "Overwatch",
+            "Talon Empire"
+          ],
+          "npcs": [],
+          "headlines": [],
+          "sources": [
+            {
+              "text": "Summit Breach",
+              "url": "https://www.youtube.com/watch?v=lxz-055QD6Q"
+            }
+          ],
+          "lat": 39.1131257,
+          "lon": -108.0127646,
+          "locationType": "earth",
+          "secondaryCountryFlags": [],
+          "x": null,
+          "y": null
+        }
+      ]
     }
   ]
 }

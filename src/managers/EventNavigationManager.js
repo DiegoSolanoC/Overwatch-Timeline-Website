@@ -57,7 +57,17 @@ function eventRootSlotMissingDescription(rootEvent) {
     if (!rootEvent) return true;
     const displayEv = getDisplayEventForPaginationThumb(rootEvent) || rootEvent;
     const d = displayEv && displayEv.description;
-    return !(d && String(d).trim().length > 0);
+    if (!d) return true;
+    
+    // Strip HTML tags to check for actual content
+    const textContent = d.replace(/<[^>]*>/g, '').trim();
+    
+    // Also treat "No description available." as empty
+    if (textContent === 'No description available.' || textContent === 'No description available') {
+        return true;
+    }
+    
+    return textContent.length === 0;
 }
 
 /**
@@ -306,7 +316,7 @@ function thumbPageTurnGrowKeyframes(isThumbsDesktop, locked) {
  * Mobile helper constants
  */
 const MOBILE_BREAKPOINT = 768;
-const MOBILE_PORTRAIT_ZOOM = 5.5;
+const MOBILE_PORTRAIT_ZOOM = 7.0;
 const DEFAULT_ZOOM = 3.5;
 
 export class EventNavigationManager {
@@ -422,7 +432,8 @@ export class EventNavigationManager {
                     const isMultiEvent = targetEvent.variants && targetEvent.variants.length > 0;
                     const displayEvent = isMultiEvent ? targetEvent.variants[0] : targetEvent;
                     const locationType = getLocationType(eventMarker, displayEvent);
-                    handleLocationTypeCamera(window.globeController.interactionController, eventMarker, locationType);
+                    const sceneModel = window.globeController?.sceneModel;
+                    handleLocationTypeCamera(window.globeController.interactionController, eventMarker, locationType, sceneModel);
                 }
             }
 
@@ -1167,8 +1178,16 @@ export class EventNavigationManager {
                         getPlainEventTitleForHover(displayEv)
                         || getPlainEventTitleForHover(targetEvent)
                         || `Event ${position}`;
-                    const hasDescription =
-                        displayEv.description && String(displayEv.description).trim().length > 0;
+                    
+                    // Use same logic as eventRootSlotMissingDescription
+                    const d = displayEv.description;
+                    let hasDescription = false;
+                    if (d) {
+                        const textContent = d.replace(/<[^>]*>/g, '').trim();
+                        if (textContent !== 'No description available.' && textContent !== 'No description available' && textContent.length > 0) {
+                            hasDescription = true;
+                        }
+                    }
                     btn.classList.toggle('event-number-btn--unfinished', !hasDescription);
                     btn.title = hasDescription ? plainName : `${plainName} — Unfinished: missing description`;
                     if (nameEl) {

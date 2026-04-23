@@ -392,11 +392,10 @@ export function updateStandalonePaginationForFilters() {
     updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage);
     
     // === GLOBE INTEGRATION ===
-    // Sync filters to Globe markers via EventMarkerManager (if it exists)
-    if (window.globeEventMarkerManager) {
-        console.log(`[FILTER DEBUG]    Syncing to globe markers...`);
-        window.globeEventMarkerManager.applyFilters();
-    }
+    // NOTE: Do NOT call applyFilters here - it creates an infinite loop:
+    // updateStandalonePaginationForFilters -> applyFilters -> _syncPaginationUiAfterFilters -> updateStandalonePaginationForFilters
+    // applyFilters already calls back to this function via _syncPaginationUiAfterFilters
+    // The sync should only go one way: applyFilters -> updateStandalonePaginationForFilters
 }
 
 /**
@@ -407,7 +406,17 @@ function eventRootSlotMissingDescription(rootEvent) {
     // Get display event (first variant if available, otherwise root)
     const displayEv = rootEvent.variants?.[0] || rootEvent;
     const d = displayEv?.description;
-    return !(d && String(d).trim().length > 0);
+    if (!d) return true;
+    
+    // Strip HTML tags to check for actual content
+    const textContent = d.replace(/<[^>]*>/g, '').trim();
+    
+    // Also treat "No description available." as empty
+    if (textContent === 'No description available.' || textContent === 'No description available') {
+        return true;
+    }
+    
+    return textContent.length === 0;
 }
 
 /**
@@ -685,7 +694,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                     parentId: 'dockGlobeRailRight',
                     baseClass: 'globe-control-btn',
                     headerOrder: 10,
-                    mobileParentId: 'dockGlobeRailRight',
+                    mobileParentId: 'dockGlobeRailLeft',
                     mobileBaseClass: 'globe-control-btn',
                     mobileClassName: 'dock-globe-rail__btn'
                 });
@@ -700,10 +709,60 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                     parentId: 'dockGlobeRailRight',
                     baseClass: 'globe-control-btn',
                     headerOrder: 5,
-                    mobileParentId: 'dockGlobeRailRight',
+                    mobileParentId: 'dockGlobeRailLeft',
                     mobileBaseClass: 'globe-control-btn',
-                    mobileClassName: 'dock-globe-rail__btn'
+                    mobileClassName: 'dock-globe-rail__btn',
+                    desktopParentId: 'dockGlobeRailRight',
+                    desktopClassName: 'dock-globe-rail__btn'
                 });
+
+                // Move Events and Filters buttons to page controls row on mobile portrait
+                function moveButtonsToPageControlsRow() {
+                    const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                    const pageControlsRow = document.querySelector('.page-controls-row--mobile-only');
+                    const pageInputContainer = document.querySelector('.page-input-container');
+                    const rightRail = document.getElementById('dockGlobeRailRight');
+                    const eventsBtn = document.getElementById('eventsManageToggle');
+                    const filtersBtn = document.getElementById('filtersToggle');
+                    
+                    if (isMobilePortrait && pageControlsRow && pageInputContainer) {
+                        if (eventsBtn && eventsBtn.parentElement !== pageControlsRow) {
+                            // Clear any inline styles that might interfere
+                            eventsBtn.style.position = '';
+                            eventsBtn.style.top = '';
+                            eventsBtn.style.left = '';
+                            eventsBtn.style.right = '';
+                            eventsBtn.style.bottom = '';
+                            // Insert before the page input container (left side)
+                            pageControlsRow.insertBefore(eventsBtn, pageInputContainer);
+                        }
+                        if (filtersBtn && filtersBtn.parentElement !== pageControlsRow) {
+                            // Clear any inline styles that might interfere
+                            filtersBtn.style.position = '';
+                            filtersBtn.style.top = '';
+                            filtersBtn.style.left = '';
+                            filtersBtn.style.right = '';
+                            filtersBtn.style.bottom = '';
+                            // Insert after the page input container (right side)
+                            pageControlsRow.insertBefore(filtersBtn, pageInputContainer.nextSibling);
+                        }
+                    } else if (rightRail) {
+                        // Move back to right rail on desktop or landscape
+                        if (eventsBtn && eventsBtn.parentElement !== rightRail) {
+                            rightRail.appendChild(eventsBtn);
+                        }
+                        if (filtersBtn && filtersBtn.parentElement !== rightRail) {
+                            rightRail.appendChild(filtersBtn);
+                        }
+                    }
+                }
+
+                // Run immediately
+                moveButtonsToPageControlsRow();
+
+                // Also run on window resize/orientation change
+                window.addEventListener('resize', moveButtonsToPageControlsRow);
+                window.addEventListener('orientationchange', moveButtonsToPageControlsRow);
 
                 // Initialize EventManager if not already loaded
                 if (!window.eventManager) {
@@ -962,6 +1021,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const variantToggles = document.getElementById('eventVariantToggles');
                             const editBtn = document.getElementById('eventSlideEditBtn');
                             const saveBtn = document.getElementById('eventSlideSaveBtn');
+                            const eventSlideLocation = document.getElementById('eventSlideLocation');
+                            const eventSlideTimelineMeta = document.getElementById('eventSlideTimelineMeta');
                             
                             if (!eventSlide) return;
                             
@@ -987,6 +1048,41 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             }
                             if (eventSlideText) {
                                 eventSlideText.innerHTML = applyGlitch(description) || 'No description available.';
+                            }
+                            
+                            // Display location and years under title
+                            const target = displayEvent || eventData;
+                            if (eventSlideLocation && target.cityDisplayName) {
+                                // Get location flag
+                                const lh = window.LocationFlagHelpers;
+                                const flagFile = lh?.getResolvedFlagFilename?.(target.cityDisplayName, target.locationType || 'earth');
+                                
+                                if (flagFile) {
+                                    eventSlideLocation.innerHTML = `<img class="event-slide-location-flag" src="assets/images/flags/${flagFile}" alt="" width="24" height="16" decoding="async"> ${target.cityDisplayName}`;
+                                } else {
+                                    eventSlideLocation.textContent = target.cityDisplayName;
+                                }
+                                eventSlideLocation.style.display = 'block';
+                            } else if (eventSlideLocation) {
+                                eventSlideLocation.style.display = 'none';
+                            }
+                            
+                            if (eventSlideTimelineMeta) {
+                                const yearStart = target.yearStart || target.year;
+                                const yearEnd = target.yearEnd;
+                                let yearText = '';
+                                if (yearStart) {
+                                    yearText = String(yearStart);
+                                    if (yearEnd) {
+                                        yearText += ` – ${yearEnd}`;
+                                    }
+                                }
+                                if (yearText) {
+                                    eventSlideTimelineMeta.textContent = yearText;
+                                    eventSlideTimelineMeta.style.display = 'block';
+                                } else {
+                                    eventSlideTimelineMeta.style.display = 'none';
+                                }
                             }
                             
                             // Setup glitch toggle button
@@ -1083,6 +1179,40 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                             if (eventSlideTitle) eventSlideTitle.innerHTML = applyGlitch(vName);
                                             if (eventSlideText) eventSlideText.innerHTML = applyGlitch(vDesc) || 'No description available.';
                                             
+                                            // Update location and years for variant
+                                            if (eventSlideLocation && v.cityDisplayName) {
+                                                // Get location flag for variant
+                                                const lh = window.LocationFlagHelpers;
+                                                const flagFile = lh?.getResolvedFlagFilename?.(v.cityDisplayName, v.locationType || 'earth');
+                                                
+                                                if (flagFile) {
+                                                    eventSlideLocation.innerHTML = `<img class="event-slide-location-flag" src="assets/images/flags/${flagFile}" alt="" width="24" height="16" decoding="async"> ${v.cityDisplayName}`;
+                                                } else {
+                                                    eventSlideLocation.textContent = v.cityDisplayName;
+                                                }
+                                                eventSlideLocation.style.display = 'block';
+                                            } else if (eventSlideLocation) {
+                                                eventSlideLocation.style.display = 'none';
+                                            }
+                                            
+                                            if (eventSlideTimelineMeta) {
+                                                const vYearStart = v.yearStart || v.year;
+                                                const vYearEnd = v.yearEnd;
+                                                let vYearText = '';
+                                                if (vYearStart) {
+                                                    vYearText = String(vYearStart);
+                                                    if (vYearEnd) {
+                                                        vYearText += ` – ${vYearEnd}`;
+                                                    }
+                                                }
+                                                if (vYearText) {
+                                                    eventSlideTimelineMeta.textContent = vYearText;
+                                                    eventSlideTimelineMeta.style.display = 'block';
+                                                } else {
+                                                    eventSlideTimelineMeta.style.display = 'none';
+                                                }
+                                            }
+                                            
                                             // Update image for variant
                                             const vImagePath = window.eventManager?.getEventImagePath 
                                                 ? window.eventManager.getEventImagePath(v.name, v.image)
@@ -1119,9 +1249,21 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             // Wire close button
                             if (eventSlideClose) {
                                 eventSlideClose.onclick = () => {
+                                    console.log('[eventSlideClose] Close button clicked (MenuHelpers)');
                                     this.cancelEdit();
                                     eventSlide.classList.remove('open');
                                     this.hideImageOverlay();
+                                    
+                                    // Reset camera when closing event slide
+                                    console.log('[eventSlideClose] Resetting camera on close');
+                                    if (window.globeController?.interactionController) {
+                                        window.globeController.interactionController.stopFollowingStation();
+                                        window.globeController.interactionController.restorePlanesVisibility?.();
+                                    }
+                                    if (window.globeController?.cameraControlService) {
+                                        window.globeController.cameraControlService.resetCameraToDefault();
+                                    }
+                                    
                                     if (window.SoundEffectsManager?.play) {
                                         window.SoundEffectsManager.play('eventClick');
                                     }
@@ -1141,6 +1283,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     this.hideImageOverlay();
                                 }
                             }, 100);
+                            
+                            // On mobile, if no image, start in full-screen mode
+                            const isMobile = window.innerWidth <= 768;
+                            if (isMobile && !imagePath && eventSlide) {
+                                eventSlide.classList.add('full-screen');
+                            }
                         },
                         
                         updateSourcesAndFilters(event) {
@@ -1470,6 +1618,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             this.editTarget = { eventData, displayEvent };
                             this.originalState = JSON.parse(JSON.stringify(eventData));
                             
+                            // Initialize variant index
+                            const isMulti = Array.isArray(eventData.variants) && eventData.variants.length > 0;
+                            this.currentVariantIndex = isMulti ? 0 : -1;
+                            
                             const eventSlide = document.getElementById('eventSlide');
                             const eventSlideScrollable = document.getElementById('eventSlideScrollable');
                             const titleEl = document.getElementById('eventSlideTitle');
@@ -1644,6 +1796,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         <button type="button" class="event-slide-inline-editor__small-btn" id="eventSlideAddSourceBtn">+ Source</button>
                                     </div>
                                 </div>
+                                <div class="event-slide-inline-editor__row">
+                                    <div class="event-slide-inline-editor__label">Variants</div>
+                                    <div class="event-slide-inline-variant-bar" id="eventSlideInlineVariantBar"></div>
+                                    <p class="event-slide-inline-editor__hint">Switch tabs to edit another variant. + / − add or remove (saved when you click Save).</p>
+                                </div>
                                 <div class="event-slide-inline-editor__row event-slide-inline-editor__row--delete">
                                     <button type="button" class="event-slide-inline-editor__delete-btn" id="eventSlideInlineDeleteBtn">Delete event</button>
                                 </div>
@@ -1656,6 +1813,25 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 
                                 const deleteBtn = document.getElementById('eventSlideInlineDeleteBtn');
                                 deleteBtn?.addEventListener('click', () => this.deleteCurrentEvent());
+                                
+                                // Wire variant bar
+                                const variantBar = document.getElementById('eventSlideInlineVariantBar');
+                                if (variantBar) {
+                                    variantBar.addEventListener('click', (e) => {
+                                        const btn = e.target.closest('button');
+                                        if (!btn || !this.isEditing) return;
+                                        if (btn.dataset.role === 'variant-tab') {
+                                            const idx = parseInt(btn.dataset.variantIndex, 10);
+                                            if (!Number.isNaN(idx)) this.onVariantTabSelect(idx);
+                                        } else if (btn.dataset.role === 'add-variant') {
+                                            this.onVariantAdd();
+                                        } else if (btn.dataset.role === 'remove-variant') {
+                                            this.onVariantRemove();
+                                        } else if (btn.dataset.role === 'make-primary') {
+                                            this.onVariantMakePrimary();
+                                        }
+                                    });
+                                }
                                 
                                 // Wire location type buttons
                                 const locBtns = document.querySelectorAll('.event-slide-loc-type-btn');
@@ -1747,6 +1923,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             
                             // Render sources
                             this.renderSourcesEditor(target.sources || []);
+                            
+                            // Render variant bar
+                            this.renderVariantBar(eventData);
                         },
                         
                         syncLocationTypeUI() {
@@ -1807,6 +1986,267 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             container.appendChild(row);
                         },
                         
+                        renderVariantBar(eventData) {
+                            const bar = document.getElementById('eventSlideInlineVariantBar');
+                            if (!bar || !this.isEditing) return;
+                            
+                            const variants = eventData.variants && eventData.variants.length > 0
+                                ? eventData.variants
+                                : null;
+                            const n = variants ? variants.length : 1;
+                            let cur = this.currentVariantIndex ?? 0;
+                            if (cur >= n) cur = n - 1;
+                            if (cur < 0) cur = 0;
+                            
+                            bar.innerHTML = '';
+                            for (let i = 0; i < n; i++) {
+                                const b = document.createElement('button');
+                                b.type = 'button';
+                                b.className = 'event-slide-inline-variant-tab';
+                                if (i === cur) b.classList.add('active');
+                                b.textContent = String(i + 1);
+                                b.dataset.variantIndex = String(i);
+                                b.dataset.role = 'variant-tab';
+                                b.title = i === 0 ? 'Primary variant' : `Variant ${i + 1}`;
+                                bar.appendChild(b);
+                            }
+                            const addB = document.createElement('button');
+                            addB.type = 'button';
+                            addB.className = 'event-slide-inline-editor__small-btn event-slide-inline-variant-action';
+                            addB.textContent = '+';
+                            addB.title = 'Add variant';
+                            addB.dataset.role = 'add-variant';
+                            bar.appendChild(addB);
+                            if (variants && variants.length > 1) {
+                                const remB = document.createElement('button');
+                                remB.type = 'button';
+                                remB.className = 'event-slide-inline-editor__small-btn event-slide-inline-variant-action event-slide-inline-variant-action--remove';
+                                remB.textContent = '−';
+                                remB.title = 'Remove current variant';
+                                remB.dataset.role = 'remove-variant';
+                                bar.appendChild(remB);
+                                
+                                // Add "Make Primary" button if not on primary
+                                if (cur > 0) {
+                                    const makePrimaryB = document.createElement('button');
+                                    makePrimaryB.type = 'button';
+                                    makePrimaryB.className = 'event-slide-inline-editor__small-btn event-slide-inline-variant-action';
+                                    makePrimaryB.textContent = '★';
+                                    makePrimaryB.title = 'Make this variant primary';
+                                    makePrimaryB.dataset.role = 'make-primary';
+                                    bar.appendChild(makePrimaryB);
+                                }
+                            }
+                        },
+                        
+                        onVariantTabSelect(index) {
+                            const cur = this.currentVariantIndex ?? 0;
+                            if (index === cur) return;
+                            
+                            // Save current variant data before switching
+                            this.saveCurrentVariantData();
+                            
+                            this.currentVariantIndex = index;
+                            const { eventData } = this.editTarget;
+                            const target = eventData.variants[index];
+                            this.populateInlineEditor(eventData, target);
+                            this.renderVariantBar(eventData);
+                        },
+                        
+                        onVariantAdd() {
+                            this.saveCurrentVariantData();
+                            
+                            const { eventData } = this.editTarget;
+                            if (!eventData) return;
+                            
+                            if (!eventData.variants || eventData.variants.length === 0) {
+                                this.convertRootEventToMulti(eventData);
+                                const newIdx = eventData.variants.length - 1;
+                                this.currentVariantIndex = newIdx;
+                            } else {
+                                const last = eventData.variants[eventData.variants.length - 1];
+                                const lt = last?.locationType || eventData.locationType || 'earth';
+                                const nv = {
+                                    name: '',
+                                    description: '',
+                                    filters: [],
+                                    factions: [],
+                                    npcs: [],
+                                    sources: undefined,
+                                    headlines: undefined,
+                                    locationType: lt,
+                                };
+                                if (lt === 'earth') {
+                                    nv.lat = last?.lat;
+                                    nv.lon = last?.lon;
+                                } else {
+                                    nv.x = last?.x;
+                                    nv.y = last?.y;
+                                }
+                                if (last?.cityDisplayName) nv.cityDisplayName = last.cityDisplayName;
+                                eventData.variants.push(nv);
+                                const newIdx = eventData.variants.length - 1;
+                                this.currentVariantIndex = newIdx;
+                            }
+                            
+                            const target = eventData.variants[this.currentVariantIndex];
+                            this.populateInlineEditor(eventData, target);
+                            this.renderVariantBar(eventData);
+                        },
+                        
+                        onVariantRemove() {
+                            const { eventData } = this.editTarget;
+                            if (!eventData?.variants || eventData.variants.length <= 1) return;
+                            if (!confirm('Remove this variant? This cannot be undone except by canceling edit without saving.')) {
+                                return;
+                            }
+                            
+                            this.saveCurrentVariantData();
+                            
+                            const cur = this.currentVariantIndex ?? 0;
+                            const vars = eventData.variants;
+                            
+                            if (vars.length === 2) {
+                                const keep = vars[1 - cur];
+                                this.collapseMultiToSingleRoot(eventData, keep);
+                                this.currentVariantIndex = 0;
+                            } else {
+                                vars.splice(cur, 1);
+                                const newIdx = Math.min(cur, vars.length - 1);
+                                this.currentVariantIndex = newIdx;
+                            }
+                            
+                            const target = eventData.variants && eventData.variants.length > 0
+                                ? eventData.variants[this.currentVariantIndex]
+                                : eventData;
+                            this.populateInlineEditor(eventData, target);
+                            this.renderVariantBar(eventData);
+                        },
+                        
+                        onVariantMakePrimary() {
+                            const { eventData } = this.editTarget;
+                            if (!eventData?.variants || eventData.variants.length <= 1) return;
+                            
+                            const cur = this.currentVariantIndex ?? 0;
+                            if (cur === 0) return; // Already primary
+                            
+                            if (!confirm(`Make variant ${cur + 1} the primary variant? This will swap it with the current primary and update the root event name/description.`)) {
+                                return;
+                            }
+                            
+                            this.saveCurrentVariantData();
+                            
+                            // Swap variant at cur with variant at 0
+                            const vars = eventData.variants;
+                            const temp = vars[0];
+                            vars[0] = vars[cur];
+                            vars[cur] = temp;
+                            
+                            // Update root event name and description to match new primary
+                            const newPrimary = vars[0];
+                            eventData.name = newPrimary.name || eventData.name;
+                            eventData.description = newPrimary.description || eventData.description;
+                            
+                            // Update current index to 0 (the new primary)
+                            this.currentVariantIndex = 0;
+                            
+                            // Re-render with new primary
+                            const target = vars[0];
+                            this.populateInlineEditor(eventData, target);
+                            this.renderVariantBar(eventData);
+                            
+                            // Update the title and description display elements
+                            const titleEl = document.getElementById('eventSlideTitle');
+                            const textEl = document.getElementById('eventSlideText');
+                            if (titleEl) titleEl.textContent = eventData.name;
+                            if (textEl) textEl.innerHTML = eventData.description;
+                        },
+                        
+                        saveCurrentVariantData() {
+                            if (!this.editTarget) return;
+                            const { eventData } = this.editTarget;
+                            
+                            const isMulti = Array.isArray(eventData.variants) && eventData.variants.length > 0;
+                            if (!isMulti) return;
+                            
+                            const vIdx = this.currentVariantIndex ?? 0;
+                            const target = eventData.variants[vIdx];
+                            if (!target) return;
+                            
+                            // Collect data from form fields
+                            const cityInput = document.getElementById('eventSlideEditCityDisplayName');
+                            const yearStartInput = document.getElementById('eventSlideEditYearStart');
+                            const yearEndInput = document.getElementById('eventSlideEditYearEnd');
+                            const eraInput = document.getElementById('eventSlideEditEraName');
+                            const filtersInput = document.getElementById('eventSlideEditFilters');
+                            const factionsInput = document.getElementById('eventSlideEditFactions');
+                            const npcsInput = document.getElementById('eventSlideEditNpcs');
+                            const headlinesInput = document.getElementById('eventSlideEditHeadlines');
+                            const locationTypeInput = document.getElementById('eventSlideEditLocationType');
+                            const latInput = document.getElementById('eventSlideEditLat');
+                            const lonInput = document.getElementById('eventSlideEditLon');
+                            const xInput = document.getElementById('eventSlideEditX');
+                            const yInput = document.getElementById('eventSlideEditY');
+                            
+                            if (cityInput) target.cityDisplayName = cityInput.value;
+                            if (yearStartInput) target.yearStart = yearStartInput.value;
+                            if (yearEndInput) target.yearEnd = yearEndInput.value;
+                            if (eraInput) target.eraName = eraInput.value;
+                            if (filtersInput) target.filters = filtersInput.value.split(',').map(s => s.trim()).filter(s => s);
+                            if (factionsInput) target.factions = factionsInput.value.split(',').map(s => s.trim()).filter(s => s);
+                            if (npcsInput) target.npcs = npcsInput.value.split(',').map(s => s.trim()).filter(s => s);
+                            if (headlinesInput) target.headlines = headlinesInput.value.split('\n').map(s => s.trim()).filter(s => s);
+                            if (locationTypeInput) target.locationType = locationTypeInput.value;
+                            if (latInput) target.lat = parseFloat(latInput.value) || null;
+                            if (lonInput) target.lon = parseFloat(lonInput.value) || null;
+                            if (xInput) target.x = parseFloat(xInput.value) || null;
+                            if (yInput) target.y = parseFloat(yInput.value) || null;
+                        },
+                        
+                        convertRootEventToMulti(eventData) {
+                            // Move root event data into first variant
+                            const firstVariant = {
+                                name: eventData.name || '',
+                                description: eventData.description || '',
+                                cityDisplayName: eventData.cityDisplayName || '',
+                                yearStart: eventData.yearStart || eventData.year,
+                                yearEnd: eventData.yearEnd || null,
+                                eraName: eventData.eraName || '',
+                                filters: [...(eventData.filters || [])],
+                                factions: [...(eventData.factions || [])],
+                                npcs: [...(eventData.npcs || [])],
+                                headlines: [...(eventData.headlines || [])],
+                                sources: eventData.sources ? [...eventData.sources] : undefined,
+                                lat: eventData.lat,
+                                lon: eventData.lon,
+                                x: eventData.x,
+                                y: eventData.y,
+                                locationType: eventData.locationType
+                            };
+                            eventData.variants = [firstVariant];
+                        },
+                        
+                        collapseMultiToSingleRoot(eventData, keepVariant) {
+                            // Move variant data back to root
+                            eventData.name = keepVariant.name || '';
+                            eventData.description = keepVariant.description || '';
+                            eventData.cityDisplayName = keepVariant.cityDisplayName || '';
+                            eventData.yearStart = keepVariant.yearStart;
+                            eventData.yearEnd = keepVariant.yearEnd;
+                            eventData.eraName = keepVariant.eraName || '';
+                            eventData.filters = [...(keepVariant.filters || [])];
+                            eventData.factions = [...(keepVariant.factions || [])];
+                            eventData.npcs = [...(keepVariant.npcs || [])];
+                            eventData.headlines = [...(keepVariant.headlines || [])];
+                            eventData.sources = keepVariant.sources ? [...keepVariant.sources] : undefined;
+                            eventData.lat = keepVariant.lat;
+                            eventData.lon = keepVariant.lon;
+                            eventData.x = keepVariant.x;
+                            eventData.y = keepVariant.y;
+                            eventData.locationType = keepVariant.locationType;
+                            delete eventData.variants;
+                        },
+                        
                         deleteCurrentEvent() {
                             if (!this.editTarget) return;
                             const { eventData } = this.editTarget;
@@ -1833,6 +2273,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 this.hideImageOverlay();
                             }
                             this.cancelEdit();
+                            
+                            // Reset camera when closing event slide
+                            console.log('[hideEventSlide] Resetting camera on close');
+                            if (window.globeController?.interactionController) {
+                                window.globeController.interactionController.stopFollowingStation();
+                                window.globeController.interactionController.restorePlanesVisibility?.();
+                            }
+                            if (window.globeController?.cameraControlService) {
+                                window.globeController.cameraControlService.resetCameraToDefault();
+                            }
+                            
                             // Play close sound for event system only if it was actually closed
                             if (wasOpen && window.SoundEffectsManager?.play) {
                                 window.SoundEffectsManager.play('eventClick');
@@ -1896,6 +2347,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         
                         saveFullEdit(eventData, editBtn, saveBtn) {
                             if (!this.isEditing || !this.editTarget) return;
+                            
+                            // Save current variant data before saving
+                            this.saveCurrentVariantData();
                             
                             const isMultiEvent = eventData.variants && eventData.variants.length > 0;
                             const target = isMultiEvent ? eventData.variants[this.currentVariantIndex || 0] : eventData;
@@ -2061,6 +2515,27 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             // Refresh display
                             this.updateSourcesAndFilters(target);
                             
+                            // Reload events from localStorage to get updated data
+                            if (window.eventManager?.dataService?.loadEvents) {
+                                window.eventManager.dataService.loadEvents();
+                                // Update allEvents reference
+                                this.allEvents = window.eventManager.events || [];
+                            }
+                            
+                            // Regenerate slider ticks to update unfinished markers
+                            // Force a full regeneration by calling generateSliderTicks directly
+                            const ticksEl = document.getElementById('eventPageSliderTicks');
+                            const pageSlider = document.getElementById('eventPageSlider');
+                            if (ticksEl && pageSlider && this.allEvents) {
+                                const totalPages = Math.max(1, Math.ceil(this.allEvents.length / 50));
+                                ticksEl.innerHTML = '';
+                                // Call the local generateSliderTicks function
+                                // We need to access it from the closure - let's trigger updatePaginationUI instead
+                                if (this.updatePaginationUI) {
+                                    this.updatePaginationUI();
+                                }
+                            }
+                            
                             // Play sound
                             if (window.SoundEffectsManager?.play) {
                                 window.SoundEffectsManager.play('save');
@@ -2176,7 +2651,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             console.log('MenuHelpers: Setting up pagination with', events.length, 'events');
                             
                             // Calculate total pages
-                            const getTotalPages = () => Math.max(1, Math.ceil(events.length / eventsPerPage));
+                            const getTotalPages = () => {
+                                const currentEvents = window.eventManager?.events || events;
+                                return Math.max(1, Math.ceil(currentEvents.length / eventsPerPage));
+                            };
                             
                             // STANDALONE: Track our own current page (don't rely on globe dataModel)
                             let standaloneCurrentPage = 1;
@@ -2203,7 +2681,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 if (!ticksEl || totalPages <= 1) return;
                                 
                                 ticksEl.innerHTML = '';
-                                const totalEvents = events.length;
+                                // Use current events from eventManager instead of closure
+                                const currentEvents = window.eventManager?.events || events;
+                                const totalEvents = currentEvents.length;
                                 
                                 // Add page number labels at the start of each page segment
                                 for (let i = 0; i < totalPages; i++) {
@@ -2257,7 +2737,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     const onPage = Math.min(eventsPerPage, Math.max(0, totalEvents - p * eventsPerPage));
                                     for (let e = 0; e < onPage; e++) {
                                         const g = p * eventsPerPage + e;
-                                        const rootEv = g >= 0 && g < totalEvents ? events[g] : null;
+                                        const rootEv = g >= 0 && g < totalEvents ? currentEvents[g] : null;
                                         if (!eventRootSlotMissingDescription(rootEv)) continue;
                                         const mark = document.createElement('span');
                                         mark.className = 'event-page-slider-tick event-page-slider-tick--unfinished-slot';
@@ -2286,10 +2766,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 
                                 if (!eraStrip) return;
                                 
+                                // Use current events from eventManager
+                                const currentEvents = window.eventManager?.events || events;
+                                
                                 // Try to use EraHoverPreviewTheme first
                                 if (window.EraHoverPreviewTheme?.buildGlobalEraStripeBackgroundLinearGradient) {
                                     eraStrip.style.background = window.EraHoverPreviewTheme.buildGlobalEraStripeBackgroundLinearGradient(
-                                        events,
+                                        currentEvents,
                                         eventsPerPage,
                                         totalPages
                                     );
@@ -2315,7 +2798,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     const stops = [];
                                     for (let p = 0; p < totalPages; p++) {
                                         const startIdx = p * eventsPerPage;
-                                        const pageEvents = events.slice(startIdx, startIdx + eventsPerPage);
+                                        const pageEvents = currentEvents.slice(startIdx, startIdx + eventsPerPage);
                                         
                                         // Find dominant era on this page
                                         const eraCounts = {};
@@ -2373,7 +2856,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 
                                 // Update filter-hit ticks for current filter state
                                 const activeFilters = window.standaloneActiveFilters || new Set();
-                                updateStandaloneSliderTicks(activeFilters, events, eventsPerPage, currentPage);
+                                const currentEvents = window.eventManager?.events || events;
+                                updateStandaloneSliderTicks(activeFilters, currentEvents, eventsPerPage, currentPage);
                                 
                                 // Update buttons
                                 prevBtn.disabled = totalPages <= 1;
@@ -2648,7 +3132,15 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 }
                                 
                                 // Check if event has description (unfinished indicator)
-                                const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
+                                // Use same logic as eventRootSlotMissingDescription
+                                const d = displayEvent.description;
+                                let hasDescription = false;
+                                if (d) {
+                                    const textContent = d.replace(/<[^>]*>/g, '').trim();
+                                    if (textContent !== 'No description available.' && textContent !== 'No description available' && textContent.length > 0) {
+                                        hasDescription = true;
+                                    }
+                                }
                                 newBtn.classList.toggle('event-number-btn--unfinished', !hasDescription);
                                 newBtn.title = hasDescription ? plainName : `${plainName} — Unfinished: missing description`;
                                 
@@ -3101,7 +3593,15 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             }
                             
                             // Check if event has description (unfinished indicator)
-                            const hasDescription = displayEvent.description && displayEvent.description.trim().length > 0;
+                            // Use same logic as eventRootSlotMissingDescription
+                            const d = displayEvent.description;
+                            let hasDescription = false;
+                            if (d) {
+                                const textContent = d.replace(/<[^>]*>/g, '').trim();
+                                if (textContent !== 'No description available.' && textContent !== 'No description available' && textContent.length > 0) {
+                                    hasDescription = true;
+                                }
+                            }
                             btn.classList.toggle('event-number-btn--unfinished', !hasDescription);
                             btn.title = hasDescription ? plainName : `${plainName} — Unfinished: missing description`;
                             
@@ -3356,10 +3856,20 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 // Update button text
                                 if (toggleBtn) toggleBtn.textContent = 'Hide Image';
                                 
-                                // Setup click-to-hide handler if not already set
+                                // On mobile, remove full-screen class from event slide when showing image
+                                const isMobile = window.innerWidth <= 768;
+                                if (isMobile && eventSlide) {
+                                    eventSlide.classList.remove('full-screen');
+                                }
+                                
+                                // Setup click-to-hide handler if not already set (desktop only)
                                 if (!overlay.dataset.clickHandlerSet) {
                                     overlay.dataset.clickHandlerSet = 'true';
                                     overlay.addEventListener('click', (e) => {
+                                        // Don't hide on mobile
+                                        const isMobile = window.innerWidth <= 768;
+                                        if (isMobile) return;
+                                        
                                         if (e.target === overlay || e.target.tagName === 'IMG') {
                                             e.stopPropagation();
                                             this.hideImageOverlayTemporarily(5000);
@@ -3556,30 +4066,29 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 if (!eventSlide?.classList.contains('open')) {
                                     overlay.classList.remove('slide-open');
                                 }
+                                overlay.style.display = 'none';
                                 overlay.style.opacity = '0';
-                                // Update button text
-                                if (toggleBtn) toggleBtn.textContent = 'Show Image';
-                                setTimeout(() => {
-                                    if (!overlay.classList.contains('open')) {
-                                        overlay.style.display = 'none';
-                                    }
-                                }, 600);
                             }
-                        }
-                    };
-                    
-                    // Wire up news ticker clicks
-                    if (window.newsTickerService && window.newsTickerService.tickerContainer) {
-                        window.newsTickerService.tickerContainer.addEventListener('click', (e) => {
-                            const item = e.target?.closest?.('.news-ticker-item');
-                            if (item) {
-                                e.stopPropagation();
-                                const eventIndex = parseInt(item.dataset.eventIndex, 10);
-                                if (!isNaN(eventIndex)) {
-                                    window.standaloneEventSlide.showEvent(eventIndex);
-                                }
+                            
+                            const img = document.getElementById('eventImage');
+                            if (img) {
+                                img.classList.remove('fade-in', 'fade-out');
+                                img.style.display = 'none';
+                                img.style.opacity = '0';
                             }
-                        });
+                            
+                            // Update button text
+                            if (toggleBtn) toggleBtn.textContent = 'Show Image';
+                            
+                            // On mobile, add full-screen class to event slide when hiding image
+                            const isMobile = window.innerWidth <= 768;
+                            if (isMobile && eventSlide?.classList.contains('open')) {
+                                eventSlide.classList.add('full-screen');
+                                console.log('[hideImageOverlay] Added full-screen class to event slide on mobile');
+                                console.log('[hideImageOverlay] eventSlide classes:', eventSlide.className);
+                                console.log('[hideImageOverlay] eventSlide computed top:', window.getComputedStyle(eventSlide).top);
+                            }
+                        },
                     }
                     
                     // Wire up Event Manager list clicks

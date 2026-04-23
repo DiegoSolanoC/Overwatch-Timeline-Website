@@ -1387,6 +1387,24 @@
       "y": 9499.5,
       "scale": 3,
       "bgColor": null
+    },
+    {
+      "id": "cn-1776963341571-3c7xf4yg",
+      "kind": "npc",
+      "npcName": "Frankie",
+      "x": 9407.50962359427,
+      "y": 10703.707587097066,
+      "scale": 1.5,
+      "bgColor": null
+    },
+    {
+      "id": "cn-1776963350987-ewnd7rrd",
+      "kind": "npc",
+      "npcName": "Bez",
+      "x": 9232.02779270963,
+      "y": 10545.857406327736,
+      "scale": 1.5,
+      "bgColor": null
     }
   ],
   "edges": [

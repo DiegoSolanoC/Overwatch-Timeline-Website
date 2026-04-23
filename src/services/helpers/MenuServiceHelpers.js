@@ -101,7 +101,17 @@ function eventRootSlotMissingDescription(rootEvent) {
     // Get display event (first variant if available, otherwise root)
     const displayEv = rootEvent.variants?.[0] || rootEvent;
     const d = displayEv?.description;
-    return !(d && String(d).trim().length > 0);
+    if (!d) return true;
+    
+    // Strip HTML tags to check for actual content
+    const textContent = d.replace(/<[^>]*>/g, '').trim();
+    
+    // Also treat "No description available." as empty
+    if (textContent === 'No description available.' || textContent === 'No description available') {
+        return true;
+    }
+    
+    return textContent.length === 0;
 }
 
 /**
@@ -313,7 +323,7 @@ export function createMenuButtonsContainer(statusService) {
                     parentId: 'dockGlobeRailRight',
                     baseClass: 'globe-control-btn',
                     headerOrder: 10,
-                    mobileParentId: 'dockGlobeRailRight',
+                    mobileParentId: 'dockGlobeRailLeft',
                     mobileBaseClass: 'globe-control-btn',
                     mobileClassName: 'dock-globe-rail__btn'
                 });
@@ -328,10 +338,60 @@ export function createMenuButtonsContainer(statusService) {
                     parentId: 'dockGlobeRailRight',
                     baseClass: 'globe-control-btn',
                     headerOrder: 5,
-                    mobileParentId: 'dockGlobeRailRight',
+                    mobileParentId: 'dockGlobeRailLeft',
                     mobileBaseClass: 'globe-control-btn',
-                    mobileClassName: 'dock-globe-rail__btn'
+                    mobileClassName: 'dock-globe-rail__btn',
+                    desktopParentId: 'dockGlobeRailRight',
+                    desktopClassName: 'dock-globe-rail__btn'
                 });
+
+                // Move Events and Filters buttons to page controls row on mobile portrait
+                function moveButtonsToPageControlsRow() {
+                    const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                    const pageControlsRow = document.querySelector('.page-controls-row--mobile-only');
+                    const pageInputContainer = document.querySelector('.page-input-container');
+                    const rightRail = document.getElementById('dockGlobeRailRight');
+                    const eventsBtn = document.getElementById('eventsManageToggle');
+                    const filtersBtn = document.getElementById('filtersToggle');
+                    
+                    if (isMobilePortrait && pageControlsRow && pageInputContainer) {
+                        if (eventsBtn && eventsBtn.parentElement !== pageControlsRow) {
+                            // Clear any inline styles that might interfere
+                            eventsBtn.style.position = '';
+                            eventsBtn.style.top = '';
+                            eventsBtn.style.left = '';
+                            eventsBtn.style.right = '';
+                            eventsBtn.style.bottom = '';
+                            // Insert before the page input container (left side)
+                            pageControlsRow.insertBefore(eventsBtn, pageInputContainer);
+                        }
+                        if (filtersBtn && filtersBtn.parentElement !== pageControlsRow) {
+                            // Clear any inline styles that might interfere
+                            filtersBtn.style.position = '';
+                            filtersBtn.style.top = '';
+                            filtersBtn.style.left = '';
+                            filtersBtn.style.right = '';
+                            filtersBtn.style.bottom = '';
+                            // Insert after the page input container (right side)
+                            pageControlsRow.insertBefore(filtersBtn, pageInputContainer.nextSibling);
+                        }
+                    } else if (rightRail) {
+                        // Move back to right rail on desktop or landscape
+                        if (eventsBtn && eventsBtn.parentElement !== rightRail) {
+                            rightRail.appendChild(eventsBtn);
+                        }
+                        if (filtersBtn && filtersBtn.parentElement !== rightRail) {
+                            rightRail.appendChild(filtersBtn);
+                        }
+                    }
+                }
+
+                // Run immediately
+                moveButtonsToPageControlsRow();
+
+                // Also run on window resize/orientation change
+                window.addEventListener('resize', moveButtonsToPageControlsRow);
+                window.addEventListener('orientationchange', moveButtonsToPageControlsRow);
 
                 // Initialize EventManager if not already loaded
                 if (!window.eventManager) {
@@ -691,12 +751,27 @@ export function createMenuButtonsContainer(statusService) {
                             this.wireEditButtons(eventData, displayEvent, editBtn, saveBtn, eventSlideTitle, eventSlideText);
                             
                             eventSlide.classList.add('open');
-                            
+
                             if (eventSlideClose) {
                                 eventSlideClose.onclick = () => {
+                                    console.log('[eventSlideClose MenuServiceHelpers] Close button clicked');
                                     this.cancelEdit();
                                     eventSlide.classList.remove('open');
                                     this.hideImageOverlay();
+                                    
+                                    // Reset camera when closing event slide
+                                    console.log('[eventSlideClose MenuServiceHelpers] Resetting camera on close');
+                                    if (window.globeController?.interactionController) {
+                                        console.log('[eventSlideClose MenuServiceHelpers] Calling stopFollowingStation');
+                                        window.globeController.interactionController.stopFollowingStation();
+                                        console.log('[eventSlideClose MenuServiceHelpers] Calling restorePlanesVisibility');
+                                        window.globeController.interactionController.restorePlanesVisibility?.();
+                                    }
+                                    if (window.globeController?.cameraControlService) {
+                                        console.log('[eventSlideClose MenuServiceHelpers] Calling resetCameraToDefault');
+                                        window.globeController.cameraControlService.resetCameraToDefault();
+                                    }
+                                    
                                     if (window.SoundEffectsManager?.play) {
                                         window.SoundEffectsManager.play('eventClick');
                                     }
@@ -821,12 +896,18 @@ export function createMenuButtonsContainer(statusService) {
                                     <button type="button" id="eventSlideAddSourceBtn">+ Source</button>
                                 </div>
                                 <div class="event-slide-inline-editor__row">
+                                    <div class="event-slide-inline-editor__label">Variants</div>
+                                    <div id="eventSlideEditVariants"></div>
+                                    <button type="button" id="eventSlideAddVariantBtn">+ Add Variant</button>
+                                </div>
+                                <div class="event-slide-inline-editor__row">
                                     <button type="button" class="event-slide-inline-editor__delete-btn" id="eventSlideInlineDeleteBtn">Delete event</button>
                                 </div>
                             `;
                             
                             setTimeout(() => {
                                 document.getElementById('eventSlideAddSourceBtn')?.addEventListener('click', () => this.addSourceRow());
+                                document.getElementById('eventSlideAddVariantBtn')?.addEventListener('click', () => this.addVariant());
                                 document.getElementById('eventSlideInlineDeleteBtn')?.addEventListener('click', () => this.deleteCurrentEvent());
                             }, 0);
                             
@@ -835,6 +916,9 @@ export function createMenuButtonsContainer(statusService) {
                         
                         populateInlineEditor(eventData, displayEvent) {
                             const target = displayEvent || eventData;
+                            
+                            console.log('[MenuServiceHelpers.populateInlineEditor] Called for event:', target.name);
+                            console.log('[MenuServiceHelpers.populateInlineEditor] Has variants:', !!(eventData.variants && eventData.variants.length > 0));
                             
                             document.getElementById('eventSlideEditCityDisplayName')?.value = target.cityDisplayName || '';
                             document.getElementById('eventSlideEditYearStart')?.value = target.yearStart || target.year || '';
@@ -846,6 +930,9 @@ export function createMenuButtonsContainer(statusService) {
                             document.getElementById('eventSlideEditHeadlines')?.value = (target.headlines || []).join('\n');
                             
                             this.renderSourcesEditor(target.sources || []);
+                            this.renderVariantsEditor(eventData);
+                            
+                            console.log('[MenuServiceHelpers.populateInlineEditor] renderVariantsEditor called');
                         },
                         
                         renderSourcesEditor(sources) {
@@ -885,6 +972,110 @@ export function createMenuButtonsContainer(statusService) {
                                 if (container.children.length > 1) row.remove();
                             });
                             container.appendChild(row);
+                        },
+                        
+                        renderVariantsEditor(eventData) {
+                            const container = document.getElementById('eventSlideEditVariants');
+                            console.log('[MenuServiceHelpers.renderVariantsEditor] Called, container exists:', !!container);
+                            
+                            if (!container) return;
+                            
+                            container.innerHTML = '';
+                            const variants = eventData.variants || [];
+                            console.log('[MenuServiceHelpers.renderVariantsEditor] Variants count:', variants.length);
+                            
+                            if (variants.length === 0) {
+                                container.innerHTML = '<div class="event-slide-inline-editor__no-variants">No variants</div>';
+                                return;
+                            }
+                            
+                            variants.forEach((variant, index) => {
+                                const row = document.createElement('div');
+                                row.className = 'event-slide-inline-editor__variant-row';
+                                row.innerHTML = `
+                                    <span class="event-slide-inline-editor__variant-name">Variant ${index + 1}: ${variant.name || 'Unnamed'}</span>
+                                    <button type="button" data-variant-index="${index}" class="event-slide-inline-editor__variant-remove">Remove</button>
+                                `;
+                                row.querySelector('.event-slide-inline-editor__variant-remove')?.addEventListener('click', () => {
+                                    this.removeVariant(eventData, index);
+                                });
+                                container.appendChild(row);
+                            });
+                            console.log('[MenuServiceHelpers.renderVariantsEditor] Rendered', variants.length, 'variant rows');
+                        },
+                        
+                        addVariant() {
+                            if (!this.editTarget) return;
+                            const { eventData } = this.editTarget;
+                            
+                            if (!eventData.variants) {
+                                eventData.variants = [];
+                            }
+                            
+                            // Create a new variant based on the current event data
+                            const newVariant = {
+                                name: 'New Variant',
+                                description: '',
+                                cityDisplayName: eventData.cityDisplayName || '',
+                                yearStart: eventData.yearStart || eventData.year,
+                                yearEnd: eventData.yearEnd || null,
+                                eraName: eventData.eraName || '',
+                                filters: [...(eventData.filters || [])],
+                                factions: [...(eventData.factions || [])],
+                                npcs: [...(eventData.npcs || [])],
+                                headlines: [...(eventData.headlines || [])],
+                                sources: [],
+                                // Copy location-specific fields if they exist
+                                lat: eventData.lat,
+                                lon: eventData.lon,
+                                x: eventData.x,
+                                y: eventData.y,
+                                locationType: eventData.locationType
+                            };
+                            
+                            eventData.variants.push(newVariant);
+                            this.renderVariantsEditor(eventData);
+                            
+                            // Mark as unsaved
+                            if (window.eventManager) {
+                                const idx = window.eventManager.events.indexOf(eventData);
+                                if (idx >= 0) window.eventManager.unsavedEventIndices.add(idx);
+                            }
+                            
+                            if (window.SoundEffectsManager?.play) {
+                                window.SoundEffectsManager.play('uiClick');
+                            }
+                        },
+                        
+                        removeVariant(eventData, variantIndex) {
+                            if (!eventData.variants || eventData.variants.length === 0) return;
+                            
+                            if (confirm(`Are you sure you want to remove variant ${variantIndex + 1}?`)) {
+                                eventData.variants.splice(variantIndex, 1);
+                                
+                                // If removing the current variant, reset to 0
+                                if (this.currentVariantIndex === variantIndex) {
+                                    this.currentVariantIndex = 0;
+                                } else if (this.currentVariantIndex > variantIndex) {
+                                    this.currentVariantIndex--;
+                                }
+                                
+                                this.renderVariantsEditor(eventData);
+                                
+                                // Refresh the display if we removed the current variant
+                                if (eventData.variants.length > 0) {
+                                    const newTarget = eventData.variants[this.currentVariantIndex || 0];
+                                    this.populateInlineEditor(eventData, newTarget);
+                                } else {
+                                    this.populateInlineEditor(eventData, eventData);
+                                }
+                                
+                                // Mark as unsaved
+                                if (window.eventManager) {
+                                    const idx = window.eventManager.events.indexOf(eventData);
+                                    if (idx >= 0) window.eventManager.unsavedEventIndices.add(idx);
+                                }
+                            }
                         },
                         
                         deleteCurrentEvent() {

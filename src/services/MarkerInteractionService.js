@@ -423,6 +423,15 @@ class MarkerInteractionService {
             // Handle event marker click
             if (clickedMarker.userData && clickedMarker.userData.isEventMarker) {
                 console.log('[onMarkerClick] It is an event marker - proceeding');
+                console.log('[onMarkerClick] Clicked marker userData:', {
+                    eventName: clickedMarker.userData.eventName,
+                    event: clickedMarker.userData.event,
+                    variant: clickedMarker.userData.variant,
+                    variantIndex: clickedMarker.userData.variantIndex,
+                    locationType: clickedMarker.userData.locationType,
+                    isInteractive: clickedMarker.userData.isInteractive,
+                    isMainVariant: clickedMarker.userData.isMainVariant
+                });
                 
                 // Only allow clicks on interactive markers (main variant or single events)
                 if (clickedMarker.userData.isInteractive === false) {
@@ -441,39 +450,103 @@ class MarkerInteractionService {
                 
                 // Don't allow clicks on locked events
                 if (clickedMarker.userData.isLocked) {
+                    console.log('[onMarkerClick] Ignored - event is locked');
                     return;
                 }
                 
                 // Check if this is the same event that's currently open (by checking Event System's current index)
                 const events = window.eventManager?.events || [];
+                console.log('[onMarkerClick] Total events in eventManager:', events.length);
                 const eventData = clickedMarker.userData.event;
-                const eventIndex = events.findIndex(e => e === eventData || e.name === eventData.name);
+                console.log('[onMarkerClick] Event data from marker:', eventData);
+                console.log('[onMarkerClick] Event data type:', typeof eventData);
+                console.log('[onMarkerClick] Event data has variants:', eventData?.variants ? 'yes' : 'no');
+                console.log('[onMarkerClick] Event data name:', eventData?.name);
+                console.log('[onMarkerClick] Marker variant:', clickedMarker.userData.variant);
+                console.log('[onMarkerClick] Marker variant name:', clickedMarker.userData.variant?.name);
+                
+                // Find event index - need to handle variants correctly
+                let eventIndex = -1;
+                if (clickedMarker.userData.variant) {
+                    // This is a variant marker - find the parent event
+                    console.log('[onMarkerClick] Variant marker - searching for parent event');
+                    eventIndex = events.findIndex(e => {
+                        // Check if this event has variants and one matches
+                        if (e.variants && e.variants.length > 0) {
+                            return e.variants.some(v => v === clickedMarker.userData.variant || v.name === clickedMarker.userData.variant.name);
+                        }
+                        return false;
+                    });
+                    console.log('[onMarkerClick] Variant parent event index:', eventIndex);
+                } else {
+                    // This is a single event marker
+                    console.log('[onMarkerClick] Single event marker - searching by reference or name');
+                    eventIndex = events.findIndex(e => e === eventData || e.name === eventData.name);
+                }
+                console.log('[onMarkerClick] Final event index:', eventIndex);
+                if (eventIndex >= 0) {
+                    console.log('[onMarkerClick] Event at index:', eventIndex, 'name:', events[eventIndex].name);
+                } else {
+                    console.log('[onMarkerClick] WARNING: Event index not found!');
+                }
                 const currentIndex = window.standaloneEventSlide?.currentEventIndex;
+                console.log('[onMarkerClick] Current event index:', currentIndex);
                 const eventSlide = document.getElementById('eventSlide');
                 if (eventIndex >= 0 && eventIndex === currentIndex && eventSlide && eventSlide.classList.contains('open')) {
                     // Same event and slide is open - close it
+                    console.log('[onMarkerClick] Same event already open - closing slide');
                     eventSlide.classList.remove('open');
+                    
+                    // Reset camera when closing by clicking same marker
+                    console.log('[onMarkerClick] Resetting camera on same-event close');
+                    if (window.globeController?.interactionController) {
+                        window.globeController.interactionController.stopFollowingStation();
+                        window.globeController.interactionController.restorePlanesVisibility?.();
+                    }
+                    if (window.globeController?.cameraControlService) {
+                        window.globeController.cameraControlService.resetCameraToDefault();
+                    }
+                    
                     return;
                 }
                 
                 // Check if this is a Moon/Mars/Station/Ship marker - adjust camera behavior
                 const locationType = clickedMarker.userData ? clickedMarker.userData.locationType : 'earth';
+                console.log('[onMarkerClick] Location type:', locationType);
+                
+                // Check if marker is on orbit panel (for station/marsShip)
+                const orbitMarkerParent = this.sceneModel.getOrbitMarkerParent ? this.sceneModel.getOrbitMarkerParent() : this.sceneModel.orbitPlane;
+                const isOnOrbitPanel = orbitMarkerParent && clickedMarker.parent === orbitMarkerParent;
+                console.log('[onMarkerClick] isOnOrbitPanel:', isOnOrbitPanel);
+                
                 if (locationType === 'moon' || locationType === 'mars') {
                     // Reset camera to default view for Moon/Mars events
+                    console.log('[onMarkerClick] Moon/Mars marker - calling onResetCamera');
                     if (onResetCamera) {
                         onResetCamera();
                     }
                 } else if (locationType === 'station' || locationType === 'marsShip') {
-                    // Follow the moving object (ISS / Mars Ship)
-                    try {
-                        window.globeController?.interactionController?.setPlanesVisibility?.(false);
-                        window.globeController?.interactionController?.startFollowingStation?.(clickedMarker);
-                    } catch (_) {
-                        // fallback to reset if follow isn't available
-                        if (onResetCamera) onResetCamera();
+                    // Guard rail: if on orbit panel, treat like moon/mars (reset camera, don't follow)
+                    if (isOnOrbitPanel) {
+                        console.log('[onMarkerClick] Station/Ship on orbit panel - treating like moon/mars, calling onResetCamera');
+                        if (onResetCamera) {
+                            onResetCamera();
+                        }
+                    } else {
+                        // Follow the moving object (ISS / Mars Ship) when on actual satellite
+                        console.log('[onMarkerClick] Station/Ship on satellite - starting follow');
+                        try {
+                            window.globeController?.interactionController?.setPlanesVisibility?.(false);
+                            window.globeController?.interactionController?.startFollowingStation?.(clickedMarker);
+                        } catch (_) {
+                            console.log('[onMarkerClick] Follow failed, falling back to reset');
+                            // fallback to reset if follow isn't available
+                            if (onResetCamera) onResetCamera();
+                        }
                     }
                 } else {
                     // Zoom in and center on the marker (Earth events)
+                    console.log('[onMarkerClick] Earth marker - calling onZoomToMarker');
                     if (onZoomToMarker) {
                         onZoomToMarker(clickedMarker);
                     }
@@ -481,12 +554,15 @@ class MarkerInteractionService {
                 
                 // Open Event System's standalone event slide (info panel only, not event manager)
                 if (eventIndex >= 0 && window.standaloneEventSlide) {
+                    console.log('[onMarkerClick] Opening event slide for index:', eventIndex);
                     // Show the specific event (this opens the event slide/info panel)
                     window.standaloneEventSlide.showEvent(eventIndex);
                     // Play sound effect
                     if (window.SoundEffectsManager?.play) {
                         window.SoundEffectsManager.play('eventClick');
                     }
+                } else {
+                    console.log('[onMarkerClick] Cannot open event slide - eventIndex:', eventIndex, 'standaloneEventSlide exists:', !!window.standaloneEventSlide);
                 }
             }
         } else {

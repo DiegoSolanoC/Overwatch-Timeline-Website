@@ -168,7 +168,7 @@ export class CameraViewManager {
         }
 
         const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
-        let defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+        let defaultZoom = isMobilePortrait ? 7.0 : 3.5;
 
         const targetPosition = new THREE.Vector3(0, 0, defaultZoom);
         const startPosition = camera.position.clone();

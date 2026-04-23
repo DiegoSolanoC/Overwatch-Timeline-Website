@@ -95,8 +95,9 @@ class EventInteractionService {
 
                     const ic = globe.interactionController;
                     const navLoc = window.NavigationLocationHelpers;
+                    const sceneModel = globe.sceneModel;
                     if (ic && navLoc && typeof navLoc.handleLocationTypeCamera === 'function' && typeof navLoc.getLocationType === 'function') {
-                        navLoc.handleLocationTypeCamera(ic, targetMarker, navLoc.getLocationType(targetMarker, displayEvent));
+                        navLoc.handleLocationTypeCamera(ic, targetMarker, navLoc.getLocationType(targetMarker, displayEvent), sceneModel);
                     } else if (ic) {
                         const locationType = targetMarker.userData ? targetMarker.userData.locationType : 'earth';
                         if (locationType === 'moon' || locationType === 'mars') {

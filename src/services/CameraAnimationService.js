@@ -39,7 +39,7 @@ class CameraAnimationService {
             if (camera) {
                 // On mobile portrait, use more zoomed out position to show Moon/Mars panels
                 const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
-                const defaultZoom = isMobilePortrait ? 5.5 : 3.5;
+                const defaultZoom = isMobilePortrait ? 7.0 : 3.5;
                 const THREE = window.THREE;
                 if (THREE) {
                     const defaultPosition = new THREE.Vector3(0, 0, defaultZoom);

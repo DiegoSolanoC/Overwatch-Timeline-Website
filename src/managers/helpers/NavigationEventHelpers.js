@@ -46,7 +46,8 @@ export function handleNumberButtonClick({
     // Zoom to marker or reset to default view (for Moon/Mars/Station) and show event slide
     if (interactionController && eventMarker) {
         const locationType = getLocationType(eventMarker, displayEvent);
-        handleLocationTypeCamera(interactionController, eventMarker, locationType);
+        const sceneModel = window.globeController?.sceneModel;
+        handleLocationTypeCamera(interactionController, eventMarker, locationType, sceneModel);
     }
 
     eventSlideManager.showEventSlide(

@@ -92,8 +92,18 @@ export function zoomToVariantLocation(variantMarker, locationType, lat = null, l
         if (locationType === 'moon' || locationType === 'mars') {
             controller.resetCameraToDefault();
         } else if (locationType === 'station' || locationType === 'marsShip') {
-            controller.setPlanesVisibility(false);
-            controller.startFollowingStation(variantMarker);
+            // Guard rail: check if on orbit panel
+            const sceneModel = window.globeController?.sceneModel;
+            const orbitMarkerParent = sceneModel?.getOrbitMarkerParent ? sceneModel.getOrbitMarkerParent() : sceneModel?.orbitPlane;
+            const isOnOrbitPanel = orbitMarkerParent && variantMarker.parent === orbitMarkerParent;
+            
+            if (isOnOrbitPanel) {
+                // Treat like moon/mars - reset camera instead of following
+                controller.resetCameraToDefault();
+            } else {
+                controller.setPlanesVisibility(false);
+                controller.startFollowingStation(variantMarker);
+            }
         } else {
             controller.zoomToMarker(variantMarker);
         }

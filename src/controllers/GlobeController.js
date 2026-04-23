@@ -184,7 +184,7 @@ export class GlobeController {
             dataModel: this.dataModel
         });
 
-        const shouldDefaultToMapView = window.innerWidth <= 768;
+        const shouldDefaultToMapView = false; // Always default to globe view, not map view
 
         this.interactionController.setupControls(container);
         if (shouldDefaultToMapView && this.interactionController && typeof this.interactionController.resetCameraToDefault === 'function') {

@@ -36,51 +36,11 @@
     transform: scale(0.95);
 }
 
-/* Full Text Display: mobile-only */
-.event-full-text-toggle-btn {
-    background: #2196f3; /* Light blue for default blue palette */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background 0.3s ease;
-    align-self: flex-start;
-    line-height: 1.2;
-    box-sizing: border-box;
-    flex-shrink: 0;
-    display: none;
-}
-
-.event-full-text-toggle-btn:hover {
-    background: #42a5f5;
-}
-
-/* Full Text Display: mobile-only (matches other full-screen panels) */
-.event-full-text-toggle-btn {
-    display: none;
-}
-
-@media (max-width: 768px) {
-    .event-full-text-toggle-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
-
-.event-full-text-toggle-btn[aria-pressed='true'] {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
-}
-
-body.color-palette-gray .event-image-toggle-btn,
-body.color-palette-gray .event-full-text-toggle-btn {
+body.color-palette-gray .event-image-toggle-btn {
     background: #ff6600; /* Orange for gray palette */
 }
 
-body.color-palette-gray .event-image-toggle-btn:hover,
-body.color-palette-gray .event-full-text-toggle-btn:hover {
+body.color-palette-gray .event-image-toggle-btn:hover {
     background: #ff8833;
 }
 

@@ -416,13 +416,11 @@ body.color-palette-crimson .event-sources-section {
     border-left: 3px solid #ef5350; /* Orange for gray palette */
 }
 
-body.color-palette-crimson .event-image-toggle-btn,
-body.color-palette-crimson .event-full-text-toggle-btn {
+body.color-palette-crimson .event-image-toggle-btn {
     background: #ef5350; /* Orange for gray palette */
 }
 
-body.color-palette-crimson .event-image-toggle-btn:hover,
-body.color-palette-crimson .event-full-text-toggle-btn:hover {
+body.color-palette-crimson .event-image-toggle-btn:hover {
     background: #ff8a80;
 }
 

@@ -592,6 +592,9 @@ export class ToggleManager {
                 headerToggleBtn.title = enabled ? 'Click to switch to Globe' : 'Click to switch to Map';
             }
 
+            // Sync globe feature locks when map state changes (do this before mobile check)
+            this.syncGlobeLocks();
+
             if (isMobileGlobeControls()) {
                 document.body.classList.remove('rotate-subbar-open');
                 stopRotateBarFollow();
@@ -605,9 +608,6 @@ export class ToggleManager {
             } else {
                 stopRotateBarFollow();
             }
-
-            // Sync globe feature locks when map state changes
-            this.syncGlobeLocks();
         };
 
         renderState();

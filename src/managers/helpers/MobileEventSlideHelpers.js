@@ -7,11 +7,8 @@
  * Mobile-specific constants
  */
 export const MOBILE_BREAKPOINT = 768;
-export const MOBILE_PORTRAIT_ZOOM = 5.5;
+export const MOBILE_PORTRAIT_ZOOM = 7.0;
 export const DEFAULT_ZOOM = 3.5;
-
-const FULL_TEXT_LABEL_OFF = 'Full Text Display';
-const FULL_TEXT_LABEL_ON = 'Split View';
 
 let portraitLayoutListenerBound = false;
 
@@ -64,30 +61,6 @@ function ensureMobileFullTextViewportListener() {
             resetMobileFullTextUi();
         }
     });
-}
-
-/**
- * One-time click + viewport wiring for "Full Text Display" (mobile-only UI).
- */
-export function setupMobileFullTextToggleButton() {
-    const btn = document.getElementById('eventFullTextToggle');
-    const slide = document.getElementById('eventSlide');
-    if (!btn || !slide) {
-        return;
-    }
-    if (btn.dataset.fullTextToggleBound !== 'true') {
-        btn.dataset.fullTextToggleBound = 'true';
-        btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            if (!isMobile()) {
-                return;
-            }
-            const on = slide.classList.toggle('event-slide--mobile-full-text');
-            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-            btn.textContent = on ? FULL_TEXT_LABEL_ON : FULL_TEXT_LABEL_OFF;
-        });
-    }
-    ensureMobileFullTextViewportListener();
 }
 
 /**

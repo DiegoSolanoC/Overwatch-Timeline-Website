@@ -378,6 +378,19 @@
             closed = true;
         }
 
+        // CRITICAL: Reset camera when closing event slide via keyboard shortcut
+        // This matches the X button behavior and prevents station/ship follow from continuing
+        if (closed) {
+            console.log('[AppKeyboardShortcuts] Event slide closed via keyboard, resetting camera');
+            if (window.globeController?.interactionController) {
+                window.globeController.interactionController.stopFollowingStation();
+                window.globeController.interactionController.restorePlanesVisibility?.();
+            }
+            if (window.globeController?.cameraControlService) {
+                window.globeController.cameraControlService.resetCameraToDefault();
+            }
+        }
+
         return closed;
     }
 

@@ -411,13 +411,11 @@ body.color-palette-nulled .event-sources-section {
     border-left: 3px solid #b388ff;
 }
 
-body.color-palette-nulled .event-image-toggle-btn,
-body.color-palette-nulled .event-full-text-toggle-btn {
+body.color-palette-nulled .event-image-toggle-btn {
     background: #b388ff;
 }
 
-body.color-palette-nulled .event-image-toggle-btn:hover,
-body.color-palette-nulled .event-full-text-toggle-btn:hover {
+body.color-palette-nulled .event-image-toggle-btn:hover {
     background: #d4bfff;
 }
 

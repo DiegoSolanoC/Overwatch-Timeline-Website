@@ -391,6 +391,70 @@
     transform: scale(0.99);
 }
 
+.event-slide-inline-editor__variant-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    margin-bottom: 6px;
+}
+
+.event-slide-inline-editor__variant-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.event-slide-inline-editor__variant-remove {
+    flex-shrink: 0;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 120, 120, 0.4);
+    background: rgba(180, 40, 40, 0.2);
+    color: rgba(255, 220, 220, 0.9);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.event-slide-inline-editor__variant-remove:hover {
+    background: rgba(200, 50, 50, 0.35);
+    border-color: rgba(255, 140, 140, 0.6);
+}
+
+.event-slide-inline-editor__no-variants {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+    font-style: italic;
+    padding: 8px 0;
+}
+
+#eventSlideAddVariantBtn {
+    margin-top: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    background: var(--btn-primary-bg);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+#eventSlideAddVariantBtn:hover {
+    background: var(--btn-primary-bg-hover);
+    border-color: rgba(255, 255, 255, 0.45);
+    transform: scale(1.04);
+}
+
 .event-slide-close:hover {
     color: var(--accent-primary);
 }
@@ -636,6 +700,13 @@
         opacity: 1 !important;
     }
     
+    /* Full screen mode when image is hidden on mobile */
+    .event-slide.open.full-screen {
+        top: 60px !important;
+        bottom: var(--footer-height) !important;
+        height: auto !important;
+    }
+    
     /* Mobile: Ensure close button doesn't cause overflow */
     .event-slide-close {
         right: 10px !important;
@@ -796,6 +867,13 @@
         top: calc(var(--header-height, 60px) + var(--event-mobile-map-strip-height)) !important;
     }
 
+    /* Full screen mode when image is hidden on mobile - override above */
+    .event-slide.open.full-screen:not(.event-slide--mobile-full-text) {
+        top: var(--header-height, 60px) !important;
+        bottom: var(--footer-height) !important;
+        height: auto !important;
+    }
+
     .event-slide-content {
         overflow-y: hidden !important;
         padding: 12px 14px 12px 14px !important;
@@ -824,7 +902,6 @@
         padding-bottom: 8px !important;
     }
 
-    .event-slide-mid-controls .event-full-text-toggle-btn,
     .event-slide-mid-controls .event-image-toggle-btn {
         font-size: 12px !important;
         padding: 6px 10px !important;

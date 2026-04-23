@@ -6,7 +6,7 @@
 import { useOrbitPanelForStationShipMarkers } from './TransportOrbitPanelHelpers.js';
 
 const MOBILE_BREAKPOINT = 768;
-const MOBILE_PORTRAIT_ZOOM = 5.5;
+const MOBILE_PORTRAIT_ZOOM = 7.0;
 const DEFAULT_ZOOM = 3.5;
 
 /**
@@ -191,7 +191,12 @@ export function handleNumberButtonMouseEnter(marker, sceneModel, interactionCont
         // Reset camera to default view for Moon/Mars events
         interactionController.resetCameraToDefault();
     } else if (locationType === 'station' || locationType === 'marsShip') {
-        if (useOrbitPanelForStationShipMarkers(sceneModel)) {
+        // Guard rail: check if on orbit panel
+        const orbitMarkerParent = sceneModel.getOrbitMarkerParent ? sceneModel.getOrbitMarkerParent() : sceneModel.orbitPlane;
+        const isOnOrbitPanel = orbitMarkerParent && marker.parent === orbitMarkerParent;
+        
+        if (isOnOrbitPanel) {
+            // Treat like moon/mars - reset camera instead of following
             interactionController.resetCameraToDefault();
         } else {
             interactionController.setPlanesVisibility(false);

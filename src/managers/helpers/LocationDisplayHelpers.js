@@ -82,8 +82,18 @@ export function setupLocationClickHandler(element, marker, locationType) {
         if (locationType === 'moon' || locationType === 'mars') {
             window.globeController.interactionController.resetCameraToDefault();
         } else if (locationType === 'station' || locationType === 'marsShip') {
-            window.globeController.interactionController.setPlanesVisibility(false);
-            window.globeController.interactionController.startFollowingStation(marker);
+            // Guard rail: check if on orbit panel
+            const sceneModel = window.globeController?.sceneModel;
+            const orbitMarkerParent = sceneModel?.getOrbitMarkerParent ? sceneModel.getOrbitMarkerParent() : sceneModel?.orbitPlane;
+            const isOnOrbitPanel = orbitMarkerParent && marker.parent === orbitMarkerParent;
+            
+            if (isOnOrbitPanel) {
+                // Treat like moon/mars - reset camera instead of following
+                window.globeController.interactionController.resetCameraToDefault();
+            } else {
+                window.globeController.interactionController.setPlanesVisibility(false);
+                window.globeController.interactionController.startFollowingStation(marker);
+            }
         } else {
             window.globeController.interactionController.zoomToMarker(marker);
         }

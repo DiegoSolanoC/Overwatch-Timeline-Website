@@ -11,7 +11,6 @@ import {
     setupMobileEventSlide,
     cleanupMobileEventSlide,
     getDefaultZoom,
-    setupMobileFullTextToggleButton,
     resetMobileFullTextUi
 } from './helpers/MobileEventSlideHelpers.js';
 import { setupEarthLocation, setupMoonMarsLocation, setupStationLocation, setupMarsShipLocation, hideLocationWithFade, setupLocationClickHandler } from './helpers/LocationDisplayHelpers.js';
@@ -27,7 +26,6 @@ export const MobileHelpers = {
     getDefaultZoom,
     setupMobileEventSlide,
     cleanupMobileEventSlide,
-    setupMobileFullTextToggleButton,
     resetMobileFullTextUi
 };
 
@@ -79,15 +77,21 @@ export class EventSlideManager {
 
     _ensureSlidePlacementBlock(editor) {
         if (!editor) return;
+        console.log('[EventSlideManager._ensureSlidePlacementBlock] Called, editor exists:', !!editor);
+        console.log('[EventSlideManager._ensureSlidePlacementBlock] Variant bar exists:', !!document.getElementById('eventSlideInlineVariantBar'));
+        
         if (!document.getElementById('eventSlideInlineVariantBar')) {
-            const numRow = document.getElementById('eventSlideEditEventNumber')?.closest('.event-slide-inline-editor__row');
-            if (numRow) {
-                numRow.insertAdjacentHTML('afterend', `
+            // Create variant row at the very top of the editor (before city name)
+            const firstRow = editor.querySelector('.event-slide-inline-editor__row');
+            console.log('[EventSlideManager._ensureSlidePlacementBlock] First row found:', !!firstRow);
+            if (firstRow) {
+                firstRow.insertAdjacentHTML('beforebegin', `
                 <div class="event-slide-inline-editor__row" id="eventSlideVariantEditRow">
                     <div class="event-slide-inline-editor__label">Variants</div>
                     <div class="event-slide-inline-variant-bar" id="eventSlideInlineVariantBar"></div>
                     <p class="event-slide-inline-editor__hint">Switch tabs to edit another variant. + / − add or remove (saved when you click Save).</p>
                 </div>`);
+                console.log('[EventSlideManager._ensureSlidePlacementBlock] Variant row created');
             }
         }
         if (document.getElementById('eventSlideEditEventNumber')) return;
@@ -1565,7 +1569,6 @@ export class EventSlideManager {
             eventSlide.classList.add('open');
             if (eventImageOverlay) eventImageOverlay.classList.add('slide-open');
             MobileHelpers.setupMobileEventSlide();
-            MobileHelpers.setupMobileFullTextToggleButton();
 
             // Update sources and filters using helper
             const updateEventSourcesAndFilters = window.EventSlideShowHelpers?.updateEventSourcesAndFilters;
@@ -1696,9 +1699,21 @@ export class EventSlideManager {
             window.GlitchTextService.stopAnimation();
         }
 
+        // CRITICAL: Stop station/ship follow when closing event slide
+        console.log('[EventSlideManager.hideEventSlide] Stopping station/ship follow');
+        if (window.globeController?.interactionController) {
+            window.globeController.interactionController.stopFollowingStation();
+        }
+
         // Restore plane visibility when closing event slide
         if (window.globeController && window.globeController.interactionController) {
             window.globeController.interactionController.restorePlanesVisibility();
+        }
+
+        // CRITICAL: Reset camera to default when closing event slide
+        console.log('[EventSlideManager.hideEventSlide] Resetting camera to default');
+        if (window.globeController?.cameraControlService) {
+            window.globeController.cameraControlService.resetCameraToDefault();
         }
 
         const eventImageOverlay = document.getElementById('eventImageOverlay');
