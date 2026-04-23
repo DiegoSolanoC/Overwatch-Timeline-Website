@@ -807,13 +807,35 @@ body:has(footer.timeline-loaded):not(:has(#paginationDock)) #globe-container.glo
     margin: 0;
     background: transparent;
     border: none;
-    box-sizing: border-box;
-    /* Performance: isolate layout, style, and paint to this subtree */
-    contain: layout style paint;
-    /* Promote to own compositor layer for smoother transforms */
+    transition: transform 0.2s ease-out, filter 0.2s ease-out;
     will-change: transform;
     /* Smooth fade-in when nodes appear */
     animation: codex-node-fade-in 300ms ease-out;
+}
+
+.codex-node:hover {
+    transform: scale(1.15) rotate(var(--codex-hex-rotation, 0deg));
+    z-index: 20;
+}
+
+.codex-node:hover .codex-node__inner,
+.codex-node:hover.codex-node--simplified {
+    filter: drop-shadow(0 0 12px rgba(192, 132, 252, 0.8)) drop-shadow(0 0 6px rgba(147, 51, 234, 0.5));
+}
+
+.codex-node--simplified:hover {
+    transform: scale(1.15) rotate(var(--codex-hex-rotation, 0deg));
+}
+
+.codex-node--filtered-out:hover {
+    /* Filtered-out nodes don't get hover effects */
+    transform: rotate(var(--codex-hex-rotation, 0deg));
+    filter: brightness(0.5) grayscale(0.8);
+    z-index: 10;
+}
+
+.codex-node--filtered-out.codex-node--simplified:hover {
+    transform: rotate(var(--codex-hex-rotation, 0deg));
 }
 
 @keyframes codex-node-fade-in {

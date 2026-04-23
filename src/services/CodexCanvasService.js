@@ -2719,6 +2719,25 @@ function codexNodeMatchesFilters(nodeEl) {
     const faction = nodeEl.dataset.codexFactionFile || '';
     const country = nodeEl.dataset.codexCountryKey || '';
     
+    // Junction nodes (break points) are never filtered out
+    if (kind === 'junction') {
+        return true;
+    }
+    
+    // Special case: Numbani country node matches if Efi, Adawe, or Orisa are selected
+    if (kind === 'country' && country.toLowerCase() === 'numbani') {
+        const numbaniRelatedFilters = ['Efi', 'Adawe', 'Orisa'];
+        for (const filter of window.standaloneActiveFilters) {
+            for (const related of numbaniRelatedFilters) {
+                if (filter === related || filter === `hero:${related}` || filter === `npc:${related}`) {
+                    return true;
+                }
+            }
+        }
+        // Numbani node doesn't match if none of the related filters are selected
+        return false;
+    }
+    
     // Build filter keys for this node
     const nodeFilterKeys = new Set();
     if (kind === 'hero' && hero) {
@@ -2750,17 +2769,27 @@ function applyCodexFilterState() {
     if (!root) return;
     
     const nodes = root.querySelectorAll('.codex-node');
+    console.log(`[Codex Filter] Applying filter state to ${nodes.length} nodes`);
+    console.log(`[Codex Filter] Active filters:`, Array.from(window.standaloneActiveFilters || []));
+    
+    let matchCount = 0;
+    let filteredCount = 0;
+    
     nodes.forEach((nodeEl) => {
         const matches = codexNodeMatchesFilters(nodeEl);
         
         if (matches) {
             nodeEl.classList.remove('codex-node--filtered-out');
             nodeEl.classList.add('codex-node--filter-match');
+            matchCount++;
         } else {
             nodeEl.classList.add('codex-node--filtered-out');
             nodeEl.classList.remove('codex-node--filter-match');
+            filteredCount++;
         }
     });
+    
+    console.log(`[Codex Filter] Result: ${matchCount} matching, ${filteredCount} filtered out`);
 }
 
 // Expose to window for FilterService to call

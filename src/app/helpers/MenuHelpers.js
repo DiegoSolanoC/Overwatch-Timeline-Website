@@ -1037,6 +1037,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         } else if (window.globeController?.eventMarkerManager) {
                             window.globeController.eventMarkerManager.applyFilters();
                         }
+                        // Apply filter state to Codex nodes
+                        if (typeof window.applyCodexFilterState === 'function') {
+                            window.applyCodexFilterState();
+                        }
                         // Close panel
                         const filtersPanel = document.getElementById('filtersPanel');
                         if (filtersPanel) filtersPanel.classList.remove('open');
@@ -1071,6 +1075,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         // Clear filters from Globe markers (if EventMarkerManager exists)
                         if (window.globeEventMarkerManager) {
                             window.globeEventMarkerManager.applyFilters();
+                        }
+                        // Apply filter state to Codex nodes (clears filtered-out state)
+                        if (typeof window.applyCodexFilterState === 'function') {
+                            window.applyCodexFilterState();
                         }
                         updateStatus('✓ Filters cleared', 'success');
                     });
