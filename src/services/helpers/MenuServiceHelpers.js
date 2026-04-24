@@ -1956,6 +1956,102 @@ export function createMenuButtonsContainer(statusService) {
                                 handlePageChange(current < total ? current + 1 : 1);
                             });
                             
+                            // Event navigation buttons (prev/next event)
+                            const prevEventBtn = document.getElementById('prevEventBtn');
+                            const nextEventBtn = document.getElementById('nextEventBtn');
+                            
+                            if (prevEventBtn && nextEventBtn) {
+                                const getCurrentEventIndex = () => window.standaloneEventSlide?.currentEventIndex ?? -1;
+                                const getFilteredEvents = () => window.eventManager?.getFilteredEvents?.() || window.eventManager?.events || events;
+                                
+                                const navigateToEvent = (direction) => {
+                                    const currentEvents = getFilteredEvents();
+                                    if (!currentEvents.length) return;
+                                    
+                                    const currentIndex = getCurrentEventIndex();
+                                    const eventSlide = document.getElementById('eventSlide');
+                                    const isEventOpen = eventSlide?.classList.contains('open');
+                                    
+                                    let targetIndex;
+                                    
+                                    if (isEventOpen && currentIndex >= 0) {
+                                        // Event is open - navigate to next/prev event
+                                        targetIndex = currentIndex + direction;
+                                        
+                                        // Wrap around
+                                        if (targetIndex < 0) targetIndex = currentEvents.length - 1;
+                                        if (targetIndex >= currentEvents.length) targetIndex = 0;
+                                        
+                                        // Close current event first
+                                        if (eventSlide) {
+                                            eventSlide.classList.remove('open');
+                                        }
+                                        
+                                        // Open new event after brief delay
+                                        setTimeout(() => {
+                                            if (window.standaloneEventSlide) {
+                                                window.standaloneEventSlide.showEvent(targetIndex);
+                                                if (window.SoundEffectsManager?.play) {
+                                                    window.SoundEffectsManager.play('eventClick');
+                                                }
+                                            }
+                                        }, 50);
+                                    } else {
+                                        // No event open - load first event of current page
+                                        const currentPage = getCurrentPage();
+                                        const pageStart = (currentPage - 1) * eventsPerPage;
+                                        const pageEnd = Math.min(pageStart + eventsPerPage, currentEvents.length);
+                                        
+                                        // Find first unlocked event on current page
+                                        const activeFilters = window.standaloneActiveFilters || new Set();
+                                        for (let i = pageStart; i < pageEnd; i++) {
+                                            const event = currentEvents[i];
+                                            if (event && !shouldEventBeLocked(event, activeFilters)) {
+                                                targetIndex = i;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        // If no unlocked events, use first event on page
+                                        if (targetIndex === undefined) {
+                                            targetIndex = pageStart;
+                                        }
+                                        
+                                        if (targetIndex < currentEvents.length && window.standaloneEventSlide) {
+                                            window.standaloneEventSlide.showEvent(targetIndex);
+                                            if (window.SoundEffectsManager?.play) {
+                                                window.SoundEffectsManager.play('eventClick');
+                                            }
+                                        }
+                                    }
+                                };
+                                
+                                prevEventBtn.addEventListener('click', (e) => {
+                                    e?.stopPropagation?.();
+                                    navigateToEvent(-1);
+                                });
+                                
+                                nextEventBtn.addEventListener('click', (e) => {
+                                    e?.stopPropagation?.();
+                                    navigateToEvent(1);
+                                });
+                                
+                                // Update button states based on event panel state
+                                const updateEventNavButtons = () => {
+                                    const currentEvents = getFilteredEvents();
+                                    const hasEvents = currentEvents.length > 0;
+                                    prevEventBtn.disabled = !hasEvents;
+                                    nextEventBtn.disabled = !hasEvents;
+                                };
+                                
+                                // Call update when pagination UI updates
+                                const originalUpdatePaginationUI = updatePaginationUI;
+                                const enhancedUpdatePaginationUI = () => {
+                                    originalUpdatePaginationUI();
+                                    updateEventNavButtons();
+                                };
+                            }
+                            
                             if (pageInput) {
                                 pageInput.onchange = (e) => {
                                     e.stopPropagation();

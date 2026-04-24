@@ -82,15 +82,6 @@ body.color-palette-crimson .globe-control-btn.active:hover {
     background: rgba(27, 94, 32, 1) !important; /* Keep green for active hover */
 }
 
-/* Vehicles (transport) floating control only — red (not burgundy globe chrome) */
-body.color-palette-crimson .globe-control-btn.hyperloop-btn:not(.active) {
-    background: rgba(211, 47, 47, 0.9) !important;
-}
-
-body.color-palette-crimson .globe-control-btn.hyperloop-btn:not(.active):hover {
-    background: rgba(229, 57, 53, 1) !important;
-}
-
 /* Variant Toggle Buttons */
 body.color-palette-crimson .variant-toggle-btn,
 body.color-palette-crimson .variant-tab-btn {

@@ -1323,6 +1323,22 @@ body:not(:has(#paginationDock)) .event-page-slider-row--desktop-only {
     transform: none;
 }
 
+.page-btn--event-nav {
+    font-size: 0;
+}
+
+.page-btn--event-nav .ui-pagination-arrow {
+    width: 24px;
+    height: 24px;
+}
+
+/* Hide dock event navigation buttons on mobile (desktop-only feature) */
+@media (max-width: 768px) {
+    .page-btn--event-nav {
+        display: none;
+    }
+}
+
 .page-input-container {
     display: flex;
     align-items: center;

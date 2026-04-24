@@ -189,9 +189,11 @@ export function createEventPagination(statusService) {
             </div>
         </div>
         <div class="event-pagination-thumb-row">
-            <button type="button" id="prevPageBtn" class="page-btn page-btn--thumb-rail page-btn--pagination-arrow" title="Previous Page" aria-label="Previous page"><span class="page-btn__arrow-inner" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="28" height="28" decoding="async" /></span></button>
+            <button type="button" id="prevPageBtn" class="page-btn page-btn--thumb-rail page-btn--pagination-arrow" title="Previous Page" aria-label="Previous page"><span class="page-btn__arrow-inner" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Double Arrow.png" alt="" width="28" height="28" decoding="async" /></span></button>
+            <button type="button" id="prevEventBtn" class="page-btn page-btn--thumb-rail page-btn--event-nav" title="Previous Event" aria-label="Previous event"><span class="page-btn__arrow-inner" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="24" height="24" decoding="async" /></span></button>
             <div class="event-number-buttons event-number-buttons--thumbs-desktop" id="eventNumberButtons">${getEventThumbNumberButtonsHtml()}</div>
-            <button type="button" id="nextPageBtn" class="page-btn page-btn--thumb-rail page-btn--pagination-arrow" title="Next Page" aria-label="Next page"><span class="page-btn__arrow-inner page-btn__arrow-inner--next" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="28" height="28" decoding="async" /></span></button>
+            <button type="button" id="nextEventBtn" class="page-btn page-btn--thumb-rail page-btn--event-nav" title="Next Event" aria-label="Next event"><span class="page-btn__arrow-inner page-btn__arrow-inner--next" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Arrow Icon.png" alt="" width="24" height="24" decoding="async" /></span></button>
+            <button type="button" id="nextPageBtn" class="page-btn page-btn--thumb-rail page-btn--pagination-arrow" title="Next Page" aria-label="Next page"><span class="page-btn__arrow-inner page-btn__arrow-inner--next" aria-hidden="true"><img class="ui-pagination-arrow" src="assets/images/icons/Double Arrow.png" alt="" width="28" height="28" decoding="async" /></span></button>
         </div>
         <div class="page-controls-row page-controls-row--page-only page-controls-row--mobile-only">
             <div class="page-input-container">

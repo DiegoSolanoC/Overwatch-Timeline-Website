@@ -64,14 +64,21 @@ body.color-palette-gray .event-image-toggle-btn:hover {
     margin-top: 0;
 }
 
-/* Event Navigation Buttons (prev/next in full list) */
+/* Event Navigation Buttons (prev/next in full list) - Mobile Only */
 .event-navigation-buttons {
-    display: flex;
+    display: none; /* Hidden on desktop */
     gap: 10px;
     margin-top: 15px;
     margin-bottom: 0;
     justify-content: center;
     flex-shrink: 0; /* Don't shrink - always at bottom */
+}
+
+/* Show event navigation buttons on mobile */
+@media (max-width: 768px) {
+    .event-navigation-buttons {
+        display: flex;
+    }
 }
 
 .event-nav-btn {
