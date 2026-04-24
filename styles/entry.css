@@ -178,12 +178,12 @@ body:has(footer.timeline-loaded):has(#paginationDock) #globe-container {
     border: none;
     border-top: 2px solid rgba(255, 255, 255, 0.93);
     backdrop-filter: blur(4px);
-    box-sizing: border-box;
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-top: 10px;
+    position: relative;
+    z-index: 10;
 }
 
 .main-menu-external-label__desc {
@@ -191,6 +191,9 @@ body:has(footer.timeline-loaded):has(#paginationDock) #globe-container {
     font-size: 24px;
     font-weight: 500;
     line-height: 1.4;
+    position: relative;
+    z-index: 20;
+    transition: opacity 0.15s ease;
 }
 
 .main-menu-btn {

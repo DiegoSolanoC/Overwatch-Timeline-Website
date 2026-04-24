@@ -545,6 +545,39 @@ export class GlobeController {
 
         // NOTE: Event slide and marker refresh removed - Globe no longer handles events
         // Event System Load Out handles all event UI separately
+
+        // Restore globe-only states when switching back to globe (delay to ensure globe is ready)
+        if (!isEnabled) {
+            requestAnimationFrame(() => {
+                // Restore weather and lighting state
+                if (this.globeView) {
+                    if (typeof this.globeView.setWeatherEffectsVisible === 'function') {
+                        const weatherVisible = this.sceneModel.getGlobeWeatherEffectsVisible ? this.sceneModel.getGlobeWeatherEffectsVisible() : true;
+                        console.log('[GlobeController] Restoring weather state:', weatherVisible);
+                        this.globeView.setWeatherEffectsVisible(weatherVisible);
+                    }
+                    if (typeof this.globeView.setGlobeLightingVisible === 'function') {
+                        const lightingVisible = this.sceneModel.getGlobeLightingVisible ? this.sceneModel.getGlobeLightingVisible() : true;
+                        console.log('[GlobeController] Restoring lighting state:', lightingVisible);
+                        this.globeView.setGlobeLightingVisible(lightingVisible);
+                    }
+                }
+                // Restore rotation state
+                if (this.sceneModel.getAutoRotateEnabled && this.sceneModel.getAutoRotateEnabled()) {
+                    console.log('[GlobeController] Restoring rotation state: enabled');
+                    this.sceneModel.setAutoRotate(true);
+                }
+                // Update sun slider visibility
+                import('../dev/DevSunYawControl.js').then(module => {
+                    module.updateSunSliderVisibility(this);
+                }).catch(() => {});
+            });
+        } else {
+            // Update sun slider visibility when switching to map mode
+            import('../dev/DevSunYawControl.js').then(module => {
+                module.updateSunSliderVisibility(this);
+            }).catch(() => {});
+        }
         
         // Update all transport markers visibility for new view mode
         if (this.transportView && typeof this.transportView.updateAllTransportMarkersVisibility === 'function') {

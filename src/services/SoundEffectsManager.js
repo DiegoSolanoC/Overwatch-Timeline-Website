@@ -294,6 +294,8 @@ class SoundEffectsManager {
         this.loadSound('modeSwitch', 'assets/audio/sfx/Mode Switch.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Switch Map.mp3');
         this.loadSound('switchMap', 'assets/audio/sfx/Switch Map.mp3');
+        if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Image Display.mp3');
+        this.loadSound('imageDisplay', 'assets/audio/sfx/Image Display.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Space Panel On.mp3');
         this.loadSound('spacePanelOn', 'assets/audio/sfx/Space Panel On.mp3');
         if (typeof logAssetLoad === 'function') logAssetLoad('SOUND_EFFECT', 'Space Panel Off.mp3');

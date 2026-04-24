@@ -18,6 +18,11 @@ export function setupFiltersButton(filtersButton, soundManager, togglePanel) {
             event.preventDefault();
         }
         
+        // Flash feedback (orange for panel toggle)
+        if (window.flashButton) {
+            window.flashButton(filtersButton, 'flash-orange');
+        }
+        
         if (soundManager) {
             soundManager.play('filterButton');
         }

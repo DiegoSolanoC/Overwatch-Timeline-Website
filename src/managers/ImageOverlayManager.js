@@ -25,6 +25,7 @@ export class ImageOverlayManager {
     /**
      * Toggle event image overlay visibility
      * This sets the toggle state, which controls whether auto-show/hide behavior is active
+     * Also syncs with global image toggle state
      */
     toggleEventImage() {
         const eventImageOverlay = document.getElementById('eventImageOverlay');
@@ -33,16 +34,29 @@ export class ImageOverlayManager {
         
         if (!eventImageOverlay) return;
 
-        console.log('[DEBUG ImageOverlayManager] toggleEventImage called, SoundEffectsManager:', !!window.SoundEffectsManager);
         if (window.SoundEffectsManager) {
-            console.log('[DEBUG ImageOverlayManager] Playing switchMap sound');
-            window.SoundEffectsManager.play('switchMap');
-        } else {
-            console.log('[DEBUG ImageOverlayManager] SoundEffectsManager NOT available!');
+            window.SoundEffectsManager.play('imageDisplay');
         }
 
         // Toggle the state
         this.imageToggleState = !this.imageToggleState;
+        
+        // Sync with global toggle state
+        localStorage.setItem('globalImageToggle', this.imageToggleState.toString());
+        
+        // Update global toggle button visual state
+        const globalImageToggleBtn = document.getElementById('globalImageToggle');
+        if (globalImageToggleBtn) {
+            const labelEl = globalImageToggleBtn.querySelector('.globe-control-btn__label');
+            if (labelEl) {
+                labelEl.textContent = this.imageToggleState ? 'Image On' : 'Image Off';
+            }
+            if (this.imageToggleState) {
+                globalImageToggleBtn.classList.add('active');
+            } else {
+                globalImageToggleBtn.classList.remove('active');
+            }
+        }
         
         if (this.imageToggleState) {
             // Toggle ON: show image
@@ -121,10 +135,7 @@ export class ImageOverlayManager {
         // Re-enable page navigation buttons immediately when hiding starts
         this.disablePageNavigationButtons(false);
 
-        // Match X button behavior exactly
-        eventImageOverlay.classList.remove('open', 'slide-open');
-        eventImageOverlay.style.opacity = '0';
-        // Immediately disable pointer events to allow clicks through
+        // Disable pointer events immediately
         eventImageOverlay.style.setProperty('pointer-events', 'none');
 
         // Stop hover radiate sound loop
@@ -143,26 +154,41 @@ export class ImageOverlayManager {
             window.globeController.markerPulseService.hoveredEventMarker = null;
         }
 
-        // Hide the image element
-        if (eventImage) {
-            eventImage.classList.remove('fade-in');
-            eventImage.classList.add('fade-out');
-            eventImage.style.display = 'none';
-            eventImage.src = '';
-        }
-
-        // After 600ms, set display to none if still not open (matches X button)
-        setTimeout(() => {
-            if (!eventImageOverlay.classList.contains('open')) {
+        // Gradual fade-out (same approach as standaloneEventSlide)
+        const startTime = Date.now();
+        const fadeInterval = 50;
+        const durationMs = 600;
+        
+        const fadeTimer = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / durationMs, 1);
+            // Ease-out curve for smooth disappearance
+            const eased = 1 - (1 - progress) * (1 - progress);
+            const opacity = 1 - eased;
+            
+            eventImageOverlay.style.opacity = String(opacity);
+            if (eventImage) {
+                eventImage.style.opacity = String(opacity);
+            }
+            
+            if (progress >= 1) {
+                clearInterval(fadeTimer);
+                eventImageOverlay.style.opacity = '0';
+                eventImageOverlay.classList.remove('open', 'slide-open');
                 eventImageOverlay.style.display = 'none';
-            }
-            this.imageOverlayVisible = false;
+                if (eventImage) {
+                    eventImage.style.opacity = '0';
+                    eventImage.style.display = 'none';
+                    eventImage.src = '';
+                }
+                this.imageOverlayVisible = false;
 
-            // If temporary hide, don't change toggle state
-            if (!temporary) {
-                this.imageToggleState = false;
+                // If temporary hide, don't change toggle state
+                if (!temporary) {
+                    this.imageToggleState = false;
+                }
             }
-        }, 600);
+        }, fadeInterval);
     }
     
     /**
@@ -321,8 +347,10 @@ export class ImageOverlayManager {
      * @param {number} delayMs - Milliseconds before auto-restoring (default 5000)
      */
     hideImageOverlayTemporarily(delayMs = 5000) {
+        console.log('[DEBUG ImageOverlayManager] hideImageOverlayTemporarily called, imageOverlayVisible:', this.imageOverlayVisible);
         if (!this.imageOverlayVisible) return;
         
+        console.log('[DEBUG ImageOverlayManager] Calling hideImageOverlay with temporary=true');
         // Hide temporarily (preserves toggle state)
         this.hideImageOverlay(true);
         

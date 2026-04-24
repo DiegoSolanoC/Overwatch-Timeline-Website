@@ -768,12 +768,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         const mainMenuGlobeBtn = document.getElementById('runGlobeBtn');
         if (mainMenuGlobeBtn) {
             const labelEl = mainMenuGlobeBtn.querySelector('.main-menu-label');
-            const descEl = mainMenuGlobeBtn.querySelector('.main-menu-description');
+            const descEl = mainMenuGlobeBtn.querySelector('.main-menu-external-label__desc');
             if (labelEl) labelEl.textContent = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
             if (descEl) {
-                descEl.textContent = newStartOnMap 
-                    ? 'Visualize the story of Overwatch through a 2D map'
-                    : 'Visualize the story of Overwatch through a 3D globe';
+                // Fade out, change text, fade in
+                descEl.style.opacity = '0';
+                setTimeout(() => {
+                    descEl.textContent = newStartOnMap 
+                        ? 'Visualize the story of Overwatch through a 2D map'
+                        : 'Visualize the story of Overwatch through a 3D globe';
+                    descEl.style.opacity = '1';
+                }, 150);
             }
             mainMenuGlobeBtn.title = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
         }
@@ -811,21 +816,24 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
             // LOAD
             updateStatus('Loading Event System...', 'info');
             try {
-                // Create event buttons (these are no longer pre-created by loadHeaderNavButtons)
-                createGlobeControlButton({
-                    id: 'eventsManageToggle',
-                    className: 'dock-globe-rail__btn',
-                    title: 'Manage Events',
-                    label: 'Events',
-                    iconPath: 'assets/images/icons/Event Manager Icon.png',
-                    iconAlt: 'Event Manager',
-                    parentId: 'dockGlobeRailRight',
-                    baseClass: 'globe-control-btn',
-                    headerOrder: 10,
-                    mobileParentId: 'dockGlobeRailLeft',
-                    mobileBaseClass: 'globe-control-btn',
-                    mobileClassName: 'dock-globe-rail__btn'
-                });
+                // Create event buttons (dev-only: hide eventsManageToggle on GitHub Pages)
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                if (!isGitHubPages) {
+                    createGlobeControlButton({
+                        id: 'eventsManageToggle',
+                        className: 'dock-globe-rail__btn',
+                        title: 'Manage Events',
+                        label: 'Events',
+                        iconPath: 'assets/images/icons/Event Manager Icon.png',
+                        iconAlt: 'Event Manager',
+                        parentId: 'dockGlobeRailRight',
+                        baseClass: 'globe-control-btn',
+                        headerOrder: 10,
+                        mobileParentId: 'dockGlobeRailLeft',
+                        mobileBaseClass: 'globe-control-btn',
+                        mobileClassName: 'dock-globe-rail__btn'
+                    });
+                }
 
                 createGlobeControlButton({
                     id: 'filtersToggle',
@@ -839,30 +847,146 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                     headerOrder: 5,
                     mobileParentId: 'dockGlobeRailLeft',
                     mobileBaseClass: 'globe-control-btn',
-                    mobileClassName: 'dock-globe-rail__btn',
-                    desktopParentId: 'dockGlobeRailRight',
-                    desktopClassName: 'dock-globe-rail__btn'
+                    mobileClassName: 'dock-globe-rail__btn'
                 });
 
-                // Move Events and Filters buttons to page controls row on mobile portrait
+                // Create global image display toggle button
+                // Default to ON (true) if not set or if set to false (for new users)
+                const storedValue = localStorage.getItem('globalImageToggle');
+                const globalImageToggleState = storedValue === null ? true : storedValue !== 'false';
+                // Initialize localStorage if not set
+                if (storedValue === null) {
+                    localStorage.setItem('globalImageToggle', 'true');
+                }
+                createGlobeControlButton({
+                    id: 'globalImageToggle',
+                    className: 'dock-globe-rail__btn',
+                    title: 'Toggle Image Display',
+                    label: globalImageToggleState ? 'Image On' : 'Image Off',
+                    iconPath: 'assets/images/icons/Image Display Icon.png',
+                    iconAlt: 'Images',
+                    parentId: 'dockGlobeRailRight',
+                    baseClass: 'globe-control-btn',
+                    headerOrder: 6,
+                    mobileParentId: 'dockGlobeRailLeft',
+                    mobileBaseClass: 'globe-control-btn',
+                    mobileClassName: 'dock-globe-rail__btn'
+                });
+
+                // Setup global image toggle button handler (wait for button to be in DOM)
+                setTimeout(() => {
+                    const globalImageToggleBtn = document.getElementById('globalImageToggle');
+                    if (globalImageToggleBtn) {
+                        // Set initial state
+                        if (globalImageToggleState) {
+                            globalImageToggleBtn.classList.add('active');
+                        }
+                        
+                        // Remove any existing listeners by cloning
+                        const newBtn = globalImageToggleBtn.cloneNode(true);
+                        globalImageToggleBtn.parentNode.replaceChild(newBtn, globalImageToggleBtn);
+                        
+                        newBtn.addEventListener('click', (e) => {
+                            console.log('[DEBUG global button click] Global image toggle button clicked');
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            const currentState = localStorage.getItem('globalImageToggle') === 'true';
+                            const newState = !currentState;
+                            localStorage.setItem('globalImageToggle', newState.toString());
+                            console.log('[DEBUG global button click] State changed:', currentState, '->', newState);
+                            
+                            // Flash feedback (green for ON, red for OFF)
+                            if (window.flashButton) {
+                                window.flashButton(newBtn, newState ? 'flash-green' : 'flash-red');
+                            }
+                            
+                            // Update button label to reflect new state
+                            const labelEl = newBtn.querySelector('.globe-control-btn__label');
+                            if (labelEl) {
+                                labelEl.textContent = newState ? 'Image On' : 'Image Off';
+                                console.log('[DEBUG global button click] Label updated to:', labelEl.textContent);
+                            }
+                            
+                            if (newState) {
+                                newBtn.classList.add('active');
+                                console.log('[DEBUG global button click] Added active class');
+                                // If event slide is open, show image immediately
+                                const eventSlide = document.getElementById('eventSlide');
+                                console.log('[DEBUG global button click] eventSlide:', !!eventSlide, 'open:', eventSlide?.classList.contains('open'));
+                                if (eventSlide && eventSlide.classList.contains('open')) {
+                                    console.log('[DEBUG global button click] Event slide is open, manually showing image with gradual fade');
+                                    // Use gradual fade-in for showing image
+                                    if (window.standaloneEventSlide?.showImageOverlayGradually && window.standaloneEventSlide?.currentImagePath) {
+                                        window.standaloneEventSlide.showImageOverlayGradually(window.standaloneEventSlide.currentImagePath, 600);
+                                    } else {
+                                        console.error('[DEBUG global button click] showImageOverlayGradually not available or no currentImagePath');
+                                    }
+                                }
+                            } else {
+                                newBtn.classList.remove('active');
+                                console.log('[DEBUG global button click] Removed active class');
+                                // If event slide is open, hide image immediately
+                                const eventSlide = document.getElementById('eventSlide');
+                                console.log('[DEBUG global button click] eventSlide:', !!eventSlide, 'open:', eventSlide?.classList.contains('open'));
+                                if (eventSlide && eventSlide.classList.contains('open')) {
+                                    console.log('[DEBUG global button click] Event slide is open, hiding image');
+                                    // Use standalone event system's image overlay methods
+                                    const overlay = document.getElementById('eventImageOverlay');
+                                    console.log('[DEBUG global button click] overlay:', !!overlay, 'open:', overlay?.classList.contains('open'));
+                                    if (overlay && overlay.classList.contains('open')) {
+                                        console.log('[DEBUG global button click] Calling hideImageOverlayGradually directly');
+                                        // Call the gradual fade function directly to avoid the wrong function being called
+                                        if (window.standaloneEventSlide?.hideImageOverlayGradually) {
+                                            window.standaloneEventSlide.hideImageOverlayGradually(600);
+                                        } else {
+                                            console.error('[DEBUG global button click] hideImageOverlayGradually not available');
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Play sound
+                            if (window.SoundEffectsManager) {
+                                window.SoundEffectsManager.play('imageDisplay');
+                            }
+                        });
+                    }
+                }, 100);
+
+                // Move Filters and Global Image Toggle buttons to page controls row (now on all devices)
+                // Events Manager stays on right rail (dev feature)
                 function moveButtonsToPageControlsRow() {
-                    const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
                     const pageControlsRow = document.querySelector('.page-controls-row--mobile-only');
                     const pageInputContainer = document.querySelector('.page-input-container');
                     const rightRail = document.getElementById('dockGlobeRailRight');
                     const eventsBtn = document.getElementById('eventsManageToggle');
                     const filtersBtn = document.getElementById('filtersToggle');
+                    const globalImageToggleBtn = document.getElementById('globalImageToggle');
                     
-                    if (isMobilePortrait && pageControlsRow && pageInputContainer) {
-                        if (eventsBtn && eventsBtn.parentElement !== pageControlsRow) {
+                    // Move Events Manager to right rail (dev feature)
+                    if (rightRail && eventsBtn && eventsBtn.parentElement !== rightRail) {
+                        // Clear any inline styles that might interfere
+                        eventsBtn.style.position = '';
+                        eventsBtn.style.top = '';
+                        eventsBtn.style.left = '';
+                        eventsBtn.style.right = '';
+                        eventsBtn.style.bottom = '';
+                        rightRail.appendChild(eventsBtn);
+                    }
+                    
+                    // Move Filters and Global Image Toggle to page controls row on all devices (not just mobile)
+                    if (pageControlsRow && pageInputContainer) {
+                        // Insert global image toggle first (at the beginning)
+                        if (globalImageToggleBtn && globalImageToggleBtn.parentElement !== pageControlsRow) {
                             // Clear any inline styles that might interfere
-                            eventsBtn.style.position = '';
-                            eventsBtn.style.top = '';
-                            eventsBtn.style.left = '';
-                            eventsBtn.style.right = '';
-                            eventsBtn.style.bottom = '';
-                            // Insert before the page input container (left side)
-                            pageControlsRow.insertBefore(eventsBtn, pageInputContainer);
+                            globalImageToggleBtn.style.position = '';
+                            globalImageToggleBtn.style.top = '';
+                            globalImageToggleBtn.style.left = '';
+                            globalImageToggleBtn.style.right = '';
+                            globalImageToggleBtn.style.bottom = '';
+                            // Insert at the beginning of page controls row
+                            pageControlsRow.insertBefore(globalImageToggleBtn, pageControlsRow.firstChild);
                         }
                         if (filtersBtn && filtersBtn.parentElement !== pageControlsRow) {
                             // Clear any inline styles that might interfere
@@ -871,13 +995,13 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             filtersBtn.style.left = '';
                             filtersBtn.style.right = '';
                             filtersBtn.style.bottom = '';
-                            // Insert after the page input container (right side)
+                            // Insert after the page input container (right side of textbox)
                             pageControlsRow.insertBefore(filtersBtn, pageInputContainer.nextSibling);
                         }
                     } else if (rightRail) {
-                        // Move back to right rail on desktop or landscape
-                        if (eventsBtn && eventsBtn.parentElement !== rightRail) {
-                            rightRail.appendChild(eventsBtn);
+                        // Fallback: move back to right rail if page controls row doesn't exist
+                        if (globalImageToggleBtn && globalImageToggleBtn.parentElement !== rightRail) {
+                            rightRail.appendChild(globalImageToggleBtn);
                         }
                         if (filtersBtn && filtersBtn.parentElement !== rightRail) {
                             rightRail.appendChild(filtersBtn);
@@ -896,6 +1020,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                 if (!window.eventManager) {
                     const { initializeEventManager } = await import('./EventManagerHelpers.js');
                     window.eventManager = await initializeEventManager();
+                }
+
+                // Initialize FlashButtonHelper for Event System (works in all modes)
+                if (!window.flashButton) {
+                    await import('../../utils/FlashButtonHelper.js');
                 }
 
                 // Initialize EventMarkerManager for Globe (if Globe is loaded)
@@ -930,10 +1059,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                 if (window.eventManager && !window.eventManager.listenersSetup) {
                     window.eventManager.setupEventListeners();
                     window.eventManager.listenersSetup = true;
-                    // Show the events manage panel toggle button
-                    const eventsManageToggle = document.getElementById('eventsManageToggle');
-                    if (eventsManageToggle) {
-                        eventsManageToggle.style.setProperty('display', 'flex', 'important');
+                    // Show the events manage panel toggle button (dev-only: hide on GitHub Pages)
+                const isGitHubPages = window.location.hostname.includes('github.io');
+                const eventsManageToggle = document.getElementById('eventsManageToggle');
+                if (eventsManageToggle && !isGitHubPages) {
+                    eventsManageToggle.style.setProperty('display', 'flex', 'important');
                         // Remove the old globe-bootstrap handler
                         const newBtn = eventsManageToggle.cloneNode(true);
                         eventsManageToggle.parentNode.replaceChild(newBtn, eventsManageToggle);
@@ -943,6 +1073,11 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (panel) {
                                 const isOpening = !panel.classList.contains('open');
                                 panel.classList.toggle('open');
+                                
+                                // Flash feedback (orange for panel toggle)
+                                if (window.flashButton) {
+                                    window.flashButton(newBtn, 'flash-orange');
+                                }
                                 
                                 // Close other panels if opening (mutual exclusion)
                                 if (isOpening) {
@@ -1161,6 +1296,9 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             const eventSlideTimelineMeta = document.getElementById('eventSlideTimelineMeta');
                             
                             if (!eventSlide) return;
+                            
+                            // Store the image path for later use when toggling
+                            this.currentImagePath = imagePath;
                             
                             // Cancel any active editing
                             this.cancelEdit();
@@ -1408,12 +1546,19 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             
                             // Wire image toggle
                             if (eventImageToggle) {
-                                eventImageToggle.onclick = () => this.toggleImageOverlay(imagePath);
+                                eventImageToggle.onclick = () => {
+                                    // Use the standalone event slide's toggle method which syncs with global state
+                                    // Pass the stored image path
+                                    this.toggleImageOverlay(this.currentImagePath);
+                                };
                             }
                             
-                            // Show image by default if available
+                            // Show image based on global toggle state
+                            // Default to ON (true) if not set
+                            const storedValue = localStorage.getItem('globalImageToggle');
+                            const globalImageToggleEnabled = storedValue === null ? true : storedValue !== 'false';
                             setTimeout(() => {
-                                if (imagePath) {
+                                if (globalImageToggleEnabled && imagePath) {
                                     this.showImageOverlay(imagePath);
                                 } else {
                                     this.hideImageOverlay();
@@ -2732,6 +2877,90 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             if (nextBtn) nextBtn.disabled = false;
                         },
                         
+                        // Toggle image overlay
+                        toggleImageOverlay(imagePath) {
+                            console.log('[DEBUG standalone toggleImageOverlay] FUNCTION ENTRY - called, overlay open:', document.getElementById('eventImageOverlay')?.classList.contains('open'), 'imagePath:', imagePath, 'this.currentImagePath:', this.currentImagePath);
+                            const overlay = document.getElementById('eventImageOverlay');
+                            const img = document.getElementById('eventImage');
+                            const toggleBtn = document.getElementById('eventImageToggle');
+                            console.log('[DEBUG standalone toggleImageOverlay] After getting elements, overlay:', !!overlay, 'img:', !!img, 'toggleBtn:', !!toggleBtn);
+                            if (!overlay) {
+                                console.error('[DEBUG standalone toggleImageOverlay] Early return: no overlay');
+                                return;
+                            }
+                            
+                            if (window.SoundEffectsManager) {
+                                window.SoundEffectsManager.play('imageDisplay');
+                            }
+                            
+                            if (overlay.classList.contains('open')) {
+                                console.log('[DEBUG standalone toggleImageOverlay] Hiding image');
+                                this.hideImageOverlay();
+                                if (toggleBtn) toggleBtn.textContent = 'Show Image';
+                                // Sync with global toggle state
+                                localStorage.setItem('globalImageToggle', 'false');
+                                this.updateGlobalToggleButtonLabel(false);
+                            } else {
+                                console.log('[DEBUG standalone toggleImageOverlay] Showing image');
+                                // Show image - use provided imagePath, then stored path, then current img src
+                                const finalImagePath = imagePath || this.currentImagePath || (img?.src && img.src !== window.location.href ? img.src : null);
+                                console.log('[DEBUG standalone toggleImageOverlay] finalImagePath:', finalImagePath);
+                                if (finalImagePath) {
+                                    this.showImageOverlay(finalImagePath);
+                                    if (toggleBtn) toggleBtn.textContent = 'Hide Image';
+                                    // Sync with global toggle state
+                                    localStorage.setItem('globalImageToggle', 'true');
+                                    this.updateGlobalToggleButtonLabel(true);
+                                } else {
+                                    console.error('[DEBUG standalone toggleImageOverlay] No image path available!');
+                                }
+                            }
+                        },
+                        
+                        // Update global toggle button label
+                        updateGlobalToggleButtonLabel(isOn) {
+                            const globalBtn = document.getElementById('globalImageToggle');
+                            if (globalBtn) {
+                                const labelEl = globalBtn.querySelector('.globe-control-btn__label');
+                                if (labelEl) {
+                                    labelEl.textContent = isOn ? 'Image On' : 'Image Off';
+                                }
+                                if (isOn) {
+                                    globalBtn.classList.add('active');
+                                } else {
+                                    globalBtn.classList.remove('active');
+                                }
+                            }
+                        },
+                        
+                        // Show image overlay
+                        showImageOverlay(imagePath) {
+                            const overlay = document.getElementById('eventImageOverlay');
+                            const img = document.getElementById('eventImage');
+                            const eventSlide = document.getElementById('eventSlide');
+                            const toggleBtn = document.getElementById('eventImageToggle');
+                            
+                            if (overlay && img && imagePath) {
+                                img.src = imagePath;
+                                img.style.display = 'block';
+                                img.style.opacity = '1';
+                                overlay.style.display = 'flex';
+                                overlay.classList.add('open');
+                                if (eventSlide?.classList.contains('open')) {
+                                    overlay.classList.add('slide-open');
+                                }
+                                overlay.style.opacity = '1';
+                                if (toggleBtn) toggleBtn.textContent = 'Hide Image';
+                            }
+                        },
+                        
+                        // Hide image overlay
+                        hideImageOverlay() {
+                            console.log('[DEBUG standalone hideImageOverlay] Called, delegating to hideImageOverlayGradually');
+                            // Use the gradual fade-out approach
+                            this.hideImageOverlayGradually(600);
+                        },
+                        
                         // Hide event slide panel - used by ComponentOrchestrator when switching modes
                         hideEventSlide() {
                             const eventSlide = document.getElementById('eventSlide');
@@ -3951,23 +4180,39 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         },
                         
                         toggleImageOverlay(imagePath) {
+                            console.log('[DEBUG uiView/globe toggleImageOverlay] FUNCTION ENTRY - called, overlay open:', document.getElementById('eventImageOverlay')?.classList.contains('open'), 'imagePath:', imagePath);
                             const overlay = document.getElementById('eventImageOverlay');
                             const toggleBtn = document.getElementById('eventImageToggle');
-                            console.log('[DEBUG MenuHelpers] toggleImageOverlay called, overlay:', !!overlay, 'SoundEffectsManager:', !!window.SoundEffectsManager);
-                            if (!overlay) return;
+                            if (!overlay) {
+                                console.error('[DEBUG uiView/globe toggleImageOverlay] Early return: no overlay');
+                                return;
+                            }
                             
                             // Play sound effect
                             if (window.SoundEffectsManager) {
-                                console.log('[DEBUG MenuHelpers] Playing switchMap sound');
-                                window.SoundEffectsManager.play('switchMap');
+                                window.SoundEffectsManager.play('imageDisplay');
                             }
                             
                             if (overlay.classList.contains('open')) {
+                                console.log('[DEBUG uiView/globe toggleImageOverlay] Hiding image');
                                 this.hideImageOverlay();
                                 if (toggleBtn) toggleBtn.textContent = 'Show Image';
+                                // Sync with global toggle state
+                                localStorage.setItem('globalImageToggle', 'false');
+                                if (window.standaloneEventSlide?.updateGlobalToggleButtonLabel) {
+                                    window.standaloneEventSlide.updateGlobalToggleButtonLabel(false);
+                                }
                             } else if (imagePath) {
+                                console.log('[DEBUG uiView/globe toggleImageOverlay] Showing image with path:', imagePath);
                                 this.showImageOverlay(imagePath);
                                 if (toggleBtn) toggleBtn.textContent = 'Hide Image';
+                                // Sync with global toggle state
+                                localStorage.setItem('globalImageToggle', 'true');
+                                if (window.standaloneEventSlide?.updateGlobalToggleButtonLabel) {
+                                    window.standaloneEventSlide.updateGlobalToggleButtonLabel(true);
+                                }
+                            } else {
+                                console.error('[DEBUG uiView/globe toggleImageOverlay] No imagePath provided and overlay not open');
                             }
                         },
                         
@@ -4016,11 +4261,16 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                         },
                         
                         hideImageOverlayTemporarily(delayMs = 5000) {
+                            console.log('[DEBUG standalone hideImageOverlayTemporarily] Called');
                             const overlay = document.getElementById('eventImageOverlay');
-                            if (!overlay || !overlay.classList.contains('open')) return;
+                            if (!overlay || !overlay.classList.contains('open')) {
+                                console.log('[DEBUG standalone hideImageOverlayTemporarily] Early return - overlay not open');
+                                return;
+                            }
                             
-                            // Hide temporarily
-                            this.hideImageOverlay();
+                            console.log('[DEBUG standalone hideImageOverlayTemporarily] Calling hideImageOverlayGradually');
+                            // Hide temporarily with gradual fade
+                            this.hideImageOverlayGradually(600);
                             
                             // Debug: track countdown
                             let countdownMs = delayMs;
@@ -4188,6 +4438,55 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     overlay.style.opacity = '1';
                                     img.style.opacity = '1';
                                     console.log('[IMAGE RESTORE] Fade 100% - Image fully restored!');
+                                }
+                            }, fadeInterval);
+                        },
+                        
+                        hideImageOverlayGradually(durationMs = 600) {
+                            const overlay = document.getElementById('eventImageOverlay');
+                            const img = document.getElementById('eventImage');
+                            const toggleBtn = document.getElementById('eventImageToggle');
+                            
+                            if (!overlay) return;
+                            
+                            // Disable pointer events immediately
+                            overlay.style.setProperty('pointer-events', 'none');
+                            
+                            // Gradual fade-out
+                            const startTime = Date.now();
+                            const fadeInterval = 50; // Update every 50ms
+                            
+                            console.log(`[IMAGE HIDE] Starting gradual fade-out over ${durationMs}ms...`);
+                            
+                            const fadeTimer = setInterval(() => {
+                                const elapsed = Date.now() - startTime;
+                                const progress = Math.min(elapsed / durationMs, 1);
+                                // Ease-out curve for smooth disappearance
+                                const eased = 1 - (1 - progress) * (1 - progress); // Quadratic ease-out
+                                const opacity = 1 - eased;
+                                
+                                overlay.style.opacity = String(opacity);
+                                if (img) {
+                                    img.style.opacity = String(opacity);
+                                }
+                                
+                                // Log progress at 25%, 50%, 75%, 100%
+                                if (progress >= 0.25 && progress < 0.30) console.log('[IMAGE HIDE] Fade 25%...');
+                                if (progress >= 0.50 && progress < 0.55) console.log('[IMAGE HIDE] Fade 50%...');
+                                if (progress >= 0.75 && progress < 0.80) console.log('[IMAGE HIDE] Fade 75%...');
+                                
+                                if (progress >= 1) {
+                                    clearInterval(fadeTimer);
+                                    overlay.style.opacity = '0';
+                                    overlay.classList.remove('open', 'slide-open', 'fade-in');
+                                    overlay.style.display = 'none';
+                                    if (img) {
+                                        img.style.opacity = '0';
+                                        img.style.display = 'none';
+                                        img.src = '';
+                                    }
+                                    if (toggleBtn) toggleBtn.textContent = 'Show Image';
+                                    console.log('[IMAGE HIDE] Fade 100% - Image fully hidden!');
                                 }
                             }, fadeInterval);
                         },

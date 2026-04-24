@@ -139,40 +139,30 @@ varying vec3 vWorldNormal;
 void main() {
     vec4 texColor = texture2D(uPatternMap, vUv);
     
-    // Create a horizontal wave that sweeps from right to left (counter-rotation)
-    // Wave position moves based on time (0 to 1 range, looping)
-    float wavePos = fract(-uTime * 0.08); // Counter-clockwise wave sweep
+    // Wave effect: sweeps from right to left
+    // vUv.x goes from 0 to 1 across the texture
+    float waveSpeed = 0.2;
+    float waveWidth = 0.5;
+    float wavePos = fract(uTime * waveSpeed);
     
-    // Calculate distance from wave center (horizontal)
+    // Calculate distance from wave center (wrapping around)
     float dist = abs(vUv.x - wavePos);
-    // Handle wrap-around for seamless loop
-    dist = min(dist, 1.0 - dist);
+    if (dist > 0.5) dist = 1.0 - dist;
     
-    // Create smooth wave falloff - wider wave band
-    float waveWidth = 0.28;
+    // Create wave intensity: 0.1 base, up to 1.5 at wave center for moderate wave
     float waveRaw = 1.0 - smoothstep(0.0, waveWidth, dist);
+    float wave = 0.1 + waveRaw * 1.4;
     
-    // Minimum 35% visibility so pattern is always noticeable (increased from 10%)
-    float wave = 0.35 + waveRaw * 0.65;
-
-    // Intensity boost at the center of the wave (glow effect) - increased for more visibility
-    float centerIntensity = pow(waveRaw, 0.6); // Sharper peak at center
-    float glowBoost = 1.0 + centerIntensity * 5.0; // Up to 6x brighter at center (increased from 3.5x)
-
-    // Apply wave to opacity with glow - increased base multiplier for more visibility
-    float finalOpacity = texColor.a * uBaseOpacity * wave * 1.5;
+    // Apply base opacity with wave modulation
+    float finalOpacity = texColor.a * uBaseOpacity * wave * 3.0;
 
     // Dim pattern at the poles to hide where texture wraps
     // vUv.y goes from 0 (south pole) to 1 (north pole)
     float polarFade = 1.0 - smoothstep(0.75, 0.95, abs(vUv.y - 0.5) * 2.0);
     finalOpacity *= polarFade;
 
-    // Glow color - brighten the tint at the wave center
-    vec3 glowColor = uTintColor * glowBoost;
-    vec3 outRgb = glowColor * texColor.rgb;
-
-    // Pattern never dims based on sun position - uniform visibility everywhere
-    // (Sun shading removed for consistent pattern visibility)
+    // Output color with tint
+    vec3 outRgb = uTintColor * texColor.rgb;
 
     gl_FragColor = vec4(outRgb, finalOpacity);
 }
@@ -218,7 +208,7 @@ function createPatternWaveMaterial(patternTexture, tintColor, opacity, doubleSid
  * @returns {THREE.Mesh}
  */
 export function createGlobePatternOverlay(textureLoader, renderer, tintColor = 0x2196F3, opacity = 0.15, paletteKey = 'blue') {
-    const geometry = new THREE.SphereGeometry(1.002, 64, 64); // Slightly larger than globe
+    const geometry = new THREE.SphereGeometry(1.008, 64, 64); // Larger than clouds (1.004) to sit on top
     
     const patternPath = getPalettePatternPath(paletteKey);
     const patternTexture = loadTexture(
@@ -297,12 +287,12 @@ export function getPaletteAccentHex(paletteKey = 'blue') {
  */
 export function getPalettePatternPath(paletteKey = 'blue') {
     const patternPaths = {
-        blue: 'assets/images/pattern/Pattern Blue.png',
-        gray: 'assets/images/pattern/Pattern Dark.png',
-        crimson: 'assets/images/pattern/Pattern Crimson.png',
-        nulled: 'assets/images/pattern/Pattern Nulled.png'
+        blue: 'assets/images/maps/Pattern Blue.png',
+        gray: 'assets/images/maps/Pattern Dark.png',
+        crimson: 'assets/images/maps/Pattern Crimson.png',
+        nulled: 'assets/images/maps/Pattern Nulled.png'
     };
-    return patternPaths[paletteKey] || 'assets/images/pattern/Pattern Blue.png';
+    return patternPaths[paletteKey] || 'assets/images/maps/Pattern Blue.png';
 }
 
 /** Ring radius in the horizontal (XZ) plane; matches legacy 3D offset length (~84). */

@@ -313,7 +313,12 @@ export function createGlobeControlButton({
 
     if (label) {
         const labelEl = document.createElement('span');
-        labelEl.className = 'header-hub-btn-label';
+        // Use different class for dock buttons vs header hub buttons
+        if (isHeaderHubBtn) {
+            labelEl.className = 'header-hub-btn-label';
+        } else {
+            labelEl.className = 'globe-control-btn__label';
+        }
         labelEl.textContent = String(label);
         button.appendChild(labelEl);
     }

@@ -80,7 +80,7 @@
 
     /* Hide labels on dock rail buttons on mobile - show only icons */
     .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn .header-hub-btn-label,
-    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn span:not([id$="Icon"]) {
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn span:not([id$="Icon"]):not(.globe-control-btn__label) {
         display: none !important;
     }
 

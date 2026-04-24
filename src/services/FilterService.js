@@ -732,6 +732,10 @@ class FilterService {
                 if (isOpening && this.soundManager) {
                     this.soundManager.play('filterButton');
                 }
+                // Flash feedback (orange for panel toggle)
+                if (window.flashButton) {
+                    window.flashButton(filtersButton, 'flash-orange');
+                }
             });
         }
         

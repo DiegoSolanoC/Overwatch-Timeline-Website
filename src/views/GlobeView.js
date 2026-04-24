@@ -132,15 +132,6 @@ export class GlobeView {
 
         const oblate = EARTH_POLAR_TO_EQUATORIAL_RATIO;
 
-        // Pattern overlay on globe - tinted by palette
-        const patternTint = getPaletteAccentHex(paletteKey);
-        const globePattern = createGlobePatternOverlay(textureLoader, renderer, patternTint, 0.15, paletteKey);
-        if (globePattern) {
-            this._globePatternOverlay = globePattern;
-            globePattern.scale.set(1, oblate, 1);
-            globe.add(globePattern);
-        }
-
         // Cloud albedo: random `Cloud Map #` atlas per load, ~50% opacity, palette-tinted like rim
         const cloudTintHex = isGray ? 0xffffff : (isCrimson ? 0xff8a80 : (isNulled ? 0xd1b3ff : 0x6fd3ff));
         const cloudLayer = createGlobeCloudLayer({
@@ -155,6 +146,15 @@ export class GlobeView {
             this._cloudLayer = cloudLayer;
             cloudLayer.scale.set(1, oblate, 1);
             globe.add(cloudLayer);
+        }
+
+        // Pattern overlay on globe - tinted by palette (added AFTER clouds to sit on top)
+        const patternTint = getPaletteAccentHex(paletteKey);
+        const globePattern = createGlobePatternOverlay(textureLoader, renderer, patternTint, 0.3, paletteKey);
+        if (globePattern) {
+            this._globePatternOverlay = globePattern;
+            globePattern.scale.set(1, oblate, 1);
+            globe.add(globePattern);
         }
 
         // Polar auroras (additive shell, latitudinal bands in object space — track real poles as globe spins)
@@ -375,16 +375,23 @@ export class GlobeView {
      */
     setWeatherEffectsVisible(enabled) {
         const mapOn = this.sceneModel.getMapViewEnabled?.() ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
-        if (mapOn) return;
+        console.log('[GlobeView] setWeatherEffectsVisible called with:', enabled, 'mapOn:', mapOn);
+        if (mapOn) {
+            console.log('[GlobeView] Skipping weather effects - map mode is on');
+            return;
+        }
 
         const on = !!enabled;
+        console.log('[GlobeView] Setting weather effects visible:', on);
         if (on) this._rerandomizeAuroraVeilState();
         if (this._auroraMesh) {
             this._auroraMesh.visible = on;
+            console.log('[GlobeView] Aurora mesh visibility set to:', on);
         }
         if (this._cloudLayer) {
             if (!on) {
                 this._cloudLayer.visible = false;
+                console.log('[GlobeView] Cloud layer hidden');
             } else {
                 const renderer = this.sceneModel.getRenderer();
                 const textureLoader = new THREE.TextureLoader();
@@ -395,6 +402,7 @@ export class GlobeView {
                     opacity: GLOBE_CLOUD_BASE_OPACITY
                 });
                 this._syncAtmosphereSunDirection();
+                console.log('[GlobeView] Cloud layer shown and rerandomized');
             }
         }
         this._setShootingStarsWeatherVisible(on);
@@ -835,33 +843,44 @@ export class GlobeView {
      */
     setGlobeLightingVisible(visible) {
         const v = !!visible;
+        console.log('[GlobeView] setGlobeLightingVisible called with:', visible, 'actual:', v);
 
         // 1. Sun background (sprite + light source)
         const sunBg = this.sceneModel.getSunBackground();
         if (sunBg) {
-            if (sunBg.sprite) sunBg.sprite.visible = v;
-            if (sunBg.light) sunBg.light.visible = v;
+            if (sunBg.sprite) {
+                sunBg.sprite.visible = v;
+                console.log('[GlobeView] Sun sprite visibility set to:', v);
+            }
+            if (sunBg.light) {
+                sunBg.light.visible = v;
+                console.log('[GlobeView] Sun light visibility set to:', v);
+            }
         }
 
         // 2. City lights dots
         if (this._earthCityLights) {
             this._earthCityLights.visible = v;
+            console.log('[GlobeView] City lights visibility set to:', v);
         }
         if (this._earthCityAccentLights) {
             this._earthCityAccentLights.forEach(light => {
                 light.visible = v;
             });
+            console.log('[GlobeView] City accent lights visibility set to:', v);
         }
 
         // 3. Earth ambient contrast (if sun is off, we need more ambient light to see globe)
         const earthAmb = this.sceneModel.earthAmbientLayer1;
         if (earthAmb) {
             earthAmb.intensity = v ? 0.002 : 0.72;
+            console.log('[GlobeView] Earth ambient intensity set to:', earthAmb.intensity);
         }
 
         // 4. Pattern overlay: disable sun shading when lighting is off so wave is visible everywhere
         if (this._globePatternOverlay && this._globePatternOverlay.material && this._globePatternOverlay.material.uniforms) {
             this._globePatternOverlay.material.uniforms.uShadeBySun.value = v ? 1.0 : 0.0;
+            console.log('[GlobeView] Pattern overlay uShadeBySun set to:', v ? 1.0 : 0.0);
         }
     }
 

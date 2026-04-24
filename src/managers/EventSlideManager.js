@@ -1586,22 +1586,40 @@ export class EventSlideManager {
 
         // Initialize image overlay using helper
         const initializeImageOverlay = window.EventSlideImageHelpers?.initializeImageOverlay;
+        // Default to ON (true) if not set
+        const storedValue = localStorage.getItem('globalImageToggle');
+        const globalImageToggleEnabled = storedValue === null ? true : storedValue !== 'false';
+        
         if (initializeImageOverlay) {
             initializeImageOverlay(eventImageOverlay, eventImage, imagePath, this.uiView);
+            // Respect global image toggle state
+            if (globalImageToggleEnabled && this.uiView?.imageOverlayManager) {
+                this.uiView.imageOverlayManager.imageToggleState = true;
+                this.uiView.showImageOverlay();
+            } else if (!globalImageToggleEnabled && this.uiView?.imageOverlayManager) {
+                this.uiView.imageOverlayManager.imageToggleState = false;
+                // Update button text to reflect global state
+                const imageToggleBtn = document.getElementById('eventImageToggle');
+                if (imageToggleBtn) {
+                    imageToggleBtn.textContent = 'Show Image';
+                }
+            }
         } else if (eventImageOverlay && eventImage) {
             // Minimal fallback
             loadEventImage(eventImage, eventImageOverlay, imagePath);
             if (this.uiView?.imageOverlayManager) {
-                this.uiView.imageOverlayManager.imageOverlayVisible = true;
-                this.uiView.imageOverlayManager.imageToggleState = true;
+                this.uiView.imageOverlayManager.imageOverlayVisible = globalImageToggleEnabled;
+                this.uiView.imageOverlayManager.imageToggleState = globalImageToggleEnabled;
             }
-            eventImageOverlay.classList.add('open');
-            setupImageFadeIn(eventImage, eventImageOverlay, imagePath, () => {
-                this.uiView.disablePageNavigationButtons(true);
-            }, 600);
-            if (this.uiView) {
-                this.uiView.pendingImagePath = imagePath || null;
-                this.uiView.setupImageOverlayHandlers(eventImageOverlay);
+            if (globalImageToggleEnabled) {
+                eventImageOverlay.classList.add('open');
+                setupImageFadeIn(eventImage, eventImageOverlay, imagePath, () => {
+                    this.uiView.disablePageNavigationButtons(true);
+                }, 600);
+                if (this.uiView) {
+                    this.uiView.pendingImagePath = imagePath || null;
+                    this.uiView.setupImageOverlayHandlers(eventImageOverlay);
+                }
             }
         } else if (this.uiView?.imageOverlayManager) {
             this.uiView.imageOverlayManager.imageOverlayVisible = false;
@@ -1610,7 +1628,8 @@ export class EventSlideManager {
 
         // Setup image toggle button
         if (imageToggleBtn && this.uiView) {
-            imageToggleBtn.textContent = 'Hide Image';
+            // Set button text based on global toggle state
+            imageToggleBtn.textContent = globalImageToggleEnabled ? 'Hide Image' : 'Show Image';
             imageToggleBtn.onclick = () => this.uiView.toggleEventImage();
         }
 

@@ -85,20 +85,16 @@ export class ToggleManager {
             sceneModel.setAutoRotateEnabled(enabled);
             
             // Flash feedback
-            this.flashButton(toggleBtn, enabled ? 'flash-green' : 'flash-red');
+            if (window.flashButton) {
+                window.flashButton(toggleBtn, enabled ? 'flash-green' : 'flash-red');
+            }
 
             if (enabled) {
                 toggleBtn.classList.remove('toggle-off');
                 sceneModel.setAutoRotate(true);
-                if (window.globeController) {
-                    window.globeController.setAutoRotate(true);
-                }
             } else {
                 toggleBtn.classList.add('toggle-off');
                 sceneModel.setAutoRotate(false);
-                if (window.globeController) {
-                    window.globeController.setAutoRotate(false);
-                }
             }
             
             // Always keep the icon as an image, never change to emoji
@@ -171,7 +167,9 @@ export class ToggleManager {
             sceneModel.setHyperloopVisible(visible);
 
             // Flash feedback
-            this.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+            if (window.flashButton) {
+                window.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+            }
 
             if (visible) {
                 toggleBtn.classList.remove('toggle-off');
@@ -291,7 +289,9 @@ export class ToggleManager {
             sceneModel.setGlobeWeatherEffectsVisible(visible);
 
             // Flash feedback
-            this.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+            if (window.flashButton) {
+                window.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+            }
 
             if (visible) {
                 sceneModel.setGlobeWeatherEffectsVisible(true);
@@ -368,7 +368,9 @@ export class ToggleManager {
             sceneModel.setGlobeLightingVisible(visible);
 
             // Flash feedback
-            this.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+            if (window.flashButton) {
+                window.flashButton(toggleBtn, visible ? 'flash-green' : 'flash-red');
+            }
 
             if (visible) {
                 sceneModel.setGlobeLightingVisible(true);
@@ -376,6 +378,13 @@ export class ToggleManager {
             } else {
                 sceneModel.setGlobeLightingVisible(false);
                 toggleBtn.classList.add('toggle-off');
+            }
+
+            // Update sun slider visibility
+            if (window.globeController) {
+                import('../dev/DevSunYawControl.js').then(module => {
+                    module.updateSunSliderVisibility(window.globeController);
+                }).catch(() => {});
             }
 
             if (onToggle) {
@@ -581,13 +590,13 @@ export class ToggleManager {
             if (mapIcon) setupImgLoad(mapIcon);
 
             if (toggleBtn) {
-                const labelEl = toggleBtn.querySelector('.header-hub-btn-label');
+                const labelEl = toggleBtn.querySelector('.header-hub-btn-label') || toggleBtn.querySelector('.globe-control-btn__label');
                 if (labelEl) labelEl.textContent = enabled ? 'Map' : 'Globe';
                 toggleBtn.title = enabled ? 'Click to switch to Globe' : 'Click to switch to Map';
             }
 
             if (headerToggleBtn) {
-                const labelEl = headerToggleBtn.querySelector('.header-hub-btn-label');
+                const labelEl = headerToggleBtn.querySelector('.header-hub-btn-label') || headerToggleBtn.querySelector('.globe-control-btn__label');
                 if (labelEl) labelEl.textContent = enabled ? 'Map' : 'Globe';
                 headerToggleBtn.title = enabled ? 'Click to switch to Globe' : 'Click to switch to Map';
             }
@@ -664,8 +673,10 @@ export class ToggleManager {
             const enabled = !(sceneModel.getMapViewEnabled ? sceneModel.getMapViewEnabled() : !!sceneModel.isMapView);
             
             // Flash feedback (Orange for state switch)
-            if (toggleBtn && event.currentTarget === toggleBtn) this.flashButton(toggleBtn, 'flash-orange');
-            if (headerToggleBtn && event.currentTarget === headerToggleBtn) this.flashButton(headerToggleBtn, 'flash-orange');
+            if (window.flashButton) {
+                if (toggleBtn && event.currentTarget === toggleBtn) window.flashButton(toggleBtn, 'flash-orange');
+                if (headerToggleBtn && event.currentTarget === headerToggleBtn) window.flashButton(headerToggleBtn, 'flash-orange');
+            }
 
             if (sceneModel.setMapViewEnabled) {
                 sceneModel.setMapViewEnabled(enabled);
@@ -676,6 +687,51 @@ export class ToggleManager {
             // Apply mode switch via controller (also refreshes markers)
             if (window.globeController && typeof window.globeController.setMapViewEnabled === 'function') {
                 window.globeController.setMapViewEnabled(enabled);
+            }
+
+            // Update main menu toggle preference to match
+            const newStartOnMap = enabled;
+            localStorage.setItem('mapGlobePreToggle', newStartOnMap.toString());
+            
+            // Update main menu UI elements
+            const mapGlobeIcon = document.getElementById('mapGlobePreToggleIcon');
+            const mapGlobeLabel = document.getElementById('mapGlobePreToggleLabel');
+            if (mapGlobeIcon) {
+                const iconImg = mapGlobeIcon.querySelector('img');
+                if (iconImg) {
+                    iconImg.src = newStartOnMap ? 'assets/images/icons/Switch to Flat Icon.png' : 'assets/images/icons/Switch to Globe Icon.png';
+                }
+            }
+            if (mapGlobeLabel) {
+                mapGlobeLabel.textContent = newStartOnMap ? 'Starts on Map' : 'Starts on Globe';
+            }
+            
+            // Update header button
+            const headerGlobeBtn = document.getElementById('headerInteractiveGlobeBtn');
+            if (headerGlobeBtn) {
+                const labelEl = headerGlobeBtn.querySelector('.header-hub-btn-label');
+                if (labelEl) labelEl.textContent = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+                headerGlobeBtn.title = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+                const iconSpan = document.getElementById('headerInteractiveGlobeIcon');
+                if (iconSpan) iconSpan.alt = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+            }
+            
+            // Update main menu button
+            const mainMenuGlobeBtn = document.getElementById('runGlobeBtn');
+            if (mainMenuGlobeBtn) {
+                const labelEl = mainMenuGlobeBtn.querySelector('.main-menu-label');
+                const descEl = mainMenuGlobeBtn.querySelector('.main-menu-external-label__desc');
+                if (labelEl) labelEl.textContent = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
+                if (descEl) {
+                    descEl.style.opacity = '0';
+                    setTimeout(() => {
+                        descEl.textContent = newStartOnMap 
+                            ? 'Visualize the story of Overwatch through a 2D map'
+                            : 'Visualize the story of Overwatch through a 3D globe';
+                        descEl.style.opacity = '1';
+                    }, 150);
+                }
+                mainMenuGlobeBtn.title = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
             }
 
             // Keep icon as image (stateful)

@@ -49,6 +49,24 @@ function applyYawToScene(controller, deg) {
     }
 }
 
+/**
+ * Update sun slider visibility based on lighting state and map mode
+ * @param {object} controller - Globe controller
+ */
+export function updateSunSliderVisibility(controller) {
+    const slider = document.querySelector('.dev-sun-yaw-panel');
+    if (!slider) return;
+
+    const lightingVisible = controller.sceneModel.getGlobeLightingVisible ? controller.sceneModel.getGlobeLightingVisible() : true;
+    const isMap = controller.sceneModel.getMapViewEnabled ? controller.sceneModel.getMapViewEnabled() : !!controller.sceneModel.isMapView;
+
+    // Hide slider if lighting is off OR in map mode
+    const shouldShow = lightingVisible && !isMap;
+    slider.style.opacity = shouldShow ? '1' : '0';
+    slider.style.pointerEvents = shouldShow ? 'auto' : 'none';
+    console.log('[DevSunYawControl] Slider visibility updated:', shouldShow, 'lightingVisible:', lightingVisible, 'isMap:', isMap);
+}
+
 let _installed = false;
 
 /** @param {{ sceneModel: object, globeView: object }} controller */

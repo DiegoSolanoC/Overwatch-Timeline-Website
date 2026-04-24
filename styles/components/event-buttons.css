@@ -14,7 +14,7 @@
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    display: flex;
+    display: none; /* Hidden on desktop - use global dock toggle instead */
     align-items: center;
     justify-content: center;
     padding: 0 15px;
@@ -23,6 +23,13 @@
     line-height: 1;
     box-sizing: border-box;
     flex-shrink: 0;
+}
+
+/* Show event image toggle button on mobile only */
+@media (max-width: 768px) {
+    .event-image-toggle-btn {
+        display: flex;
+    }
 }
 
 .event-image-toggle-btn:hover {

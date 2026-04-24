@@ -98,6 +98,11 @@ export async function unloadGlobeBaseLogic({ disposeGlobeResources, unloadTransp
 export async function loadTransportLogic({ createGlobeControlButton, loadSoundEffect, statusService }) {
     const controller = window.globeController;
     
+    // Initialize FlashButtonHelper for transport controls
+    if (!window.flashButton) {
+        await import('../../utils/FlashButtonHelper.js');
+    }
+    
     // Add transport toggle using helper
     createGlobeControlButton({
         id: 'hyperloopToggle',
@@ -170,6 +175,11 @@ export async function unloadTransportLogic({ removeElementById, statusService })
  */
 export async function loadControlsLogic({ createGlobeControlButton, createExitButton, loadSoundEffect, overlayService, statusService }) {
     const controller = window.globeController;
+    
+    // Initialize FlashButtonHelper for Globe controls
+    if (!window.flashButton) {
+        await import('../../utils/FlashButtonHelper.js');
+    }
     
     // Add map view toggle using helper
     createGlobeControlButton({

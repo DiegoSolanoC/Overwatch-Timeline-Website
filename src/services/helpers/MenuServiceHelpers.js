@@ -450,12 +450,17 @@ export function createMenuButtonsContainer(statusService) {
         const mainMenuGlobeBtn = document.getElementById('runGlobeBtn');
         if (mainMenuGlobeBtn) {
             const labelEl = mainMenuGlobeBtn.querySelector('.main-menu-label');
-            const descEl = mainMenuGlobeBtn.querySelector('.main-menu-description');
+            const descEl = mainMenuGlobeBtn.querySelector('.main-menu-external-label__desc');
             if (labelEl) labelEl.textContent = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
             if (descEl) {
-                descEl.textContent = newStartOnMap 
-                    ? 'Visualize the story of Overwatch through a 2D map'
-                    : 'Visualize the story of Overwatch through a 3D globe';
+                // Fade out, change text, fade in
+                descEl.style.opacity = '0';
+                setTimeout(() => {
+                    descEl.textContent = newStartOnMap 
+                        ? 'Visualize the story of Overwatch through a 2D map'
+                        : 'Visualize the story of Overwatch through a 3D globe';
+                    descEl.style.opacity = '1';
+                }, 150);
             }
             mainMenuGlobeBtn.title = newStartOnMap ? 'Interactive Map' : 'Interactive Globe';
         }

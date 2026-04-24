@@ -239,6 +239,8 @@ function updateCodexVirtualScroll() {
         // Add all nodes
         for (const node of nodesToRender) {
             placeLoadedCodexNodeRecord(node);
+            // Track rendered nodes so Dev Mode doesn't duplicate them when switching
+            codexRenderedNodeIds.add(node.id);
         }
         
         // Never remove nodes in View Mode
