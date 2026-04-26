@@ -147,7 +147,7 @@ class EventRenderService {
             return;
         }
 
-        /* Match dock thumbnail page-turn wave spacing (EventNavigationManager). */
+        /* Match dock thumbnail page-turn wave spacing. */
         const staggerMs = 58;
         const maxDelayMs = 800;
 

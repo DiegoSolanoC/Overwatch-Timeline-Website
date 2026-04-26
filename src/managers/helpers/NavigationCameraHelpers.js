@@ -1,6 +1,5 @@
 /**
- * NavigationCameraHelpers - Utilities for camera animation and restoration
- * Extracted from EventNavigationManager to reduce complexity
+ * NavigationCameraHelpers - Camera and hover utilities for event navigation
  */
 
 import { useOrbitPanelForStationShipMarkers } from './TransportOrbitPanelHelpers.js';

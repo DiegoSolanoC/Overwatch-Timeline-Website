@@ -47,20 +47,22 @@ class NewsTickerService {
 
                 const variantIndex = Number.parseInt(item.dataset.variantIndex || '-1', 10);
 
-                // Use the same navigation path as number buttons (page switch + marker find + slide)
-                const uiView = window.globeController?.uiView;
-                const nav = uiView?.eventNavigationManager;
-                if (!nav || typeof nav.navigateToEvent !== 'function') return;
-
-                nav.navigateToEvent(eventIndex);
+                // Navigate to event using the old system (MenuServiceHelpers)
+                const allEvents = (window.eventManager && window.eventManager.events)
+                    ? window.eventManager.events
+                    : window.globeController?.dataModel?.getAllEvents?.() || [];
+                const targetEvent = allEvents[eventIndex];
+                
+                if (!targetEvent) return;
+                
+                // Show event slide using MenuServiceHelpers
+                if (window.MenuServiceHelpers?.showStandaloneEventSlide) {
+                    window.MenuServiceHelpers.showStandaloneEventSlide(targetEvent, eventIndex);
+                }
 
                 // If headline belongs to a multi-event variant, switch to that variant once slide is ready.
                 if (Number.isFinite(variantIndex) && variantIndex >= 0) {
-                    const allEvents = (window.eventManager && window.eventManager.events)
-                        ? window.eventManager.events
-                        : window.globeController?.dataModel?.getAllEvents?.() || [];
-                    const targetEvent = allEvents[eventIndex];
-
+                    const uiView = window.globeController?.uiView;
                     let attempts = 0;
                     const tryApplyVariant = () => {
                         attempts += 1;

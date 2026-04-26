@@ -514,6 +514,10 @@
             if (isEventSlideOpen() && clickIfEnabled('eventImageToggle')) consumeEvent(e);
             return;
         }
+        if (lower === 'i') {
+            if (isEventSlideOpen() && clickIfEnabled('eventImageToggle')) consumeEvent(e);
+            return;
+        }
         if (lower === 'x') {
             var glitchBtn = document.getElementById('eventGlitchToggle');
             if (

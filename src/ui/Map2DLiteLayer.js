@@ -262,6 +262,9 @@ export class Map2DLiteLayer {
      * @param {{ container: HTMLElement, sceneModel: import('../models/SceneModel.js').SceneModel, dataModel: import('../models/DataModel.js').DataModel }} opts
      */
     constructor({ container, sceneModel, dataModel }) {
+        this.overlapCycleInterval = null;
+        this.overlapGroups = [];
+        this.overlapCyclingPaused = false;
         this.container = container;
         this.sceneModel = sceneModel;
         this.dataModel = dataModel;
@@ -434,6 +437,9 @@ export class Map2DLiteLayer {
     }
 
     hide() {
+        // Stop overlap cycling when hiding map
+        this.stopOverlapCycling();
+        
         window.removeEventListener('resize', this._onResize);
         this._lastVw = -1;
         this._lastVh = -1;
@@ -649,6 +655,9 @@ export class Map2DLiteLayer {
         this._orbitMarkersEl?.replaceChildren();
         const events = this._getCurrentPageEvents();
 
+        // Track created marker buttons for overlap cycling
+        const createdMarkers = [];
+
         const addMarkerEl = (fullEvent, displayEvent, variantIndex) => {
             const lt = displayEvent.locationType || fullEvent.locationType || 'earth';
             let host, markersContainer;
@@ -683,6 +692,8 @@ export class Map2DLiteLayer {
                 variantIndex: variantIndex ?? 0
             };
             btn.__map2dLiteStub = stub;
+            // Store marker reference for overlap cycling right-click
+            btn.__map2dLiteMarkerRef = null; // Will be set after push to createdMarkers
 
             const isMain = stub.userData.isMainVariant;
             // Use larger size for celestial markers since panels are smaller
@@ -768,6 +779,8 @@ export class Map2DLiteLayer {
                             }
                         }, 1200);
                     }
+                    // Pause overlap cycling when hovering
+                    this.pauseOverlapCycling();
                 });
                 btn.addEventListener('mouseleave', () => {
                     const ms = window.globeController?.interactionController?.markerService;
@@ -777,6 +790,8 @@ export class Map2DLiteLayer {
                         clearInterval(this._hoverSoundInterval);
                         this._hoverSoundInterval = null;
                     }
+                    // Resume overlap cycling when hover ends
+                    this.resumeOverlapCycling();
                 });
             }
 
@@ -820,12 +835,38 @@ export class Map2DLiteLayer {
                     return;
                 }
 
-                // Open Event System's standalone event slide (match globe marker logic)
-                if (eventIndex >= 0 && window.standaloneEventSlide) {
-                    window.standaloneEventSlide.showEvent(eventIndex);
+                // Open event slide with viewport-based routing
+                if (eventIndex >= 0) {
+                    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    const isMobilePortrait = isTouchDevice && window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                    if (isMobilePortrait && window.standaloneEventSlide) {
+                        // Mobile portrait: use standalone implementation
+                        window.standaloneEventSlide.showEvent(eventIndex);
+                    } else if (window.globeController?.uiView) {
+                        // Desktop / mobile landscape: use simple dock-like implementation
+                        const eventData = events[eventIndex];
+                        const eventName = eventData?.name || 'Event';
+                        const eventDescription = eventData?.description || '';
+                        const imagePath = window.eventManager?.getEventImagePath
+                            ? window.eventManager.getEventImagePath(eventData.name, eventData.image)
+                            : null;
+                        window.globeController.uiView.showEventSlide(eventName, imagePath, eventDescription, stub, eventData);
+                    }
                     if (window.SoundEffectsManager?.play) {
                         window.SoundEffectsManager.play('eventClick');
                     }
+                }
+            });
+
+            // Right-click handler to force cycle overlapping markers
+            btn.addEventListener('contextmenu', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                
+                // Use the stored marker reference
+                const markerObj = btn.__map2dLiteMarkerRef;
+                if (markerObj) {
+                    this.forceCycleMarker(markerObj);
                 }
             });
 
@@ -834,6 +875,19 @@ export class Map2DLiteLayer {
             if (!stub.userData.isLocked) {
                 disk.classList.add('map-2d-lite__marker-disk--pulse');
             }
+            
+            // Track marker for overlap cycling
+            const markerObj = {
+                btn,
+                disk,
+                stub,
+                lat: displayEvent.lat !== undefined ? displayEvent.lat : fullEvent.lat,
+                lon: displayEvent.lon !== undefined ? displayEvent.lon : fullEvent.lon,
+                locationType: lt
+            };
+            createdMarkers.push(markerObj);
+            // Set reference on button for right-click handler
+            btn.__map2dLiteMarkerRef = markerObj;
         };
 
         for (let i = 0; i < events.length; i++) {
@@ -844,6 +898,9 @@ export class Map2DLiteLayer {
                 addMarkerEl(event, event, null);
             }
         }
+        
+        // Set up overlap cycling for Earth markers
+        this.setupOverlapCycling(createdMarkers);
     }
 
     resetView() {
@@ -867,6 +924,322 @@ export class Map2DLiteLayer {
         this._ty = vh / 2 - wy * this._scale;
         this._clampPan();
         this._applyTransform();
+    }
+
+    /**
+     * Detect overlapping coordinates and set up cycling for overlapping DOM markers
+     * @param {Array} markers - Array of created marker objects
+     */
+    setupOverlapCycling(markers) {
+        console.log('[Map Overlap Cycling] setupOverlapCycling called with', markers.length, 'markers');
+        
+        // Clear any existing interval
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = null;
+        }
+        this.overlapGroups = [];
+
+        // Group Earth markers by coordinate
+        const coordinateGroups = new Map();
+        
+        markers.forEach(marker => {
+            // Only Earth markers
+            if (marker.locationType !== 'earth') return;
+            
+            const lat = marker.lat;
+            const lon = marker.lon;
+            
+            console.log('[Map Overlap Cycling] Checking marker:', marker.stub.userData.eventName, 'coords:', lat, lon);
+            
+            // Only group events with valid coordinates
+            if (lat == null || lon == null) return;
+            
+            const key = `${lat},${lon}`;
+            if (!coordinateGroups.has(key)) {
+                coordinateGroups.set(key, []);
+            }
+            coordinateGroups.get(key).push(marker);
+        });
+
+        console.log('[Map Overlap Cycling] Coordinate groups:', coordinateGroups.size);
+
+        // Create overlap groups for coordinates with multiple markers
+        coordinateGroups.forEach((groupMarkers, key) => {
+            if (groupMarkers.length > 1) {
+                console.log(`[Map Overlap Cycling] Found ${groupMarkers.length} markers at coordinate ${key}:`, groupMarkers.map(m => m.stub.userData.eventName));
+                this.overlapGroups.push({
+                    markers: groupMarkers,
+                    currentIndex: 0
+                });
+                
+                // Initially hide all except the first, and set colors
+                groupMarkers.forEach((marker, index) => {
+                    marker.btn.style.display = (index === 0) ? '' : 'none';
+                    
+                    // Set color based on index: first = orange, second = pink
+                    if (index === 0) {
+                        // First marker: regular orange
+                        const fillHex = marker.stub.userData.isLocked ? EVENT_MARKER_LOCKED_HEX : getMarkerColor(marker.stub.userData.isMainVariant);
+                        marker.disk.style.backgroundColor = hexToCss(fillHex);
+                        const fr = hexToRgb(fillHex);
+                        marker.btn.style.setProperty('--map2d-fill-rgb', `${fr.r},${fr.g},${fr.b}`);
+                        marker.btn.style.setProperty('--map2d-pulse-rgb', `${fr.r},${fr.g},${fr.b}`);
+                    } else if (index === 1) {
+                        // Second marker: pink
+                        const pinkHex = 0xff69b4;
+                        marker.disk.style.backgroundColor = hexToCss(pinkHex);
+                        const pr = hexToRgb(pinkHex);
+                        marker.btn.style.setProperty('--map2d-fill-rgb', `${pr.r},${pr.g},${pr.b}`);
+                        marker.btn.style.setProperty('--map2d-pulse-rgb', `${pr.r},${pr.g},${pr.b}`);
+                    }
+                });
+            }
+        });
+
+        // If there are overlap groups, start cycling
+        if (this.overlapGroups.length > 0) {
+            console.log(`[Map Overlap Cycling] Starting cycling for ${this.overlapGroups.length} coordinate groups`);
+            this.overlapCycleInterval = setInterval(() => {
+                console.log('[Map Overlap Cycling] Cycling...');
+                this.cycleOverlaps();
+            }, 5000); // 5 second interval
+        } else {
+            console.log('[Map Overlap Cycling] No overlap groups found, cycling not started');
+        }
+    }
+
+    /**
+     * Cycle visibility of overlapping DOM markers
+     */
+    cycleOverlaps() {
+        // Skip cycling if paused (hovering)
+        if (this.overlapCyclingPaused) {
+            return;
+        }
+        
+        this.overlapGroups.forEach(group => {
+            // Hide current marker
+            const currentMarker = group.markers[group.currentIndex];
+            if (currentMarker) {
+                currentMarker.btn.style.display = 'none';
+            }
+
+            // Move to next marker (loop back to start)
+            group.currentIndex = (group.currentIndex + 1) % group.markers.length;
+
+            // Show next marker
+            const nextMarker = group.markers[group.currentIndex];
+            if (nextMarker) {
+                nextMarker.btn.style.display = '';
+                
+                // Update color based on which marker is now visible
+                if (group.currentIndex === 0) {
+                    // First marker: regular orange
+                    const fillHex = nextMarker.stub.userData.isLocked ? EVENT_MARKER_LOCKED_HEX : getMarkerColor(nextMarker.stub.userData.isMainVariant);
+                    nextMarker.disk.style.backgroundColor = hexToCss(fillHex);
+                    // Update wave color to match
+                    const fr = hexToRgb(fillHex);
+                    nextMarker.btn.style.setProperty('--map2d-fill-rgb', `${fr.r},${fr.g},${fr.b}`);
+                    nextMarker.btn.style.setProperty('--map2d-pulse-rgb', `${fr.r},${fr.g},${fr.b}`);
+                } else if (group.currentIndex === 1) {
+                    // Second marker: pink
+                    const pinkHex = 0xff69b4;
+                    nextMarker.disk.style.backgroundColor = hexToCss(pinkHex);
+                    // Update wave color to match
+                    const pr = hexToRgb(pinkHex);
+                    nextMarker.btn.style.setProperty('--map2d-fill-rgb', `${pr.r},${pr.g},${pr.b}`);
+                    nextMarker.btn.style.setProperty('--map2d-pulse-rgb', `${pr.r},${pr.g},${pr.b}`);
+                }
+            }
+        });
+    }
+
+    /**
+     * Pause overlap cycling (called when hovering over a cycling marker)
+     */
+    pauseOverlapCycling() {
+        if (!this.overlapCyclingPaused && this.overlapGroups.length > 0) {
+            this.overlapCyclingPaused = true;
+            console.log('[Map Overlap Cycling] Paused due to hover');
+        }
+    }
+
+    /**
+     * Resume overlap cycling (called when hover ends)
+     */
+    resumeOverlapCycling() {
+        if (this.overlapCyclingPaused) {
+            this.overlapCyclingPaused = false;
+            console.log('[Map Overlap Cycling] Resumed after hover');
+        }
+    }
+
+    /**
+     * Stop overlap cycling (call when hiding map or changing pages)
+     */
+    stopOverlapCycling() {
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = null;
+        }
+        this.overlapGroups = [];
+    }
+
+    /**
+     * Force cycle to a specific marker in an overlap group by event
+     * @param {Object} event - The event to show
+     * @returns {Object|null} - The target marker that was switched to, or null
+     */
+    forceCycleToEvent(event) {
+        if (!event) return null;
+        
+        console.log('[Map Overlap Cycling] forceCycleToEvent called for:', event.name);
+        
+        // Find the overlap group that contains this event
+        const group = this.overlapGroups.find(g => 
+            g.markers.some(m => {
+                const markerEvent = m.stub.userData.event;
+                if (!markerEvent) return false;
+                // Compare by name and location since event objects might be different references
+                return markerEvent.name === event.name &&
+                       markerEvent.lat === event.lat &&
+                       markerEvent.lon === event.lon;
+            })
+        );
+        
+        if (!group) {
+            console.log('[Map Overlap Cycling] Event not in any overlap group');
+            return null; // Not in an overlap group
+        }
+        
+        console.log('[Map Overlap Cycling] Found overlap group with', group.markers.length, 'markers');
+        
+        // Find the index of the marker for this event
+        const targetIndex = group.markers.findIndex(m => {
+            const markerEvent = m.stub.userData.event;
+            if (!markerEvent) return false;
+            return markerEvent.name === event.name &&
+                   markerEvent.lat === event.lat &&
+                   markerEvent.lon === event.lon;
+        });
+        
+        if (targetIndex === -1) {
+            console.log('[Map Overlap Cycling] Could not find marker index for event');
+            return null;
+        }
+        
+        console.log('[Map Overlap Cycling] Switching to index:', targetIndex, 'from current:', group.currentIndex);
+        
+        // Hide current marker
+        const currentMarker = group.markers[group.currentIndex];
+        if (currentMarker) {
+            currentMarker.btn.style.display = 'none';
+        }
+        
+        // Set to target index
+        group.currentIndex = targetIndex;
+        
+        // Show target marker
+        const targetMarker = group.markers[targetIndex];
+        if (targetMarker) {
+            targetMarker.btn.style.display = '';
+            
+            // Update color based on index
+            if (targetIndex === 0) {
+                // First marker: regular orange
+                const fillHex = targetMarker.stub.userData.isLocked ? EVENT_MARKER_LOCKED_HEX : getMarkerColor(targetMarker.stub.userData.isMainVariant);
+                targetMarker.disk.style.backgroundColor = hexToCss(fillHex);
+                const fr = hexToRgb(fillHex);
+                targetMarker.btn.style.setProperty('--map2d-fill-rgb', `${fr.r},${fr.g},${fr.b}`);
+                targetMarker.btn.style.setProperty('--map2d-pulse-rgb', `${fr.r},${fr.g},${fr.b}`);
+            } else if (targetIndex === 1) {
+                // Second marker: pink
+                const pinkHex = 0xff69b4;
+                targetMarker.disk.style.backgroundColor = hexToCss(pinkHex);
+                const pr = hexToRgb(pinkHex);
+                targetMarker.btn.style.setProperty('--map2d-fill-rgb', `${pr.r},${pr.g},${pr.b}`);
+                targetMarker.btn.style.setProperty('--map2d-pulse-rgb', `${pr.r},${pr.g},${pr.b}`);
+                
+                // Ensure wave element exists for the target marker
+                const body = targetMarker.btn.querySelector('.map-2d-lite__marker-body');
+                if (body && !body.querySelector('.map-2d-lite__marker-wave')) {
+                    const wave = document.createElement('span');
+                    wave.className = 'map-2d-lite__marker-wave';
+                    wave.setAttribute('aria-hidden', 'true');
+                    const disk = body.querySelector('.map-2d-lite__marker-disk');
+                    if (disk) {
+                        body.insertBefore(wave, disk);
+                    } else {
+                        body.appendChild(wave);
+                    }
+                }
+            }
+        }
+        
+        // Reset the interval timer
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = setInterval(() => {
+                console.log('[Map Overlap Cycling] Cycling...');
+                this.cycleOverlaps();
+            }, 5000);
+        }
+        
+        return targetMarker;
+    }
+
+    /**
+     * Force cycle to the next marker for a specific marker (right-click)
+     * @param {Object} marker - The marker object that was right-clicked
+     */
+    forceCycleMarker(marker) {
+        // Find which overlap group this marker belongs to
+        const group = this.overlapGroups.find(g => g.markers.includes(marker));
+        if (!group) return;
+
+        console.log('[Map Overlap Cycling] Force cycling marker:', marker.stub.userData.eventName);
+
+        // Hide current marker
+        const currentMarker = group.markers[group.currentIndex];
+        if (currentMarker) {
+            currentMarker.btn.style.display = 'none';
+        }
+
+        // Move to next marker
+        group.currentIndex = (group.currentIndex + 1) % group.markers.length;
+
+        // Show next marker
+        const nextMarker = group.markers[group.currentIndex];
+        if (nextMarker) {
+            nextMarker.btn.style.display = '';
+            
+            // Update color based on which marker is now visible
+            if (group.currentIndex === 0) {
+                // First marker: regular orange
+                const fillHex = nextMarker.stub.userData.isLocked ? EVENT_MARKER_LOCKED_HEX : getMarkerColor(nextMarker.stub.userData.isMainVariant);
+                nextMarker.disk.style.backgroundColor = hexToCss(fillHex);
+                const fr = hexToRgb(fillHex);
+                nextMarker.btn.style.setProperty('--map2d-fill-rgb', `${fr.r},${fr.g},${fr.b}`);
+                nextMarker.btn.style.setProperty('--map2d-pulse-rgb', `${fr.r},${fr.g},${fr.b}`);
+            } else if (group.currentIndex === 1) {
+                // Second marker: pink
+                const pinkHex = 0xff69b4;
+                nextMarker.disk.style.backgroundColor = hexToCss(pinkHex);
+                const pr = hexToRgb(pinkHex);
+                nextMarker.btn.style.setProperty('--map2d-fill-rgb', `${pr.r},${pr.g},${pr.b}`);
+                nextMarker.btn.style.setProperty('--map2d-pulse-rgb', `${pr.r},${pr.g},${pr.b}`);
+            }
+        }
+
+        // Reset the interval timer
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = setInterval(() => {
+                console.log('[Map Overlap Cycling] Cycling...');
+                this.cycleOverlaps();
+            }, 5000);
+        }
     }
 
     zoomIn() {

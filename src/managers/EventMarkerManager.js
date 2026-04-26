@@ -25,6 +25,9 @@ export class EventMarkerManager {
     constructor(sceneModel, dataModel) {
         this.sceneModel = sceneModel;
         this.dataModel = dataModel;
+        this.overlapCycleInterval = null;
+        this.overlapGroups = [];
+        this.overlapCyclingPaused = false;
     }
 
     /**
@@ -141,6 +144,9 @@ export class EventMarkerManager {
         console.log(`[addEventMarkers] Created ${newMarkers.length} markers. Total markers after: ${totalAfter}`);
         console.log(`[addEventMarkers] New marker events:`, newMarkers.map(m => m.userData?.event?.name || 'no name'));
         
+        // Detect overlapping coordinates and set up cycling
+        this.setupOverlapCycling(newMarkers);
+        
         if (animate && (newMarkers.length > 0 || newPinLines.length > 0)) {
             return animateMarkersGrow(newMarkers, newPinLines);
         } else {
@@ -166,6 +172,9 @@ export class EventMarkerManager {
      * @returns {Promise} - Resolves when removal (and animation) is complete
      */
     removeEventMarkers(animate = false) {
+        // Stop overlap cycling when removing markers
+        this.stopOverlapCycling();
+        
         const globe = this.sceneModel.getGlobe();
         
         // Check if globe exists before trying to traverse
@@ -433,5 +442,401 @@ export class EventMarkerManager {
         
         // Unlock event markers using traversal helper
         traverseEventMarkers(this.sceneModel, unlockMarker);
+    }
+
+    /**
+     * Detect overlapping coordinates and set up cycling for overlapping markers
+     * @param {Array} markers - Array of newly created markers
+     */
+    setupOverlapCycling(markers) {
+        console.log('[Overlap Cycling] setupOverlapCycling called with', markers.length, 'markers');
+        
+        // Clear any existing interval
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = null;
+        }
+        this.overlapGroups = [];
+
+        // Group markers by coordinate
+        const coordinateGroups = new Map();
+        
+        markers.forEach(marker => {
+            if (!marker.userData || !marker.userData.event) return;
+            
+            const event = marker.userData.event;
+            const lat = event.lat;
+            const lon = event.lon;
+            
+            console.log('[Overlap Cycling] Checking marker:', event.name, 'coords:', lat, lon);
+            
+            // Only group events with valid coordinates
+            if (lat == null || lon == null) return;
+            
+            const key = `${lat},${lon}`;
+            if (!coordinateGroups.has(key)) {
+                coordinateGroups.set(key, []);
+            }
+            coordinateGroups.get(key).push(marker);
+        });
+
+        console.log('[Overlap Cycling] Coordinate groups:', coordinateGroups.size);
+
+        // Create overlap groups for coordinates with multiple markers
+        coordinateGroups.forEach((groupMarkers, key) => {
+            if (groupMarkers.length > 1) {
+                console.log(`[Overlap Cycling] Found ${groupMarkers.length} markers at coordinate ${key}:`, groupMarkers.map(m => m.userData.event?.name));
+                this.overlapGroups.push({
+                    markers: groupMarkers,
+                    currentIndex: 0
+                });
+                
+                // Initially hide all except the first, and set colors
+                groupMarkers.forEach((marker, index) => {
+                    marker.visible = (index === 0);
+                    // Also hide/show pin line
+                    if (marker.userData.pinLine) {
+                        marker.userData.pinLine.visible = (index === 0);
+                    }
+                    
+                    // Store the true original color before any cycling
+                    if (!marker.userData._trueOriginalColor && marker.userData.originalColor) {
+                        marker.userData._trueOriginalColor = marker.userData.originalColor;
+                    }
+                    
+                    // Set color based on index: first = orange, second = pink
+                    if (index === 0) {
+                        // First marker: regular orange (original color)
+                        if (marker.userData.originalColor) {
+                            marker.material.color.setHex(marker.userData.originalColor);
+                        }
+                    } else if (index === 1) {
+                        // Second marker: pink
+                        marker.material.color.setHex(0xff69b4);
+                    }
+                });
+            }
+        });
+
+        // If there are overlap groups, start cycling
+        if (this.overlapGroups.length > 0) {
+            console.log(`[Overlap Cycling] Starting cycling for ${this.overlapGroups.length} coordinate groups`);
+            this.overlapCycleInterval = setInterval(() => {
+                console.log('[Overlap Cycling] Cycling...');
+                this.cycleOverlaps();
+            }, 5000); // 5 second interval
+        } else {
+            console.log('[Overlap Cycling] No overlap groups found, cycling not started');
+        }
+    }
+
+    /**
+     * Cycle visibility of overlapping markers
+     */
+    cycleOverlaps() {
+        // Skip cycling if paused (hovering)
+        if (this.overlapCyclingPaused) {
+            return;
+        }
+        
+        this.overlapGroups.forEach(group => {
+            // Hide current marker
+            const currentMarker = group.markers[group.currentIndex];
+            if (currentMarker) {
+                currentMarker.visible = false;
+                if (currentMarker.userData.pinLine) {
+                    currentMarker.userData.pinLine.visible = false;
+                }
+                // Stop pulse rings on the marker being hidden
+                if (window.globeController?.markerPulseService) {
+                    window.globeController.markerPulseService.stopEventMarkerPulse(currentMarker);
+                }
+            }
+
+            // Move to next marker (loop back to start)
+            group.currentIndex = (group.currentIndex + 1) % group.markers.length;
+
+            // Show next marker
+            const nextMarker = group.markers[group.currentIndex];
+            if (nextMarker) {
+                nextMarker.visible = true;
+                if (nextMarker.userData.pinLine) {
+                    nextMarker.userData.pinLine.visible = true;
+                }
+                
+                // Update color based on which marker is now visible
+                if (group.currentIndex === 0) {
+                    // First marker: regular orange (original color)
+                    if (nextMarker.userData.originalColor) {
+                        nextMarker.material.color.setHex(nextMarker.userData.originalColor);
+                    }
+                } else if (group.currentIndex === 1) {
+                    // Second marker: pink
+                    nextMarker.material.color.setHex(0xff69b4);
+                }
+                
+                // Clear hover glow state so it uses the new color as base
+                if (nextMarker.userData._hoverGlowBase) {
+                    delete nextMarker.userData._hoverGlowBase;
+                }
+                
+                // Start new pulse on the next marker if it's currently being hovered
+                const hoveredMarker = window.globeController?.markerPulseService?.getHoveredMarker();
+                if (hoveredMarker === currentMarker) {
+                    // The user was hovering the marker that just switched, so start pulse on the new one
+                    if (window.globeController?.markerPulseService) {
+                        window.globeController.markerPulseService.startEventMarkerPulse(nextMarker);
+                        window.globeController.markerPulseService.setHoveredMarker(nextMarker);
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Pause overlap cycling (called when hovering over a cycling marker)
+     */
+    pauseOverlapCycling() {
+        if (!this.overlapCyclingPaused && this.overlapGroups.length > 0) {
+            this.overlapCyclingPaused = true;
+            console.log('[Overlap Cycling] Paused due to hover');
+        }
+    }
+
+    /**
+     * Resume overlap cycling (called when hover ends)
+     */
+    resumeOverlapCycling() {
+        if (this.overlapCyclingPaused) {
+            this.overlapCyclingPaused = false;
+            console.log('[Overlap Cycling] Resumed after hover');
+        }
+    }
+
+    /**
+     * Stop overlap cycling (call when removing markers or changing pages)
+     */
+    stopOverlapCycling() {
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = null;
+        }
+        this.overlapGroups = [];
+    }
+
+    /**
+     * Force cycle to a specific marker in an overlap group by event
+     * @param {Object} event - The event to show
+     * @returns {Object|null} - The target marker that was switched to, or null
+     */
+    forceCycleToEvent(event) {
+        if (!event) return null;
+        
+        console.log('[Overlap Cycling] forceCycleToEvent called for:', event.name);
+        
+        // Find the overlap group that contains this event
+        const group = this.overlapGroups.find(g => 
+            g.markers.some(m => {
+                const markerEvent = m.userData.event;
+                if (!markerEvent) return false;
+                // Compare by name and location since event objects might be different references
+                return markerEvent.name === event.name &&
+                       markerEvent.lat === event.lat &&
+                       markerEvent.lon === event.lon;
+            })
+        );
+        
+        if (!group) {
+            console.log('[Overlap Cycling] Event not in any overlap group');
+            return null; // Not in an overlap group
+        }
+        
+        console.log('[Overlap Cycling] Found overlap group with', group.markers.length, 'markers');
+        
+        // Find the index of the marker for this event
+        const targetIndex = group.markers.findIndex(m => {
+            const markerEvent = m.userData.event;
+            if (!markerEvent) return false;
+            return markerEvent.name === event.name &&
+                   markerEvent.lat === event.lat &&
+                   markerEvent.lon === event.lon;
+        });
+        
+        if (targetIndex === -1) {
+            console.log('[Overlap Cycling] Could not find marker index for event');
+            return null;
+        }
+        
+        console.log('[Overlap Cycling] Switching to index:', targetIndex, 'from current:', group.currentIndex);
+        
+        // Hide current marker
+        const currentMarker = group.markers[group.currentIndex];
+        if (currentMarker) {
+            currentMarker.visible = false;
+            if (currentMarker.userData.pinLine) {
+                currentMarker.userData.pinLine.visible = false;
+            }
+            // Stop pulse rings on the marker being hidden
+            if (window.globeController?.markerPulseService) {
+                window.globeController.markerPulseService.stopEventMarkerPulse(currentMarker);
+            }
+        }
+        
+        // Set to target index
+        group.currentIndex = targetIndex;
+        
+        // Show target marker
+        const targetMarker = group.markers[targetIndex];
+        if (targetMarker) {
+            targetMarker.visible = true;
+            if (targetMarker.userData.pinLine) {
+                targetMarker.userData.pinLine.visible = true;
+            }
+            
+            // Update color based on index
+            if (targetIndex === 0) {
+                // First marker: restore to true original color
+                if (targetMarker.userData._trueOriginalColor) {
+                    targetMarker.material.color.setHex(targetMarker.userData._trueOriginalColor);
+                    targetMarker.userData.originalColor = targetMarker.userData._trueOriginalColor;
+                } else if (targetMarker.userData.originalColor) {
+                    targetMarker.material.color.setHex(targetMarker.userData.originalColor);
+                }
+            } else if (targetIndex === 1) {
+                // Second marker: pink
+                targetMarker.material.color.setHex(0xff69b4);
+                // Update originalColor so wave picks up the correct color
+                targetMarker.userData.originalColor = 0xff69b4;
+            }
+            
+            // Clear hover glow state so it uses the new color as base
+            if (targetMarker.userData._hoverGlowBase) {
+                delete targetMarker.userData._hoverGlowBase;
+            }
+        }
+        
+        // Reset the interval timer
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = setInterval(() => {
+                console.log('[Overlap Cycling] Cycling...');
+                this.cycleOverlaps();
+            }, 5000);
+        }
+        
+        return targetMarker;
+    }
+
+    /**
+     * Force cycle to the next marker for a specific marker (right-click)
+     * @param {THREE.Object3D} marker - The marker that was right-clicked
+     */
+    forceCycleMarker(marker) {
+        // Find which overlap group this marker belongs to
+        const group = this.overlapGroups.find(g => g.markers.includes(marker));
+        if (!group) return;
+
+        console.log('[Overlap Cycling] Force cycling marker:', marker.userData.eventName);
+
+        // Hide current marker
+        const currentMarker = group.markers[group.currentIndex];
+        if (currentMarker) {
+            currentMarker.visible = false;
+            if (currentMarker.userData.pinLine) {
+                currentMarker.userData.pinLine.visible = false;
+            }
+            // Stop pulse rings on the marker being hidden
+            if (window.globeController?.markerPulseService) {
+                window.globeController.markerPulseService.stopEventMarkerPulse(currentMarker);
+            }
+        }
+
+        // Move to next marker
+        group.currentIndex = (group.currentIndex + 1) % group.markers.length;
+
+        // Show next marker
+        const nextMarker = group.markers[group.currentIndex];
+        if (nextMarker) {
+            nextMarker.visible = true;
+            if (nextMarker.userData.pinLine) {
+                nextMarker.userData.pinLine.visible = true;
+            }
+            
+            // Update color based on which marker is now visible
+            if (group.currentIndex === 0) {
+                // First marker: restore to true original color
+                if (nextMarker.userData._trueOriginalColor) {
+                    nextMarker.material.color.setHex(nextMarker.userData._trueOriginalColor);
+                    nextMarker.userData.originalColor = nextMarker.userData._trueOriginalColor;
+                } else if (nextMarker.userData.originalColor) {
+                    nextMarker.material.color.setHex(nextMarker.userData.originalColor);
+                }
+            } else if (group.currentIndex === 1) {
+                // Second marker: pink
+                nextMarker.material.color.setHex(0xff69b4);
+                // Update originalColor so wave picks up the correct color
+                nextMarker.userData.originalColor = 0xff69b4;
+            }
+            
+            // Clear hover glow state so it uses the new color as base
+            if (nextMarker.userData._hoverGlowBase) {
+                delete nextMarker.userData._hoverGlowBase;
+            }
+            
+            // Update hover glow base with the new color so pulse uses it
+            if (nextMarker.material) {
+                nextMarker.userData._hoverGlowBase = {
+                    colorHex: nextMarker.material.color.getHex(),
+                    opacity: (typeof nextMarker.material.opacity === 'number') ? nextMarker.material.opacity : 1
+                };
+            }
+            
+            // Always restart pulse on the new marker when force-cycling
+            // This matches map DOM behavior which updates CSS variables regardless of state
+            console.log('[Overlap Cycling] Force cycle - restarting pulse on new marker');
+            console.log('[Overlap Cycling] nextMarker:', nextMarker?.userData?.eventName, 'material color:', nextMarker.material.color.getHex().toString(16), 'originalColor:', nextMarker.userData.originalColor?.toString(16));
+            console.log('[Overlap Cycling] nextMarker _hoverGlowBase:', nextMarker.userData._hoverGlowBase?.colorHex?.toString(16));
+            
+            if (window.globeController?.markerPulseService) {
+                // Clear hovered marker first to ensure clean state
+                window.globeController.markerPulseService.setHoveredMarker(null);
+                window.globeController.markerPulseService.stopEventMarkerPulse(currentMarker);
+                window.globeController.markerPulseService.stopEventMarkerPulse(nextMarker);
+                
+                // Force a frame update to ensure color is applied
+                if (nextMarker.material) {
+                    nextMarker.material.needsUpdate = true;
+                }
+                
+                // Start pulse immediately with the new marker
+                window.globeController.markerPulseService.startEventMarkerPulse(nextMarker);
+                window.globeController.markerPulseService.setHoveredMarker(nextMarker);
+                
+                console.log('[Overlap Cycling] DEBUG: About to check markerService availability');
+                console.log('[Overlap Cycling] DEBUG: globeController exists:', !!window.globeController);
+                console.log('[Overlap Cycling] DEBUG: interactionController exists:', !!window.globeController?.interactionController);
+                console.log('[Overlap Cycling] DEBUG: markerService exists:', !!window.globeController?.interactionController?.markerService);
+                
+                // Manually update hover state (badge, pagination highlight) since mouse didn't move
+                if (window.globeController?.interactionController?.markerService) {
+                    const markerService = window.globeController.interactionController.markerService;
+                    console.log('[Overlap Cycling] Manually updating hover state for:', nextMarker.userData.eventName);
+                    markerService.highlightNumberButtonForMarker(nextMarker);
+                    markerService._syncEventsHoverPreviewFromMarker(nextMarker);
+                    console.log('[Overlap Cycling] Hover state updated');
+                } else {
+                    console.log('[Overlap Cycling] ERROR: markerService not available');
+                }
+            }
+        }
+
+        // Reset the interval timer
+        if (this.overlapCycleInterval) {
+            clearInterval(this.overlapCycleInterval);
+            this.overlapCycleInterval = setInterval(() => {
+                console.log('[Overlap Cycling] Cycling...');
+                this.cycleOverlaps();
+            }, 5000);
+        }
     }
 }

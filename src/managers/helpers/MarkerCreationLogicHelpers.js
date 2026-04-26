@@ -157,6 +157,8 @@ export function createSingleEventMarker({ event, sceneModel, globe, moonPlane, m
         });
         
         pinLineData.lineParent.add(pinLine);
+        // Store pin line reference in marker userData for overlap cycling
+        marker.userData.pinLine = pinLine;
     }
     
     return { marker, pinLine };
@@ -288,6 +290,8 @@ export function createMultiEventMarkers({ event, sceneModel, globe, moonPlane, m
                 });
                 
                 pinLineData.lineParent.add(pinLine);
+                // Store pin line reference in marker userData for overlap cycling
+                marker.userData.pinLine = pinLine;
             }
         }
         

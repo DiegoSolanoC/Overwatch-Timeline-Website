@@ -43,36 +43,6 @@
     <div id="dockGlobeRailRight" class="dock-globe-rail dock-globe-rail--right" aria-label="Map view and rotation"></div>
 
     <div class="layout-container">
-        <main id="content">
-            <div id="globe-container"></div>
-            <!-- Zoom Controls -->
-            <div class="zoom-controls" id="zoomControls">
-                <button class="zoom-btn zoom-in-btn" id="zoomInBtn" title="Zoom In">+</button>
-                <button class="zoom-btn zoom-reset-btn" id="zoomResetBtn" title="Reset zoom and view">=</button>
-                <button class="zoom-btn zoom-out-btn" id="zoomOutBtn" title="Zoom Out">−</button>
-            </div>
-        </main>
-
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-close" id="sidebarClose">&times;</div>
-            <button onclick="window.location.href='test.html'">Test</button>
-            <button onclick="window.location.href='main.html'" class="active">Main</button>
-        </nav>
-
-        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
-        
-        <!-- Loading Overlay (fades in during Globe Components loading) -->
-        <div class="loading-overlay" id="loadingOverlay">
-            <div class="loading-status-overlay">
-                <img src="assets/images/misc/loading.gif" alt="Loading" class="loading-gif" id="loadingGif">
-                <h3>Loading Status</h3>
-                <div class="loading-progress-container">
-                    <div class="loading-progress-bar" id="loadingProgressBar"></div>
-                </div>
-                <div id="overlayStatusContent"></div>
-            </div>
-        </div>
-        
         <!-- Event Slide Panel (left side) -->
         <div class="event-slide" id="eventSlide">
             <button class="event-slide-action-btn event-slide-edit-btn" id="eventSlideEditBtn" title="Edit description" type="button">Edit</button>
@@ -111,6 +81,42 @@
                         <button type="button" id="eventNextBtn" class="event-nav-btn event-nav-btn--pagination-arrow" title="Next Event" aria-label="Next event"><img class="ui-pagination-arrow ui-pagination-arrow--flip-h" src="assets/images/icons/Arrow Icon.png" alt="" width="26" height="26" decoding="async" /></button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <main id="content">
+            <div id="globe-container"></div>
+            <!-- Zoom Controls -->
+            <div class="zoom-controls" id="zoomControls">
+                <button class="zoom-btn zoom-in-btn" id="zoomInBtn" title="Zoom In">+</button>
+                <button class="zoom-btn zoom-reset-btn" id="zoomResetBtn" title="Reset zoom and view">=</button>
+                <button class="zoom-btn zoom-out-btn" id="zoomOutBtn" title="Zoom Out">−</button>
+            </div>
+            <!-- Event Image Overlay (over globe) -->
+            <div class="event-image-overlay" id="eventImageOverlay">
+                <div class="event-image-container" id="eventImageContainer">
+                    <img id="eventImage" src="" alt="Event Image" style="display: none;">
+                </div>
+            </div>
+        </main>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-close" id="sidebarClose">&times;</div>
+            <button onclick="window.location.href='test.html'">Test</button>
+            <button onclick="window.location.href='main.html'" class="active">Main</button>
+        </nav>
+
+        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
+        
+        <!-- Loading Overlay (fades in during Globe Components loading) -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-status-overlay">
+                <img src="assets/images/misc/loading.gif" alt="Loading" class="loading-gif" id="loadingGif">
+                <h3>Loading Status</h3>
+                <div class="loading-progress-container">
+                    <div class="loading-progress-bar" id="loadingProgressBar"></div>
+                </div>
+                <div id="overlayStatusContent"></div>
             </div>
         </div>
 

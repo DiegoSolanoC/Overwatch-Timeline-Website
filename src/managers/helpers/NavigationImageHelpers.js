@@ -1,6 +1,5 @@
 /**
- * NavigationImageHelpers - Utilities for getting event image paths
- * Extracted from EventNavigationManager to reduce duplication
+ * NavigationImageHelpers - Image path utilities for event navigation
  */
 
 /**
@@ -13,7 +12,7 @@ export function getEventImagePath(displayEvent, eventName) {
     // Use EventManager's function if available for consistency
     if (window.eventManager && typeof window.eventManager.getEventImagePath === 'function') {
         const imagePath = window.eventManager.getEventImagePath(displayEvent.name, displayEvent.image);
-        console.log(`[EventNavigationManager] Image path for "${eventName}": ${imagePath}`);
+        console.log(`[NavigationImageHelpers] Image path for "${eventName}": ${imagePath}`);
         return imagePath;
     }
     
@@ -24,7 +23,7 @@ export function getEventImagePath(displayEvent, eventName) {
         const encodedFileName = encodeURIComponent(normalizedName);
         imagePath = `assets/images/events/${encodedFileName}.png`;
     }
-    console.log(`[EventNavigationManager] Image path (fallback) for "${eventName}": ${imagePath}`);
+    console.log(`[NavigationImageHelpers] Image path (fallback) for "${eventName}": ${imagePath}`);
     return imagePath;
 }
 

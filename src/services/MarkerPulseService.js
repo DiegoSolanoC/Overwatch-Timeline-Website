@@ -30,9 +30,8 @@ class MarkerPulseService {
         if (!marker || !marker.userData) return;
         if (marker.userData._hoverGlowBase) return;
         const mat = marker.material;
-        const baseColorHex = Number.isFinite(marker.userData.originalColor)
-            ? marker.userData.originalColor
-            : (mat?.color?.getHex ? mat.color.getHex() : 0xff6600);
+        // Use current color as base (respect overlap cycling colors)
+        const baseColorHex = (mat?.color?.getHex ? mat.color.getHex() : 0xff6600);
         marker.userData._hoverGlowBase = {
             colorHex: baseColorHex,
             opacity: (mat && typeof mat.opacity === 'number') ? mat.opacity : 1
@@ -146,9 +145,23 @@ class MarkerPulseService {
      */
     _getPulseWaveColorHex(marker) {
         const ud = marker && marker.userData;
+        console.log('[Pulse Color] Called for marker:', marker?.userData?.eventName, 'userData:', ud);
+        // Use the base color from hover glow state to avoid picking up the brightened hover color
+        if (ud && ud._hoverGlowBase && Number.isFinite(ud._hoverGlowBase.colorHex)) {
+            console.log('[Pulse Color] Using _hoverGlowBase:', ud._hoverGlowBase.colorHex.toString(16));
+            return ud._hoverGlowBase.colorHex;
+        }
+        // Fallback to current marker color (respect overlap cycling colors)
+        if (marker?.material?.color?.getHex) {
+            const matColor = marker.material.color.getHex();
+            console.log('[Pulse Color] Using material color:', matColor.toString(16));
+            return matColor;
+        }
         if (ud && Number.isFinite(ud.originalColor)) {
+            console.log('[Pulse Color] Using originalColor:', ud.originalColor.toString(16));
             return ud.originalColor;
         }
+        console.log('[Pulse Color] Using default orange');
         return 0xffaa00;
     }
 
@@ -256,6 +269,7 @@ class MarkerPulseService {
         const globe = this.sceneModel.getGlobe();
         if (!globe) return;
         const waveColorHex = this._getPulseWaveColorHex(marker);
+        console.log('[Pulse Ring] Creating ring for marker:', marker?.userData?.eventName, 'with color:', waveColorHex.toString(16));
         const isMapView = this.sceneModel.getMapViewEnabled ? this.sceneModel.getMapViewEnabled() : !!this.sceneModel.isMapView;
         
         // Determine parent (globe, moonPlane, or marsPlane)

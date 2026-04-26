@@ -151,7 +151,8 @@
     --breakpoint-small-mobile: 480px;
     
     /* Panel Dimensions - Desktop */
-    --panel-event-width: 600px;
+    --panel-event-width: 900px;
+    --panel-event-width-collapsed: 1px; /* Collapsed width showing handle */
     --panel-filters-width: 800px;
     --panel-music-width: 800px;
     --panel-events-manage-width: 1040px;

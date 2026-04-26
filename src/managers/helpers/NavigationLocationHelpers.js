@@ -1,6 +1,5 @@
 /**
- * NavigationLocationHelpers - Utilities for handling different location types in navigation
- * Extracted from EventNavigationManager to reduce duplication
+ * NavigationLocationHelpers - Location type utilities for event navigation
  */
 
 /**

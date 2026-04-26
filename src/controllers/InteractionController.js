@@ -73,6 +73,7 @@ export class InteractionController {
         container.addEventListener('mouseup', () => this.onMouseUp());
         container.addEventListener('mouseleave', () => this.onMouseUp());
         container.addEventListener('click', (e) => this.onMarkerClick(e));
+        container.addEventListener('contextmenu', (e) => this.onContextMenu(e));
         container.addEventListener('dblclick', (e) => {
             if (isEventFromDevSunYawPanel(e)) return;
             if (typeof window.closeTimelineMusicFiltersPanelsIfOpen === 'function') {
@@ -117,6 +118,94 @@ export class InteractionController {
      */
     onMouseUp() {
         this.mouseService.onMouseUp();
+    }
+
+    /**
+     * Handle context menu (right-click)
+     * @param {MouseEvent} event - Mouse event
+     */
+    onContextMenu(event) {
+        if (isEventFromDevSunYawPanel(event)) return;
+        
+        console.log('[InteractionController] onContextMenu called');
+        
+        // Check if right-clicking on a marker to force cycle overlapping markers
+        const camera = this.sceneModel.getCamera();
+        if (!camera) {
+            console.log('[InteractionController] No camera');
+            return;
+        }
+        
+        const container = document.getElementById('globe-container');
+        if (!container) {
+            console.log('[InteractionController] No container');
+            return;
+        }
+        
+        const rect = container.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        console.log('[InteractionController] Mouse coords:', mouse.x, mouse.y);
+        
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+        raycaster.layers.mask = camera.layers.mask;
+
+        const markers = this.sceneModel.getMarkers();
+        const clickableObjects = [];
+        
+        if (markers && markers.length > 0) {
+            for (let i = 0; i < markers.length; i++) {
+                const marker = markers[i];
+                if (marker && marker.userData && marker.userData.isEventMarker && marker.visible) {
+                    clickableObjects.push(marker);
+                }
+            }
+        }
+        
+        console.log('[InteractionController] Clickable objects:', clickableObjects.length);
+        
+        const intersects = raycaster.intersectObjects(clickableObjects);
+        console.log('[InteractionController] Intersects:', intersects.length);
+        
+        if (intersects.length > 0) {
+            // Right-clicked on a marker - force cycle if it's in an overlap group
+            const clickedMarker = intersects[0].object;
+            console.log('[InteractionController] Clicked marker:', clickedMarker.userData.eventName);
+            if (window.globeEventMarkerManager && typeof window.globeEventMarkerManager.forceCycleMarker === 'function') {
+                console.log('[InteractionController] Calling forceCycleMarker');
+                window.globeEventMarkerManager.forceCycleMarker(clickedMarker);
+                
+                // Manually update hover state (badge, pagination highlight, pulse) since mouse didn't move
+                // This fixes the bug where badge and pulse don't update after right-click cycling
+                setTimeout(() => {
+                    const group = window.globeEventMarkerManager.overlapGroups?.find(g => g.markers.includes(clickedMarker));
+                    if (group) {
+                        const nextMarker = group.markers[group.currentIndex];
+                        if (nextMarker && this.markerService) {
+                            console.log('[InteractionController] Manually updating hover state for:', nextMarker.userData.eventName);
+                            
+                            // Stop pulse on the old marker (clickedMarker) and start on the new one
+                            if (this.pulseService) {
+                                this.pulseService.stopEventMarkerPulse(clickedMarker);
+                                this.pulseService.setHoveredMarker(null);
+                                this.pulseService.startEventMarkerPulse(nextMarker);
+                                this.pulseService.setHoveredMarker(nextMarker);
+                            }
+                            
+                            this.markerService.highlightNumberButtonForMarker(nextMarker);
+                            this.markerService._syncEventsHoverPreviewFromMarker(nextMarker);
+                        }
+                    }
+                }, 50);
+            }
+            // Prevent context menu when clicking on a marker
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        // Allow context menu when not clicking on a marker
     }
 
     /**

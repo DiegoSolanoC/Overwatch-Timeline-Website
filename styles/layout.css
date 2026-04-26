@@ -543,6 +543,7 @@ body.color-palette-nulled #hyperloopToggle.header-hub-btn.header-hub-btn--active
 /* Layout Container */
 .layout-container {
     display: flex;
+    flex-direction: row; /* Horizontal layout for event-slide + main content */
     flex: 1;
     overflow: hidden;
     position: relative;

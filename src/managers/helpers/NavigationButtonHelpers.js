@@ -1,6 +1,5 @@
 /**
- * NavigationButtonHelpers - Utilities for button cloning and event listener management
- * Extracted from EventNavigationManager to reduce duplication
+ * NavigationButtonHelpers - Button utilities for event navigation
  */
 
 /**

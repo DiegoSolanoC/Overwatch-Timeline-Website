@@ -113,6 +113,7 @@ export class UIView {
 
     /**
      * Show event slide (for Map2DLiteLayer compatibility)
+     * Routes to simple dock-like implementation on desktop, standalone on mobile portrait
      * @param {string} eventName - Event name
      * @param {string} eventImage - Event image path
      * @param {string} desc - Event description
@@ -120,6 +121,28 @@ export class UIView {
      * @param {Object} fullEvent - Full event data
      */
     showEventSlide(eventName, eventImage, desc, stub, fullEvent) {
+        // Detect mobile portrait viewport (actual touch device, not DevTools emulation)
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isMobilePortrait = isTouchDevice && window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+
+        if (isMobilePortrait && window.standaloneEventSlide) {
+            // Mobile portrait: use standalone implementation with full features
+            const eventIndex = window.eventManager?.events?.indexOf(fullEvent);
+            if (eventIndex >= 0) {
+                window.standaloneEventSlide.showEvent(eventIndex);
+                return;
+            }
+        }
+
+        // Desktop / mobile landscape: use simple dock-like implementation
+        this._showEventSlideSimple(eventName, eventImage, desc, stub, fullEvent);
+    }
+
+    /**
+     * Simple dock-like implementation (CSS toggle only)
+     * Used on desktop and mobile landscape
+     */
+    _showEventSlideSimple(eventName, eventImage, desc, stub, fullEvent) {
         // This is called by Map2DLiteLayer when clicking markers
         // Store the current event marker for reference
         this.currentEventMarker = stub;
@@ -147,8 +170,34 @@ export class UIView {
 
     /**
      * Hide event slide (for Map2DLiteLayer compatibility)
+     * Handles both simple dock-like and standalone implementations
      */
     hideEventSlide() {
+        // Detect mobile portrait viewport (actual touch device, not DevTools emulation)
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isMobilePortrait = isTouchDevice && window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+
+        if (isMobilePortrait && window.standaloneEventSlide?.cancelEdit) {
+            // Mobile portrait: use standalone implementation's close logic
+            window.standaloneEventSlide.cancelEdit();
+            const eventSlide = document.getElementById('eventSlide');
+            if (eventSlide) {
+                eventSlide.classList.remove('open');
+            }
+            if (window.standaloneEventSlide?.hideImageOverlay) {
+                window.standaloneEventSlide.hideImageOverlay();
+            }
+        } else {
+            // Desktop / mobile landscape: use simple dock-like implementation
+            this._hideEventSlideSimple();
+        }
+    }
+
+    /**
+     * Simple dock-like hide implementation
+     * Used on desktop and mobile landscape
+     */
+    _hideEventSlideSimple() {
         // This is called by Map2DLiteLayer when clicking markers
         // Clear the current event marker
         this.currentEventMarker = null;

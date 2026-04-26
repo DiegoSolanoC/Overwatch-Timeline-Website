@@ -1,6 +1,5 @@
 /**
- * NavigationPaginationHelpers - Utilities for pagination button handling
- * Extracted from EventNavigationManager to reduce complexity
+ * NavigationPaginationHelpers - Pagination utilities for event navigation
  */
 
 import { playNavigationSound } from './NavigationButtonHelpers.js';

@@ -1,6 +1,5 @@
 /**
- * NavigationCoordinateHelpers - Utilities for coordinate matching in event navigation
- * Extracted from EventNavigationManager to reduce complexity
+ * NavigationCoordinateHelpers - Coordinate matching utilities for event navigation
  */
 
 /**

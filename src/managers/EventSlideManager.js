@@ -1401,6 +1401,18 @@ export class EventSlideManager {
         // If user was inline-editing and didn't save, discard edits when switching/opening.
         this._cancelInlineDescriptionEdit();
 
+        // Track last opened event for reopen functionality
+        try {
+            if (eventData && eventData.name) {
+                localStorage.setItem('lastOpenedEvent', JSON.stringify({
+                    name: eventData.name,
+                    index: eventData.index || 0
+                }));
+            }
+        } catch (e) {
+            console.warn('Failed to save last opened event:', e);
+        }
+
         try {
             if (typeof window.closeTimelineMusicFiltersPanelsIfOpen === 'function') {
                 window.closeTimelineMusicFiltersPanelsIfOpen();

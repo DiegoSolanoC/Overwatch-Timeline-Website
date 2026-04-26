@@ -229,6 +229,89 @@
             clearUserWidth(cfg);
         });
 
+        // Click to open panel when collapsed (for event slide)
+        btn.addEventListener('click', function (e) {
+            if (cfg.panelId === 'eventSlide' && !panel.classList.contains('open')) {
+                e.preventDefault();
+                
+                console.log('[PanelResizeService] Resize handle clicked, attempting to open event');
+                
+                // Try to open last opened event, or first event if none
+                try {
+                    const lastEventStr = localStorage.getItem('lastOpenedEvent');
+                    let eventToOpen = null;
+                    
+                    if (lastEventStr) {
+                        eventToOpen = JSON.parse(lastEventStr);
+                        console.log('[PanelResizeService] Last opened event:', eventToOpen);
+                    }
+                    
+                    // Get event manager
+                    const eventManager = window.eventManager || window.globeController?.dataModel;
+                    console.log('[PanelResizeService] Event manager:', !!eventManager);
+                    
+                    if (eventManager) {
+                        let eventData = null;
+                        const events = eventManager.events || eventManager.getEvents?.() || [];
+                        console.log('[PanelResizeService] Events count:', events.length);
+                        
+                        if (eventToOpen) {
+                            // Try to find the last opened event
+                            eventData = events.find(ev => ev.name === eventToOpen.name);
+                            console.log('[PanelResizeService] Found last event:', !!eventData);
+                        }
+                        
+                        // If no last event or not found, get first event
+                        if (!eventData && events.length > 0) {
+                            eventData = events[0];
+                            console.log('[PanelResizeService] Using first event:', eventData?.name);
+                        }
+                        
+                        // Open the event
+                        if (eventData) {
+                            console.log('[PanelResizeService] Opening event:', eventData.name);
+                            // Find the event slide manager and call showEventSlide
+                            const eventSlideManager = window.EventSlideManager;
+                            if (eventSlideManager && typeof eventSlideManager.showEventSlide === 'function') {
+                                eventSlideManager.showEventSlide(
+                                    eventData.name,
+                                    eventData.image,
+                                    eventData.description,
+                                    null,
+                                    eventData
+                                );
+                            } else if (window.globeController?.uiView?.showEventSlide) {
+                                window.globeController.uiView.showEventSlide(
+                                    eventData.name,
+                                    eventData.image,
+                                    eventData.description,
+                                    null,
+                                    eventData
+                                );
+                            } else {
+                                console.warn('[PanelResizeService] No event slide manager found, just opening panel');
+                                panel.classList.add('open');
+                            }
+                        } else {
+                            console.warn('[PanelResizeService] No event data available, just opening panel');
+                            panel.classList.add('open');
+                        }
+                    } else {
+                        console.warn('[PanelResizeService] No event manager available, just opening panel');
+                        panel.classList.add('open');
+                    }
+                } catch (err) {
+                    console.warn('[PanelResizeService] Failed to open last event:', err);
+                    // Fallback: just open the panel
+                    panel.classList.add('open');
+                }
+                
+                if (window.SoundEffectsManager?.play) {
+                    window.SoundEffectsManager.play('eventClick');
+                }
+            }
+        });
+
         var dragState = null;
 
         function onPointerMove(ev) {

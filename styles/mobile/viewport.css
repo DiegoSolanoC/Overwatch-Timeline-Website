@@ -41,6 +41,25 @@
         font-size: 12px !important;
     }
 
+    /* Hide labels on all globe control buttons on mobile - show only icons */
+    .globe-control-btn .header-hub-btn-label,
+    .globe-control-btn .globe-control-btn__label,
+    .globe-control-btn span:not([id$="Icon"]) {
+        display: none !important;
+    }
+
+    /* Center icons in all globe control buttons on mobile */
+    .globe-control-btn {
+        justify-content: center !important;
+        padding: 0 !important;
+    }
+
+    .globe-control-btn [id$="Icon"] {
+        margin-right: 0 !important;
+        width: 32px !important;
+        height: 32px !important;
+    }
+
     .page-btn {
         width: 40px !important;
         height: 40px !important;
@@ -80,7 +99,8 @@
 
     /* Hide labels on dock rail buttons on mobile - show only icons */
     .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn .header-hub-btn-label,
-    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn span:not([id$="Icon"]):not(.globe-control-btn__label) {
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn .globe-control-btn__label,
+    .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn span:not([id$="Icon"]) {
         display: none !important;
     }
 

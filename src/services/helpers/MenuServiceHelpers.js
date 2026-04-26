@@ -2189,6 +2189,35 @@ export function createMenuButtonsContainer(statusService) {
                                 if (numEl) numEl.textContent = globalEventIndex + 1;
                                 if (keyEl) keyEl.textContent = index + 1;
                                 
+                                // DEV ONLY: Check for overlapping coordinates on localhost
+                                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                                    console.log('[DEV Overlap Check] Event:', event.name, 'coords:', event.location?.lat, event.location?.lon);
+                                    
+                                    const currentPageEvents = window.eventManager?.events || [];
+                                    const hasOverlap = currentPageEvents.some((otherEvent, otherIndex) => {
+                                        if (otherIndex === globalEventIndex) return false;
+                                        const otherLat = otherEvent.location?.lat;
+                                        const otherLon = otherEvent.location?.lon;
+                                        const thisLat = event.location?.lat;
+                                        const thisLon = event.location?.lon;
+                                        const matches = otherLat === thisLat && otherLon === thisLon;
+                                        if (matches) {
+                                            console.log('[DEV Overlap Check] MATCH with:', otherEvent.name, 'coords:', otherLat, otherLon);
+                                        }
+                                        return matches;
+                                    });
+                                    
+                                    console.log('[DEV Overlap Check] Has overlap:', hasOverlap, 'for position:', index + 1);
+                                    
+                                    if (hasOverlap) {
+                                        keyEl.style.color = '#ff4444';
+                                        keyEl.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)';
+                                    } else {
+                                        keyEl.style.color = '';
+                                        keyEl.style.textShadow = '';
+                                    }
+                                }
+                                
                                 // Get display event (first variant for multi-events)
                                 const isMultiEvent = Array.isArray(event.variants) && event.variants.length > 0;
                                 const displayEvent = isMultiEvent && event.variants[0] 
@@ -2456,6 +2485,12 @@ export function createMenuButtonsContainer(statusService) {
                             btn.dataset.position = String(pagePosition);
                             btn.dataset.eventIndex = globalEventIndex;
                             
+                            // Calculate current page from global index
+                            const currentPage = Math.floor(globalEventIndex / 10) + 1;
+                            const pageStart = (currentPage - 1) * 10;
+                            const pageEnd = Math.min(pageStart + 10, allEvents.length);
+                            const pageEvents = allEvents.slice(pageStart, pageEnd);
+                            
                             // Check filter lock state
                             const activeFilters = window.standaloneActiveFilters || new Set();
                             const filtersOn = activeFilters.size > 0;
@@ -2479,6 +2514,41 @@ export function createMenuButtonsContainer(statusService) {
                                 btn.classList.remove('locked');
                             }
                             btn.dataset.locked = isLocked ? 'true' : 'false';
+                            
+                            // DEV ONLY: Check for overlapping coordinates on localhost
+                            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                                console.log('[DEV Overlap Check] Event:', event.name, 'coords:', event.lat, event.lon);
+                                
+                                const hasOverlap = pageEvents.some((otherEvent, otherIndex) => {
+                                    if (otherIndex === (globalEventIndex % 10)) return false;
+                                    const otherLat = otherEvent.lat;
+                                    const otherLon = otherEvent.lon;
+                                    const thisLat = event.lat;
+                                    const thisLon = event.lon;
+                                    
+                                    // Only consider it an overlap if both have valid coordinates AND they match
+                                    if (otherLat == null || otherLon == null || thisLat == null || thisLon == null) {
+                                        return false;
+                                    }
+                                    
+                                    const matches = otherLat === thisLat && otherLon === thisLon;
+                                    if (matches) {
+                                        console.log('[DEV Overlap Check] MATCH with:', otherEvent.name, 'coords:', otherLat, otherLon);
+                                    }
+                                    return matches;
+                                });
+                                
+                                console.log('[DEV Overlap Check] Has overlap:', hasOverlap, 'for position:', pagePosition);
+                                
+                                const keyEl = btn.querySelector('.event-number-btn__key');
+                                if (hasOverlap && keyEl) {
+                                    keyEl.style.color = '#ff4444';
+                                    keyEl.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)';
+                                } else if (keyEl) {
+                                    keyEl.style.color = '';
+                                    keyEl.style.textShadow = '';
+                                }
+                            }
                             
                             // Debug logging with visual state
                             if (filtersOn || btn.style.opacity !== '1') {
@@ -2676,38 +2746,31 @@ export function createMenuButtonsContainer(statusService) {
                             const overlay = document.getElementById('eventImageOverlay');
                             if (!overlay || !overlay.classList.contains('open')) return;
                             
-                            // Hide temporarily
+                            // Save the current image path before hiding
+                            const img = document.getElementById('eventImage');
+                            const savedImagePath = img?.src || this.currentImagePath;
+                            
+                            // Hide with gradual fade
                             this.hideImageOverlay();
                             
-                            // Debug: track countdown
-                            let countdownMs = delayMs;
-                            const DEBUG_INTERVAL = 1000; // Log every second
-                            let activityListenersAttached = false;
+                            // Setup auto-restore timer
                             let restoreTimeoutId = null;
-                            let debugIntervalId = null;
+                            let activityListenersAttached = false;
                             
                             const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'];
                             
                             const resetTimer = () => {
-                                countdownMs = delayMs; // Reset to full 5 seconds
-                                console.log(`[IMAGE RESTORE] Activity detected! Timer reset to ${delayMs}ms`);
-                                
-                                // Clear and restart the restore timeout
+                                console.log('[IMAGE TEMP HIDE] Activity detected - resetting timer');
                                 if (restoreTimeoutId) {
                                     clearTimeout(restoreTimeoutId);
                                 }
                                 restoreTimeoutId = setTimeout(() => {
-                                    const img = document.getElementById('eventImage');
-                                    if (img && img.src) {
-                                        console.log('[IMAGE RESTORE] Timer complete! Starting gradual restore...');
-                                        this.showImageOverlayGradually(img.src, 1500); // 1.5 second gradual fade-in
+                                    const eventSlide = document.getElementById('eventSlide');
+                                    if (eventSlide?.classList.contains('open') && savedImagePath) {
+                                        console.log('[IMAGE TEMP HIDE] Timer complete - restoring image');
+                                        this.showImageOverlayGradually(savedImagePath, 600);
                                     }
-                                    // Cleanup
                                     detachActivityListeners();
-                                    if (debugIntervalId) {
-                                        clearInterval(debugIntervalId);
-                                        debugIntervalId = null;
-                                    }
                                     restoreTimeoutId = null;
                                 }, delayMs);
                             };
@@ -2716,24 +2779,40 @@ export function createMenuButtonsContainer(statusService) {
                                 if (activityListenersAttached) return;
                                 activityListenersAttached = true;
                                 activityEvents.forEach(event => {
-                                    // Use capture phase so we get events even if stopPropagation() is called
                                     document.addEventListener(event, resetTimer, { passive: true, capture: true });
                                 });
+                                
+                                // Listen for marker hover events
+                                const onMarkerHover = () => resetTimer();
+                                window.addEventListener('markerhover', onMarkerHover);
+                                
+                                // Listen for thumbnail hover
+                                const onThumbnailHover = () => resetTimer();
+                                window.addEventListener('thumbnailhover', onThumbnailHover);
+                                
+                                // Store cleanup functions
+                                this._tempHideCleanup = () => {
+                                    window.removeEventListener('markerhover', onMarkerHover);
+                                    window.removeEventListener('thumbnailhover', onThumbnailHover);
+                                };
                             };
                             
                             const detachActivityListeners = () => {
                                 if (!activityListenersAttached) return;
                                 activityListenersAttached = false;
                                 activityEvents.forEach(event => {
-                                    // Must specify capture when removing too
                                     document.removeEventListener(event, resetTimer, { capture: true });
                                 });
+                                if (this._tempHideCleanup) {
+                                    this._tempHideCleanup();
+                                    this._tempHideCleanup = null;
+                                }
                             };
                             
-                            // Start tracking activity
+                            // Start listening for activity
                             attachActivityListeners();
                             
-                            // Watch for event slide closing - immediately cancel restore
+                            // Watch for event slide closing - cancel restore
                             let slideObserver = null;
                             const eventSlide = document.getElementById('eventSlide');
                             if (eventSlide) {
@@ -2741,14 +2820,10 @@ export function createMenuButtonsContainer(statusService) {
                                     mutations.forEach((mutation) => {
                                         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                                             if (!eventSlide.classList.contains('open')) {
-                                                console.log('[IMAGE RESTORE] Event slide closed - canceling timer early');
+                                                console.log('[IMAGE TEMP HIDE] Event slide closed - canceling restore');
                                                 if (restoreTimeoutId) {
                                                     clearTimeout(restoreTimeoutId);
                                                     restoreTimeoutId = null;
-                                                }
-                                                if (debugIntervalId) {
-                                                    clearInterval(debugIntervalId);
-                                                    debugIntervalId = null;
                                                 }
                                                 detachActivityListeners();
                                                 if (slideObserver) {
@@ -2762,33 +2837,19 @@ export function createMenuButtonsContainer(statusService) {
                                 slideObserver.observe(eventSlide, { attributes: true, attributeFilter: ['class'] });
                             }
                             
-                            // Debug: log countdown every second
-                            debugIntervalId = setInterval(() => {
-                                countdownMs -= DEBUG_INTERVAL;
-                                console.log(`[IMAGE RESTORE] ${Math.max(0, countdownMs)}ms remaining...`);
-                            }, DEBUG_INTERVAL);
-                            
-                            // Initial restore timeout
-                            console.log(`[IMAGE RESTORE] Starting ${delayMs}ms countdown...`);
+                            // Start initial timer
+                            console.log(`[IMAGE TEMP HIDE] Starting ${delayMs}ms timer`);
                             restoreTimeoutId = setTimeout(() => {
                                 const eventSlide = document.getElementById('eventSlide');
-                                // Check if event slide is still open before restoring
-                                if (!eventSlide?.classList.contains('open')) {
-                                    console.log('[IMAGE RESTORE] Event slide closed - canceling image restore');
-                                    detachActivityListeners();
-                                    clearInterval(debugIntervalId);
-                                    debugIntervalId = null;
-                                    restoreTimeoutId = null;
-                                    return;
-                                }
-                                const img = document.getElementById('eventImage');
-                                if (img && img.src) {
-                                    console.log('[IMAGE RESTORE] Timer complete! Starting gradual restore...');
-                                    this.showImageOverlayGradually(img.src, 1500);
+                                if (eventSlide?.classList.contains('open') && savedImagePath) {
+                                    console.log('[IMAGE TEMP HIDE] Timer complete - restoring image');
+                                    this.showImageOverlayGradually(savedImagePath, 600);
                                 }
                                 detachActivityListeners();
-                                clearInterval(debugIntervalId);
-                                debugIntervalId = null;
+                                if (slideObserver) {
+                                    slideObserver.disconnect();
+                                    slideObserver = null;
+                                }
                                 restoreTimeoutId = null;
                             }, delayMs);
                         },

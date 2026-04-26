@@ -1,6 +1,5 @@
 /**
- * NavigationEventHelpers - Utilities for event navigation click handling
- * Extracted from EventNavigationManager to reduce complexity
+ * NavigationEventHelpers - Event navigation utilities
  */
 
 import { getEventImagePath } from './NavigationImageHelpers.js';

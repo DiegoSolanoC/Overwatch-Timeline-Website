@@ -918,7 +918,16 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     console.log('[DEBUG global button click] Event slide is open, manually showing image with gradual fade');
                                     // Use gradual fade-in for showing image
                                     if (window.standaloneEventSlide?.showImageOverlayGradually && window.standaloneEventSlide?.currentImagePath) {
-                                        window.standaloneEventSlide.showImageOverlayGradually(window.standaloneEventSlide.currentImagePath, 600);
+                                        // Check if currentImagePath is valid (not empty string)
+                                        if (window.standaloneEventSlide.currentImagePath && window.standaloneEventSlide.currentImagePath.trim() !== '') {
+                                            window.standaloneEventSlide.showImageOverlayGradually(window.standaloneEventSlide.currentImagePath, 600);
+                                        } else {
+                                            console.error('[DEBUG global button click] No valid image path available for current event');
+                                            // Revert toggle state since there's no image to show
+                                            newState = false;
+                                            newBtn.classList.remove('active');
+                                            newBtn.textContent = 'Image Off';
+                                        }
                                     } else {
                                         console.error('[DEBUG global button click] showImageOverlayGradually not available or no currentImagePath');
                                     }
@@ -3628,6 +3637,35 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 }
                                 if (keyEl) keyEl.textContent = index + 1;
                                 
+                                // DEV ONLY: Check for overlapping coordinates on localhost
+                                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                                    console.log('[DEV Overlap Check] Event:', event.name, 'coords:', event.location?.lat, event.location?.lon);
+                                    
+                                    const currentPageEvents = window.eventManager?.events || [];
+                                    const hasOverlap = currentPageEvents.some((otherEvent, otherIndex) => {
+                                        if (otherIndex === globalEventIndex) return false;
+                                        const otherLat = otherEvent.location?.lat;
+                                        const otherLon = otherEvent.location?.lon;
+                                        const thisLat = event.location?.lat;
+                                        const thisLon = event.location?.lon;
+                                        const matches = otherLat === thisLat && otherLon === thisLon;
+                                        if (matches) {
+                                            console.log('[DEV Overlap Check] MATCH with:', otherEvent.name, 'coords:', otherLat, otherLon);
+                                        }
+                                        return matches;
+                                    });
+                                    
+                                    console.log('[DEV Overlap Check] Has overlap:', hasOverlap, 'for position:', index + 1);
+                                    
+                                    if (hasOverlap) {
+                                        keyEl.style.color = '#ff4444';
+                                        keyEl.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)';
+                                    } else {
+                                        keyEl.style.color = '';
+                                        keyEl.style.textShadow = '';
+                                    }
+                                }
+                                
                                 // Show variant badge if multi-variant
                                 if (variantBadge) {
                                     const hasVariants = Array.isArray(event.variants) && event.variants.length > 1;
@@ -3753,8 +3791,23 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
 
                                     if (isMapView) {
                                         // Map view: find DOM marker and set hover
-                                        const marker = findMarkerForEvent(event, globalEventIndex);
-                                        if (marker) {
+                                        // Force cycle to this event if it's in an overlap group
+                                        let marker = findMarkerForEvent(event, globalEventIndex);
+                                        let markerBtn = marker?.__domMarkerButton;
+                                        
+                                        console.log('[Map Thumbnail Hover] Initial marker:', marker?.stub?.userData?.eventName, 'markerBtn:', !!markerBtn);
+                                        
+                                        if (window.globeController?.map2dLite) {
+                                            const targetMarker = window.globeController.map2dLite.forceCycleToEvent(event);
+                                            if (targetMarker) {
+                                                marker = targetMarker; // Use the switched marker
+                                                markerBtn = targetMarker.btn; // Use the button from the switched marker
+                                                console.log('[Map Thumbnail Hover] Switched to target marker, btn:', !!markerBtn, 'has wave:', !!markerBtn?.querySelector('.map-2d-lite__marker-wave'));
+                                            }
+                                            window.globeController.map2dLite.pauseOverlapCycling();
+                                        }
+                                        
+                                        if (markerBtn) {
                                             const ms = window.globeController?.interactionController?.markerService;
                                             ms?.setDomLiteMarkerHover?.(marker);
                                             // Play radiate sound effect and start continuous loop
@@ -3772,18 +3825,29 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                                 }, 1200);
                                             }
                                             // Add hover class to DOM marker button to trigger wave animation
-                                            if (marker.__domMarkerButton) {
-                                                marker.__domMarkerButton.classList.add('map-2d-lite__marker--synthetic-hover');
-                                            }
+                                            markerBtn.classList.add('map-2d-lite__marker--synthetic-hover');
+                                            console.log('[Map Thumbnail Hover] Added synthetic-hover class to button');
+                                        } else {
+                                            console.log('[Map Thumbnail Hover] No markerBtn found!');
                                         }
+                                        
                                         // Center map on marker
                                         if (event.lat != null && event.lon != null) {
                                             window.globeController?.map2dLite?.flyToLatLon?.(event.lat, event.lon);
                                         }
                                     } else {
                                         // Globe view: use WebGL marker with pulse
-                                        const marker = findMarkerForEvent(event, globalEventIndex);
+                                        let marker = findMarkerForEvent(event, globalEventIndex);
                                         if (marker) {
+                                            // Force cycle to this event if it's in an overlap group
+                                            if (window.globeEventMarkerManager) {
+                                                const targetMarker = window.globeEventMarkerManager.forceCycleToEvent(event);
+                                                if (targetMarker) {
+                                                    marker = targetMarker; // Use the switched marker
+                                                }
+                                                window.globeEventMarkerManager.pauseOverlapCycling();
+                                            }
+                                            
                                             const ic = window.globeController?.interactionController;
                                             if (ic?.pulseService) {
                                                 ic.pulseService.setHoveredMarker(marker); // Glow effect
@@ -3809,9 +3873,31 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         const ms = window.globeController?.interactionController?.markerService;
                                         ms?.setDomLiteMarkerHover?.(null);
                                         // Remove hover class from DOM marker button
+                                        // Need to find the correct button for overlap groups
                                         const marker = findMarkerForEvent(event, globalEventIndex);
-                                        if (marker?.__domMarkerButton) {
-                                            marker.__domMarkerButton.classList.remove('map-2d-lite__marker--synthetic-hover');
+                                        let markerBtn = marker?.__domMarkerButton;
+                                        
+                                        // For overlap groups, find the currently visible marker's button
+                                        if (window.globeController?.map2dLite && !markerBtn) {
+                                            const group = window.globeController.map2dLite.overlapGroups.find(g => 
+                                                g.markers.some(m => {
+                                                    const markerEvent = m.stub.userData.event;
+                                                    if (!markerEvent) return false;
+                                                    return markerEvent.name === event.name &&
+                                                           markerEvent.lat === event.lat &&
+                                                           markerEvent.lon === event.lon;
+                                                })
+                                            );
+                                            if (group) {
+                                                const visibleMarker = group.markers[group.currentIndex];
+                                                if (visibleMarker) {
+                                                    markerBtn = visibleMarker.btn;
+                                                }
+                                            }
+                                        }
+                                        
+                                        if (markerBtn) {
+                                            markerBtn.classList.remove('map-2d-lite__marker--synthetic-hover');
                                         }
                                         // Clear continuous sound loop
                                         if (_thumbnailHoverSoundInterval) {
@@ -3819,6 +3905,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                             _thumbnailHoverSoundInterval = null;
                                         }
                                         window.globeController?.map2dLite?.resetView?.();
+                                        // Resume overlap cycling
+                                        window.globeController?.map2dLite?.resumeOverlapCycling?.();
                                     } else {
                                         // Globe view: clear WebGL pulse effects and restore camera
                                         const ic = window.globeController?.interactionController;
@@ -3830,6 +3918,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                             }
                                         }
                                         restoreCameraFromThumbnailHover();
+                                        // Resume overlap cycling
+                                        window.globeEventMarkerManager?.resumeOverlapCycling?.();
                                     }
                                 };
                             });
@@ -4002,6 +4092,12 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             btn.dataset.position = String(pagePosition);
                             btn.dataset.eventIndex = globalEventIndex;
                             
+                            // Calculate current page from global index
+                            const currentPage = Math.floor(globalEventIndex / 10) + 1;
+                            const pageStart = (currentPage - 1) * 10;
+                            const pageEnd = Math.min(pageStart + 10, allEvents.length);
+                            const pageEvents = allEvents.slice(pageStart, pageEnd);
+                            
                             // Check filter lock state (like wireNumberButtons does)
                             const activeFilters = window.standaloneActiveFilters || new Set();
                             const filtersOn = activeFilters.size > 0;
@@ -4023,6 +4119,41 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                             }
                             btn.classList.toggle('locked', isLocked);
                             btn.dataset.locked = isLocked ? 'true' : 'false';
+                            
+                            // DEV ONLY: Check for overlapping coordinates on localhost
+                            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                                console.log('[DEV Overlap Check] Event:', event.name, 'coords:', event.lat, event.lon);
+                                
+                                const hasOverlap = pageEvents.some((otherEvent, otherIndex) => {
+                                    if (otherIndex === (globalEventIndex % 10)) return false;
+                                    const otherLat = otherEvent.lat;
+                                    const otherLon = otherEvent.lon;
+                                    const thisLat = event.lat;
+                                    const thisLon = event.lon;
+                                    
+                                    // Only consider it an overlap if both have valid coordinates AND they match
+                                    if (otherLat == null || otherLon == null || thisLat == null || thisLon == null) {
+                                        return false;
+                                    }
+                                    
+                                    const matches = otherLat === thisLat && otherLon === thisLon;
+                                    if (matches) {
+                                        console.log('[DEV Overlap Check] MATCH with:', otherEvent.name, 'coords:', otherLat, otherLon);
+                                    }
+                                    return matches;
+                                });
+                                
+                                console.log('[DEV Overlap Check] Has overlap:', hasOverlap, 'for position:', pagePosition);
+                                
+                                const keyEl = btn.querySelector('.event-number-btn__key');
+                                if (hasOverlap && keyEl) {
+                                    keyEl.style.color = '#ff4444';
+                                    keyEl.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)';
+                                } else if (keyEl) {
+                                    keyEl.style.color = '';
+                                    keyEl.style.textShadow = '';
+                                }
+                            }
                             
                             // Debug logging with visual state
                             if (filtersOn || btn.style.opacity !== '1') {
@@ -4194,8 +4325,20 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
 
                                 if (isMapView) {
                                     // Map view: find DOM marker and set hover
-                                    const marker = findMarkerForEvent(event, globalEventIndex);
-                                    if (marker) {
+                                    // Force cycle to this event if it's in an overlap group
+                                    let marker = findMarkerForEvent(event, globalEventIndex);
+                                    let markerBtn = marker?.__domMarkerButton;
+                                    
+                                    if (window.globeController?.map2dLite) {
+                                        const targetMarker = window.globeController.map2dLite.forceCycleToEvent(event);
+                                        if (targetMarker) {
+                                            marker = targetMarker; // Use the switched marker
+                                            markerBtn = targetMarker.btn; // Use the button from the switched marker
+                                        }
+                                        window.globeController.map2dLite.pauseOverlapCycling();
+                                    }
+                                    
+                                    if (markerBtn) {
                                         const ms = window.globeController?.interactionController?.markerService;
                                         ms?.setDomLiteMarkerHover?.(marker);
                                         // Play radiate sound effect and start continuous loop
@@ -4213,9 +4356,7 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                             }, 1200);
                                         }
                                         // Add hover class to DOM marker button to trigger wave animation
-                                        if (marker.__domMarkerButton) {
-                                            marker.__domMarkerButton.classList.add('map-2d-lite__marker--synthetic-hover');
-                                        }
+                                        markerBtn.classList.add('map-2d-lite__marker--synthetic-hover');
                                     }
                                     // Center map on marker
                                     if (event.lat != null && event.lon != null) {
@@ -4223,8 +4364,17 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     }
                                 } else {
                                     // Globe view: use WebGL marker with pulse
-                                    const marker = findMarkerForEvent(event, globalEventIndex);
+                                    let marker = findMarkerForEvent(event, globalEventIndex);
                                     if (marker) {
+                                        // Force cycle to this event if it's in an overlap group
+                                        if (window.globeEventMarkerManager) {
+                                            const targetMarker = window.globeEventMarkerManager.forceCycleToEvent(event);
+                                            if (targetMarker) {
+                                                marker = targetMarker; // Use the switched marker
+                                            }
+                                            window.globeEventMarkerManager.pauseOverlapCycling();
+                                        }
+                                        
                                         const ic = window.globeController?.interactionController;
                                         if (ic?.pulseService) {
                                             ic.pulseService.setHoveredMarker(marker); // Glow effect
@@ -4250,9 +4400,31 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     const ms = window.globeController?.interactionController?.markerService;
                                     ms?.setDomLiteMarkerHover?.(null);
                                     // Remove hover class from DOM marker button
+                                    // Need to find the correct button for overlap groups
                                     const marker = findMarkerForEvent(event, globalEventIndex);
-                                    if (marker?.__domMarkerButton) {
-                                        marker.__domMarkerButton.classList.remove('map-2d-lite__marker--synthetic-hover');
+                                    let markerBtn = marker?.__domMarkerButton;
+                                    
+                                    // For overlap groups, find the currently visible marker's button
+                                    if (window.globeController?.map2dLite && !markerBtn) {
+                                        const group = window.globeController.map2dLite.overlapGroups.find(g => 
+                                            g.markers.some(m => {
+                                                const markerEvent = m.stub.userData.event;
+                                                if (!markerEvent) return false;
+                                                return markerEvent.name === event.name &&
+                                                       markerEvent.lat === event.lat &&
+                                                       markerEvent.lon === event.lon;
+                                            })
+                                        );
+                                        if (group) {
+                                            const visibleMarker = group.markers[group.currentIndex];
+                                            if (visibleMarker) {
+                                                markerBtn = visibleMarker.btn;
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (markerBtn) {
+                                        markerBtn.classList.remove('map-2d-lite__marker--synthetic-hover');
                                     }
                                     // Clear continuous sound loop
                                     if (_thumbnailHoverSoundInterval) {
@@ -4260,6 +4432,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         _thumbnailHoverSoundInterval = null;
                                     }
                                     window.globeController?.map2dLite?.resetView?.();
+                                    // Resume overlap cycling
+                                    window.globeController?.map2dLite?.resumeOverlapCycling?.();
                                 } else {
                                     // Globe view: clear WebGL pulse effects and restore camera
                                     const ic = window.globeController?.interactionController;
@@ -4271,6 +4445,8 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                         }
                                     }
                                     restoreCameraFromThumbnailHover();
+                                    // Resume overlap cycling
+                                    window.globeEventMarkerManager?.resumeOverlapCycling?.();
                                 }
                             };
                         },
@@ -4364,45 +4540,33 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 return;
                             }
                             
+                            // Save the current image path before hiding
+                            const img = document.getElementById('eventImage');
+                            const savedImagePath = img?.src || this.currentImagePath;
+                            
                             console.log('[DEBUG standalone hideImageOverlayTemporarily] Calling hideImageOverlayGradually');
-                            // Hide temporarily with gradual fade
+                            // Hide with gradual fade
                             this.hideImageOverlayGradually(600);
                             
-                            // Debug: track countdown
-                            let countdownMs = delayMs;
-                            const DEBUG_INTERVAL = 1000; // Log every second
-                            let activityListenersAttached = false;
+                            // Setup auto-restore timer
                             let restoreTimeoutId = null;
-                            let debugIntervalId = null;
+                            let activityListenersAttached = false;
                             
-                            const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'wheel', 'mouseenter'];
-
-                            // Listen for custom markerhover event from MarkerInteractionService
-                            const onMarkerHover = () => {
-                                resetTimer();
-                            };
-                            window.addEventListener('markerhover', onMarkerHover);
+                            const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'];
                             
                             const resetTimer = () => {
-                                countdownMs = delayMs; // Reset to full 5 seconds
-                                console.log(`[IMAGE RESTORE] Activity detected! Timer reset to ${delayMs}ms`);
-                                
-                                // Clear and restart the restore timeout
+                                console.log('[IMAGE TEMP HIDE] Activity detected - resetting timer');
                                 if (restoreTimeoutId) {
                                     clearTimeout(restoreTimeoutId);
                                 }
                                 restoreTimeoutId = setTimeout(() => {
-                                    const img = document.getElementById('eventImage');
-                                    if (img && img.src) {
-                                        console.log('[IMAGE RESTORE] Timer complete! Starting gradual restore...');
-                                        this.showImageOverlayGradually(img.src, 1500);
+                                    const eventSlide = document.getElementById('eventSlide');
+                                    // Only restore if event slide is still open and we have a saved path
+                                    if (eventSlide?.classList.contains('open') && savedImagePath) {
+                                        console.log('[IMAGE TEMP HIDE] Timer complete - restoring image');
+                                        this.showImageOverlayGradually(savedImagePath, 600);
                                     }
-                                    // Cleanup
                                     detachActivityListeners();
-                                    if (debugIntervalId) {
-                                        clearInterval(debugIntervalId);
-                                        debugIntervalId = null;
-                                    }
                                     restoreTimeoutId = null;
                                 }, delayMs);
                             };
@@ -4411,26 +4575,40 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 if (activityListenersAttached) return;
                                 activityListenersAttached = true;
                                 activityEvents.forEach(event => {
-                                    // Use capture phase so we get events even if stopPropagation() is called
                                     document.addEventListener(event, resetTimer, { passive: true, capture: true });
                                 });
+                                
+                                // Listen for marker hover events
+                                const onMarkerHover = () => resetTimer();
+                                window.addEventListener('markerhover', onMarkerHover);
+                                
+                                // Listen for thumbnail hover
+                                const onThumbnailHover = () => resetTimer();
+                                window.addEventListener('thumbnailhover', onThumbnailHover);
+                                
+                                // Store cleanup functions
+                                this._tempHideCleanup = () => {
+                                    window.removeEventListener('markerhover', onMarkerHover);
+                                    window.removeEventListener('thumbnailhover', onThumbnailHover);
+                                };
                             };
                             
                             const detachActivityListeners = () => {
                                 if (!activityListenersAttached) return;
                                 activityListenersAttached = false;
                                 activityEvents.forEach(event => {
-                                    // Must specify capture when removing too
                                     document.removeEventListener(event, resetTimer, { capture: true });
                                 });
-                                // Remove markerhover event listener
-                                window.removeEventListener('markerhover', onMarkerHover);
+                                if (this._tempHideCleanup) {
+                                    this._tempHideCleanup();
+                                    this._tempHideCleanup = null;
+                                }
                             };
                             
-                            // Start tracking activity
+                            // Start listening for activity
                             attachActivityListeners();
                             
-                            // Watch for event slide closing - immediately cancel restore
+                            // Watch for event slide closing - cancel restore
                             let slideObserver = null;
                             const eventSlide = document.getElementById('eventSlide');
                             if (eventSlide) {
@@ -4438,14 +4616,10 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                     mutations.forEach((mutation) => {
                                         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                                             if (!eventSlide.classList.contains('open')) {
-                                                console.log('[IMAGE RESTORE] Event slide closed - canceling timer early');
+                                                console.log('[IMAGE TEMP HIDE] Event slide closed - canceling restore');
                                                 if (restoreTimeoutId) {
                                                     clearTimeout(restoreTimeoutId);
                                                     restoreTimeoutId = null;
-                                                }
-                                                if (debugIntervalId) {
-                                                    clearInterval(debugIntervalId);
-                                                    debugIntervalId = null;
                                                 }
                                                 detachActivityListeners();
                                                 if (slideObserver) {
@@ -4459,33 +4633,19 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 slideObserver.observe(eventSlide, { attributes: true, attributeFilter: ['class'] });
                             }
                             
-                            // Debug: log countdown every second
-                            debugIntervalId = setInterval(() => {
-                                countdownMs -= DEBUG_INTERVAL;
-                                console.log(`[IMAGE RESTORE] ${Math.max(0, countdownMs)}ms remaining...`);
-                            }, DEBUG_INTERVAL);
-                            
-                            // Initial restore timeout
-                            console.log(`[IMAGE RESTORE] Starting ${delayMs}ms countdown...`);
+                            // Start initial timer
+                            console.log(`[IMAGE TEMP HIDE] Starting ${delayMs}ms timer`);
                             restoreTimeoutId = setTimeout(() => {
                                 const eventSlide = document.getElementById('eventSlide');
-                                // Check if event slide is still open before restoring
-                                if (!eventSlide?.classList.contains('open')) {
-                                    console.log('[IMAGE RESTORE] Event slide closed - canceling image restore');
-                                    detachActivityListeners();
-                                    clearInterval(debugIntervalId);
-                                    debugIntervalId = null;
-                                    restoreTimeoutId = null;
-                                    return;
-                                }
-                                const img = document.getElementById('eventImage');
-                                if (img && img.src) {
-                                    console.log('[IMAGE RESTORE] Timer complete! Starting gradual restore...');
-                                    this.showImageOverlayGradually(img.src, 1500);
+                                if (eventSlide?.classList.contains('open') && savedImagePath) {
+                                    console.log('[IMAGE TEMP HIDE] Timer complete - restoring image');
+                                    this.showImageOverlayGradually(savedImagePath, 600);
                                 }
                                 detachActivityListeners();
-                                clearInterval(debugIntervalId);
-                                debugIntervalId = null;
+                                if (slideObserver) {
+                                    slideObserver.disconnect();
+                                    slideObserver = null;
+                                }
                                 restoreTimeoutId = null;
                             }, delayMs);
                         },
@@ -4507,6 +4667,19 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
                                 overlay.classList.add('slide-open');
                             }
                             overlay.style.opacity = '0';
+                            
+                            // Setup click handler for temporary hide if not already set
+                            if (!overlay.dataset.clickHandlerSetup) {
+                                overlay.dataset.clickHandlerSetup = 'true';
+                                overlay.addEventListener('click', (e) => {
+                                    // Only hide if clicking the image itself or overlay (not other controls)
+                                    if (e.target === overlay || e.target.tagName === 'IMG') {
+                                        e.stopPropagation();
+                                        console.log('[IMAGE CLICK] Click detected, hiding temporarily for 5 seconds');
+                                        this.hideImageOverlayTemporarily(5000);
+                                    }
+                                });
+                            }
                             
                             // Gradual fade-in with progress logging
                             const startTime = Date.now();

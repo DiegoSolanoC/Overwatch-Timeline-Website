@@ -115,13 +115,25 @@ class EventInteractionService {
                 ? this.eventManager.getEventImagePath(displayEvent.name, displayEvent.image)
                 : null;
 
-            uiView.showEventSlide(
-                eventName,
-                imagePath,
-                eventDescription,
-                targetMarker,
-                event
-            );
+            // Route to appropriate implementation based on viewport (actual touch device, not DevTools emulation)
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const isMobilePortrait = isTouchDevice && window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+            if (isMobilePortrait && window.standaloneEventSlide) {
+                // Mobile portrait: use standalone implementation
+                const eventIndex = this.eventManager.events.indexOf(event);
+                if (eventIndex >= 0) {
+                    window.standaloneEventSlide.showEvent(eventIndex);
+                }
+            } else {
+                // Desktop / mobile landscape: use simple dock-like implementation
+                uiView.showEventSlide(
+                    eventName,
+                    imagePath,
+                    eventDescription,
+                    targetMarker,
+                    event
+                );
+            }
 
             this.resetAllEventVariants();
             closeManagerPanel();

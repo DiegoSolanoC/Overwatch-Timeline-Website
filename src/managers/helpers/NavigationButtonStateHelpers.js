@@ -1,6 +1,5 @@
 /**
- * NavigationButtonStateHelpers - Utilities for managing button states in navigation
- * Extracted from EventNavigationManager to reduce complexity
+ * NavigationButtonStateHelpers - Button state utilities for event navigation
  */
 
 /**

@@ -155,7 +155,7 @@ class MarkerInteractionService {
         if (markers && markers.length > 0) {
             for (let i = 0; i < markers.length; i++) {
                 const m = markers[i];
-                if (m && m.userData && m.userData.isEventMarker) {
+                if (m && m.userData && m.userData.isEventMarker && m.visible) {
                     eventMarkers.push(m);
                 }
             }
@@ -227,9 +227,13 @@ class MarkerInteractionService {
                 this.pulseService.startEventMarkerPulse(hoveredMarker);
                 this.pulseService.setHoveredMarker(hoveredMarker);
                 this.highlightNumberButtonForMarker(hoveredMarker);
+                this._syncEventsHoverPreviewFromMarker(hoveredMarker);
+                
+                // Pause overlap cycling when hovering over a marker
+                if (window.globeEventMarkerManager && typeof window.globeEventMarkerManager.pauseOverlapCycling === 'function') {
+                    window.globeEventMarkerManager.pauseOverlapCycling();
+                }
             }
-            this._syncEventsHoverPreviewFromMarker(hoveredMarker);
-
             // Reset image auto-show timer when hovering (prevent image from coming back while interacting)
             const imageOverlayService = window.globeController?.globeView?.imageOverlayManager;
             if (imageOverlayService) {
@@ -245,6 +249,11 @@ class MarkerInteractionService {
                 this.pulseService.setHoveredMarker(null);
                 this.highlightNumberButtonForMarker(null);
                 this._syncEventsHoverPreviewFromMarker(null);
+                
+                // Resume overlap cycling when hover ends
+                if (window.globeEventMarkerManager && typeof window.globeEventMarkerManager.resumeOverlapCycling === 'function') {
+                    window.globeEventMarkerManager.resumeOverlapCycling();
+                }
                 
                 // Resume auto-rotate after a shorter delay
                 if (this.sceneModel.getAutoRotateEnabled() && !this.sceneModel.eventMarker) {
@@ -357,7 +366,7 @@ class MarkerInteractionService {
         if (markers && markers.length > 0) {
             for (let i = 0; i < markers.length; i++) {
                 const marker = markers[i];
-                if (marker && marker.userData && marker.userData.isEventMarker) {
+                if (marker && marker.userData && marker.userData.isEventMarker && marker.visible) {
                     clickableObjects.push(marker);
                 }
             }
@@ -552,17 +561,31 @@ class MarkerInteractionService {
                     }
                 }
                 
-                // Open Event System's standalone event slide (info panel only, not event manager)
-                if (eventIndex >= 0 && window.standaloneEventSlide) {
-                    console.log('[onMarkerClick] Opening event slide for index:', eventIndex);
-                    // Show the specific event (this opens the event slide/info panel)
-                    window.standaloneEventSlide.showEvent(eventIndex);
+                // Open event slide with viewport-based routing
+                if (eventIndex >= 0) {
+                    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    const isMobilePortrait = isTouchDevice && window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                    if (isMobilePortrait && window.standaloneEventSlide) {
+                        // Mobile portrait: use standalone implementation
+                        console.log('[onMarkerClick] Opening standalone event slide for index:', eventIndex);
+                        window.standaloneEventSlide.showEvent(eventIndex);
+                    } else if (window.globeController?.uiView) {
+                        // Desktop / mobile landscape: use simple dock-like implementation
+                        console.log('[onMarkerClick] Opening simple event slide for index:', eventIndex);
+                        const eventData = events[eventIndex];
+                        const eventName = eventData?.name || 'Event';
+                        const eventDescription = eventData?.description || '';
+                        const imagePath = window.eventManager?.getEventImagePath
+                            ? window.eventManager.getEventImagePath(eventData.name, eventData.image)
+                            : null;
+                        window.globeController.uiView.showEventSlide(eventName, imagePath, eventDescription, clickedMarker, eventData);
+                    }
                     // Play sound effect
                     if (window.SoundEffectsManager?.play) {
                         window.SoundEffectsManager.play('eventClick');
                     }
                 } else {
-                    console.log('[onMarkerClick] Cannot open event slide - eventIndex:', eventIndex, 'standaloneEventSlide exists:', !!window.standaloneEventSlide);
+                    console.log('[onMarkerClick] Cannot open event slide - eventIndex:', eventIndex);
                 }
             }
         } else {
