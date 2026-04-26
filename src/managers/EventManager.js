@@ -390,6 +390,21 @@ class EventManager {
                     this.setupDragAndDrop();
                 }
             );
+            
+            // DEV ONLY: Apply red styling to overlap badges after render
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                setTimeout(() => {
+                    const eventsManagePanel = document.getElementById('eventsManagePanel');
+                    if (eventsManagePanel) {
+                        const overlapBadges = eventsManagePanel.querySelectorAll('.event-number-badge--overlap');
+                        console.log('[EventManager] Found', overlapBadges.length, 'overlap badges, applying red styling');
+                        overlapBadges.forEach((badge) => {
+                            badge.style.setProperty('color', '#ff4444', 'important');
+                            badge.style.setProperty('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)', 'important');
+                        });
+                    }
+                }, 150);
+            }
         } else {
             console.error('EventManager: EventRenderService not available!');
             this.updateStatus('EventManager: ERROR - EventRenderService not found', 'error');

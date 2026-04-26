@@ -525,19 +525,6 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
     const menuButtons = document.createElement('div');
     menuButtons.className = 'main-menu-buttons';
 
-    // Story Archive button - always show now
-    const biographyBtn = createMenuButton({
-        id: 'runBiographyBtn',
-        title: 'Story Archive',
-        imagePath: 'assets/images/menu/Character%20Bios.png',
-        label: 'Story Archive',
-        description: 'Explore the Story and Concepts through a series of Slides'
-    });
-
-    if (setupBiographyHandler) {
-        biographyBtn.button.addEventListener('click', setupBiographyHandler);
-    }
-
     // Container for the three main buttons (horizontal row)
     const mainButtonsRow = document.createElement('div');
     mainButtonsRow.className = 'main-menu-buttons-row';
@@ -549,8 +536,6 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
         gap: 30px;
         width: 100%;
     `;
-
-    mainButtonsRow.appendChild(biographyBtn);
 
     // Interactive Globe/Map button
     const startOnMap = localStorage.getItem('mapGlobePreToggle') === 'true';
@@ -584,6 +569,21 @@ export function createMenuButtons(setupGlobeHandler, setupGlossaryHandler = null
     }
 
     mainButtonsRow.appendChild(glossaryBtn);
+
+    // Story Archive button - always show now
+    const biographyBtn = createMenuButton({
+        id: 'runBiographyBtn',
+        title: 'Story Archive',
+        imagePath: 'assets/images/menu/Character%20Bios.png',
+        label: 'Story Archive',
+        description: 'Explore the Story and Concepts through a series of Slides'
+    });
+
+    if (setupBiographyHandler) {
+        biographyBtn.button.addEventListener('click', setupBiographyHandler);
+    }
+
+    mainButtonsRow.appendChild(biographyBtn);
     menuButtons.appendChild(mainButtonsRow);
 
     // Visual separator between main buttons and event system controls

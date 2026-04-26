@@ -220,16 +220,17 @@ body.color-palette-gray .multi-event-badge:hover {
 }
 
 /* Overlap: same red wash as desktop .event-item__thumb-key.event-number-badge--overlap */
-.event-number-badge.event-number-badge--overlap {
-    color: rgba(255, 230, 230, 0.98);
+.event-number-badge.event-number-badge--overlap,
+.event-item__thumb-chrome .event-number-badge.event-number-badge--overlap {
+    color: rgba(255, 230, 230, 0.98) !important;
     text-shadow:
         0 0 14px rgba(244, 67, 54, 0.75),
-        0 1px 3px rgba(0, 0, 0, 0.85);
+        0 1px 3px rgba(0, 0, 0, 0.85) !important;
     background: linear-gradient(
         180deg,
         rgba(60, 20, 20, 0.42) 0%,
         transparent 78%
-    );
+    ) !important;
 }
 
 .event-number-badge.event-number-badge--overlap:hover {
@@ -804,7 +805,9 @@ body.color-palette-gray .event-item-title {
     );
 }
 
-#eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap {
+#eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap,
+.events-manage-panel .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap,
+.story-viewer-panel-embedded .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap {
     color: rgba(255, 230, 230, 0.98);
     text-shadow:
         0 0 14px rgba(244, 67, 54, 0.75),
@@ -816,7 +819,9 @@ body.color-palette-gray .event-item-title {
     );
 }
 
-#eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover {
+#eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover,
+.events-manage-panel .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover,
+.story-viewer-panel-embedded .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover {
     background: linear-gradient(
         180deg,
         rgba(60, 20, 20, 0.48) 0%,
@@ -834,7 +839,11 @@ body.color-palette-gray #eventsList .event-item__thumb-chrome .event-number-badg
 }
 
 body.color-palette-gray #eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap,
-body.color-palette-gray #eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover {
+body.color-palette-gray #eventsList .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover,
+body.color-palette-gray .events-manage-panel .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap,
+body.color-palette-gray .events-manage-panel .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover,
+body.color-palette-gray .story-viewer-panel-embedded .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap,
+body.color-palette-gray .story-viewer-panel-embedded .event-item__thumb-chrome .event-number-badge.event-item__thumb-key.event-number-badge--overlap:hover {
     background: linear-gradient(
         180deg,
         rgba(60, 20, 20, 0.42) 0%,

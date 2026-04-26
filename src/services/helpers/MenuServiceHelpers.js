@@ -257,16 +257,6 @@ export function createMenuButtonsContainer(statusService) {
     const menuButtons = document.createElement('div');
     menuButtons.className = 'main-menu-buttons';
 
-    // Story Archive button (always shown)
-    const biographyBtn = createMenuButton({
-        id: 'runBiographyBtn',
-        title: 'Story Archive',
-        imagePath: 'assets/images/menu/Character%20Bios.png',
-        label: 'Story Archive',
-        description: 'Explore the Story and Concepts through a series of Slides'
-    });
-    menuButtons.appendChild(biographyBtn);
-
     // Interactive Globe/Map button (always shown)
     const startOnMap = localStorage.getItem('mapGlobePreToggle') === 'true';
     const globeBtn = createMenuButton({
@@ -289,6 +279,16 @@ export function createMenuButtonsContainer(statusService) {
         description: 'Study how everything Connects in the Conspiracy Board'
     });
     menuButtons.appendChild(glossaryBtn);
+
+    // Story Archive button (always shown)
+    const biographyBtn = createMenuButton({
+        id: 'runBiographyBtn',
+        title: 'Story Archive',
+        imagePath: 'assets/images/menu/Character%20Bios.png',
+        label: 'Story Archive',
+        description: 'Explore the Story and Concepts through a series of Slides'
+    });
+    menuButtons.appendChild(biographyBtn);
 
     // Auto-preload checkbox (first)
     const autoPreloadContainer = document.createElement('label');

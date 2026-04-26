@@ -75,6 +75,7 @@ class EventRenderService {
     _computeOverlapIndexSet(eventsToRender, fullList) {
         // Overlap is defined within groups of 10 by chronological index:
         // events #1-10, #11-20, etc.
+        // Must check ALL events in fullList, not just eventsToRender on current page
         const groups = new Map(); // groupId -> { nameMap: Map<string, number[]>, coordMap: Map<string, number[]> }
 
         const add = (map, key, idx) => {
@@ -84,10 +85,8 @@ class EventRenderService {
             else map.set(key, [idx]);
         };
 
-        eventsToRender.forEach((event) => {
-            const actualIndex = fullList.indexOf(event);
-            if (actualIndex === -1) return;
-
+        // Process ALL events in fullList to detect overlaps across pages
+        fullList.forEach((event, actualIndex) => {
             const groupId = Math.floor(actualIndex / 10);
             if (!groups.has(groupId)) {
                 groups.set(groupId, { nameMap: new Map(), coordMap: new Map() });
@@ -113,6 +112,7 @@ class EventRenderService {
             markDuplicates(group.coordMap);
         }
 
+        console.log(`[EventRenderService] Overlap detection: found ${overlaps.size} overlapping events`, Array.from(overlaps));
         return overlaps;
     }
 
@@ -322,17 +322,45 @@ class EventRenderService {
 
         // Create event items for current page; use index in full list for edit/open (events may be filtered)
         const fullList = this.eventManager && this.eventManager.events ? this.eventManager.events : events;
+        console.log(`[EventRenderService] Full list has ${fullList.length} events, rendering ${eventsToRender.length} events on page ${validPage}`);
         const overlapIndexSet = this._computeOverlapIndexSet(eventsToRender, fullList);
         const renderStartTime = performance.now();
         const fragment = document.createDocumentFragment();
         eventsToRender.forEach((event, pageIndex) => {
             const actualIndex = fullList.indexOf(event);
             if (actualIndex === -1) return;
-            const eventItem = this.createEventItem(event, actualIndex, fullList, { hasOverlap: overlapIndexSet.has(actualIndex) });
+            const hasOverlap = overlapIndexSet.has(actualIndex);
+            console.log(`[EventRenderService] Event #${actualIndex + 1} (${event.name}): hasOverlap=${hasOverlap}`);
+            const eventItem = this.createEventItem(event, actualIndex, fullList, { hasOverlap });
             fragment.appendChild(eventItem);
         });
         eventsList.appendChild(fragment);
         this._setupEventManagerImageLazyLoading(eventsList);
+
+        // DEV ONLY: Apply red styling to overlap badges (same logic as dock thumbnails)
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            setTimeout(() => {
+                const overlapBadges = eventsList.querySelectorAll('.event-number-badge--overlap');
+                console.log(`[EventRenderService] DEV: Found ${overlapBadges.length} overlap badges, applying red styling`);
+                overlapBadges.forEach((badge) => {
+                    badge.style.setProperty('color', '#ff4444', 'important');
+                    badge.style.setProperty('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)', 'important');
+                });
+            }, 100);
+        }
+
+        // Debug: Check if inline styles are actually applied to DOM elements
+        setTimeout(() => {
+            const overlapBadges = eventsList.querySelectorAll('.event-number-badge--overlap');
+            console.log(`[EventRenderService] Found ${overlapBadges.length} overlap badges in DOM`);
+            overlapBadges.forEach((badge, i) => {
+                const computedStyle = window.getComputedStyle(badge);
+                console.log(`[EventRenderService] Badge ${i}: color=${computedStyle.color}, has inline style=${badge.hasAttribute('style')}`);
+                if (badge.hasAttribute('style')) {
+                    console.log(`[EventRenderService] Badge ${i} inline style: ${badge.getAttribute('style')}`);
+                }
+            });
+        }, 150);
 
         const renderTime = performance.now() - renderStartTime;
         console.log(`EventRenderService: Rendered ${eventsToRender.length} event items (${renderTime.toFixed(0)}ms)`);
@@ -718,7 +746,19 @@ class EventRenderService {
             ? `Overlap detected on globe page ${Math.floor(index / 10) + 1}`
             : `Event #${index + 1}`;
         const numTitle = isUnfinished ? `${baseNumTitle} — Unfinished: missing description` : baseNumTitle;
-        const eventNumberBadge = `<div class="event-number-badge event-item__thumb-key${overlapClass}" title="${numTitle}">${index + 1}</div>`;
+        
+        // Add inline style for overlap to force red color regardless of CSS issues
+        const overlapStyle = options.hasOverlap
+            ? ` style="color: rgba(255, 230, 230, 0.98) !important; text-shadow: 0 0 14px rgba(244, 67, 54, 0.75), 0 1px 3px rgba(0, 0, 0, 0.85) !important; background: linear-gradient(180deg, rgba(60, 20, 20, 0.42) 0%, transparent 78%) !important;"`
+            : '';
+        
+        const eventNumberBadge = `<div class="event-number-badge event-item__thumb-key${overlapClass}" title="${numTitle}"${overlapStyle}>${index + 1}</div>`;
+
+        // Debug: log overlap detection and final HTML
+        if (options.hasOverlap) {
+            console.log(`[EventRenderService] Event #${index + 1} has overlap, adding red badge class`);
+            console.log(`[EventRenderService] Badge HTML: ${eventNumberBadge}`);
+        }
 
         // No per-card action row: open the event from the preview (or whole card on GitHub Pages). Edit via info panel.
         const actionButtons = '';

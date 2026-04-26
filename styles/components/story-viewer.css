@@ -103,6 +103,31 @@ body.color-palette-nulled .story-viewer-container::before {
     z-index: 1;
 }
 
+/* Event number badges in Story Archive - ensure overlap styling applies */
+.story-viewer-panel-embedded .event-number-badge {
+    color: rgba(255, 255, 255, 0.98);
+    text-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.85),
+        0 2px 12px rgba(0, 0, 0, 0.45);
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.28) 0%,
+        transparent 75%
+    );
+}
+
+.story-viewer-panel-embedded .event-number-badge.event-number-badge--overlap {
+    color: rgba(255, 230, 230, 0.98) !important;
+    text-shadow:
+        0 0 14px rgba(244, 67, 54, 0.75),
+        0 1px 3px rgba(0, 0, 0, 0.85) !important;
+    background: linear-gradient(
+        180deg,
+        rgba(60, 20, 20, 0.42) 0%,
+        transparent 78%
+    ) !important;
+}
+
 /* Exit button - positioned in header */
 .story-viewer-close,
 .story-viewer-exit-btn {

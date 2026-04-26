@@ -641,6 +641,48 @@ export class ComponentOrchestrator {
             window.eventManager.renderEvents();
         }
 
+        // DEV ONLY: Debug - inspect actual DOM structure
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            setTimeout(() => {
+                console.log('[ComponentOrchestrator] Story Archive DOM inspection:');
+                console.log('[ComponentOrchestrator] eventsManagePanel:', eventsManagePanel);
+                console.log('[ComponentOrchestrator] eventsManagePanel.innerHTML length:', eventsManagePanel.innerHTML.length);
+                
+                const allBadges = eventsManagePanel.querySelectorAll('[class*="badge"], [class*="number"]');
+                console.log('[ComponentOrchestrator] All badge/number elements:', allBadges.length);
+                allBadges.forEach((el, i) => {
+                    if (i < 5) {
+                        console.log('[ComponentOrchestrator] Badge', i, ':', el.className, 'textContent:', el.textContent.trim());
+                    }
+                });
+                
+                const eventItems = eventsManagePanel.querySelectorAll('.event-item');
+                console.log('[ComponentOrchestrator] Event items found:', eventItems.length);
+                if (eventItems.length > 0) {
+                    const firstItem = eventItems[0];
+                    console.log('[ComponentOrchestrator] First event item HTML:', firstItem.innerHTML.substring(0, 500));
+                }
+            }, 300);
+        }
+
+        // DEV ONLY: Apply red styling to overlap badges in Story Archive
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            setTimeout(() => {
+                this._applyStoryArchiveOverlapStyling();
+                
+                // Set up MutationObserver to re-apply styling when DOM changes
+                if (!this._storyArchiveObserver) {
+                    this._storyArchiveObserver = new MutationObserver(() => {
+                        this._applyStoryArchiveOverlapStyling();
+                    });
+                    this._storyArchiveObserver.observe(eventsManagePanel, {
+                        childList: true,
+                        subtree: true
+                    });
+                }
+            }, 400);
+        }
+
         // Show with animation
         requestAnimationFrame(() => {
             storyContainer.classList.add('active');
@@ -805,15 +847,26 @@ export class ComponentOrchestrator {
         });
 
         this.renderStoryViewerEvents(filtered);
+        
+        // DEV ONLY: Re-apply red styling after filter
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            setTimeout(() => {
+                this._applyStoryArchiveOverlapStyling();
+            }, 250);
+        }
     }
 
     /**
      * Render events in Story Archive - mirrors Event Manager rendering
      */
     renderStoryViewerEvents(events) {
+        console.log('[ComponentOrchestrator] renderStoryViewerEvents called with', events.length, 'events');
         const list = document.getElementById('storyViewerList');
         const countDisplay = document.getElementById('storyViewerCount');
-        if (!list) return;
+        if (!list) {
+            console.log('[ComponentOrchestrator] storyViewerList not found');
+            return;
+        }
 
         // Update count
         if (countDisplay) {
@@ -827,7 +880,51 @@ export class ComponentOrchestrator {
         const showAll = showAllCheckbox ? showAllCheckbox.checked : false;
         const perPage = showAll ? events.length : (perPageInput ? parseInt(perPageInput.value) || 50 : 50);
 
-        // Simple render - show all or paginated
+        console.log('[ComponentOrchestrator] Using EventRenderService:', !!window.eventRenderService);
+
+        // Use EventRenderService for consistent rendering with overlap detection
+        if (window.eventRenderService) {
+            const fullList = window.eventManager?.events || events;
+            const eventsToShow = events.slice(0, perPage);
+            
+            console.log('[ComponentOrchestrator] Rendering', eventsToShow.length, 'events via EventRenderService');
+            
+            // Render using EventRenderService to get overlap styling
+            window.eventRenderService.renderEvents(
+                eventsToShow,
+                list,
+                1,
+                perPage,
+                () => {}, // No drag/drop needed for Story Archive
+                false // Don't show pagination controls in Story Archive
+            );
+            
+            // Add click handlers for opening events
+            const items = list.querySelectorAll('.event-item');
+            items.forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    const event = eventsToShow[index];
+                    this.openStoryEvent(event, index);
+                });
+            });
+            
+            // DEV ONLY: Apply red styling after render
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                setTimeout(() => {
+                    const overlapBadges = list.querySelectorAll('.event-number-badge--overlap');
+                    console.log('[ComponentOrchestrator] renderStoryViewerEvents: Found', overlapBadges.length, 'overlap badges, applying red styling');
+                    overlapBadges.forEach((badge) => {
+                        badge.style.setProperty('color', '#ff4444', 'important');
+                        badge.style.setProperty('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)', 'important');
+                    });
+                }, 150);
+            }
+            
+            return;
+        }
+
+        // Fallback to simple render if EventRenderService not available
+        console.log('[ComponentOrchestrator] EventRenderService not available, using fallback render');
         list.innerHTML = '';
         
         const eventsToShow = events.slice(0, perPage);
@@ -889,6 +986,28 @@ export class ComponentOrchestrator {
     goToStoryViewerPage(page, perPage) {
         // Implementation would track current page and re-render
         updateStatus(`Story Archive: Page ${page} selected`, 'info');
+        
+        // DEV ONLY: Re-apply red styling after page change
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            setTimeout(() => {
+                this._applyStoryArchiveOverlapStyling();
+            }, 250);
+        }
+    }
+
+    /**
+     * DEV ONLY: Apply red styling to overlap badges in Story Archive
+     */
+    _applyStoryArchiveOverlapStyling() {
+        const eventsManagePanel = document.getElementById('eventsManagePanel');
+        if (!eventsManagePanel) return;
+        
+        const overlapBadges = eventsManagePanel.querySelectorAll('.event-number-badge--overlap');
+        console.log('[ComponentOrchestrator] Story Archive: Found', overlapBadges.length, 'overlap badges, applying red styling');
+        overlapBadges.forEach((badge) => {
+            badge.style.setProperty('color', '#ff4444', 'important');
+            badge.style.setProperty('text-shadow', '0 1px 3px rgba(0, 0, 0, 0.85), 0 2px 12px rgba(0, 0, 0, 0.45)', 'important');
+        });
     }
 
     /**
