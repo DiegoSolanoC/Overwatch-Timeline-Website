@@ -224,7 +224,8 @@ body.color-palette-gray .events-pagination-input:focus {
     height: 0;
     width: 100%;
     position: relative;
-    z-index: 12;
+    /* Keep collapse handle above event slide/image layers (~500). */
+    z-index: 670;
     overflow: visible;
     pointer-events: none;
 }
@@ -260,7 +261,8 @@ body.color-palette-gray .events-pagination-input:focus {
         border-top: 1px solid rgba(var(--accent-primary-rgb, 33, 150, 243), 0.25);
         box-sizing: border-box;
         position: relative;
-        z-index: 10;
+        /* Keep dock chrome (including top border image) above event slide/image layers (~500). */
+        z-index: 620;
         flex: 0 0 var(--pagination-dock-height, 500px);
         /* Clicks pass through the dock chrome; only .event-pagination (and its controls) receive hits */
         pointer-events: none;
@@ -974,7 +976,7 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
     body:has(#paginationDock) .pagination-dock-collapse-bar {
         position: absolute;
         left: 50%;
-        bottom: 60px;
+        bottom: 43px;
         transform: translateX(-50%);
         display: flex;
         align-items: flex-end;

@@ -255,7 +255,7 @@ export function createEventPagination() {
             borderImg.src = 'assets/images/misc/Dock Border.png';
             borderImg.alt = '';
             borderImg.setAttribute('aria-hidden', 'true');
-            borderImg.style.cssText = 'position: absolute; top: -105px; left: 0; width: 100%; height: auto; object-fit: fill; pointer-events: none;';
+            borderImg.style.cssText = 'position: absolute; top: -95px; left: 0; width: 100%; height: auto; object-fit: fill; pointer-events: none;';
             dock.insertBefore(borderImg, dock.firstChild);
         }
 

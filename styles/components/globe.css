@@ -1841,7 +1841,9 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
 
     .dock-globe-rail--center {
         left: 50%;
-        transform: translateX(-50%) translateY(5px);
+        transform: translateX(-50%) translateY(11px);
+        /* Keep the 5 center rail controls above event slide/image layers (~500). */
+        z-index: 660;
         bottom: calc(
             var(--footer-height, 65px)
             + var(--pagination-dock-height, 240px)
@@ -2277,6 +2279,28 @@ body:has(#paginationDock) .page-controls-row--mobile-only .globe-control-btn.doc
 .dock-globe-rail--center > .page-input-container {
     background: rgba(13, 71, 161, 0.9) !important;
     border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 6px 10px !important;
+    gap: 6px !important;
+}
+
+.dock-globe-rail--center > .page-btn,
+.dock-globe-rail--center > #prevPageBtn,
+.dock-globe-rail--center > #nextPageBtn,
+.dock-globe-rail--center > #prevEventBtn,
+.dock-globe-rail--center > #nextEventBtn {
+    width: 44px !important;
+    height: 44px !important;
+}
+
+.dock-globe-rail--center > .page-input-container .page-label,
+.dock-globe-rail--center > .page-input-container .page-total {
+    font-size: 13px !important;
+}
+
+.dock-globe-rail--center > .page-input-container .page-input {
+    width: 42px !important;
+    height: 28px !important;
+    font-size: 13px !important;
 }
 
 .dock-globe-rail--center > .page-btn:hover,
