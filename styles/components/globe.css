@@ -1831,10 +1831,33 @@ body.color-palette-nulled #globe-container .dev-sun-yaw-panel__range::-moz-range
 
     .dock-globe-rail--left {
         left: max(10px, env(safe-area-inset-left));
+        bottom: calc(
+            var(--footer-height, 65px)
+            + var(--pagination-dock-height, 240px)
+            + var(--dock-globe-rail-gap, 10px)
+            + 30px
+        ) !important;
+    }
+
+    .dock-globe-rail--center {
+        left: 50%;
+        transform: translateX(-50%) translateY(5px);
+        bottom: calc(
+            var(--footer-height, 65px)
+            + var(--pagination-dock-height, 240px)
+            + var(--dock-globe-rail-gap, 10px)
+            + 0px
+        ) !important;
     }
 
     .dock-globe-rail--right {
         right: max(10px, env(safe-area-inset-right));
+        bottom: calc(
+            var(--footer-height, 65px)
+            + var(--pagination-dock-height, 240px)
+            + var(--dock-globe-rail-gap, 10px)
+            + 30px
+        ) !important;
     }
 
     .dock-globe-rail > .globe-control-btn.dock-globe-rail__btn {
@@ -2192,6 +2215,114 @@ body:has(#paginationDock) .page-controls-row--mobile-only .globe-control-btn.doc
     border-radius: 8px;
     padding: 8px 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Page input container in dock rail - shares positioning logic with event manager button */
+.dock-globe-rail > .page-input-container {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: skewX(-20deg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 8px;
+    margin: 4px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    pointer-events: auto;
+}
+
+.dock-globe-rail > .page-input-container:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.dock-globe-rail > .page-input-container > * {
+    transform: skewX(11deg) !important;
+}
+
+/* Center rail elements should not be skewed */
+.dock-globe-rail--center > .page-input-container,
+.dock-globe-rail--center > #prevPageBtn,
+.dock-globe-rail--center > #nextPageBtn,
+.dock-globe-rail--center > #prevEventBtn,
+.dock-globe-rail--center > #nextEventBtn,
+.dock-globe-rail--center > .page-btn {
+    transform: none !important;
+}
+
+.dock-globe-rail--center > .page-input-container > *,
+.dock-globe-rail--center > #prevPageBtn > *,
+.dock-globe-rail--center > #nextPageBtn > *,
+.dock-globe-rail--center > #prevEventBtn > *,
+.dock-globe-rail--center > #nextEventBtn > *,
+.dock-globe-rail--center > .page-btn > * {
+    transform: none !important;
+}
+
+/* Center rail buttons should use default palette colors (blue) */
+.dock-globe-rail--center > .page-btn,
+.dock-globe-rail--center > #prevPageBtn,
+.dock-globe-rail--center > #nextPageBtn,
+.dock-globe-rail--center > #prevEventBtn,
+.dock-globe-rail--center > #nextEventBtn {
+    background: rgba(13, 71, 161, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.dock-globe-rail--center > .page-input-container {
+    background: rgba(13, 71, 161, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.dock-globe-rail--center > .page-btn:hover,
+.dock-globe-rail--center > #prevPageBtn:hover,
+.dock-globe-rail--center > #nextPageBtn:hover,
+.dock-globe-rail--center > #prevEventBtn:hover,
+.dock-globe-rail--center > #nextEventBtn:hover {
+    background: rgba(13, 71, 161, 1) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Page buttons in dock rail - shares positioning logic with event manager button */
+.dock-globe-rail > #prevPageBtn,
+.dock-globe-rail > #nextPageBtn,
+.dock-globe-rail > #prevEventBtn,
+.dock-globe-rail > #nextEventBtn {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: skewX(-20deg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 8px;
+    margin: 4px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    pointer-events: auto;
+}
+
+.dock-globe-rail > #prevPageBtn:hover,
+.dock-globe-rail > #nextPageBtn:hover,
+.dock-globe-rail > #prevEventBtn:hover,
+.dock-globe-rail > #nextEventBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.dock-globe-rail > #prevPageBtn > *,
+.dock-globe-rail > #nextPageBtn > *,
+.dock-globe-rail > #prevEventBtn > *,
+.dock-globe-rail > #nextEventBtn > * {
+    transform: skewX(11deg) !important;
 }
 
 .page-label {

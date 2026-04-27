@@ -235,6 +235,17 @@ body.color-palette-gray .events-pagination-input:focus {
         display: block;
     }
 
+    body:has(#paginationDock) .pagination-dock-border-image {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        pointer-events: none;
+        z-index: 1;
+    }
+
     body:has(#paginationDock) .pagination-dock {
         display: flex;
         flex-direction: column;
@@ -265,6 +276,17 @@ body.color-palette-gray .events-pagination-input:focus {
                 var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
             flex-basis var(--pagination-dock-transition-duration, 0.42s)
                 var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
+    }
+
+    body:has(#paginationDock) .pagination-dock-top-border {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        pointer-events: none;
+        z-index: 20;
     }
 
     /*
@@ -686,11 +708,17 @@ body:has(#paginationDock) .page-controls-row--mobile-only {
 
 body.pagination-dock-mobile-locked:has(#paginationDock) .page-controls-row--mobile-only .page-input-container,
 body:has(#paginationDock) .page-controls-row--mobile-only .page-input-container {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
     flex: 0 0 auto;
     width: auto;
     max-width: 400px;
     min-height: 48px;
-    margin: 0;
     justify-content: center;
     align-items: center;
     gap: 14px;
@@ -797,6 +825,7 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
         left: auto;
         right: auto;
         top: auto;
+        z-index: 100;
         transform: none;
         width: 100%;
         max-width: 100%;
@@ -854,25 +883,26 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
     }
 
     body:has(#paginationDock) .page-btn.page-btn--thumb-rail {
+        position: relative !important;
+        inset: auto !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 0 !important;
         flex: 0 0 auto;
         width: clamp(44px, 4.2vw, 56px);
         min-width: 44px;
         align-self: center;
-        min-height: 120px;
-        max-height: 140px;
-        height: 70%;
+        min-height: 48px;
+        max-height: 52px;
+        height: 48px;
         padding: 0;
         box-sizing: border-box;
         --thumb-skew: -11deg;
         transform: skewX(var(--thumb-skew));
         border-radius: 14px;
         transition:
-            min-height var(--pagination-dock-transition-duration, 0.42s)
-                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
-            max-height var(--pagination-dock-transition-duration, 0.42s)
-                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
-            height var(--pagination-dock-transition-duration, 0.42s)
-                var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1)),
             transform var(--panel-transition, 0.3s ease);
     }
 
@@ -944,12 +974,12 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
     body:has(#paginationDock) .pagination-dock-collapse-bar {
         position: absolute;
         left: 50%;
-        bottom: 0;
+        bottom: 60px;
         transform: translateX(-50%);
         display: flex;
         align-items: flex-end;
         justify-content: center;
-        width: max-content;
+        width: 100%;
         max-width: min(100vw - 48px, 100%);
         padding: 0;
         margin: 0;
@@ -971,15 +1001,15 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
     }
 
     body:has(#paginationDock) .pagination-dock-collapse-pill {
-        width: 112px;
+        width: 500px;
         height: 32px;
         border-radius: 6px 6px 0 0;
-        background: rgba(13, 71, 161, 0.6);
+        background: transparent;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+        box-shadow: none;
         transition:
             width 0.25s ease,
             height 0.25s ease,
@@ -999,6 +1029,7 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
         pointer-events: none;
         transform: rotate(90deg);
         transition: transform 0.22s ease;
+        filter: brightness(0);
     }
 
     body.pagination-dock-collapsed:has(#paginationDock) .pagination-dock-collapse-pill .ui-pagination-arrow--dock-collapse {
@@ -1007,15 +1038,13 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
 
     body:has(#paginationDock) .pagination-dock-collapse-handle:hover .pagination-dock-collapse-pill,
     body:has(#paginationDock) .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
-        background: rgba(13, 71, 161, 0.9);
-        width: 128px;
+        background: transparent;
+        width: 500px;
         height: 38px;
     }
 
     body:has(#paginationDock) .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
-        box-shadow:
-            0 2px 12px rgba(0, 0, 0, 0.4),
-            0 0 0 2px rgba(100, 181, 246, 0.85);
+        box-shadow: none;
     }
 
     body:has(#paginationDock) .pagination-dock-collapse-handle:focus {
@@ -1906,6 +1935,13 @@ button.event-number-btn.locked,
         max-height: 52px !important;
         height: 48px !important;
         align-self: center;
+    }
+
+    /* Always use collapsed height for buttons positioned above dock */
+    body:has(#paginationDock) .page-btn.page-btn--thumb-rail {
+        min-height: 48px !important;
+        max-height: 52px !important;
+        height: 48px !important;
     }
 
     body.pagination-dock-collapsed

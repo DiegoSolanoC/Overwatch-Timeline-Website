@@ -44,12 +44,12 @@ body.color-palette-gray .panel--resizing .panel-resize-handle__pill {
 }
 
 body.color-palette-gray .pagination-dock-collapse-pill {
-    background: rgba(var(--accent-gray-primary-rgb), var(--opacity-medium)) !important;
+    background: transparent !important;
 }
 
 body.color-palette-gray .pagination-dock-collapse-handle:hover .pagination-dock-collapse-pill,
 body.color-palette-gray .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
-    background: rgba(var(--accent-gray-primary-rgb), var(--opacity-heavy)) !important;
+    background: transparent !important;
 }
 
 /* Globe Control Buttons */
@@ -99,6 +99,21 @@ body.color-palette-gray .page-btn:hover:not(:disabled) {
 
 body.color-palette-gray .page-input-container {
     background: var(--btn-gray-bg) !important;
+}
+
+/* Center rail buttons should match palette colors */
+body.color-palette-gray .dock-globe-rail--center > .page-btn,
+body.color-palette-gray .dock-globe-rail--center > #prevPageBtn,
+body.color-palette-gray .dock-globe-rail--center > #nextPageBtn,
+body.color-palette-gray .dock-globe-rail--center > #prevEventBtn,
+body.color-palette-gray .dock-globe-rail--center > #nextEventBtn {
+    background: var(--btn-gray-bg) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+body.color-palette-gray .dock-globe-rail--center > .page-input-container {
+    background: var(--btn-gray-bg) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Globe page scrub bar */

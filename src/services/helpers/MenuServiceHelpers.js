@@ -524,7 +524,7 @@ export function createMenuButtonsContainer(statusService) {
                     desktopClassName: 'dock-globe-rail__btn'
                 });
 
-                // Move Events and Filters buttons to page controls row on mobile portrait
+                // Move Events, Filters buttons, and Page Input Container between dock rail and page controls row
                 function moveButtonsToPageControlsRow() {
                     const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
                     const pageControlsRow = document.querySelector('.page-controls-row--mobile-only');
@@ -534,6 +534,10 @@ export function createMenuButtonsContainer(statusService) {
                     const filtersBtn = document.getElementById('filtersToggle');
                     
                     if (isMobilePortrait && pageControlsRow && pageInputContainer) {
+                        // Move page input container to page controls row
+                        if (pageInputContainer.parentElement !== pageControlsRow) {
+                            pageControlsRow.appendChild(pageInputContainer);
+                        }
                         if (eventsBtn && eventsBtn.parentElement !== pageControlsRow) {
                             // Clear any inline styles that might interfere
                             eventsBtn.style.position = '';
@@ -555,6 +559,10 @@ export function createMenuButtonsContainer(statusService) {
                             pageControlsRow.insertBefore(filtersBtn, pageInputContainer.nextSibling);
                         }
                     } else if (rightRail) {
+                        // Move page input container to dock rail on desktop or landscape
+                        if (pageInputContainer && pageInputContainer.parentElement !== rightRail) {
+                            rightRail.appendChild(pageInputContainer);
+                        }
                         // Move back to right rail on desktop or landscape
                         if (eventsBtn && eventsBtn.parentElement !== rightRail) {
                             rightRail.appendChild(eventsBtn);
@@ -661,6 +669,163 @@ export function createMenuButtonsContainer(statusService) {
                     if (statusService) statusService.update('Creating filters panel...', 'info');
                     panelHelpers.createFiltersPanel(statusService);
                 }
+
+                // Move page input container and nav buttons to dock rail on desktop, page controls row on mobile
+                setTimeout(() => {
+                    const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                    const pageInputContainer = document.querySelector('.page-input-container');
+                    const pageControlsRow = document.querySelector('.page-controls-row--mobile-only');
+                    const centerRail = document.getElementById('dockGlobeRailCenter');
+                    const rightRail = document.getElementById('dockGlobeRailRight');
+                    const prevPageBtn = document.getElementById('prevPageBtn');
+                    const nextPageBtn = document.getElementById('nextPageBtn');
+                    const prevEventBtn = document.getElementById('prevEventBtn');
+                    const nextEventBtn = document.getElementById('nextEventBtn');
+                    const globalImageToggleBtn = document.getElementById('globalImageToggle');
+                    const filtersBtn = document.getElementById('filtersToggle');
+                    const eventsBtn = document.getElementById('eventsManageToggle');
+                    
+                    // Elements for center rail: Prev Page, Prev Event, Textbox, Next Event, Next Page
+                    const centerElements = [prevPageBtn, prevEventBtn, pageInputContainer, nextEventBtn, nextPageBtn];
+                    
+                    // Elements for right rail: Image On/Off, Filters, Event Manager
+                    const rightElements = [globalImageToggleBtn, filtersBtn, eventsBtn];
+                    
+                    // Function to move elements to correct rails
+                    function moveElements() {
+                        const isMobilePortrait = window.innerWidth <= 768 && window.innerHeight > window.innerWidth;
+                        
+                        // Move center elements
+                        centerElements.forEach(element => {
+                            if (element) {
+                                if (isMobilePortrait && pageControlsRow) {
+                                    if (element.parentElement !== pageControlsRow) {
+                                        element.style.position = '';
+                                        element.style.top = '';
+                                        element.style.left = '';
+                                        element.style.right = '';
+                                        element.style.bottom = '';
+                                        pageControlsRow.appendChild(element);
+                                    }
+                                } else if (centerRail) {
+                                    if (element.parentElement !== centerRail) {
+                                        element.style.position = '';
+                                        element.style.top = '';
+                                        element.style.left = '';
+                                        element.style.right = '';
+                                        element.style.bottom = '';
+                                        centerRail.appendChild(element);
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // Move right elements (always to right rail on desktop, page controls row on mobile)
+                        rightElements.forEach(element => {
+                            if (element) {
+                                if (isMobilePortrait && pageControlsRow) {
+                                    if (element.parentElement !== pageControlsRow) {
+                                        element.style.position = '';
+                                        element.style.top = '';
+                                        element.style.left = '';
+                                        element.style.right = '';
+                                        element.style.bottom = '';
+                                        pageControlsRow.appendChild(element);
+                                    }
+                                } else if (rightRail) {
+                                    if (element.parentElement !== rightRail) {
+                                        element.style.position = '';
+                                        element.style.top = '';
+                                        element.style.left = '';
+                                        element.style.right = '';
+                                        element.style.bottom = '';
+                                        rightRail.appendChild(element);
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // On desktop, order center rail elements: Prev Page, Prev Event, Textbox, Next Event, Next Page
+                        if (!isMobilePortrait && centerRail) {
+                            const centerOrder = [prevPageBtn, prevEventBtn, pageInputContainer, nextEventBtn, nextPageBtn];
+                            const currentCenterChildren = Array.from(centerRail.children);
+                            
+                            // Check if elements are in correct order
+                            let needsReorder = false;
+                            centerOrder.forEach((element, index) => {
+                                if (element) {
+                                    const currentIndex = currentCenterChildren.indexOf(element);
+                                    if (currentIndex === -1 || currentIndex !== index) {
+                                        needsReorder = true;
+                                    }
+                                }
+                            });
+                            
+                            // Only reorder if needed
+                            if (needsReorder) {
+                                console.log('[DEBUG] Reordering center rail elements');
+                                centerOrder.forEach((element, index) => {
+                                    if (element) {
+                                        const nextSibling = centerOrder.slice(index + 1).find(el => el && el.parentElement === centerRail);
+                                        if (nextSibling) {
+                                            centerRail.insertBefore(element, nextSibling);
+                                        } else {
+                                            centerRail.appendChild(element);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                        
+                        // On desktop, order right rail elements: Image On/Off, Filters, Event Manager
+                        if (!isMobilePortrait && rightRail) {
+                            const rightOrder = [globalImageToggleBtn, filtersBtn, eventsBtn];
+                            const currentRightChildren = Array.from(rightRail.children);
+                            
+                            // Check if elements are in correct order
+                            let needsReorder = false;
+                            rightOrder.forEach((element, index) => {
+                                if (element) {
+                                    const currentIndex = currentRightChildren.indexOf(element);
+                                    if (currentIndex === -1 || currentIndex !== index) {
+                                        needsReorder = true;
+                                    }
+                                }
+                            });
+                            
+                            // Only reorder if needed
+                            if (needsReorder) {
+                                console.log('[DEBUG] Reordering right rail elements');
+                                rightOrder.forEach((element, index) => {
+                                    if (element) {
+                                        const nextSibling = rightOrder.slice(index + 1).find(el => el && el.parentElement === rightRail);
+                                        if (nextSibling) {
+                                            rightRail.insertBefore(element, nextSibling);
+                                        } else {
+                                            rightRail.appendChild(element);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Run initially
+                    moveElements();
+                    
+                    // Watch for dock collapse/expand changes and reposition elements
+                    const observer = new MutationObserver(() => {
+                        moveElements();
+                    });
+                    
+                    // Observe both rails for child changes
+                    if (centerRail) observer.observe(centerRail, { childList: true });
+                    if (rightRail) observer.observe(rightRail, { childList: true });
+                    
+                    // Also run on resize/orientation change
+                    window.addEventListener('resize', moveElements);
+                    window.addEventListener('orientationchange', moveElements);
+                }, 200);
 
                 // Initialize FilterService for standalone mode
                 if (window.FilterService && typeof window.FilterService.init === 'function') {

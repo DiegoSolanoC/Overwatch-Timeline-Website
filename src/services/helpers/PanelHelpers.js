@@ -263,6 +263,16 @@ export function createEventPagination(statusService) {
             dock.insertBefore(patternOverlay, dock.firstChild);
         }
 
+        if (!dock.querySelector('.pagination-dock-top-border')) {
+            const borderImg = document.createElement('img');
+            borderImg.className = 'pagination-dock-top-border';
+            borderImg.src = 'assets/images/misc/Dock Border.png';
+            borderImg.alt = '';
+            borderImg.setAttribute('aria-hidden', 'true');
+            borderImg.style.cssText = 'position: absolute; top: -105px; left: 0; width: 100%; height: auto; object-fit: fill; pointer-events: none;';
+            dock.insertBefore(borderImg, dock.firstChild);
+        }
+
         if (paginationEl.parentNode !== dock) {
             dock.appendChild(paginationEl);
         }
