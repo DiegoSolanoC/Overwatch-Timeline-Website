@@ -299,15 +299,15 @@ body.app-timeline-default #headerHubRight .header-hub-btn[data-action="menu"] {
 /* Force consistent icon sizing even if JS injects inline width/height */
 .header-hub-btn.header-hub-btn--icon img {
     width: auto !important;
-    height: 78% !important;
-    max-height: 58px;
+    height: 65% !important;
+    max-height: 48px;
     object-fit: contain !important;
 }
 
 .header-hub-icon {
     width: auto;
-    height: 78%;
-    max-height: 58px;
+    height: 65%;
+    max-height: 48px;
     display: block;
     object-fit: contain;
     pointer-events: none;

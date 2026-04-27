@@ -2346,10 +2346,10 @@ export function createMenuButtonsContainer(statusService) {
                                 
                                 // Hover effects - show preview badge only
                                 newBtn.onmouseenter = () => {
-                                    if (window.EventsHoverPreviewBadge?.show && displayEvent) {
+                                    if (window.SummaryInfoBadge?.show && displayEvent) {
                                         const variants = isMultiEvent ? event.variants : [];
                                         const otherVariants = variants.slice(1);
-                                        window.EventsHoverPreviewBadge.show(
+                                        window.SummaryInfoBadge.show(
                                             globalEventIndex + 1,
                                             plainName,
                                             otherVariants.map(v => v.name || ''),
@@ -2362,8 +2362,8 @@ export function createMenuButtonsContainer(statusService) {
                                 };
                                 
                                 newBtn.onmouseleave = () => {
-                                    if (window.EventsHoverPreviewBadge?.hide) {
-                                        window.EventsHoverPreviewBadge.hide();
+                                    if (window.SummaryInfoBadge?.hide) {
+                                        window.SummaryInfoBadge.hide();
                                     }
                                 };
                             });
@@ -2674,10 +2674,10 @@ export function createMenuButtonsContainer(statusService) {
                             
                             // Hover effects
                             btn.onmouseenter = () => {
-                                if (window.EventsHoverPreviewBadge?.show && displayEvent) {
+                                if (window.SummaryInfoBadge?.show && displayEvent) {
                                     const variants = isMultiEvent ? event.variants : [];
                                     const otherVariants = variants.slice(1);
-                                    window.EventsHoverPreviewBadge.show(
+                                    window.SummaryInfoBadge.show(
                                         globalEventIndex + 1,
                                         plainName,
                                         otherVariants.map(v => v.name || ''),
@@ -2690,8 +2690,8 @@ export function createMenuButtonsContainer(statusService) {
                             };
                             
                             btn.onmouseleave = () => {
-                                if (window.EventsHoverPreviewBadge?.hide) {
-                                    window.EventsHoverPreviewBadge.hide();
+                                if (window.SummaryInfoBadge?.hide) {
+                                    window.SummaryInfoBadge.hide();
                                 }
                             };
                         },
@@ -2945,6 +2945,8 @@ export function createMenuButtonsContainer(statusService) {
                 testBtn.dataset.loaded = 'true';
                 testBtn.textContent = 'UNLOAD Event System Load Out';
                 testBtn.style.background = '#c93439';
+                // Add class to body to show resize handle
+                document.body.classList.add('event-system-loaded');
                 if (statusService) statusService.update('✓ News ticker loaded - click again to unload', 'success');
             } catch (error) {
                 console.error('Error loading news ticker:', error);
@@ -3020,9 +3022,9 @@ export function createMenuButtonsContainer(statusService) {
                 window.eventManager.listenersSetup = false;
             }
 
-            // Cleanup EventsHoverPreviewBadge (reset module state)
-            if (window.EventsHoverPreviewBadge?.cleanup) {
-                window.EventsHoverPreviewBadge.cleanup();
+            // Cleanup SummaryInfoBadge (reset module state)
+            if (window.SummaryInfoBadge?.cleanup) {
+                window.SummaryInfoBadge.cleanup();
             }
 
             // Clear standalone filters
@@ -3058,6 +3060,8 @@ export function createMenuButtonsContainer(statusService) {
             testBtn.dataset.loaded = 'false';
             testBtn.textContent = 'LOAD Event System Load Out';
             testBtn.style.background = '#333';
+            // Remove class from body to hide resize handle
+            document.body.classList.remove('event-system-loaded');
             if (statusService) statusService.update('✓ News ticker unloaded', 'success');
         }
     });

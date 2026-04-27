@@ -30,7 +30,7 @@ function closeTimelineMusicFiltersPanelsIfOpen() {
         managePanel.classList.remove('open');
         if (manageToggle) manageToggle.classList.remove('active');
         try {
-            window.EventsHoverPreviewBadge?.hide?.();
+            window.SummaryInfoBadge?.hide?.();
         } catch (_) {}
     }
     const paletteMenu = document.getElementById('paletteMenu');
@@ -62,11 +62,11 @@ class MarkerInteractionService {
     }
 
     /**
-     * Under Events header: show # / title for hovered globe marker (non-module callers use window.EventsHoverPreviewBadge).
+     * Under Events header: show # / title for hovered globe marker (non-module callers use window.SummaryInfoBadge).
      * @param {THREE.Object3D|null} marker
      */
     _syncEventsHoverPreviewFromMarker(marker) {
-        const badge = typeof window !== 'undefined' ? window.EventsHoverPreviewBadge : null;
+        const badge = typeof window !== 'undefined' ? window.SummaryInfoBadge : null;
         if (!badge || typeof badge.hide !== 'function') return;
         if (!marker || !marker.userData || marker.userData.isLocked || marker.userData.isInteractive === false) {
             badge.hide();

@@ -267,8 +267,6 @@ body.color-palette-gray .music-mute-btn:hover {
 .music-now-playing-badge {
     position: fixed;
     top: 0;
-    left: 0;
-    transform: translateX(-50%);
     z-index: 150; /* below panels (200), above globe/content */
     pointer-events: none;
     opacity: 0;
@@ -285,7 +283,7 @@ body.color-palette-gray .music-mute-btn:hover {
     background: rgba(0, 0, 0, 0.0); /* text-only look */
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     box-sizing: border-box;
 }
@@ -294,10 +292,32 @@ body.color-palette-gray .music-mute-btn:hover {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
     max-width: 100%;
     min-width: 0;
+}
+
+.music-now-playing-spacer-top {
+    height: 10px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.music-now-playing-spacer-bottom {
+    height: 3px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.music-now-playing-underline {
+    width: 280px;
+    height: auto;
+    margin-top: -30px;
+    margin-left: -60px;
+    align-self: flex-start;
+    display: block;
+    transform: translateY(-130px);
 }
 
 .music-now-playing-badge--visible {
@@ -373,12 +393,12 @@ body.color-palette-gray .music-mute-btn:hover {
 }
 
 /* Passive event hover preview (under Event Manager button) — reuses music badge shell */
-.events-hover-preview-badge {
+.summary-info-badge {
     align-items: flex-start;
     max-width: 720px;
 }
 
-.events-hover-preview-stack {
+.summary-info-stack {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -388,8 +408,18 @@ body.color-palette-gray .music-mute-btn:hover {
     text-align: left;
 }
 
+.summary-info-underline {
+    width: 280px;
+    height: auto;
+    margin-top: -30px;
+    margin-right: -60px;
+    align-self: flex-end;
+    display: block;
+    transform: translateY(-130px) scaleX(-1);
+}
+
 /* 1) Era + years (years smaller, same row after era name) */
-.events-hover-preview-era {
+.summary-info-era {
     width: 100%;
     font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
     color: rgba(255, 255, 255, 0.98);
@@ -402,6 +432,7 @@ body.color-palette-gray .music-mute-btn:hover {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
+    justify-content: flex-start;
     gap: 0.1em 0.32em;
     /* Start hidden, animations handle visibility */
     opacity: 0;
@@ -409,93 +440,95 @@ body.color-palette-gray .music-mute-btn:hover {
     filter: blur(3px);
 }
 
-.events-hover-preview-era__name:empty {
+.summary-info-era__name:empty {
     display: none;
 }
 
 /*
  * Era line only: thematic colors while preview is visible or exiting.
  * (--visible is removed as soon as hide runs, but --hiding keeps content for slide-out; without this
- * the era span would inherit white from .events-hover-preview-era for ~200ms.)
+ * the era span would inherit white from .summary-info-era for ~200ms.)
  */
-.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='age-progress'],
-.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='age-progress'] {
+.music-now-playing-badge--visible .summary-info-era__name[data-era='age-progress'],
+.summary-info-badge--hiding .summary-info-era__name[data-era='age-progress'] {
     color: #66bb6a;
     text-shadow:
         0 2px 14px rgba(0, 0, 0, 0.6),
         0 0 22px rgba(102, 187, 106, 0.35);
 }
 
-.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='omnic-crisis'],
-.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='omnic-crisis'] {
+.music-now-playing-badge--visible .summary-info-era__name[data-era='omnic-crisis'],
+.summary-info-badge--hiding .summary-info-era__name[data-era='omnic-crisis'] {
     color: #ff5722;
     text-shadow:
         0 2px 14px rgba(0, 0, 0, 0.6),
         0 0 22px rgba(255, 87, 34, 0.42);
 }
 
-.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='golden-age'],
-.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='golden-age'] {
+.music-now-playing-badge--visible .summary-info-era__name[data-era='golden-age'],
+.summary-info-badge--hiding .summary-info-era__name[data-era='golden-age'] {
     color: #ffca28;
     text-shadow:
         0 2px 14px rgba(0, 0, 0, 0.6),
         0 0 22px rgba(255, 202, 40, 0.4);
 }
 
-.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='fall-overwatch'],
-.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='fall-overwatch'] {
+.music-now-playing-badge--visible .summary-info-era__name[data-era='fall-overwatch'],
+.summary-info-badge--hiding .summary-info-era__name[data-era='fall-overwatch'] {
     color: #4e342e;
     text-shadow:
         0 2px 14px rgba(0, 0, 0, 0.65),
         0 0 20px rgba(78, 52, 46, 0.45);
 }
 
-.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='age-conflict'],
-.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='age-conflict'] {
+.music-now-playing-badge--visible .summary-info-era__name[data-era='age-conflict'],
+.summary-info-badge--hiding .summary-info-era__name[data-era='age-conflict'] {
     color: #42a5f5;
     text-shadow:
         0 2px 14px rgba(0, 0, 0, 0.6),
         0 0 22px rgba(66, 165, 245, 0.38);
 }
 
-.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='null-sector'],
-.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='null-sector'] {
+.music-now-playing-badge--visible .summary-info-era__name[data-era='null-sector'],
+.summary-info-badge--hiding .summary-info-era__name[data-era='null-sector'] {
     color: #ba68c8;
     text-shadow:
         0 2px 14px rgba(0, 0, 0, 0.6),
         0 0 22px rgba(186, 104, 200, 0.38);
 }
 
-.music-now-playing-badge--visible .events-hover-preview-era__name[data-era='reign-talon'],
-.events-hover-preview-badge--hiding .events-hover-preview-era__name[data-era='reign-talon'] {
+.music-now-playing-badge--visible .summary-info-era__name[data-era='reign-talon'],
+.summary-info-badge--hiding .summary-info-era__name[data-era='reign-talon'] {
     color: #8b1313;
     text-shadow:
         0 2px 14px rgba(0, 0, 0, 0.65),
         0 0 22px rgba(139, 19, 19, 0.4);
 }
 
-.events-hover-preview-era__years {
+.summary-info-era__years {
     font-size: clamp(22px, 2.75vw, 32px);
     font-weight: 700;
     letter-spacing: 0.04em;
     color: rgba(255, 255, 255, 0.88);
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.48);
     line-height: 1.1;
+    text-align: left;
 }
 
 /* No era label — only years (e.g. Year Unknown) */
-.events-hover-preview-era--nameless .events-hover-preview-era__years {
+.summary-info-era--nameless .summary-info-era__years {
     font-size: clamp(36px, 4.6vw, 52px);
     font-weight: 800;
     color: rgba(255, 255, 255, 0.94);
 }
 
 /* 2) Number (no #) + event name — scaled proportionally */
-.events-hover-preview-mainline {
+.summary-info-mainline {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: baseline;
+    justify-content: flex-start;
     gap: 8px 12px;
     width: 100%;
     font-family: var(--font-title, 'BigNoodleToo', 'Impact', sans-serif);
@@ -510,18 +543,18 @@ body.color-palette-gray .music-mute-btn:hover {
     filter: blur(3px);
 }
 
-.events-hover-preview-badge--no-era .events-hover-preview-mainline {
+.summary-info-badge--no-era .summary-info-mainline {
     font-size: 54px;
     font-weight: 800;
     line-height: 1.08;
 }
 
 /* Slide-in animations when badge becomes visible */
-.music-now-playing-badge--visible .events-hover-preview-era {
+.music-now-playing-badge--visible .summary-info-era {
     animation: events-hover-slide-in 280ms ease-out forwards;
 }
 
-.music-now-playing-badge--visible .events-hover-preview-mainline {
+.music-now-playing-badge--visible .summary-info-mainline {
     animation: events-hover-slide-in 280ms ease-out 80ms forwards;
 }
 
@@ -539,8 +572,8 @@ body.color-palette-gray .music-mute-btn:hover {
 }
 
 /* Slide-out when badge is hiding - uses explicit hiding class */
-.events-hover-preview-badge--hiding .events-hover-preview-era,
-.events-hover-preview-badge--hiding .events-hover-preview-mainline {
+.summary-info-badge--hiding .summary-info-era,
+.summary-info-badge--hiding .summary-info-mainline {
     animation: events-hover-slide-out 200ms ease-in forwards !important;
 }
 
@@ -558,27 +591,28 @@ body.color-palette-gray .music-mute-btn:hover {
 }
 
 /* Primary title row: flag + title (multi-variant: each extra row has its own flag below) */
-.events-hover-preview-title-row {
+.summary-info-title-row {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: flex-start;
+    justify-content: flex-start;
     gap: 10px;
     width: 100%;
     min-width: 0;
 }
 
-.events-hover-preview-line-flag {
+.summary-info-line-flag {
     flex-shrink: 0;
     line-height: 0;
 }
 
-.events-hover-preview-line-flag--primary:not(:empty) {
+.summary-info-line-flag--primary:not(:empty) {
     margin-top: 0.12em;
 }
 
-.events-hover-preview-line-flag--primary .events-hover-preview-flag,
-.events-hover-preview-line-flag--primary img.events-hover-preview-flag {
+.summary-info-line-flag--primary .summary-info-flag,
+.summary-info-line-flag--primary img.summary-info-flag {
     width: 48px;
     height: auto;
     border-radius: 4px;
@@ -586,8 +620,8 @@ body.color-palette-gray .music-mute-btn:hover {
     display: block;
 }
 
-.events-hover-preview-line-flag--secondary .events-hover-preview-flag,
-.events-hover-preview-line-flag--secondary img.events-hover-preview-flag {
+.summary-info-line-flag--secondary .summary-info-flag,
+.summary-info-line-flag--secondary img.summary-info-flag {
     width: 34px;
     height: auto;
     border-radius: 3px;
@@ -595,11 +629,11 @@ body.color-palette-gray .music-mute-btn:hover {
     display: block;
 }
 
-.events-hover-preview-line-flag--secondary {
+.summary-info-line-flag--secondary {
     margin-top: 0.12em;
 }
 
-.events-hover-preview-flag {
+.summary-info-flag {
     flex-shrink: 0;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -607,32 +641,32 @@ body.color-palette-gray .music-mute-btn:hover {
     display: block;
 }
 
-.events-hover-preview-number {
+.summary-info-number {
     flex-shrink: 0;
     font-variant-numeric: tabular-nums;
     opacity: 0.9;
 }
 
-.events-hover-preview-number:not(:empty)::after {
+.summary-info-number:not(:empty)::after {
     content: '.';
     margin-right: 6px;
 }
 
-.events-hover-preview-number:empty {
+.summary-info-number:empty {
     display: none;
 }
 
-.events-hover-preview-title-column {
+.summary-info-title-column {
     flex: 1;
     min-width: 12ch;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
     gap: 8px;
     min-height: 0;
 }
 
-.events-hover-preview-title {
+.summary-info-title {
     flex: 1;
     min-width: 0;
     font-size: inherit;
@@ -643,30 +677,32 @@ body.color-palette-gray .music-mute-btn:hover {
     text-align: left;
 }
 
-.events-hover-preview-badge--multiline .events-hover-preview-title {
+.summary-info-badge--multiline .summary-info-title {
     white-space: normal;
 }
 
 /* 3) Other variant names — each row: smaller flag + title */
-.events-hover-preview-variants {
+.summary-info-variants {
     width: 100%;
     max-width: 720px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    align-items: flex-start;
 }
 
-.events-hover-preview-variant-line {
+.summary-info-variant-line {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: flex-start;
+    justify-content: flex-start;
     gap: 10px;
     width: 100%;
     min-width: 0;
 }
 
-.events-hover-preview-variant-text {
+.summary-info-variant-text {
     flex: 1;
     min-width: 0;
     color: rgba(255, 255, 255, 0.82);
@@ -921,8 +957,8 @@ body.color-palette-gray .music-grid-btn .music-label {
 }
 
 .music-playing-disc--badge {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
 }
 
 .music-playing-disc--spinning {

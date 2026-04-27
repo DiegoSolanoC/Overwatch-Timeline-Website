@@ -28,18 +28,6 @@ body.color-palette-nulled main {
     background: var(--bg-main);
 }
 
-body.color-palette-nulled .sidebar {
-    background: var(--primary-nulled) !important;
-}
-
-body.color-palette-nulled .sidebar-indicator {
-    background: rgba(var(--accent-nulled-primary-rgb), var(--opacity-medium)) !important;
-}
-
-body.color-palette-nulled .sidebar-indicator:hover {
-    background: rgba(var(--accent-nulled-primary-rgb), var(--opacity-heavy)) !important;
-}
-
 body.color-palette-nulled .panel-resize-handle__pill {
     background: rgba(var(--accent-nulled-primary-rgb), var(--opacity-medium)) !important;
 }

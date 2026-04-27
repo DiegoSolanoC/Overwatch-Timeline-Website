@@ -154,6 +154,7 @@
     --panel-event-width: 900px;
     --panel-event-width-collapsed: 1px; /* Collapsed width showing handle */
     --panel-filters-width: 800px;
+    --panel-filters-width-collapsed: 1px; /* Collapsed width showing handle */
     --panel-music-width: 800px;
     --panel-events-manage-width: 1040px;
     

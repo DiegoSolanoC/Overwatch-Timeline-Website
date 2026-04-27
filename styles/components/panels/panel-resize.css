@@ -10,9 +10,9 @@
         overflow: visible;
     }
 
-    /* Only when a panel is open (active); avoids a stray tab while the dock is off-screen */
-    .event-slide.open .panel-resize-handle,
-    .filters-panel.open .panel-resize-handle,
+    /* Show resize handle regardless of panel state, but only when event system is loaded */
+    body.event-system-loaded .event-slide .panel-resize-handle,
+    .filters-panel .panel-resize-handle,
     .music-panel.open .panel-resize-handle,
     .events-manage-panel.open .panel-resize-handle {
         display: flex;

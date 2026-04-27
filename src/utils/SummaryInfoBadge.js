@@ -1,5 +1,5 @@
 /**
- * Passive hover preview under the Event Manager header button (mirrors music "now playing" badge).
+ * Summary Info Badge - Shows event preview when hovering over events (mirrors music "now playing" badge).
  */
 
 import { getEraHoverPreviewSlug } from './EraHoverPreviewTheme.js';
@@ -44,7 +44,7 @@ function fillLineFlagSlot(slotEl, entry) {
     const lh = typeof window !== 'undefined' ? window.LocationFlagHelpers : null;
     if (entry && entry.filename && lh && typeof lh.flagSrc === 'function') {
         const img = document.createElement('img');
-        img.className = 'events-hover-preview-flag';
+        img.className = 'summary-info-flag';
         img.src = lh.flagSrc(String(entry.filename).trim());
         img.alt = entry.alt != null ? String(entry.alt).trim() : '';
         img.decoding = 'async';
@@ -59,36 +59,37 @@ function fillLineFlagSlot(slotEl, entry) {
 function ensureBadge() {
     if (badgeEl) return badgeEl;
     badgeEl = document.createElement('div');
-    badgeEl.id = 'eventsHoverPreviewBadge';
-    badgeEl.className = 'music-now-playing-badge events-hover-preview-badge';
+    badgeEl.id = 'summaryInfoBadge';
+    badgeEl.className = 'music-now-playing-badge summary-info-badge';
     badgeEl.style.zIndex = '165';
     badgeEl.setAttribute('aria-hidden', 'true');
     badgeEl.innerHTML = `
-        <div class="events-hover-preview-stack">
-            <div class="events-hover-preview-era" aria-hidden="true">
-                <span class="events-hover-preview-era__name"></span>
-                <span class="events-hover-preview-era__years"></span>
+        <div class="summary-info-stack">
+            <div class="summary-info-era" aria-hidden="true">
+                <span class="summary-info-era__name"></span>
+                <span class="summary-info-era__years"></span>
             </div>
-            <div class="events-hover-preview-mainline">
-                <span class="events-hover-preview-number" aria-hidden="true"></span>
-                <div class="events-hover-preview-title-column">
-                    <div class="events-hover-preview-title-row">
-                        <div class="events-hover-preview-line-flag events-hover-preview-line-flag--primary" aria-hidden="true"></div>
-                        <span class="events-hover-preview-title"></span>
+            <div class="summary-info-mainline">
+                <span class="summary-info-number" aria-hidden="true"></span>
+                <div class="summary-info-title-column">
+                    <div class="summary-info-title-row">
+                        <div class="summary-info-line-flag summary-info-line-flag--primary" aria-hidden="true"></div>
+                        <span class="summary-info-title"></span>
                     </div>
-                    <div class="events-hover-preview-variants" aria-hidden="true"></div>
+                    <div class="summary-info-variants" aria-hidden="true"></div>
                 </div>
             </div>
+            <img class="summary-info-underline" src="assets/images/misc/Badge Underline.png" alt="" aria-hidden="true" />
         </div>
     `;
     document.body.appendChild(badgeEl);
-    textPrimaryFlagSlot = badgeEl.querySelector('.events-hover-preview-line-flag--primary');
-    textNumberEl = badgeEl.querySelector('.events-hover-preview-number');
-    textTitleEl = badgeEl.querySelector('.events-hover-preview-title');
-    textEraEl = badgeEl.querySelector('.events-hover-preview-era');
-    textEraNameEl = badgeEl.querySelector('.events-hover-preview-era__name');
-    textEraYearsEl = badgeEl.querySelector('.events-hover-preview-era__years');
-    textVariantsEl = badgeEl.querySelector('.events-hover-preview-variants');
+    textPrimaryFlagSlot = badgeEl.querySelector('.summary-info-line-flag--primary');
+    textNumberEl = badgeEl.querySelector('.summary-info-number');
+    textTitleEl = badgeEl.querySelector('.summary-info-title');
+    textEraEl = badgeEl.querySelector('.summary-info-era');
+    textEraNameEl = badgeEl.querySelector('.summary-info-era__name');
+    textEraYearsEl = badgeEl.querySelector('.summary-info-era__years');
+    textVariantsEl = badgeEl.querySelector('.summary-info-variants');
     return badgeEl;
 }
 
@@ -107,20 +108,17 @@ function positionBadge() {
     const rect = anchorEl.getBoundingClientRect();
     const gap = 2;
     
-    // Position closer to the left side (1/4 from left edge instead of center)
-    // This aligns better with the events/connection codex buttons area
-    const cx = (rect.left + (rect.width / 4)) / scale;
+    // Position symmetrically to match Now Playing badge distance from edge
+    // Now Playing is 80% from left edge (20% from right)
+    // So Summary badge should be 20% from right edge
+    // Anchor from RIGHT edge so badge grows LEFTWARD when text expands
+    const vw = Math.max(1, (window.innerWidth || 1) / scale);
+    const rightPos = (vw * 0.80); // 80% from left edge = 20% from right edge
+
     const top = (rect.bottom + gap) / scale;
 
-    const vw = Math.max(1, (window.innerWidth || 1) / scale);
-    const margin = 8;
-    const w = badgeEl.offsetWidth || 320;
-    const half = w / 2;
-    let left = cx;
-    if (left - half < margin) left = half + margin;
-    if (left + half > vw - margin) left = vw - half - margin;
-
-    badgeEl.style.left = `${left}px`;
+    badgeEl.style.left = '';
+    badgeEl.style.right = `${rightPos}px`;
     badgeEl.style.top = `${top}px`;
 }
 
@@ -234,7 +232,7 @@ export function getHoverPreviewLines(eventObj, options) {
  * @param {(object|null)[]} [otherRowFlags] - One optional flag per extra variant row (same order as otherVariantTitles)
  * @param {string} [yearLinePlain] - Years after era (smaller); default "Year Unknown"
  */
-export function showEventsHoverPreview(
+export function showSummaryInfo(
     eventNum,
     plainEventName,
     otherVariantNames,
@@ -258,10 +256,10 @@ export function showEventsHoverPreview(
     cancelPendingHideCleanup();
 
     ensureBadge();
-    
+
     // Remove hiding state if present
-    badgeEl.classList.remove('events-hover-preview-badge--hiding');
-    
+    badgeEl.classList.remove('summary-info-badge--hiding');
+
     fillLineFlagSlot(textPrimaryFlagSlot, primaryRowFlag);
     
     if (textNumberEl) {
@@ -292,10 +290,10 @@ export function showEventsHoverPreview(
     }
     if (textEraEl) {
         textEraEl.style.display = '';
-        textEraEl.classList.toggle('events-hover-preview-era--nameless', !eraTrim);
+        textEraEl.classList.toggle('summary-info-era--nameless', !eraTrim);
     }
     if (badgeEl) {
-        badgeEl.classList.toggle('events-hover-preview-badge--no-era', !eraTrim);
+        badgeEl.classList.toggle('summary-info-badge--no-era', !eraTrim);
     }
 
     const titlesRaw = Array.isArray(otherVariantNames) ? otherVariantNames : [];
@@ -308,12 +306,12 @@ export function showEventsHoverPreview(
             if (!t) return;
             variantRowCount++;
             const row = document.createElement('div');
-            row.className = 'events-hover-preview-variant-line';
+            row.className = 'summary-info-variant-line';
             const flagSlot = document.createElement('div');
-            flagSlot.className = 'events-hover-preview-line-flag events-hover-preview-line-flag--secondary';
+            flagSlot.className = 'summary-info-line-flag summary-info-line-flag--secondary';
             fillLineFlagSlot(flagSlot, flagsParallel[idx] || null);
             const span = document.createElement('span');
-            span.className = 'events-hover-preview-variant-text';
+            span.className = 'summary-info-variant-text';
             span.textContent = t;
             row.appendChild(flagSlot);
             row.appendChild(span);
@@ -322,7 +320,7 @@ export function showEventsHoverPreview(
         textVariantsEl.style.display = variantRowCount ? 'block' : 'none';
     }
     if (badgeEl) {
-        badgeEl.classList.toggle('events-hover-preview-badge--multiline', variantRowCount > 0);
+        badgeEl.classList.toggle('summary-info-badge--multiline', variantRowCount > 0);
     }
 
     badgeEl.classList.add('music-now-playing-badge--visible');
@@ -371,7 +369,7 @@ function cancelPendingHideCleanup() {
     }
 }
 
-export function hideEventsHoverPreview() {
+export function hideSummaryInfo() {
     stopHoverPreviewFollow();
     if (!badgeEl) return;
     
@@ -379,7 +377,7 @@ export function hideEventsHoverPreview() {
     cancelPendingHideCleanup();
     
     // Add hiding class to trigger slide-out animation
-    badgeEl.classList.add('events-hover-preview-badge--hiding');
+    badgeEl.classList.add('summary-info-badge--hiding');
     badgeEl.classList.remove('music-now-playing-badge--visible');
     
     // Delay the cleanup until after the slide-out animation completes (200ms + buffer)
@@ -399,15 +397,15 @@ export function hideEventsHoverPreview() {
             if (textEraYearsEl) textEraYearsEl.textContent = '';
             if (textEraEl) {
                 textEraEl.style.display = '';
-                textEraEl.classList.remove('events-hover-preview-era--nameless');
+                textEraEl.classList.remove('summary-info-era--nameless');
             }
             if (textVariantsEl) {
                 textVariantsEl.innerHTML = '';
                 textVariantsEl.style.display = 'none';
             }
-            badgeEl.classList.remove('events-hover-preview-badge--multiline');
-            badgeEl.classList.remove('events-hover-preview-badge--no-era');
-            badgeEl.classList.remove('events-hover-preview-badge--hiding');
+            badgeEl.classList.remove('summary-info-badge--multiline');
+            badgeEl.classList.remove('summary-info-badge--no-era');
+            badgeEl.classList.remove('summary-info-badge--hiding');
         }
     }, 250);
 }
@@ -416,7 +414,7 @@ export function hideEventsHoverPreview() {
  * Cleanup function to reset module state when unloading
  * This allows the badge to be recreated on next load
  */
-export function cleanupEventsHoverPreview() {
+export function cleanupSummaryInfo() {
     stopHoverPreviewFollow();
     if (badgeEl && badgeEl.parentNode) {
         badgeEl.parentNode.removeChild(badgeEl);
@@ -433,11 +431,11 @@ export function cleanupEventsHoverPreview() {
 }
 
 if (typeof window !== 'undefined') {
-    window.EventsHoverPreviewBadge = {
-        show: showEventsHoverPreview,
-        hide: hideEventsHoverPreview,
+    window.SummaryInfoBadge = {
+        show: showSummaryInfo,
+        hide: hideSummaryInfo,
         getPlainTitle: getPlainEventTitleForHover,
         getHoverPreviewLines: getHoverPreviewLines,
-        cleanup: cleanupEventsHoverPreview
+        cleanup: cleanupSummaryInfo
     };
 }

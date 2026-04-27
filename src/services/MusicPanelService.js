@@ -49,7 +49,7 @@ class MusicPanelService {
             if (eventsManagePanel && eventsManagePanel.classList.contains('open')) {
                 eventsManagePanel.classList.remove('open');
                 try {
-                    window.EventsHoverPreviewBadge?.hide();
+                    window.SummaryInfoBadge?.hide();
                 } catch (_) {}
                 if (eventsManageToggle) {
                     eventsManageToggle.classList.remove('active');

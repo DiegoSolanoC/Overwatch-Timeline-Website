@@ -100,14 +100,6 @@
             </div>
         </main>
 
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-close" id="sidebarClose">&times;</div>
-            <button onclick="window.location.href='test.html'">Test</button>
-            <button onclick="window.location.href='main.html'" class="active">Main</button>
-        </nav>
-
-        <div class="sidebar-indicator" id="sidebarIndicator">☰</div>
-        
         <!-- Loading Overlay (fades in during Globe Components loading) -->
         <div class="loading-overlay" id="loadingOverlay">
             <div class="loading-status-overlay">
@@ -258,14 +250,13 @@
     <script type="module" src="src/services/helpers/FilterTabHelpers.js?v=9"></script>
     <script type="module" src="src/services/helpers/FilterCountHelpers.js?v=9"></script>
     <script src="src/services/FilterService.js?v=12"></script>
-    <script src="src/services/SidebarService.js?v=8"></script>
     <script src="src/services/AppKeyboardShortcutsService.js?v=11"></script>
     <script src="src/services/PanelResizeService.js?v=9"></script>
     
-    <!-- Load main script for sidebar and other UI -->
+    <!-- Load main script -->
     <script src="script.js?v=8"></script>
     
-    <!-- Shared page initialization (sidebar visibility, loader, zoom controls) -->
+    <!-- Shared page initialization (loader, zoom controls) -->
     <script src="src/app/page-init.js?v=10"></script>
 </body>
 </html>

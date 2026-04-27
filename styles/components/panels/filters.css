@@ -2,16 +2,16 @@
    FILTERS PANEL
    ======================================== */
 
-/* Filters Panel (right side) */
+/* Filters Panel (right side) - flexbox layout like event slide */
 .filters-panel {
-    position: fixed;
-    right: calc(-1 * var(--user-panel-filters-width, var(--panel-filters-width)));
-    top: var(--header-height);
-    bottom: var(--footer-height);
-    width: var(--user-panel-filters-width, var(--panel-filters-width));
+    position: relative;
+    width: var(--panel-filters-width-collapsed);
+    min-width: var(--panel-filters-width-collapsed);
+    max-width: var(--panel-filters-width-collapsed);
+    flex: 0 0 var(--panel-filters-width-collapsed);
     background: var(--bg-secondary); /* Dark blue for default blue palette */
     box-shadow: none !important; /* Remove shadow to prevent overlap */
-    transition: right var(--panel-transition);
+    transition: width var(--panel-transition), min-width var(--panel-transition), max-width var(--panel-transition), flex-basis var(--panel-transition);
     z-index: 200;
     overflow-y: hidden; /* Hide panel scrollbar - only grid scrolls */
     color: white;
@@ -19,19 +19,63 @@
     padding: 0;
     border: none;
     box-sizing: border-box;
-    margin-top: 0; /* Remove negative margin */
-    margin-bottom: 0; /* Remove negative margin */
-}
-
-/* Mobile: Override desktop right position to ensure smooth transition */
-@media (max-width: var(--breakpoint-mobile)) {
-    .filters-panel {
-        right: -100% !important; /* Start at -100% on mobile, not fixed width */
-    }
 }
 
 .filters-panel.open {
-    right: 0;
+    width: var(--user-panel-filters-width, var(--panel-filters-width));
+    min-width: var(--user-panel-filters-width, var(--panel-filters-width));
+    max-width: var(--user-panel-filters-width, var(--panel-filters-width));
+    flex: 0 0 var(--user-panel-filters-width, var(--panel-filters-width));
+}
+
+/* Hide panel content when collapsed */
+.filters-panel:not(.open) .filters-panel-content {
+    display: none;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    /* Mobile: Filters panel takes full width, slides from right */
+    .filters-panel {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        top: var(--header-height) !important;
+        bottom: var(--footer-height) !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        transform: translateX(100%);
+        transition: transform 0.3s ease !important;
+        box-sizing: border-box !important;
+        z-index: 2000 !important;
+    }
+
+    .filters-panel.open {
+        transform: translateX(0) !important;
+    }
+
+    /* Mobile: Ensure close button doesn't cause overflow */
+    .filters-panel-close {
+        right: 10px !important;
+        left: auto !important;
+    }
+
+    /* Mobile: Ensure filters panel content is visible and scrollable */
+    .filters-panel-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        padding: 15px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: 100% !important;
+        box-sizing: border-box !important;
+    }
 }
 
 .filters-panel-close {

@@ -30,9 +30,6 @@
 /* Mobile Responsive Styles */
 @import url('styles/mobile.css?v=21');
 
-/* Sidebar Navigation */
-@import url('styles/components/sidebar.css?v=8');
-
 /* Modals & Forms */
 @import url('styles/components/modals.css?v=8');
 @import url('styles/components/external-link-confirm.css?v=8');

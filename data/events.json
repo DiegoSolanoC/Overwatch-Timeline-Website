@@ -1352,6 +1352,27 @@
       ]
     },
     {
+      "name": "Niran Pruksamanee is Born",
+      "locationType": "earth",
+      "cityDisplayName": "Chiang Mai City, Thailand",
+      "description": "On April 28 of 2048, Niran Pruksamanee was born in the city of Chiang Mai. As the middle child of a wealthy family, he had his life planned and high expectations to fulfill, although the young Niran would resist this structure by wandering through their compound's gardens and mending plants alongside their gardeners.\n\nHe was too intelligent for the expensive schools his family chose for him, completing assignments more thoroughly than needed and annoying his teachers, which caused his parents to get frustrated and continue to attempt to install order in his life.",
+      "image": "",
+      "filters": [
+        "Lifeweaver"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Lifeweaver",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/lifeweaver/"
+        }
+      ],
+      "lat": 18.7882778,
+      "lon": 98.9858802,
+      "eraName": "The Age of Progress",
+      "yearStart": 2048
+    },
+    {
       "name": "Answers",
       "description": "After gaining personhood, Aurora was let go into the world. She was a curious soul who wondered from place to place, learning about humanity, their history and the way people across the planet behave. But deep down, Aurora always had questions about her own existence.\n\nBeing born alone, unlike anybody else in the world, was a heavy thought in her mind, and that existentialism led her to a path of meditation. She traveled through the Himalayan mountains and found the ancient monk temple of Shambali, where she hoped to find peace with herself.",
       "locationType": "earth",
@@ -1384,28 +1405,32 @@
       ]
     },
     {
-      "name": "Collaterate Damage",
-      "description": "Following Aurora's trials and the many controversies they had found themselves in, from accusations of fraud and many protests from locals who were affected by the Omniums, as well as critics of Aurora's research, Omnica found itself with no other option than bankruptcy.\n\nThe Company shut down all operations, but decided to keep ownership of their Omnium factories. Full decommissioning of the factories proved to be a logistical nightmare, and many people at the Company remained hopeful that one day they would be able to use them again, so in the end Omnica left the world with giant empty shells, ghostly facilities that went unused for years.\n\nBy humans, anyway.",
+      "name": "Knights in Shining Armor",
       "locationType": "earth",
-      "cityDisplayName": "Detroit, United States",
-      "lat": 42.3315509,
-      "lon": -83.0466403,
-      "yearStart": 2040,
-      "yearEnd": 2050,
-      "eraName": "The Age of Progress",
-      "filters": [],
+      "cityDisplayName": "Berlin, Germany",
+      "description": "As robotics took over most forms of labor, Germany wanted to prevent unemployment, so they began developing a sector yet touched by AI. One of these areas was marine exploration, as the government began backing the development of exoskeletal diving suits developed by Leon Honisch, an oceanologist who was dedicated to exploring the North Sea. This invention caught the attention of the military.\n\nMajor Greta Klein approached Honish with an initiative, to modify his Robo-Tauchanzug design into equipment for their soldiers, as the suits were designed to withstand heavy pressures and damage. Alongside them, Emillia Fischer was called to improve the design for combat use. Fischer was one of the early hard-light architects, one of many that took Vishkar's technology into new boundaries. Fischer had used it before to enhance the shielding of fusion reactors, and when called into the initiative, she adapted this technology into hardlight barriers, capable of taking consistent damage, and regenerating after breaking, with the pair on board, the Crusader armors were born.\n\nWhile he had been lured into the project, Honisch argued that the move might not be taken kindly abroad, given the country's military history, although Fischer argued that in spite of the controversy that re militarization could cause, Germany needed a means to defend itself if it came to it. During development, the pair found a compromise, and with it the Crusaders were reframed as defenders of the country, rather than a weapon of war.\n\nThey redesigned their armor to resemble that of fabled knights, and with the help of local artisans, heavily decorated them to be used in parades and boost support among the public. The Crusaders became a source of cultural pride for Germany, even if it meant they would be on standby for the time being.",
+      "image": "",
+      "filters": [
+        "Reinhardt"
+      ],
       "factions": [
-        "Omnica Corporation",
-        "The Anubis Omnic Crisis"
+        "Crusaders"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
       ],
       "headlines": [
-        "Omnica Corporation goes bankrupt after years of empty promises",
-        "Omnium factories set to go unsued following Omnica's bankrupcy"
+        "Germany unveils the new generation of German soldiers",
+        "Crusader guards parade across Berlin for presidential inauguration"
       ],
-      "image": "",
-      "npcs": [
-        "Liao"
-      ]
+      "lat": 52.5173885,
+      "lon": 13.3951309,
+      "yearStart": 2040,
+      "yearEnd": 2050,
+      "eraName": "The Age of Progress"
     },
     {
       "name": "A Grasping Talon",
@@ -1439,53 +1464,28 @@
       ]
     },
     {
-      "name": "Niran Pruksamanee is Born",
+      "name": "Collaterate Damage",
+      "description": "Following Aurora's trials and the many controversies they had found themselves in, from accusations of fraud and many protests from locals who were affected by the Omniums, as well as critics of Aurora's research, Omnica found itself with no other option than bankruptcy.\n\nThe Company shut down all operations, but decided to keep ownership of their Omnium factories. Full decommissioning of the factories proved to be a logistical nightmare, and many people at the Company remained hopeful that one day they would be able to use them again, so in the end Omnica left the world with giant empty shells, ghostly facilities that went unused for years.\n\nBy humans, anyway.",
       "locationType": "earth",
-      "cityDisplayName": "Chiang Mai City, Thailand",
-      "description": "On April 28 of 2048, Niran Pruksamanee was born in the city of Chiang Mai. As the middle child of a wealthy family, he had his life planned and high expectations to fulfill, although the young Niran would resist this structure by wandering through their compound's gardens and mending plants alongside their gardeners.\n\nHe was too intelligent for the expensive schools his family chose for him, completing assignments more thoroughly than needed and annoying his teachers, which caused his parents to get frustrated and continue to attempt to install order in his life.",
-      "image": "",
-      "filters": [
-        "Lifeweaver"
-      ],
-      "factions": [],
-      "sources": [
-        {
-          "text": "Overwatch Website, Lifeweaver",
-          "url": "https://overwatch.blizzard.com/en-us/heroes/lifeweaver/"
-        }
-      ],
-      "lat": 18.7882778,
-      "lon": 98.9858802,
-      "eraName": "The Age of Progress",
-      "yearStart": 2048
-    },
-    {
-      "name": "Knights in Shining Armor",
-      "locationType": "earth",
-      "cityDisplayName": "Berlin, Germany",
-      "description": "As robotics took over most forms of labor, Germany wanted to prevent unemployment, so they began developing a sector yet touched by AI. One of these areas was marine exploration, as the government began backing the development of exoskeletal diving suits developed by Leon Honisch, an oceanologist who was dedicated to exploring the North Sea. This invention caught the attention of the military.\n\nMajor Greta Klein approached Honish with an initiative, to modify his Robo-Tauchanzug design into equipment for their soldiers, as the suits were designed to withstand heavy pressures and damage. Alongside them, Emillia Fischer was called to improve the design for combat use. Fischer was one of the early hard-light architects, one of many that took Vishkar's technology into new boundaries. Fischer had used it before to enhance the shielding of fusion reactors, and when called into the initiative, she adapted this technology into hardlight barriers, capable of taking consistent damage, and regenerating after breaking, with the pair on board, the Crusader armors were born.\n\nWhile he had been lured into the project, Honisch argued that the move might not be taken kindly abroad, given the country's military history, although Fischer argued that in spite of the controversy that re militarization could cause, Germany needed a means to defend itself if it came to it. During development, the pair found a compromise, and with it the Crusaders were reframed as defenders of the country, rather than a weapon of war.\n\nThey redesigned their armor to resemble that of fabled knights, and with the help of local artisans, heavily decorated them to be used in parades and boost support among the public. The Crusaders became a source of cultural pride for Germany, even if it meant they would be on standby for the time being.",
-      "image": "",
-      "filters": [
-        "Reinhardt"
-      ],
-      "factions": [
-        "Crusaders"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "Germany unveils the new generation of German soldiers",
-        "Crusader guards parade across Berlin for presidential inauguration"
-      ],
-      "lat": 52.5173885,
-      "lon": 13.3951309,
+      "cityDisplayName": "Detroit, United States",
+      "lat": 42.3315509,
+      "lon": -83.0466403,
       "yearStart": 2040,
       "yearEnd": 2050,
-      "eraName": "The Age of Progress"
+      "eraName": "The Age of Progress",
+      "filters": [],
+      "factions": [
+        "Omnica Corporation",
+        "The Anubis Omnic Crisis"
+      ],
+      "headlines": [
+        "Omnica Corporation goes bankrupt after years of empty promises",
+        "Omnium factories set to go unsued following Omnica's bankrupcy"
+      ],
+      "image": "",
+      "npcs": [
+        "Liao"
+      ]
     },
     {
       "name": "Satya Vaswani is Born",
@@ -2215,6 +2215,37 @@
       "eraName": "The Omnic Crisis"
     },
     {
+      "name": "The Skycannon",
+      "description": "The New Yorkers managed to endure the crisis on their own for months, coming up with one plan after another to use the city itself against Anubis. The wide cultural range and backgrounds of the many people involved allowed them to stay innovative and use the city's infrastructure to their advantage. Together they dug up and fortified shelters using parts from ships and skyscrappers, and organized to turn all green areas in the city, from rooftop gardens to Central Park, into communal farms that kept the population fed. At some point, Torbjörn Lindholm managed to find a way to contact the defenders from within the city and under his guidance they managed to work on defensive strategies. \n\n\n\nThe citizens would mount battleship cannons onto Manhattan's Sky Scrappersm and used to fire strategically at Null Sector Carriers to prevent them from reaching their deployment zones. Anubis would quickly take action and focus on bringing down these armored sky scrappers, but for a good while they bought the survivors enough time to plan ahead and fight on the ground. It was around this time that Anubis deployed the R-700 Ravager units, designed to become its battle commanders. Thanks to their high processing power, they were able to give orders independently of Anubis itself. With their arrival, it was clear that taking down Anubis wouldn't be enough to win the war.",
+      "locationType": "earth",
+      "cityDisplayName": "Manhattan, United States",
+      "lat": 40.7579554,
+      "lon": -73.9855319,
+      "yearStart": 2051,
+      "yearEnd": 2053,
+      "eraName": "The Omnic Crisis",
+      "filters": [
+        "Torbjörn"
+      ],
+      "factions": [
+        "Crisis"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "New Yorkers turn Empire State Building into an Anti Omnic Cannon",
+        "Ravager Units appear on battlefields across the world, highly dangerous"
+      ],
+      "image": "",
+      "secondaryCountryFlags": [
+        "Sweden.png"
+      ]
+    },
+    {
       "name": "Super Soldiers",
       "locationType": "earth",
       "cityDisplayName": "Wheeler County, United States",
@@ -2278,37 +2309,6 @@
       "yearStart": 2051,
       "yearEnd": 2053,
       "eraName": "The Omnic Crisis"
-    },
-    {
-      "name": "The Skycannon",
-      "description": "The New Yorkers managed to endure the crisis on their own for months, coming up with one plan after another to use the city itself against Anubis. The wide cultural range and backgrounds of the many people involved allowed them to stay innovative and use the city's infrastructure to their advantage. Together they dug up and fortified shelters using parts from ships and skyscrappers, and organized to turn all green areas in the city, from rooftop gardens to Central Park, into communal farms that kept the population fed. At some point, Torbjörn Lindholm managed to find a way to contact the defenders from within the city and under his guidance they managed to work on defensive strategies. \n\n\n\nThe citizens would mount battleship cannons onto Manhattan's Sky Scrappersm and used to fire strategically at Null Sector Carriers to prevent them from reaching their deployment zones. Anubis would quickly take action and focus on bringing down these armored sky scrappers, but for a good while they bought the survivors enough time to plan ahead and fight on the ground. It was around this time that Anubis deployed the R-700 Ravager units, designed to become its battle commanders. Thanks to their high processing power, they were able to give orders independently of Anubis itself. With their arrival, it was clear that taking down Anubis wouldn't be enough to win the war.",
-      "locationType": "earth",
-      "cityDisplayName": "Manhattan, United States",
-      "lat": 40.7579554,
-      "lon": -73.9855319,
-      "yearStart": 2051,
-      "yearEnd": 2053,
-      "eraName": "The Omnic Crisis",
-      "filters": [
-        "Torbjörn"
-      ],
-      "factions": [
-        "Crisis"
-      ],
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "New Yorkers turn Empire State Building into an Anti Omnic Cannon",
-        "Ravager Units appear on battlefields across the world, highly dangerous"
-      ],
-      "image": "",
-      "secondaryCountryFlags": [
-        "Sweden.png"
-      ]
     },
     {
       "name": "Defense Network",
@@ -2527,6 +2527,32 @@
       "lon": -83.0466403
     },
     {
+      "name": "The Battle of the Bridges",
+      "description": "The New Yorker survivors turned the city into a stronghold, setting up explosions in the tunnels leading outside of Manhattan and destroying all but 3 bridges, Washington, Queensboro and Willamsburg, left only in case a rethreat was needed. Anubis had caught on to their tactics, and began amassing warbots at the end of the bridges. After a long silence, they began their attack. Anubis attacked all the bridges at once with endless waves of Omnics, and while they did, many other machines attempted to reach the city through the tunnels and even crossing the river by foot. The event was a massacre, and as the defenders got pushed back, one by one each of the bridges was taken. On the subways, the battle was slightly better, as warbots were stopped by collapsing tunnels and runaway cars, but on the other hand, as Omnics set off the land mines in the river, their bodies made for a safe bridge that other units could walk over.\n\nHaving lost the shores to the Omnics, humanity had no option but to retreat, as the Ravagers led their troops through the fallen buildings. Once the island was breached, the next objects were Central Farm and the Sky Cannons, leading to endless guerrilla warfare and hundreds of casualties.",
+      "locationType": "earth",
+      "cityDisplayName": "Manhattan, United States",
+      "lat": 40.7579554,
+      "lon": -73.9855319,
+      "yearStart": 2051,
+      "yearEnd": 2053,
+      "eraName": "The Omnic Crisis",
+      "filters": [],
+      "factions": [
+        "Crisis"
+      ],
+      "image": "",
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "New York city breached, war rages on",
+        "Empire sky cannon takes down incoming Anubis carrier"
+      ]
+    },
+    {
       "name": "Dead Gods",
       "description": "After Detroit, Liao managed to clone the frequencies used by the one commanding the Omnium's production lines, which determined that all Omniums were receiving orders from the same source. Thanks to the Macaria program, this signal was determined to come from another God AI. After heavy analysis by hundreds of scientists, all signs pointed towards Cairo. The news spread rapidly and many countries panicked. Any and all God programs that were not yet destroyed were to be dealt with before they too turned against humanity. This naturally caused massive chaos as the programs in charge of many aspects of everyday life suddenly shut down forever. \n\nOne program, however, was able to foresee its termination. Chernobog's security programming realized ahead of time that it would be disconnected. In response, it sent out one final order, broadcasting its final instructions and printing them into thousands of pages, detailing how humanity should  proceed in its absence, while continuing its purpose of keeping global security. The final words in the documents caused massive legal fights and controversy after the crisis: \"I understand, I am sorry.\"",
       "locationType": "earth",
@@ -2580,32 +2606,6 @@
       ],
       "headlines": [
         "Mexico goes dark following the shutdown of Xibalba"
-      ]
-    },
-    {
-      "name": "The Battle of the Bridges",
-      "description": "The New Yorker survivors turned the city into a stronghold, setting up explosions in the tunnels leading outside of Manhattan and destroying all but 3 bridges, Washington, Queensboro and Willamsburg, left only in case a rethreat was needed. Anubis had caught on to their tactics, and began amassing warbots at the end of the bridges. After a long silence, they began their attack. Anubis attacked all the bridges at once with endless waves of Omnics, and while they did, many other machines attempted to reach the city through the tunnels and even crossing the river by foot. The event was a massacre, and as the defenders got pushed back, one by one each of the bridges was taken. On the subways, the battle was slightly better, as warbots were stopped by collapsing tunnels and runaway cars, but on the other hand, as Omnics set off the land mines in the river, their bodies made for a safe bridge that other units could walk over.\n\nHaving lost the shores to the Omnics, humanity had no option but to retreat, as the Ravagers led their troops through the fallen buildings. Once the island was breached, the next objects were Central Farm and the Sky Cannons, leading to endless guerrilla warfare and hundreds of casualties.",
-      "locationType": "earth",
-      "cityDisplayName": "Manhattan, United States",
-      "lat": 40.7579554,
-      "lon": -73.9855319,
-      "yearStart": 2051,
-      "yearEnd": 2053,
-      "eraName": "The Omnic Crisis",
-      "filters": [],
-      "factions": [
-        "Crisis"
-      ],
-      "image": "",
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "New York city breached, war rages on",
-        "Empire sky cannon takes down incoming Anubis carrier"
       ]
     },
     {
@@ -2831,6 +2831,99 @@
       ]
     },
     {
+      "name": "Cleaning the leftovers",
+      "locationType": "earth",
+      "cityDisplayName": "Jakarta, Indonesia",
+      "description": "Anubis being defeated did not mean the immediate end of the Crisis. The remaining units, while decentralized, were still dangerous and the sizable number of Omnics who remained against humanity needed to be dealt with as soon as possible. Many Omnics blamed humanity for their condition, seeing sentiment as a punishment or curse to be released from, while others simply did not see the logic in going against their creator. However, plenty more Omnics chose to defy Anubis and gladly fought alonside humans.\n\n\n\nOverwatch, of course, helped clean up the remaining troops across the globe. A notorious case involved a brigade of submersible warbots that surfaced near Wellington, New Zealand. Overwatch showed up quickly and saved thousands of lives, but after action, cleaning had not finished when they got word of another coastal strike, this time in Jakarta. Casualties were minimized as the Omnics focused on damaging infrastructure, but what concerned Overwatch the most was that later analysis showed both attacks were related. It appears they were members of the same unit that had split on their trip across the South Pacific Ocean. It remained unclear what their path was or if there were any left.\n\n\n\nAfter two years of worldwide horrors, the last official action took place in Aviles, Spain. The Omnic Crisis is over, after taking more than one billion lives across the Planet. The impact of the event can still be felt in many nations to this day, nearly 30 years later, but at the very least, it ended, and humanity had someone watching over them.",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "Overwatch",
+        "Crisis"
+      ],
+      "lat": -6.1754049,
+      "lon": 106.827168,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Troops in Baltimore fight alonside Omnics to stop remaining warbots",
+        "Omnic Crisis officially over, can humanity ever recover?"
+      ],
+      "secondaryCountryFlags": [
+        "New Zealand.png",
+        "Spain.png"
+      ],
+      "yearStart": 2051,
+      "yearEnd": 2053,
+      "eraName": "The Omnic Crisis"
+    },
+    {
+      "name": "Energy For Mexico",
+      "locationType": "earth",
+      "cityDisplayName": "Mexico City, Mexico",
+      "description": "The dark days of the Crisis hit Mexico hard, but while Xibalba was never going to be turned back on, the engineers behind the program had spent the later months of the Crisis working on rerouting its functionality, and less than a week after the war ended, the lights finally came back on. While the grid was unstable, and many rural places remained dark, this was a literal spark of life for the surviving nation, and Guillermo Portero, a war hero who had been elected President following the Crisis, campaigned heavily on ensuring the sustainability of the grid.<br><br>To this day, the Festival de la Luz is celebrated all across Mexico, honoring those who were lost to the dark, and rejoicing in the fact the darkness was beaten. Despite everything, Xibalba's influence can still be felt across the country. During the festivities, paper mache piñatas in the image of the God program are made and stuffed with fireworks, to be set ablaze by midnight, marking the end of the holiday. It is clear that in spite of everything, the country still loves and mourns the loss of the AI, with many going a step further, thinking the government was wrong in turning it off to begin with, and wanting their God to rise from its slumber.",
+      "image": "",
+      "filters": [],
+      "factions": [
+        "Lumerico",
+        "Los Muertos"
+      ],
+      "lat": 19.3207722,
+      "lon": -99.1514678,
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ],
+      "headlines": [
+        "Portero restores the light to all of Mexico",
+        "Giant power grid plants to be build across Mexico",
+        "Mexican gang violence on the rise even after blackouts seize"
+      ],
+      "yearStart": 2053,
+      "yearEnd": 2060,
+      "eraName": "The Omnic Crisis",
+      "npcs": [],
+      "secondaryCountryFlags": []
+    },
+    {
+      "name": "Prejudice",
+      "locationType": "earth",
+      "cityDisplayName": "Manhattan, United States",
+      "description": "Reception to Omnic sentience was very mixed and volatile across the world. The Awakening caused global confusion, and while some welcomed a helping hand at the time, not everyone was as kind.<br><br>Many humans took their chance to strike against Omnics, even as they laid down their weapons. Some did not buy the sudden change in motivations, others were far too damaged by the crisis to ever forgive the machines, and a depressingly high number of people outright rejected them, appalled by the idea of sentience, watching the robots that once served humanity, turning against them and causing endless bloodshed, only to suddenly ask to be seen as equals. <br><br>Following the Crisis, many Omnics were hunted down mercilessly purely out of resentment for actions they had no control over. Ravager units specifically were killed to near extinction. It was going to take quite a long time for humanity to heal from the Crisis, and even longer for them to adapt to sentient Omnics, but for many Omnics out there, it was clear they were never meant to coexist, and trying to share this world with humanity was futile.",
+      "image": "",
+      "filters": [
+        "Ramattra"
+      ],
+      "factions": [],
+      "sources": [
+        {
+          "text": "Overwatch Website, Ramattra",
+          "url": "https://overwatch.blizzard.com/en-us/heroes/ramattra/"
+        },
+        {
+          "text": "Ramattra Origin Story",
+          "url": "https://youtu.be/vd_SPOkaZZ4"
+        }
+      ],
+      "headlines": [
+        "Omnic violence on the rise, can we truly co exist",
+        "Clashes between war survivors and newly sentient machines continue"
+      ],
+      "lat": 40.7579554,
+      "lon": -73.9855319,
+      "yearStart": 2051,
+      "yearEnd": 2053,
+      "eraName": "The Omnic Crisis",
+      "npcs": [],
+      "secondaryCountryFlags": []
+    },
+    {
       "name": "The Temple of Anubis",
       "description": "Following the quarantining of Anubis, most people expected the God program would be outright destroyed, but against most wishes, Lindholm and Liao had different plans. The construction of the aptly called Temple of Anubis began shortly after its imprisonment. A high security facility designed to look like a pyramid from the outside, blending into the landscape of the city. The Temple was to serve as Anubis' tomb, ensuring that no trace of the God AI escapes and attempts to start another Crisis.\n\n\n\nMany criticized the choice to keep the program at all, with some going as far as to say Overwatch did so to guarantee the world would need them again in the future. However, most experts in the field supported the Temple's construction, as heavy monitoring of the facility ensured that no scraps of its code felt into the wrong hands, as well as allowing them to compare remaining Omnic threads with Anubis, in case it's possible to trace it back as its source. Not only that, but the facility allowed experts to study the AI and find out what exactly went wrong with it, hopefully preventing something like this from ever happening again.",
       "locationType": "earth",
@@ -2865,95 +2958,6 @@
       "npcs": [
         "Liao"
       ]
-    },
-    {
-      "name": "Cleaning the leftovers",
-      "locationType": "earth",
-      "cityDisplayName": "Jakarta, Indonesia",
-      "description": "Anubis being defeated did not mean the immediate end of the Crisis. The remaining units, while decentralized, were still dangerous and the sizable number of Omnics who remained against humanity needed to be dealt with as soon as possible. Many Omnics blamed humanity for their condition, seeing sentiment as a punishment or curse to be released from, while others simply did not see the logic in going against their creator. However, plenty more Omnics chose to defy Anubis and gladly fought alonside humans.\n\n\n\nOverwatch, of course, helped clean up the remaining troops across the globe. A notorious case involved a brigade of submersible warbots that surfaced near Wellington, New Zealand. Overwatch showed up quickly and saved thousands of lives, but after action, cleaning had not finished when they got word of another coastal strike, this time in Jakarta. Casualties were minimized as the Omnics focused on damaging infrastructure, but what concerned Overwatch the most was that later analysis showed both attacks were related. It appears they were members of the same unit that had split on their trip across the South Pacific Ocean. It remained unclear what their path was or if there were any left.\n\n\n\nAfter two years of worldwide horrors, the last official action took place in Aviles, Spain. The Omnic Crisis is over, after taking more than one billion lives across the Planet. The impact of the event can still be felt in many nations to this day, nearly 30 years later, but at the very least, it ended, and humanity had someone watching over them.",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "Overwatch",
-        "Crisis"
-      ],
-      "lat": -6.1754049,
-      "lon": 106.827168,
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "Troops in Baltimore fight alonside Omnics to stop remaining warbots",
-        "Omnic Crisis officially over, can humanity ever recover?"
-      ],
-      "secondaryCountryFlags": [
-        "New Zealand.png",
-        "Spain.png"
-      ],
-      "yearStart": 2051,
-      "yearEnd": 2053,
-      "eraName": "The Omnic Crisis"
-    },
-    {
-      "name": "Prejudice",
-      "locationType": "earth",
-      "cityDisplayName": "Manhattan, United States",
-      "description": "Reception to Omnic sentience was very mixed and volatile across the world. The Awakening caused global confusion, and while some welcomed a helping hand at the time, not everyone was as kind.\n\nMany humans took their chance to strike against Omnics, even as they laid down their weapons. Some did not buy the sudden change in motivations, others were far too damaged by the crisis to ever forgive the machines, and a depressingly high number of people outright rejected them, appalled by the idea of sentience, watching the robots that once served humanity, turning against them and causing endless bloodshed, only to suddenly ask to be seen as equals. \n\n\n\nFollowing the Crisis, many Omnics were hunted down mercilessly purely out of resentment for actions they had no control over. Ravager units specifically were killed to near extinction. It was going to take quite a long time for humanity to heal from the Crisis, and even longer for them to adapt to sentient Omnics, but for many Omnics out there, it was clear they were never meant to coexist, and trying to share this world with humanity was futile.",
-      "image": "",
-      "filters": [
-        "Ramattra"
-      ],
-      "factions": [],
-      "sources": [
-        {
-          "text": "Overwatch Website, Ramattra",
-          "url": "https://overwatch.blizzard.com/en-us/heroes/ramattra/"
-        },
-        {
-          "text": "Ramattra Origin Story",
-          "url": "https://youtu.be/vd_SPOkaZZ4"
-        }
-      ],
-      "headlines": [
-        "Omnic violence on the rise, can we truly co exist",
-        "Clashes between war survivors and newly sentient machines continue"
-      ],
-      "lat": 40.7579554,
-      "lon": -73.9855319,
-      "yearStart": 2051,
-      "yearEnd": 2053,
-      "eraName": "The Golden Age"
-    },
-    {
-      "name": "Energy For Mexico",
-      "locationType": "earth",
-      "cityDisplayName": "Mexico City, Mexico",
-      "description": "The dark days of the Crisis hit Mexico hard, but while Xibalba was never going to be turned back on, the engineers behind the program had spent the later months of the Crisis working on rerouting its functionality, and less than a week after the war ended, the lights finally came back on. While the grid was unstable, and many rural places remained dark, this was a literal spark of life for the surviving nation, and Guillermo Portero, a war hero who had been elected President following the Crisis, campaigned heavily on ensuring the sustainability of the grid.\n\n\n\nTo this day, the Festival de la Luz is celebrated all across Mexico, honoring those who were lost to the dark, and rejoicing in the fact the darkness was beaten. Despite everything, Xibalba's influence can still be felt across the country. During the festivities, paper mache piñatas in the image of the God program are made and stuffed with fireworks, to be set ablaze by midnight, marking the end of the holiday. It is clear that in spite of everything, the country still loves and mourns the loss of the AI, with many going a step further, thinking the government was wrong in turning it off to begin with, and wanting their God to rise from its slumber.",
-      "image": "",
-      "filters": [],
-      "factions": [
-        "Lumerico",
-        "Los Muertos"
-      ],
-      "lat": 19.3207722,
-      "lon": -99.1514678,
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ],
-      "headlines": [
-        "Portero restores the light to all of Mexico",
-        "Giant power grid plants to be build across Mexico",
-        "Mexican gang violence on the rise even after blackouts seize"
-      ],
-      "yearStart": 2053,
-      "yearEnd": 2060,
-      "eraName": "The Golden Age"
     },
     {
       "name": "Building the Future",
@@ -3437,7 +3441,7 @@
       "name": "Deadlock Rebels",
       "locationType": "earth",
       "cityDisplayName": "Bellaire, United States",
-      "description": "Years of neglect led Ashe to constantly breaking the law, and gaining a reputation with the authorities. On one occasion, she was arrested for armed assault inspired by it being in self-defense. While spending time in jail, waiting to be bailed out, she met Cole Cassidy in the cell block. Like many others around the area, he was employed by nearby Megafarms after they lost their Omnic staff. The farms were filled with refugees during the war, and eventually they came to be used for cheap labor. Cass had ended up locked after a brawl broke out among the farmhands. Ashe came to envy her new friend, for the freedom he had as a ruffian, drifting away without having to answer to anybody.<br><br>After the bailout, Ashe was greeted by disapproving parents on a holoscreen, not even trying to listen to her side of the story. They had grown tired of her actions and decided that once she turned 18, they would cut off from the family and its finances. In a fit of anger, Ashe plotted how to get back at her family for how they treated her, and realized selling Arbalest goods to the black market would be the best way to bite back, but in order to do so she needed to pull a heist. Ashe and B.O.B would then drive by the Ace Valentine megafarm to pick up Cassidy, and together they started to assemble a team to steal from the Arbalest facilities her family controlled. <br><br>A fellow farmhand, demolitionist Julian, a hired hacker going by Frankie, and the champion of the local hovercycle racetrack, Dezba joined the operation of what would later become the Deadlock Rebels, a gang of thieves who primarily targeted Arbalest, and quickly grew in notoriety and scope across America. The harsh life after the crisis had led to the rise of gang activity across the now called \"New West\" and Ashe used her business skills to form alliances across the many gangs looking for a piece of the pie. Without her family, she had established her own weapons trading empire, as well as a newfound family of her own.",
+      "description": "Years of neglect led Ashe to constantly breaking the law, and gaining a reputation with the authorities. On one occasion, she was arrested for armed assault inspired by it being in self-defense. While spending time in jail, waiting to be bailed out, she met Cole Cassidy in the cell block. Like many others around the area, he was employed by nearby Megafarms after they lost their Omnic staff. The farms were filled with refugees during the war, and eventually they came to be used for cheap labor. Cass had ended up locked after a brawl broke out among the farmhands. Ashe came to envy her new friend, for the freedom he had as a ruffian, drifting away without having to answer to anybody.<br><br>After the bailout, Ashe was greeted by disapproving parents on a holoscreen, not even trying to listen to her side of the story. They had grown tired of her actions and decided that once she turned 18, they would cut off from the family and its finances. In a fit of anger, Ashe plotted how to get back at her family for how they treated her, and realized selling Arbalest goods to the black market would be the best way to bite back, but in order to do so she needed to pull a heist. Ashe and B.O.B would then drive by the Ace Valentine megafarm to pick up Cassidy, and together they started to assemble a team to steal from the Arbalest facilities her family controlled.  A fellow farmhand,of Cass, Julian and a hired hacker going by Frankie would join their ranks, forming the start of the Deadlock Rebels.<div><br></div><div>They were not the only ones with this daring ideals,  the harsh life after the crisis had led to the rise of gang activity across the now called \"New West\", and as Deadlock expanded across the country they would often come into conflict with other gang territories. During a confrontation with the Diamond backs, Julian would end up betraying the group, getting Cassidy captured,  but with some help on the inside from Benito Sanchez, Ashe and Frankie would be able to not just rescue Cassidy, but to overthrow Diamonback leader ship out of their den. The remainder gang members would choose to follow their new leader, as Ashe slowly begane to form a name for herself in the New West</div>",
       "image": "",
       "filters": [
         "Cassidy",
@@ -3453,7 +3457,8 @@
       "yearEnd": null,
       "npcs": [
         "B.O.B",
-        "Frankie"
+        "Frankie",
+        "Bez"
       ],
       "secondaryCountryFlags": [],
       "headlines": [
@@ -3530,7 +3535,7 @@
       "name": "The New West",
       "locationType": "earth",
       "cityDisplayName": "Roud 66, United States",
-      "description": "",
+      "description": "The rise of Gang violence across the American Southwest quickly became a topic of interest for Overwatch, and when needed, they would address these gangs individually by dispatching agents, and later send the engineering teams for repairs. Among the gangs, the rising threat of the Deadlock Rebels became of special concern to Reyes. The leader, Calamity Ashe was fast at forming alliances with other rival gangs, and had created a stranglehold on the region. Reyes would take a small team of troops to investigate the situation personally. After gathering intelligence on the gang, a massive operation to take down the Rebels was put into action.<br><br>Cole Cassidy, a founding member of the gang, would create a distraction that resulted in his arrest, but allowed the rest of the leadership to escape. Ashe, Frankie and Bez would continue to search for him in hopes of rescue, but they did not know that it was too late for that, as Cassidy had been taken by Overwatch, not as a prisoner but as a willing recruit.<br><br>Reyes saw talent in Cassidy, and thus he gave him the choice, to either rot in jail for years, or to come with him as his student, and make better use of his marksmanship as an Overwatch agent. While many saw his inclusion as conscription of a minor, he seemed pleased with the arrangement and quickly proved himself to be an efficient asset. He would be placed under Ana's wing to hone his skills with the gun, and soon after, he would join Reyes in the Blackwatch division.",
       "image": "",
       "filters": [
         "Reaper",
@@ -3552,11 +3557,21 @@
         }
       ],
       "yearStart": 2056,
-      "eraName": "The Golden Age"
+      "eraName": "The Golden Age",
+      "yearEnd": null,
+      "npcs": [
+        "Frankie",
+        "Bez"
+      ],
+      "secondaryCountryFlags": [],
+      "headlines": [
+        "Overwatch cracks down on Gang violence globally",
+        "Gabriel Reyes recurits a minor into special division"
+      ]
     },
     {
       "name": "On the Run",
-      "description": "",
+      "description": "No description available.",
       "locationType": "earth",
       "filters": [
         "Sierra"
@@ -3571,7 +3586,12 @@
       "yearEnd": 2069,
       "eraName": "The Golden Age",
       "lat": 36.9034309,
-      "lon": -82.7853107
+      "lon": -82.7853107,
+      "secondaryCountryFlags": [],
+      "headlines": [
+        "US Government publicly allows SEP Soldiers to remain anonymous"
+      ],
+      "sources": []
     },
     {
       "name": "Hana Song is Born",
@@ -4023,47 +4043,6 @@
       "eraName": "The Golden Age"
     },
     {
-      "name": "Omnic Housing",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "London, United Kingdom",
-      "lat": 51.5074456,
-      "lon": -0.1277653,
-      "yearStart": 2065,
-      "yearEnd": 2068,
-      "eraName": "The Golden Age",
-      "filters": [],
-      "factions": [
-        "Shambali"
-      ],
-      "image": "",
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ]
-    },
-    {
-      "name": "Omnic Liberation",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "London, United Kingdom",
-      "lat": 51.5074456,
-      "lon": -0.1277653,
-      "yearStart": 2065,
-      "yearEnd": 2068,
-      "eraName": "The Golden Age",
-      "filters": [
-        "Ramattra"
-      ],
-      "factions": [
-        "26Null Sector"
-      ],
-      "image": "",
-      "sources": []
-    },
-    {
       "name": "Deep Rising",
       "locationType": "earth",
       "cityDisplayName": "Gwishin Omnium, East China Sea",
@@ -4110,6 +4089,25 @@
       "yearStart": 2060
     },
     {
+      "name": "Omnic Liberation",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "lat": 51.5074456,
+      "lon": -0.1277653,
+      "yearStart": 2065,
+      "yearEnd": 2068,
+      "eraName": "The Golden Age",
+      "filters": [
+        "Ramattra"
+      ],
+      "factions": [
+        "26Null Sector"
+      ],
+      "image": "",
+      "sources": []
+    },
+    {
       "name": "Harnessing te Harness",
       "locationType": "station",
       "cityDisplayName": "Interstellar Journey Space Station",
@@ -4147,6 +4145,28 @@
       "y": 70,
       "eraName": "The Golden Age",
       "yearStart": 2062
+    },
+    {
+      "name": "Omnic Housing",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "London, United Kingdom",
+      "lat": 51.5074456,
+      "lon": -0.1277653,
+      "yearStart": 2065,
+      "yearEnd": 2068,
+      "eraName": "The Golden Age",
+      "filters": [],
+      "factions": [
+        "Shambali"
+      ],
+      "image": "",
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
     },
     {
       "name": "The Atlantic Arcology",
@@ -4350,24 +4370,6 @@
       "yearEnd": 2068
     },
     {
-      "name": "Pressure Makes a DIamond",
-      "locationType": "earth",
-      "cityDisplayName": "London, England",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Domina"
-      ],
-      "factions": [
-        "05Vishkar"
-      ],
-      "lat": 51.5074456,
-      "lon": -0.1277653,
-      "eraName": "The Golden Age",
-      "yearStart": 2060,
-      "yearEnd": 2068
-    },
-    {
       "name": "Lunar Revolt",
       "locationType": "moon",
       "cityDisplayName": "Horizon Lunar Colony",
@@ -4421,50 +4423,6 @@
       "lon": 7.426559
     },
     {
-      "name": "Shimada Takedown",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "Hanamura, Japan",
-      "lat": 35.6762,
-      "lon": 139.6503,
-      "yearStart": 2068,
-      "eraName": "The Golden Age",
-      "filters": [
-        "Genji",
-        "Reaper",
-        "Cassidy"
-      ],
-      "factions": [
-        "Talon",
-        "Shimada"
-      ],
-      "image": "",
-      "sources": [
-        {
-          "text": "Overwatch Declassified",
-          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
-        }
-      ]
-    },
-    {
-      "name": "Shrine Maiden",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "Kanezaka, Japan",
-      "lat": 35.3606,
-      "lon": 138.7274,
-      "yearStart": 2068,
-      "eraName": "The Golden Age",
-      "filters": [
-        "Kiriko"
-      ],
-      "factions": [
-        "22Hashimoto"
-      ],
-      "image": "",
-      "sources": []
-    },
-    {
       "name": "Intrepit Adventurers",
       "locationType": "earth",
       "cityDisplayName": "Nova Scotia, Canada",
@@ -4502,6 +4460,50 @@
           "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
         }
       ],
+      "eraName": "The Golden Age",
+      "yearStart": 2060,
+      "yearEnd": 2068
+    },
+    {
+      "name": "Shimada Takedown",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "Hanamura, Japan",
+      "lat": 35.6762,
+      "lon": 139.6503,
+      "yearStart": 2068,
+      "eraName": "The Golden Age",
+      "filters": [
+        "Genji",
+        "Reaper",
+        "Cassidy"
+      ],
+      "factions": [
+        "Talon",
+        "Shimada"
+      ],
+      "image": "",
+      "sources": [
+        {
+          "text": "Overwatch Declassified",
+          "url": "https://www.amazon.com/Overwatch-Declassified-Official-Seanan-McGuire/dp/1803361662"
+        }
+      ]
+    },
+    {
+      "name": "Pressure Makes a DIamond",
+      "locationType": "earth",
+      "cityDisplayName": "London, England",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Domina"
+      ],
+      "factions": [
+        "05Vishkar"
+      ],
+      "lat": 51.5074456,
+      "lon": -0.1277653,
       "eraName": "The Golden Age",
       "yearStart": 2060,
       "yearEnd": 2068
@@ -4553,6 +4555,24 @@
       "yearStart": 2068,
       "yearEnd": 2069,
       "eraName": "The Golden Age"
+    },
+    {
+      "name": "Shrine Maiden",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "Kanezaka, Japan",
+      "lat": 35.3606,
+      "lon": 138.7274,
+      "yearStart": 2068,
+      "eraName": "The Golden Age",
+      "filters": [
+        "Kiriko"
+      ],
+      "factions": [
+        "22Hashimoto"
+      ],
+      "image": "",
+      "sources": []
     },
     {
       "name": "Champion",
@@ -4651,43 +4671,6 @@
       ]
     },
     {
-      "name": "Stolen Future",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "Rome, Italy",
-      "lat": 41.8933203,
-      "lon": 12.4829321,
-      "yearStart": 2068,
-      "eraName": "The Fall of Overwatch",
-      "filters": [
-        "Vendetta",
-        "Doomfist"
-      ],
-      "factions": [
-        "03Talon"
-      ],
-      "image": "",
-      "sources": []
-    },
-    {
-      "name": "Prodigy Child",
-      "locationType": "earth",
-      "cityDisplayName": "Runasapi, Peru",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Illari"
-      ],
-      "factions": [
-        "Inti Warriors"
-      ],
-      "lat": -13.1631,
-      "lon": -72.545,
-      "yearStart": 2060,
-      "yearEnd": 2070,
-      "eraName": "The Fall of Overwatch"
-    },
-    {
       "name": "Bad Company",
       "locationType": "earth",
       "cityDisplayName": "Oasis University, Iraq",
@@ -4711,6 +4694,43 @@
       "yearStart": 2068,
       "yearEnd": 2070,
       "eraName": "The Fall of Overwatch"
+    },
+    {
+      "name": "Prodigy Child",
+      "locationType": "earth",
+      "cityDisplayName": "Runasapi, Peru",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Illari"
+      ],
+      "factions": [
+        "Inti Warriors"
+      ],
+      "lat": -13.1631,
+      "lon": -72.545,
+      "yearStart": 2060,
+      "yearEnd": 2070,
+      "eraName": "The Fall of Overwatch"
+    },
+    {
+      "name": "Stolen Future",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "Rome, Italy",
+      "lat": 41.8933203,
+      "lon": 12.4829321,
+      "yearStart": 2068,
+      "eraName": "The Fall of Overwatch",
+      "filters": [
+        "Vendetta",
+        "Doomfist"
+      ],
+      "factions": [
+        "03Talon"
+      ],
+      "image": "",
+      "sources": []
     },
     {
       "name": "Deep Sea Raiders",
@@ -4795,11 +4815,11 @@
     },
     {
       "name": "Neural Reconditioning",
-      "description": "",
+      "description": "No description available.",
       "locationType": "earth",
-      "cityDisplayName": "Rome, Italy",
-      "lat": 41.8933203,
-      "lon": 12.4829321,
+      "cityDisplayName": "Oasis University, Iraq",
+      "lat": 29.5918,
+      "lon": 52.5836,
       "yearStart": 2069,
       "eraName": "The Fall of Overwatch",
       "filters": [
@@ -4814,7 +4834,11 @@
           "url": "https://overwatch.blizzard.com/en-us/heroes/widowmaker/"
         }
       ],
-      "image": ""
+      "image": "",
+      "yearEnd": null,
+      "npcs": [],
+      "secondaryCountryFlags": [],
+      "headlines": []
     },
     {
       "name": "Failure at Sea",
@@ -5070,26 +5094,6 @@
       "eraName": "The Fall of Overwatch"
     },
     {
-      "name": "The Conspiracy",
-      "locationType": "earth",
-      "cityDisplayName": "Dorado, Mexico",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Sombra"
-      ],
-      "factions": [
-        "Conspiracy",
-        "Los Muertos",
-        "Phreaks"
-      ],
-      "lat": 19.1738,
-      "lon": -96.1342,
-      "yearStart": 2069,
-      "yearEnd": 2072,
-      "eraName": "The Fall of Overwatch"
-    },
-    {
       "name": "Storm Rising",
       "description": "",
       "locationType": "earth",
@@ -5140,6 +5144,26 @@
       ],
       "image": "",
       "sources": []
+    },
+    {
+      "name": "The Conspiracy",
+      "locationType": "earth",
+      "cityDisplayName": "Dorado, Mexico",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Sombra"
+      ],
+      "factions": [
+        "Conspiracy",
+        "Los Muertos",
+        "Phreaks"
+      ],
+      "lat": 19.1738,
+      "lon": -96.1342,
+      "yearStart": 2069,
+      "yearEnd": 2072,
+      "eraName": "The Fall of Overwatch"
     },
     {
       "name": "Closed Fist",
@@ -6127,6 +6151,24 @@
       "eraName": "The Age of Conflict"
     },
     {
+      "name": "A New Empire",
+      "locationType": "earth",
+      "cityDisplayName": "Colosseo, Italy",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Vendetta"
+      ],
+      "factions": [
+        "Colloseo Gladiatori",
+        "Talon"
+      ],
+      "lat": 41.8909421,
+      "lon": 12.491903,
+      "yearStart": 2077,
+      "eraName": "The Age of Conflict"
+    },
+    {
       "name": "Genius Grant",
       "locationType": "earth",
       "cityDisplayName": "City State of Numbani",
@@ -6144,22 +6186,22 @@
       "eraName": "The Age of Conflict"
     },
     {
-      "name": "A New Empire",
+      "name": "Reflections",
+      "description": "No description available.",
       "locationType": "earth",
-      "cityDisplayName": "Colosseo, Italy",
-      "description": "",
+      "lat": 36.1408,
+      "lon": -5.3536,
+      "filters": [],
+      "factions": [],
+      "npcs": [],
       "image": "",
-      "filters": [
-        "Vendetta"
-      ],
-      "factions": [
-        "Colloseo Gladiatori",
-        "Talon"
-      ],
-      "lat": 41.8909421,
-      "lon": 12.491903,
-      "yearStart": 2077,
-      "eraName": "The Age of Conflict"
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "yearEnd": null,
+      "eraName": "The Age of Conflict",
+      "secondaryCountryFlags": [],
+      "headlines": [],
+      "sources": [],
+      "yearStart": 2077
     },
     {
       "name": "Old Soldiers",
@@ -6322,28 +6364,6 @@
       "sources": []
     },
     {
-      "name": "Masquerade",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "Venice, Italy",
-      "lat": 45.4371908,
-      "lon": 12.3345898,
-      "yearStart": 2078,
-      "eraName": "The Age of Conflict",
-      "filters": [
-        "Doomfist",
-        "Reaper",
-        "Moira",
-        "Domina"
-      ],
-      "factions": [
-        "Talon",
-        "Max's Vault"
-      ],
-      "image": "",
-      "sources": []
-    },
-    {
       "name": "Idina Unit OR15A Goes Online",
       "locationType": "earth",
       "cityDisplayName": "City State of Numbani",
@@ -6380,20 +6400,23 @@
       "sources": []
     },
     {
-      "name": "System Reboot",
+      "name": "Masquerade",
       "description": "",
       "locationType": "earth",
-      "cityDisplayName": "Gothenburg, Sweden",
-      "lat": 57.7072326,
-      "lon": 11.9670171,
+      "cityDisplayName": "Venice, Italy",
+      "lat": 45.4371908,
+      "lon": 12.3345898,
       "yearStart": 2078,
       "eraName": "The Age of Conflict",
       "filters": [
-        "Torbjörn",
-        "Bastion"
+        "Doomfist",
+        "Reaper",
+        "Moira",
+        "Domina"
       ],
       "factions": [
-        "08Ironclad"
+        "Talon",
+        "Max's Vault"
       ],
       "image": "",
       "sources": []
@@ -6455,6 +6478,25 @@
       "lon": 84.124,
       "yearStart": 2078,
       "eraName": "The Age of Conflict"
+    },
+    {
+      "name": "System Reboot",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "Gothenburg, Sweden",
+      "lat": 57.7072326,
+      "lon": 11.9670171,
+      "yearStart": 2078,
+      "eraName": "The Age of Conflict",
+      "filters": [
+        "Torbjörn",
+        "Bastion"
+      ],
+      "factions": [
+        "08Ironclad"
+      ],
+      "image": "",
+      "sources": []
     },
     {
       "name": "Failed Exams",
@@ -6979,26 +7021,6 @@
       "sources": []
     },
     {
-      "name": "Lucky Man",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "Zurich, Switzerland",
-      "lat": 47.3744489,
-      "lon": 8.5410422,
-      "yearStart": 2079,
-      "eraName": "The Null Sector Invasion",
-      "filters": [
-        "Soldier 76",
-        "Sombra"
-      ],
-      "factions": [
-        "27Null Sector",
-        "24Conspiracy"
-      ],
-      "image": "",
-      "sources": []
-    },
-    {
       "name": "Ironclad Help",
       "locationType": "earth",
       "cityDisplayName": "Gothenburg, Sweden",
@@ -7042,6 +7064,26 @@
       "yearStart": 2079
     },
     {
+      "name": "Lucky Man",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "Zurich, Switzerland",
+      "lat": 47.3744489,
+      "lon": 8.5410422,
+      "yearStart": 2079,
+      "eraName": "The Null Sector Invasion",
+      "filters": [
+        "Soldier 76",
+        "Sombra"
+      ],
+      "factions": [
+        "27Null Sector",
+        "24Conspiracy"
+      ],
+      "image": "",
+      "sources": []
+    },
+    {
       "name": "Stalemate",
       "description": "",
       "locationType": "earth",
@@ -7063,41 +7105,6 @@
       "lon": 123.35
     },
     {
-      "name": "Water Fighter",
-      "locationType": "earth",
-      "cityDisplayName": "Chengdu, China",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Wuyang"
-      ],
-      "factions": [
-        "10Wuxing University"
-      ],
-      "lat": 30.659867,
-      "lon": 104.063315,
-      "eraName": "The Null Sector Invasion",
-      "yearStart": 2079
-    },
-    {
-      "name": "Free the Phreaks",
-      "locationType": "earth",
-      "cityDisplayName": "Aatlis, Morocco",
-      "description": "",
-      "image": "",
-      "filters": [
-        "Hazard"
-      ],
-      "factions": [
-        "30Phreaks",
-        "32Helix Securities"
-      ],
-      "lat": 34.0209,
-      "lon": -6.8416,
-      "eraName": "The Null Sector Invasion",
-      "yearStart": 2079
-    },
-    {
       "name": "Visitor",
       "description": "",
       "locationType": "marsShip",
@@ -7115,6 +7122,23 @@
       ],
       "image": "",
       "sources": []
+    },
+    {
+      "name": "Water Fighter",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Wuyang"
+      ],
+      "factions": [
+        "10Wuxing University"
+      ],
+      "lat": 30.659867,
+      "lon": 104.063315,
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Emergency Landing",
@@ -7137,6 +7161,24 @@
       ],
       "image": "",
       "sources": []
+    },
+    {
+      "name": "Free the Phreaks",
+      "locationType": "earth",
+      "cityDisplayName": "Aatlis, Morocco",
+      "description": "",
+      "image": "",
+      "filters": [
+        "Hazard"
+      ],
+      "factions": [
+        "30Phreaks",
+        "32Helix Securities"
+      ],
+      "lat": 34.0209,
+      "lon": -6.8416,
+      "eraName": "The Null Sector Invasion",
+      "yearStart": 2079
     },
     {
       "name": "Warm Welcome",
@@ -7250,23 +7292,22 @@
       "yearStart": 2079
     },
     {
-      "name": "New Heights",
-      "description": "",
+      "name": "Together",
+      "description": "No description available.",
       "locationType": "earth",
-      "filters": [
-        "Sierra"
-      ],
-      "factions": [
-        "Helix Securities"
-      ],
+      "lat": 36.1408,
+      "lon": -5.3536,
+      "filters": [],
+      "factions": [],
       "npcs": [],
       "image": "",
-      "cityDisplayName": "Watchpoint Grand Mesa, United States",
-      "yearStart": 2079,
-      "yearEnd": 2080,
+      "cityDisplayName": "Watchpoint Gibraltar",
+      "yearEnd": null,
       "eraName": "The Null Sector Invasion",
-      "lat": 39.1131257,
-      "lon": -108.0127646
+      "secondaryCountryFlags": [],
+      "headlines": [],
+      "sources": [],
+      "yearStart": 2079
     },
     {
       "name": "Futures Past",
@@ -7288,6 +7329,25 @@
       "lon": -72.545,
       "eraName": "The Null Sector Invasion",
       "yearStart": 2079
+    },
+    {
+      "name": "New Heights",
+      "description": "",
+      "locationType": "earth",
+      "filters": [
+        "Sierra"
+      ],
+      "factions": [
+        "Helix Securities"
+      ],
+      "npcs": [],
+      "image": "",
+      "cityDisplayName": "Watchpoint Grand Mesa, United States",
+      "yearStart": 2079,
+      "yearEnd": 2080,
+      "eraName": "The Null Sector Invasion",
+      "lat": 39.1131257,
+      "lon": -108.0127646
     },
     {
       "name": "Vested Interests",
@@ -7438,24 +7498,23 @@
       "sources": []
     },
     {
-      "name": "Elemental Kin",
+      "name": "Signs of Life",
       "description": "",
       "locationType": "earth",
-      "cityDisplayName": "Chengdu, China",
-      "lat": 30.659867,
-      "lon": 104.063315,
+      "cityDisplayName": "Lijiang, China",
+      "lat": 26.8595868,
+      "lon": 100.2249797,
       "yearStart": 2080,
       "eraName": "The Null Sector Invasion",
       "filters": [
-        "Wuyang",
-        "Anran"
+        "Juno",
+        "Mei"
       ],
       "factions": [
-        "Overwatch",
-        "Wuxing University"
+        "Lucheng",
+        "Overwatch"
       ],
       "image": "",
-      "npcs": [],
       "sources": []
     },
     {
@@ -7481,6 +7540,27 @@
       "yearStart": 2080
     },
     {
+      "name": "Elemental Kin",
+      "description": "",
+      "locationType": "earth",
+      "cityDisplayName": "Chengdu, China",
+      "lat": 30.659867,
+      "lon": 104.063315,
+      "yearStart": 2080,
+      "eraName": "The Null Sector Invasion",
+      "filters": [
+        "Wuyang",
+        "Anran"
+      ],
+      "factions": [
+        "Overwatch",
+        "Wuxing University"
+      ],
+      "image": "",
+      "npcs": [],
+      "sources": []
+    },
+    {
       "name": "Old Friend",
       "locationType": "earth",
       "cityDisplayName": "Monte-Carlo, Monaco",
@@ -7500,26 +7580,6 @@
       "npcs": [
         "Maximillien"
       ]
-    },
-    {
-      "name": "Signs of Life",
-      "description": "",
-      "locationType": "earth",
-      "cityDisplayName": "Lijiang, China",
-      "lat": 26.8595868,
-      "lon": 100.2249797,
-      "yearStart": 2080,
-      "eraName": "The Null Sector Invasion",
-      "filters": [
-        "Juno",
-        "Mei"
-      ],
-      "factions": [
-        "Lucheng",
-        "Overwatch"
-      ],
-      "image": "",
-      "sources": []
     },
     {
       "name": "Jetpack Katt",

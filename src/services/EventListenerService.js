@@ -115,7 +115,7 @@ class EventListenerService {
                 
                 if (isNowOpen) {
                     try {
-                        window.EventsHoverPreviewBadge?.hide();
+                        window.SummaryInfoBadge?.hide();
                     } catch (_) {}
                     newToggleBtn.classList.add('active');
                     if (this.eventManager.renderEvents) {
@@ -151,7 +151,7 @@ class EventListenerService {
                 
                 panel.classList.remove('open');
                 try {
-                    window.EventsHoverPreviewBadge?.hide();
+                    window.SummaryInfoBadge?.hide();
                 } catch (_) {}
                 const toggleBtn = document.getElementById('eventsManageToggle');
                 if (toggleBtn) {

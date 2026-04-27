@@ -30,19 +30,6 @@ body.color-palette-gray main {
     background: var(--bg-main);
 }
 
-/* Sidebar */
-body.color-palette-gray .sidebar {
-    background: var(--primary-gray) !important;
-}
-
-body.color-palette-gray .sidebar-indicator {
-    background: rgba(var(--accent-gray-primary-rgb), var(--opacity-medium)) !important;
-}
-
-body.color-palette-gray .sidebar-indicator:hover {
-    background: rgba(var(--accent-gray-primary-rgb), var(--opacity-heavy)) !important;
-}
-
 body.color-palette-gray .panel-resize-handle__pill {
     background: rgba(var(--accent-gray-primary-rgb), var(--opacity-medium)) !important;
 }

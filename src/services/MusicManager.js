@@ -57,7 +57,7 @@ class MusicManager {
         this._owtlHeaderHubListenerAttached = false;
     }
 
-    /** Same coordinate space as `EventsHoverPreviewBadge` (under-button passive label). */
+    /** Same coordinate space as `SummaryInfoBadge` (under-button passive label). */
     _getBodyScale() {
         try {
             const t = window.getComputedStyle(document.body).transform;
@@ -82,10 +82,13 @@ class MusicManager {
             badge.setAttribute('aria-hidden', 'true');
             badge.innerHTML = `
                 <div class="music-now-playing-label">Now playing:</div>
+                <div class="music-now-playing-spacer-top" aria-hidden="true"></div>
                 <div class="music-now-playing-badge-title-row">
-                    <img class="music-playing-disc music-playing-disc--badge" src="assets/images/icons/Playing Icon.png" alt="" width="28" height="28" decoding="async" />
+                    <img class="music-playing-disc music-playing-disc--badge" src="assets/images/icons/Playing Icon.png" alt="" width="36" height="36" decoding="async" />
                     <div class="music-now-playing-song"></div>
                 </div>
+                <div class="music-now-playing-spacer-bottom" aria-hidden="true"></div>
+                <img class="music-now-playing-underline" src="assets/images/misc/Badge Underline.png" alt="" aria-hidden="true" />
             `;
             document.body.appendChild(badge);
         }
@@ -122,70 +125,29 @@ class MusicManager {
         const musicRect = btn.getBoundingClientRect();
         const gap = 2;
 
-        // If the Home button exists, position badge closer to Home (70% towards Home)
-        const homeBtn = document.getElementById('homeBtn');
-        let cx;
-        if (homeBtn) {
-            const homeRect = homeBtn.getBoundingClientRect();
-            const musicCenter = musicRect.left + musicRect.width / 2;
-            const homeCenter = homeRect.left + homeRect.width / 2;
-            cx = (musicCenter + (homeCenter - musicCenter) * 0.95) / scale;
-        } else {
-            cx = (musicRect.left + musicRect.width / 2) / scale;
-        }
+        // Position symmetrically to match Summary badge distance from edge
+        // Summary badge is 20% from right edge, so Now Playing should be 20% from right edge (80% from left)
+        // Anchor from LEFT edge so badge grows RIGHTWARD when text expands
+        const vw = Math.max(1, (window.innerWidth || 1) / scale);
+        const leftPos = (vw * 0.80); // 80% from left edge (same as 20% from right)
 
         const top = (musicRect.bottom + gap) / scale;
 
-        const vw = Math.max(1, (window.innerWidth || 1) / scale);
-        const margin = 8;
-        const w = badge.offsetWidth || 280;
-        const half = w / 2;
-        let left = cx;
-        if (left - half < margin) left = half + margin;
-        if (left + half > vw - margin) left = vw - half - margin;
-
-        badge.style.left = `${left}px`;
+        badge.style.left = `${leftPos}px`;
+        badge.style.right = '';
         badge.style.top = `${top}px`;
     }
 
     _onHeaderHubMutated() {
-        if (this.nowPlayingBadge && this.nowPlayingBadge.classList.contains('music-now-playing-badge--visible')) {
-            this._positionNowPlayingBadge();
-        }
+        // Don't reposition badge - it's anchored from left edge and should grow rightward
     }
 
     _startNowPlayingBadgeFollow() {
         this._stopNowPlayingBadgeFollow();
         this._syncMusicToggleButton();
         this._positionNowPlayingBadge();
-        let pending = null;
-        const schedule = () => {
-            if (pending != null) return;
-            pending = requestAnimationFrame(() => {
-                pending = null;
-                if (!this.nowPlayingBadge || !this.nowPlayingBadge.classList.contains('music-now-playing-badge--visible')) {
-                    return;
-                }
-                this._positionNowPlayingBadge();
-            });
-        };
-        const onScroll = () => schedule();
-        const onResize = () => schedule();
-        window.addEventListener('scroll', onScroll, true);
-        window.addEventListener('resize', onResize);
-        const hub = this.musicButton && this.musicButton.closest
-            ? this.musicButton.closest('.header-hub')
-            : null;
-        if (hub) hub.addEventListener('scroll', onScroll);
-        this._nowPlayingFollowCleanup = () => {
-            window.removeEventListener('scroll', onScroll, true);
-            window.removeEventListener('resize', onResize);
-            if (hub) hub.removeEventListener('scroll', onScroll);
-            if (pending != null) {
-                cancelAnimationFrame(pending);
-                pending = null;
-            }
-        };
+        // Don't reposition on scroll or resize - badge is anchored from left edge and should grow rightward
+        this._nowPlayingFollowCleanup = () => {};
     }
 
     _stopNowPlayingBadgeFollow() {
@@ -233,7 +195,7 @@ class MusicManager {
             textEl.textContent = nextText;
             textEl.classList.remove('music-now-playing-song--swap-out', 'music-now-playing-song--swap-in');
             this._nowPlayingLastText = nextText;
-            this._positionNowPlayingBadge();
+            // Don't reposition badge - it's anchored from left edge and should grow rightward
             return;
         }
 
@@ -246,7 +208,7 @@ class MusicManager {
         this._nowPlayingSwapTimeout = setTimeout(() => {
             textEl.textContent = nextText;
             this._nowPlayingLastText = nextText;
-            this._positionNowPlayingBadge();
+            // Don't reposition badge - it's anchored from left edge and should grow rightward
             textEl.classList.remove('music-now-playing-song--swap-out');
             textEl.classList.add('music-now-playing-song--swap-in');
 
@@ -565,7 +527,7 @@ class MusicManager {
             // Panel closed: refresh + show current song (song may have changed while panel was open).
             try {
                 self.updateNowPlaying();
-                self._positionNowPlayingBadge();
+                // Don't reposition badge - it's anchored from left edge and should grow rightward
             } catch (_) {}
         });
         this.panelService.setupCloseButton();

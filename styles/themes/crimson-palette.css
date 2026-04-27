@@ -30,19 +30,6 @@ body.color-palette-crimson main {
     background: var(--bg-main);
 }
 
-/* Sidebar */
-body.color-palette-crimson .sidebar {
-    background: var(--primary-crimson) !important;
-}
-
-body.color-palette-crimson .sidebar-indicator {
-    background: rgba(var(--accent-crimson-primary-rgb), var(--opacity-medium)) !important;
-}
-
-body.color-palette-crimson .sidebar-indicator:hover {
-    background: rgba(var(--accent-crimson-primary-rgb), var(--opacity-heavy)) !important;
-}
-
 body.color-palette-crimson .panel-resize-handle__pill {
     background: rgba(var(--accent-crimson-primary-rgb), var(--opacity-medium)) !important;
 }

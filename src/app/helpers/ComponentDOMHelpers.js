@@ -151,7 +151,13 @@ export function createFiltersPanel() {
             <div class="filters-grid" id="filtersGrid"></div>
         </div>
     `;
-    document.body.appendChild(panel);
+    // Append to layout-container instead of body for flexbox layout
+    const layoutContainer = document.querySelector('.layout-container');
+    if (layoutContainer) {
+        layoutContainer.appendChild(panel);
+    } else {
+        document.body.appendChild(panel);
+    }
     return panel;
 }
 

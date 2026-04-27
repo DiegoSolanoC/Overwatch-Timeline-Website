@@ -748,7 +748,7 @@ class EventManager {
             panel.classList.add('open');
             toggle?.classList.add('active');
             try {
-                window.EventsHoverPreviewBadge?.hide();
+                window.SummaryInfoBadge?.hide();
             } catch (_) {}
             this.renderService?.requestPageEntranceAnimation?.();
         }

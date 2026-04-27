@@ -653,42 +653,6 @@
         overflow-x: visible !important;
     }
 
-    .sidebar {
-        position: fixed;
-        right: -100% !important;
-        left: auto !important;
-        top: 60px;
-        bottom: var(--footer-height);
-        width: 280px;
-        max-width: 85vw;
-        flex-direction: column;
-        padding: 0;
-        overflow-y: auto;
-        justify-content: flex-start;
-        visibility: hidden;
-        pointer-events: none;
-    }
-
-    .sidebar.visible {
-        right: 0 !important;
-        left: auto !important;
-        visibility: visible;
-        pointer-events: auto;
-    }
-
-    .sidebar button {
-        padding: 1rem 1.5rem;
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        text-align: left;
-        white-space: nowrap;
-    }
-
-    .sidebar button.active {
-        border-right: none;
-        border-left: 3px solid #64B5F6;
-    }
-
     .hero h2 {
         font-size: 2rem;
     }
