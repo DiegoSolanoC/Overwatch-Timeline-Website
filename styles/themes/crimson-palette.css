@@ -44,12 +44,20 @@ body.color-palette-crimson .panel--resizing .panel-resize-handle__pill {
 }
 
 body.color-palette-crimson .pagination-dock-collapse-pill {
-    background: transparent !important;
+    background-color: transparent !important;
+    background-image: url('../../assets/images/misc/Controller Border.png') !important;
+    background-repeat: no-repeat !important;
+    background-position: center bottom !important;
+    background-size: 100% 100% !important;
+    border: none !important;
+    box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.45) !important;
 }
 
 body.color-palette-crimson .pagination-dock-collapse-handle:hover .pagination-dock-collapse-pill,
 body.color-palette-crimson .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
-    background: transparent !important;
+    background-image: url('../../assets/images/misc/Controller Border.png') !important;
+    background-size: 100% 100% !important;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Globe Control Buttons */
@@ -114,6 +122,23 @@ body.color-palette-crimson .dock-globe-rail--center > #nextEventBtn {
 body.color-palette-crimson .dock-globe-rail--center > .page-input-container {
     background: var(--btn-crimson-bg) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #globalImageToggle.dock-globe-rail__btn,
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #filtersToggle.dock-globe-rail__btn {
+    background: var(--btn-crimson-bg) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #globalImageToggle.dock-globe-rail__btn:hover,
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #filtersToggle.dock-globe-rail__btn:hover,
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #prevPageBtn:hover,
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #nextPageBtn:hover,
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #prevEventBtn:hover,
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > #nextEventBtn:hover,
+body.color-palette-crimson .pagination-dock-top-trapezoid .dock-globe-rail--center > .page-input-container:hover {
+    background: var(--btn-crimson-bg-hover) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
 }
 
 body.color-palette-crimson .event-page-slider::-webkit-slider-runnable-track {

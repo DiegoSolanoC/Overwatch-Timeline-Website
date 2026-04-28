@@ -5,11 +5,47 @@
 
 export const PAGINATION_DOCK_COLLAPSED_STORAGE_KEY = 'timeline-pagination-dock-collapsed';
 
+/** Native pixel size of `assets/images/misc/Dock Border.png` (reference only; border band height is CSS-driven). */
+export const DOCK_BORDER_ART_PX_W = 5200;
+export const DOCK_BORDER_ART_PX_H = 200;
+
+/**
+ * Sets `body { --dock-top-border-h }` to the fixed dock border image band height (`--dock-border-img-h`) so
+ * collapse handle + fixed globe rails track the border art — independent of column width (images use object-fit: fill).
+ */
+export function syncPaginationDockTopChromeMetrics() {
+    const dock = document.getElementById('paginationDock');
+    if (!dock) {
+        document.body.style.removeProperty('--dock-top-border-h');
+        return;
+    }
+    const cs = getComputedStyle(document.body);
+    const raw = cs.getPropertyValue('--dock-border-img-h').trim();
+    const parsed = parseFloat(raw);
+    const h = Number.isFinite(parsed) && parsed > 0 ? parsed : 80;
+    document.body.style.setProperty('--dock-top-border-h', `${h.toFixed(3)}px`);
+}
+
+let dockTopChromeResizeBound = false;
+
+export function initPaginationDockTopChromeMetrics() {
+    if (dockTopChromeResizeBound) return;
+    dockTopChromeResizeBound = true;
+
+    const onLayout = () => {
+        syncPaginationDockTopChromeMetrics();
+    };
+    window.addEventListener('resize', onLayout);
+    if (typeof window.visualViewport !== 'undefined' && window.visualViewport) {
+        window.visualViewport.addEventListener('resize', onLayout);
+    }
+    requestAnimationFrame(onLayout);
+}
+
 /** Narrow width or short edge — matches event-manager toolbar / phone landscape */
 export function isPaginationMobileCompactViewport() {
     const w = window.innerWidth;
-    const h = window.innerHeight;
-    return w <= 768 || Math.min(w, h) < 600;
+    return w <= 768;
 }
 
 /** Notify listeners that only hook window.resize; globe uses ResizeObserver on #globe-container for live sync */
@@ -46,6 +82,7 @@ export function applyPaginationDockViewportMode() {
         document.body.classList.add('pagination-dock-mobile-locked');
         document.body.classList.add('pagination-dock-collapsed');
         setCollapseButtonLabels(btn, true);
+        syncPaginationDockTopChromeMetrics();
         return;
     }
 
@@ -56,6 +93,7 @@ export function applyPaginationDockViewportMode() {
     } catch (_) {}
     document.body.classList.toggle('pagination-dock-collapsed', collapsed);
     setCollapseButtonLabels(btn, collapsed);
+    syncPaginationDockTopChromeMetrics();
 }
 
 /**
@@ -103,6 +141,8 @@ if (typeof window !== 'undefined') {
         toggle: togglePaginationDockCollapse,
         applyViewportMode: applyPaginationDockViewportMode,
         isMobileCompactViewport: isPaginationMobileCompactViewport,
+        syncTopChromeMetrics: syncPaginationDockTopChromeMetrics,
+        initTopChromeMetrics: initPaginationDockTopChromeMetrics,
         STORAGE_KEY: PAGINATION_DOCK_COLLAPSED_STORAGE_KEY,
     };
 }

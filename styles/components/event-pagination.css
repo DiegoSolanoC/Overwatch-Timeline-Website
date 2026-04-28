@@ -258,7 +258,6 @@ body.color-palette-gray .events-pagination-input:focus {
         max-height: var(--pagination-dock-height, 500px);
         /* Base tint; texture is on ::before so it always paints (see .pagination-dock > * fix below). */
         background-color: var(--bg-main, #0a1929);
-        border-top: 1px solid rgba(var(--accent-primary-rgb, 33, 150, 243), 0.25);
         box-sizing: border-box;
         position: relative;
         /* Keep dock chrome (including top border image) above event slide/image layers (~500). */
@@ -280,15 +279,83 @@ body.color-palette-gray .events-pagination-input:focus {
                 var(--pagination-dock-transition-easing, cubic-bezier(0.32, 0.72, 0.25, 1));
     }
 
-    body:has(#paginationDock) .pagination-dock-top-border {
+    /*
+     * Dock top cap: left border | trapezoid | right border (mirrored), anchored above the dock.
+     */
+    body:has(#paginationDock) .pagination-dock-top-cap-row {
         position: absolute;
-        top: 0;
         left: 0;
+        right: 0;
+        bottom: calc(100% + var(--dock-top-cap-lift, -5px));
         width: 100%;
-        height: auto;
-        object-fit: contain;
+        max-width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 0;
+        box-sizing: border-box;
+        line-height: 0;
+        z-index: 4;
         pointer-events: none;
-        z-index: 20;
+    }
+
+    body:has(#paginationDock) .pagination-dock-top-border-side {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    body:has(#paginationDock) .pagination-dock-top-border-side .pagination-dock-top-border-img {
+        display: block;
+        width: 100%;
+        height: var(--dock-border-img-h, 80px);
+        object-fit: fill;
+        object-position: center bottom;
+        flex-shrink: 0;
+        user-select: none;
+        -webkit-user-drag: none;
+        position: relative;
+        z-index: 0;
+    }
+
+    body:has(#paginationDock) .pagination-dock-top-border-side--right .pagination-dock-top-border-img {
+        transform: scaleX(-1);
+    }
+
+    body:has(#paginationDock) .pagination-dock-top-cap-row .pagination-dock-top-trapezoid {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        transform: translateY(var(--dock-trapezoid-offset-y, 12px));
+        z-index: 2;
+        flex: 0 0 auto;
+        width: var(--dock-trapezoid-width, min(820px, 88vw));
+        height: var(--dock-border-img-h, 80px);
+        pointer-events: none;
+        line-height: 0;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: stretch;
+        gap: 0;
+        box-sizing: border-box;
+        overflow: visible;
+    }
+
+    body:has(#paginationDock) .pagination-dock-top-trapezoid__svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
     }
 
     /*
@@ -352,7 +419,9 @@ body.color-palette-gray .events-pagination-input:focus {
      * Do not target .pagination-dock-pattern here: `.pagination-dock > * { position: relative }`
      * overrides its position:absolute and collapses the layer to 0 height (invisible).
      */
-    body:has(#paginationDock) .pagination-dock > *:not(.pagination-dock-pattern) {
+    body:has(#paginationDock)
+        .pagination-dock
+        > *:not(.pagination-dock-pattern):not(.pagination-dock-top-cap-row) {
         position: relative;
         z-index: 1;
     }
@@ -363,6 +432,23 @@ body.color-palette-gray .events-pagination-input:focus {
      * Setting max-height prevents flex from distributing extra space.
      */
     body:has(#paginationDock) {
+        /* Single source of truth for dock chrome alignment (collapse + center rail). */
+        --dock-border-bottom-offset: 0px;
+        --dock-border-height: 190px;
+        --dock-collapse-bottom: 70px;
+        --dock-center-rail-y: 0px;
+        /* Cap row vs dock top: positive = up, negative = down (border imgs + trapezium). */
+        --dock-top-cap-lift: -5px;
+        --dock-trapezoid-offset-y: 3px;
+        /* Extra vertical shift for center rail inside trapezoid (negative = up). */
+        --dock-trapezoid-rail-shift-y: -3px;
+        --dock-trapezoid-width: min(820px, 88vw);
+        /* Dock side border art + trapezoid band: fixed height (no vertical shrink when narrowing width); SVG uses preserveAspectRatio none for horizontal stretch. */
+        --dock-border-img-h: 80px;
+        --dock-collapse-pill-width: min(280px, 46vw);
+        --dock-collapse-pill-top-radius: 22px;
+        /* Shift collapse pill + border art slightly toward the dock seam */
+        --dock-collapse-pill-nudge-y: 6px;
         max-height: var(--desktop-scale-inverse, 149.25%) !important;
         overflow: hidden !important;
     }
@@ -399,6 +485,14 @@ body.color-palette-gray .events-pagination-input:focus {
 /* Mobile / short-edge: dock is locked collapsed — no expand control */
 body.pagination-dock-mobile-locked .pagination-dock-collapse-strip {
     display: none !important;
+}
+
+/* Mobile-locked mode: lower dock top border image slightly. */
+body.pagination-dock-mobile-locked:has(#paginationDock) {
+    --dock-border-bottom-offset: 0px;
+    --dock-border-height: 150px;
+    --dock-collapse-bottom: 43px;
+    --dock-center-rail-y: 11px;
 }
 
 /*
@@ -976,7 +1070,7 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
     body:has(#paginationDock) .pagination-dock-collapse-bar {
         position: absolute;
         left: 50%;
-        bottom: 43px;
+        bottom: var(--dock-collapse-bottom, 70px);
         transform: translateX(-50%);
         display: flex;
         align-items: flex-end;
@@ -1003,20 +1097,26 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
     }
 
     body:has(#paginationDock) .pagination-dock-collapse-pill {
-        width: 500px;
+        width: var(--dock-collapse-pill-width, min(280px, 46vw));
         height: 32px;
-        border-radius: 6px 6px 0 0;
-        background: transparent;
+        border-radius: var(--dock-collapse-pill-top-radius, 22px) var(--dock-collapse-pill-top-radius, 22px) 0 0;
+        background-color: transparent;
+        background-image: url('../../../assets/images/misc/Controller Border.png');
+        background-repeat: no-repeat;
+        background-position: center bottom;
+        background-size: 100% 100%;
+        border: none;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        box-shadow: none;
+        box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.35);
+        transform: translateY(var(--dock-collapse-pill-nudge-y, 6px));
         transition:
             width 0.25s ease,
             height 0.25s ease,
-            background 0.25s ease,
-            box-shadow 0.25s ease;
+            box-shadow 0.25s ease,
+            transform 0.25s ease;
         pointer-events: none;
         user-select: none;
     }
@@ -1024,9 +1124,9 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
     /* Left-pointing asset: CW 90° → ↑ (collapse when expanded); CCW 90° → ↓ (expand when collapsed) */
     body:has(#paginationDock) .pagination-dock-collapse-pill .ui-pagination-arrow--dock-collapse {
         display: block;
-        width: 22px;
+        width: 30px;
         height: auto;
-        max-height: 22px;
+        max-height: 30px;
         object-fit: contain;
         pointer-events: none;
         transform: rotate(90deg);
@@ -1040,13 +1140,17 @@ body.pagination-dock-mobile-locked.pagination-dock-collapsed:has(#paginationDock
 
     body:has(#paginationDock) .pagination-dock-collapse-handle:hover .pagination-dock-collapse-pill,
     body:has(#paginationDock) .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
-        background: transparent;
-        width: 500px;
+        background-image: url('../../../assets/images/misc/Controller Border.png');
+        background-size: 100% 100%;
+        width: var(--dock-collapse-pill-width, min(280px, 46vw));
         height: 38px;
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.42);
     }
 
     body:has(#paginationDock) .pagination-dock-collapse-handle:focus-visible .pagination-dock-collapse-pill {
-        box-shadow: none;
+        box-shadow:
+            0 -3px 16px rgba(0, 0, 0, 0.4),
+            0 0 0 2px rgba(255, 255, 255, 0.35);
     }
 
     body:has(#paginationDock) .pagination-dock-collapse-handle:focus {

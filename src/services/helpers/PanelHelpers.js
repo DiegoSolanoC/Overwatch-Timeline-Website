@@ -263,15 +263,23 @@ export function createEventPagination(statusService) {
             dock.insertBefore(patternOverlay, dock.firstChild);
         }
 
-        if (!dock.querySelector('.pagination-dock-top-border')) {
-            const borderImg = document.createElement('img');
-            borderImg.className = 'pagination-dock-top-border';
-            borderImg.src = 'assets/images/misc/Dock Border.png';
-            borderImg.alt = '';
-            borderImg.setAttribute('aria-hidden', 'true');
-            borderImg.style.cssText = 'position: absolute; top: -105px; left: 0; width: 100%; height: auto; object-fit: fill; pointer-events: none;';
-            dock.insertBefore(borderImg, dock.firstChild);
+        const legacyBareBorder = dock.querySelector(':scope > img.pagination-dock-top-border');
+        if (legacyBareBorder) legacyBareBorder.remove();
+        let topAccent = dock.querySelector('.pagination-dock-top-accent');
+        if (!topAccent) {
+            topAccent = document.createElement('div');
+            topAccent.className = 'pagination-dock-top-accent';
+            topAccent.setAttribute('aria-hidden', 'true');
+            dock.insertBefore(topAccent, dock.firstChild);
         }
+        if (!dock.querySelector('.pagination-dock-top-accent-rail')) {
+            const topRail = document.createElement('div');
+            topRail.className = 'pagination-dock-top-accent-rail';
+            topRail.setAttribute('aria-hidden', 'true');
+            dock.insertBefore(topRail, topAccent);
+        }
+
+        const DOCK_BORDER_SRC = 'assets/images/misc/Dock Border.png';
 
         if (paginationEl.parentNode !== dock) {
             dock.appendChild(paginationEl);
@@ -282,6 +290,83 @@ export function createEventPagination(statusService) {
         paginationEl.style.removeProperty('right');
         paginationEl.style.removeProperty('transform');
         paginationEl.style.removeProperty('top');
+
+        const TRAPEZOID_SVG = `<svg class="pagination-dock-top-trapezoid__svg" xmlns="http://www.w3.org/2000/svg" data-dock-trap-v="8" viewBox="-12 -12 124 124" preserveAspectRatio="none" overflow="visible" focusable="false" aria-hidden="true">
+<defs>
+<linearGradient id="paginationDockTrapezoidGrad" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+<stop offset="0%" style="stop-color: rgba(var(--accent-primary-rgb), 0.55)" />
+<stop offset="100%" style="stop-color: rgba(var(--accent-primary-rgb), 0.2)" />
+</linearGradient>
+</defs>
+<polygon points="2,0 98,0 112,100 -12,100" fill="url(#paginationDockTrapezoidGrad)" />
+<path d="M -12,100 L 2,0 L 98,0 L 112,100" fill="none" stroke="#ffffff" stroke-width="8" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" />
+</svg>`;
+
+        let capRow = dock.querySelector('.pagination-dock-top-cap-row');
+        if (!capRow) {
+            capRow = document.createElement('div');
+            capRow.className = 'pagination-dock-top-cap-row';
+            capRow.setAttribute('aria-hidden', 'true');
+
+            const leftSide = document.createElement('div');
+            leftSide.className =
+                'pagination-dock-top-border-side pagination-dock-top-border-side--left';
+            const imgL = document.createElement('img');
+            imgL.className = 'pagination-dock-top-border-img';
+            imgL.src = DOCK_BORDER_SRC;
+            imgL.alt = '';
+            imgL.decoding = 'async';
+            leftSide.appendChild(imgL);
+
+            const trapEl = document.createElement('div');
+            trapEl.className = 'pagination-dock-top-trapezoid';
+            trapEl.setAttribute('aria-hidden', 'true');
+
+            const rightSide = document.createElement('div');
+            rightSide.className =
+                'pagination-dock-top-border-side pagination-dock-top-border-side--right';
+            const imgR = document.createElement('img');
+            imgR.className = 'pagination-dock-top-border-img';
+            imgR.src = DOCK_BORDER_SRC;
+            imgR.alt = '';
+            imgR.decoding = 'async';
+            rightSide.appendChild(imgR);
+
+            capRow.append(leftSide, trapEl, rightSide);
+        }
+
+        if (paginationEl.parentNode === dock) {
+            dock.insertBefore(capRow, paginationEl);
+        } else {
+            dock.appendChild(capRow);
+        }
+
+        const legacyWrap = dock.querySelector(':scope > .pagination-dock-top-border-wrap');
+        if (legacyWrap) {
+            const imgs = Array.from(legacyWrap.querySelectorAll('.pagination-dock-top-border-img'));
+            const leftSide = capRow.querySelector('.pagination-dock-top-border-side--left');
+            const rightSide = capRow.querySelector('.pagination-dock-top-border-side--right');
+            if (imgs[0] && leftSide) leftSide.replaceChildren(imgs[0]);
+            if (imgs[1] && rightSide) rightSide.replaceChildren(imgs[1]);
+            legacyWrap.remove();
+        }
+
+        const orphanTrap = dock.querySelector(':scope > .pagination-dock-top-trapezoid');
+        if (orphanTrap && orphanTrap.parentElement !== capRow) {
+            const mid = capRow.querySelector('.pagination-dock-top-trapezoid');
+            if (mid && mid !== orphanTrap) {
+                capRow.replaceChild(orphanTrap, mid);
+            }
+        }
+
+        const trap = capRow.querySelector('.pagination-dock-top-trapezoid');
+        if (trap && !trap.querySelector('.pagination-dock-top-trapezoid__svg[data-dock-trap-v="8"]')) {
+            trap.innerHTML = TRAPEZOID_SVG;
+        }
+        const centerRailDock = document.getElementById('dockGlobeRailCenter');
+        if (centerRailDock && trap && centerRailDock.parentNode !== trap) {
+            trap.appendChild(centerRailDock);
+        }
 
         applyPaginationDockViewportMode();
         initPaginationDockCollapse();
