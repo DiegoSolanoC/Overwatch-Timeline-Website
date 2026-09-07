@@ -8310,7 +8310,7 @@
       "name": "Valkirie",
       "locationType": "earth",
       "cityDisplayName": "Zurich, Switzerland",
-      "description": "It had been ten years since the end of the Crisis, and Angela's early career was already a fruitful one. Her breakthroughs in the field of applied nanobiology radically improved the treatment of life-threatening injuries, capable of stabilizing near-death patients and saving countless lives. Through her schooling and early years outside of college, Overwatch kept an eye on her, allowing her access to the Watchpoints as she volunteered on the medical staff. Ziegler's technology could have made her rich if she chose to remain in private practice, but she always saw science as something that belonged to the world and the people who benefited from it.\n\nIt was here when Morrison finally chose to approach her directly. As the world finally moved away from the crisis, Morrison wished to shift towards peacetime and civilian applications. The heavy investment in the support departments and Ecopoint bases was one of the early signs of this new mission, making the world a better place. As such, Morrison offered Angela to become the leader of the medical division, with all the money, resources and personnel she could ever dream of. Angela was intrigued by these promises, but she was greatly opposed to the militaristic nature of Overwatch. Even since losing her parents to the war, she did not have the greatest opinion on military peacekeeping.\n\nIn the end, she had agreed to the offer with one caveat. The same way Torbjörn requested back in the day, she wanted to become a part of the strike team, so she could keep a level of control over the use of her technology and allow her to see at work personally. Morrison agreed. In order to work on the frontlines, she began development of the Valkyrie swift-response suit, a personal aerial combat armor that came equipped with nanobiotic capabilities and assistive protocols. Ziegler quickly proved to be a surprisingly adept field agent, with a surgical tactic approach to changing situations. Between her efficiency and the design of her suit, she quickly gained notoriety among the strike team, earning her the call sign \"Mercy\". While she did not enjoy the way this framed her, she was always glad to use her technology for the greater good.",
+      "description": "It had been ten years since the end of the Crisis, and Angela's early career was already a fruitful one. Her breakthroughs in the field of applied nanobiology radically improved the treatment of life-threatening injuries, capable of stabilizing near-death patients and saving countless lives. Through her schooling and early years outside of college, Overwatch kept an eye on her, allowing her access to the Watchpoints as she volunteered on the medical staff. Ziegler's technology could have made her rich if she chose to remain in private practice, but she always saw science as something that belonged to the world and the people who benefited from it.\n\nIt was here when Morrison finally chose to approach her directly. As the world finally moved away from the crisis, Morrison wished to shift towards peacetime and civilian applications. The heavy investment in the support departments and Ecopoint bases was one of the early signs of this new mission, making the world a better place. As such, Morrison offered Angela to become the leader of the medical division, with all the money, resources and personnel she could ever dream of. Angela was intrigued by these promises, but she was greatly opposed to the militaristic nature of Overwatch. Even since losing her parents to the war, she did not have the greatest opinion on military peacekeeping.\n\nIn the end, she had agreed to the offer with one caveat. The same way Torbjörn requested back in the day, she wanted to become a part of the strike team, so she could keep a level of control over the use of her technology and allow her to see at work personally. Morrison agreed. In order to work on the frontlines, she began development of the Valkyrie swift-response suit, a personal aerial combat armor that came equipped with nanobiotic capabilities and assistive protocols. In spite of her opposition to the missuse of her technology, Torbjörn did develop a prototype for a biotic rifle, capable of supplying her medicine from afar. While this device was intended for the field medics, Angela grew concerns that with some modifications, it could weaponize her research. In spite of her reservations with Overwatch, Ziegler quickly proved to be a surprisingly adept field agent, with a surgical tactic approach to changing situations. Between her efficiency and the design of her suit, she quickly gained notoriety among the strike team, earning her the call sign \"Mercy\". While she did not enjoy the way this framed her, she was always glad to use her technology for the greater good.",
       "image": "",
       "lat": 47.3744489,
       "lon": 8.5410422,
@@ -8338,6 +8338,11 @@
           "locationName": "",
           "country": "Mercy, Soldier 76",
           "reasoning": "Angela accepts Morrison's proposal to join Overwatch"
+        },
+        {
+          "locationName": "",
+          "country": "Torbjörn, Ana,",
+          "reasoning": "Develops a biotic rifle that Ana adopts in spite of Angela's concerns"
         }
       ],
       "factionFilterPlaces": [
@@ -8355,9 +8360,14 @@
       "commentary": [
         {
           "name": "Mercy · Helping those in need is its own reward.",
-          "label": "Its own Reward"
+          "label": "Its own Reward",
+          "theaterId": "chatter-mercy",
+          "lineId": "cc4e724d-f543-4618-a1a6-5ce4ed9a1ba7"
         },
-        "In your Armor"
+        {
+          "name": "In your Armor",
+          "theaterId": "0d28d274-88ae-42d5-a42c-8c59f1f5ae1b"
+        }
       ]
     },
     {
@@ -16663,7 +16673,7 @@
     },
     {
       "name": "Idina Troopers",
-      "description": "No description available.",
+      "description": "Following the attack at the Overwatch Museum in New York, the gauntlet was to be transferred to the Numbani Heritage Museum to be part of their exhibition on all three Doomfist's and their history with the city. Several former Overwatch agents and global authorities made an effort to alert Numbani's security forces of the potential for another Talon attack, especially because any attempt on the gaunlet could likely indicate the return of the man himself was also being planned. To defend the city from any potential attacks while the Gauntlet was on the exhibit, Numbani recommended the OR14 program, developing a new troop upgraded Idina model, version OR15.\n\nThese robot patrols were highly lethal and built with years worth of data from previous attempts to stop both Adeyemi and Ogundimu, but their programming was too focused on capturing criminals, rather than integrating them within the community. Efi Oladele was noted as a particular critic of their design as they lacked social skills, never using honorifics or bowing, in spite of having basic speech abilities. She believed that while the Idinas were a great addition to the city that could keep citizens safe, they were not very personable guardians, too robotic to truly connect with those they were protecting. Still, the troops patrolled the city and awaited the arrival of the gauntlet, fortifying Numbani's defenses in case Talon tried another move on the gauntlet.",
       "locationType": "earth",
       "lat": 12.0022,
       "lon": 8.5919,
@@ -16676,12 +16686,16 @@
         {
           "locationName": "City State of Numbani",
           "country": "Numbani",
-          "reasoning": "",
+          "reasoning": "The Doomfist Gauntlet is transfered to the Numbani Heritage Museum",
           "lat": 12.0022,
           "lon": 8.5919
         }
       ],
-      "headlines": [],
+      "headlines": [
+        "Meet the new generation of Idina troopers in Numbani!",
+        "An Interview with Efi Oladele: Can the OR15s keep us safe?",
+        "Numbani Heritage Museum to open Doomfist Exhibit"
+      ],
       "sources": [
         {
           "text": "Orisa Origin Story",
@@ -16692,21 +16706,27 @@
         {
           "locationName": "",
           "country": "Orisa,",
-          "reasoning": ""
+          "reasoning": "The new Idina OR15 troopers are deployed"
         }
       ],
       "npcFilterPlaces": [
         {
           "locationName": "",
           "country": "Efi,",
-          "reasoning": ""
+          "reasoning": "Admires the new OR15s but criticizes their implementation"
         }
       ],
       "factionFilterPlaces": [
         {
           "locationName": "",
           "country": "Numbani City of Harmony,",
-          "reasoning": ""
+          "reasoning": "Recomissions the Idina program to protect the city"
+        }
+      ],
+      "commentary": [
+        {
+          "name": "Domineering Beast",
+          "theaterId": "3f461069-d276-4d23-88b4-e6d2017530a7"
         }
       ]
     },
@@ -16714,7 +16734,7 @@
       "name": "Heroes Never Die",
       "locationType": "earth",
       "cityDisplayName": "Cairo, Egypt",
-      "description": "No description available.",
+      "description": "Like other Overwatch agents, Angela had received the recall Winston had sent, but she had not answered it. She knew Winston's heart was in the right place, but not only did she have her own reservations about whether Overwatch could or should be restored. Besides, there was still much to take care of in Egypt as Talon continued collaborating with crime syndicates to leech from the people in Cairo, and in spite of Helix and the recent vigilante activity going on, the violence in the streets did not appear to be stopping any time soon, and the wounded were filling up her clinic tent. It was the most inopportune time when two ghosts visited her apartment. Ana had brought in Jack due to his lingering injuries from the necrotic shot guns of the Reaper, and while he insisted all they needed were some medkits, the fact his body refused to heal was far too concerning to brush off so easily. Dr. Ziegler was both happy to see them alive, but irritated at the way they barged in. As a manifestation of a past, she kept trying to escape, not made better by Amari's possession of a biotic rifle, adapted from her technology without her consent. After catching up with each other and in spite of their disagreements over Jack's agenda, Angela allowed them to stay and resupply.\n\nWhile she was asleep, an explosion on the streets woke Angela up. Talon had attacked the Temple of Anubis. Ana and Jack refused to let Helix handle the situation and left to join the fight. Seeing the destruction Talon was causing, Angela decided to don her Valkyrie suit once more, scouting from the sky to locate any civilians caught in the crossfire. She saw Morrison and Amari chasing after the Reaper, but focused her attention on a young girl pinned under the rubble. Using the biotic stream of her staff, she was able to heal her injuries, but the girl pointed out that her brother was still trapped in a nearby building. Angela went in to rescue the boy, but as she was getting both kids out, the roof collapsed on them, forcing Angela to shield the two with her body and lose consciousness. She was awakened by Morrison and Ana, who had come back to help her get the kids out.  \n\nThe day that followed, she would be visited by the soldiers at her tent, who explained that the Reaper had got away, and they intended to chase him into Europe. The two asked Angela to join them, but she declined, given she had a lot of work to do to help those affected by the attack. In spite of this, they parted on good terms, respecting her choice. The kids Angela had rescued lost their parents in the attack, making Angela reflect on her own life as an orphan and the awoken sense of heroism she felt. She thought those feelings would never return, but after that encounter with Jack and Ana, she got a spark of hope, that there were still ways in which they could make a difference like they use to in Overwatch, because heroes never die.",
       "image": "",
       "lat": 30.0444,
       "lon": 31.2357,
@@ -16724,7 +16744,7 @@
         {
           "locationName": "Cairo, Egypt",
           "country": "Egypt",
-          "reasoning": "",
+          "reasoning": "Angela equips the Valkirie suit to rescue people from a Talon Attack",
           "lat": 30.0444,
           "lon": 31.2357
         }
@@ -16733,43 +16753,47 @@
         {
           "locationName": "",
           "country": "Mercy,",
-          "reasoning": ""
+          "reasoning": "Aids the wounded by Talon's attack"
         },
         {
           "locationName": "",
           "country": "Soldier 76, Ana,",
-          "reasoning": ""
+          "reasoning": "Visit Angela for supplies"
         },
         {
           "locationName": "",
-          "country": "Baptiste,",
-          "reasoning": ""
+          "country": "Reaper,",
+          "reasoning": "Escapes the scene and flees to Europe"
         }
       ],
       "factionFilterPlaces": [
         {
           "locationName": "",
-          "country": "Helix Securities,",
-          "reasoning": ""
-        },
-        {
-          "locationName": "",
-          "country": "Talon Empire,",
-          "reasoning": ""
+          "country": "Helix Securities, Talon Empire,",
+          "reasoning": "Brawl due to Talon's infiltration of the Temple of Anubis"
         }
       ],
       "yearEnd": null,
-      "headlines": [],
+      "headlines": [
+        "Dr. Ziegler seen wearing the Valkirie Armor near the Temple of Anubis",
+        "Mercy spotted rescuing children from the rubble after a Talon Attack"
+      ],
       "sources": [
         {
           "text": "Valkyrie",
           "url": "https://overwatch.blizzard.com/en-us/media/short-story/valkyrie/"
         }
+      ],
+      "commentary": [
+        {
+          "name": "Biotic Misuse",
+          "theaterId": "230112c2-d8d6-44b9-ac3e-a0ca5fc4bfc4"
+        }
       ]
     },
     {
       "name": "Doomfist Escapes",
-      "description": "No description available.",
+      "description": "The heist at the Overwatch Museum made the world grow quiet, fearing that Talon might be trying to break Doomfist out of his imprisonment. Sadly, it did not take long for these fears to be realized, as in the early hours of the morning, a Talon aircraft entered Watchpoint: Grímsvötn, bypassing Helix's defense systems without an incitent. A cloud of smoke emerged out of the ship and descended into the prison grounds, taking the form of the Reaper, overwhelming Helix personnel and leaving dozens dead.\n\nPerhaps most astonishing of all was Doomfist himself, who continuously punched at the walls of his own cell until tearing a way out during his extraction, as if he knew he could escape confinement easily and was merely waiting for the right moment. The last that was seen between the escapee and the intruder was a brief conversation as they made their way into Talon's aircraft, and since then Helix lost track of Ogundimu and the Reaper. It is believed that other security breaches may have also taken place during the extraction, but Helix officials refused to confirm if other inmates or items were taken alongside Akande. \n\nThis incident was a huge hit on Helix's reputation, which had been championed for years as Overwatch's logical replacement, but between this failure, the ever-increasing riots and skirmishes with Phreaks cells across the world, a mysterious enhanced individual breaching several ex Overwatch facilities and devastating the personnel and the persistent attacks at the Temple of Anubis, the world was starting to question the effectiveness of Helix's methods, with many objecting the increase privatization of global security. And yet in spite of this public backlash, Helix requested additional funding from the UN to continue coping with the rising threats across the world, money which the UN promptly granted.",
       "locationType": "earth",
       "cityDisplayName": "Watchpoint: Grímsvötn, Iceland",
       "lat": 64.3984222,
@@ -16787,14 +16811,14 @@
         {
           "locationName": "Watchpoint: Grímsvötn, Iceland",
           "country": "Iceland",
-          "reasoning": ""
+          "reasoning": "Doomfist escapes prison with the help of the Reaper"
         }
       ],
       "heroFilterPlaces": [
         {
           "locationName": "",
           "country": "Doomfist, Reaper",
-          "reasoning": ""
+          "reasoning": "Overwhelm Helix forces during the extraction"
         }
       ],
       "factionFilterPlaces": [
@@ -16802,10 +16826,24 @@
           "locationName": "",
           "country": "Talon Empire,",
           "reasoning": ""
+        },
+        {
+          "locationName": "",
+          "country": "Helix Securities,",
+          "reasoning": "Gets heavily critized for consistent failures at keeping peace globally"
+        },
+        {
+          "locationName": "",
+          "country": "IJC,",
+          "reasoning": "The UN grants additional funding to Helix in spite of backlash"
         }
       ],
       "yearEnd": null,
-      "headlines": []
+      "headlines": [
+        "Domfist Escapes! Helix Personnel refuse to disclose details",
+        "Ex Overwatch facility raided by a lone man that killed a dozen Helix soldiers",
+        "Phreaks Riots continue across Europe and North Africa, local authorities unable to supress them"
+      ]
     },
     {
       "name": "Binary",
@@ -20968,7 +21006,7 @@
     },
     {
       "name": "New Charter",
-      "description": "No description available.",
+      "description": "In spite of her initial doubts about returning to Overwatch, Vivian had grown attached to this new team and their mission. She saw in them the spirit that was long gone in the original organization, a smaller unit made out of exceptional people who simply wanted to help make a difference. Fighting against Null Sector and seeing the team come together from all over the world inspired Vivian and while she intended for Overwatch's return to be temporary until the Invasion was resolved, this new passion for the team made her change her mind, now believing that this dedicated team with a singular focus could give Overwatch new life. Using her connections with the IJC and the UN, she began the process of requesting clearance for extending Overwatch operations.\n\nThe negotiations took Sojourn, piloted by Lena all the way to Zurich for a meeting with the International Justice Commission, to grant Overwatch operations global recognition in the form of a new chatter that would provide funding, resources and long-term jurisdiction without attaching it to special circumstances like the Null Sector invasion. The Secretary General of the United Nations, Osei, had been watching Overwatch's activities since the Recall and especially after the Null Sector attack, and she was the one leading the IJC panel in which Vivian was to make her case for Overwatch's continued existence. Her unreadable nature made Overwatch's future nebulous, but she had played a big role in allowing Overwatch to operate through the invasion, noting that even if the reforming of Overwatch was unsanctioned, the world undeniably benefited from their help.\n\nThe meeting did not last long, going over the history of Overwatch from its founding during the crisis, its achievements and advancements in global security, medicine, bioengineering and climate research, but also their controversies in its final years from botched missions, leadership infighting and blurred jurisdiction, as well as Petra's hearings and Vivian's own testimony regarding Overwatch's failures. Still, in light of Vivian's efforts and cooperation alongside the new team's success at aiding authorities and civilians during the Null Sector Invasion, the council was willing to deliberate on reinstating Overwatch's charter, or at the very least possibly pardoning Agents for breaking the Petra Accords by answering the recall. Now it was just a matter of waiting and hoping for the best.",
       "locationType": "earth",
       "lat": 47.3744489,
       "lon": 8.5410422,
@@ -20981,15 +21019,43 @@
         {
           "locationName": "Zurich, Switzerland",
           "country": "Switzerland",
-          "reasoning": ""
+          "reasoning": "The IJC hears Sojourn out on the possibility of a new charter"
         }
       ],
-      "headlines": [],
-      "sources": []
+      "headlines": [
+        "IJC considering a new charter for Overwatch following Commander Chase's pleas"
+      ],
+      "sources": [
+        {
+          "text": "Overwatch Undivided",
+          "url": "https://www.webtoons.com/en/action/overwatch/list?title_no=9843"
+        }
+      ],
+      "heroFilterPlaces": [
+        {
+          "locationName": "",
+          "country": "Tracer, Sojourn,",
+          "reasoning": "Travel to Zurich for a meeting with the IJC"
+        }
+      ],
+      "factionFilterPlaces": [
+        {
+          "locationName": "",
+          "country": "IJC, Overwatch,",
+          "reasoning": "Debating on a possibly new charter for Overwatch"
+        }
+      ],
+      "npcFilterPlaces": [
+        {
+          "locationName": "",
+          "country": "Osai,",
+          "reasoning": "Willing to help Vivian get a new Charter approve"
+        }
+      ]
     },
     {
       "name": "The Gibraltar Attack",
-      "description": "No description available.",
+      "description": "Overwatch was awaiting new recruits, this time formally invited rather than in the middle of the battlefield like most of the additions during the invasion. For such a special occasion, Juno had decided to prepare a welcome party, getting some help from some of the other members, like D.va, Lúcio. The sight was enough to get Cassidy and Genji to reminisce about how different their own recruitment was, and how this marked a new era for Overwatch, a clean slate. But as party preparations were being finished, Winston's console flared up during his routine scan, showing an incoming fleet of Talon ships. He tried to sound the alarms, but it was too late, as the entire Gibraltar base had been bombarded with heavy fire. Juno woke up out of what was left of the party room, was rescued by Cassidy and Baptiste as Genji and Reinhardt provided cover. Talon's troops had invaded Gibraltar, using uniquely strong hard light shields that overwhelmed the defense systems and shutting down the communications array. \n\nThis small group fought off Talon until reinforcements arrived in the form of Sojourn and Tracer, coming back from their latest meeting with the IJC to find Gibraltar on fire. Together they made their way into the command center, where they found Winston and Athena trying to reboot the systems. To clear off the multiple critical power failures, Sojourn split the team up to repair and investigate. Tracer and Juno headed to fix the communications system. They found Lúcio stuck on debris, surrounded by Talon, but as the two rushed in, a biotic shot fired from the distance, revitalizing Lúcio. Former Captain Ana Amari had returned to Gibraltar, and once fighting was over, could see that Juno struggled to injure sentient combatants given her only experience was with Null Sector troops, so she took the time to guide her on how to incapacitate enemies without dealing lethal blows. Once they regrouped, Ana explained how she had kept tabs on Talon using her Intel network and the backdoor data drive copy she had gotten from Jack. She knew of the incoming attack and intended to warn Overwatch, but she had come too late. She also came baring the damning news of Doomfist's death, and the reason for this brutal attack being a change in regime. \n\nAs Juno fixed the communications, many more problems became apparent, from the fires, evacuation, incoming reinforcements and the missing agents, quickly overwhelming the young Martian with the idea of losing a second home so soon after leaving her family. The team focused on trying to fight until the end, using the systems to find Pharah Efi and Orisa tending to a wounded Baptiste. The group headed their way and managed to repel Talon and heal Baptiste, but just as it started to look like they would be able to make it out, Lena received direct orders from Vivian to find a ship in good condition and prepare for a full-scale evacuation. Gibraltar was far too damaged and they needed to leave. The missions changed from rescue to salvaging whatever assets were still operational and stocking them up into a drop-ship before it was too late. Once the team found a suitable ship, Sojourn redirected all agents to their direction. In spite of Juno's pleas, Lena had to follow orders. There were simply too many Talon troops and not enough agents, Gibraltar was lost.",
       "locationType": "earth",
       "lat": 36.1407517,
       "lon": -5.345374,
@@ -21002,12 +21068,15 @@
         {
           "locationName": "Watchpoint: Gibraltar",
           "country": "Gibraltar",
-          "reasoning": "",
+          "reasoning": "Gibraltar is evacuated following an all out attack by Talo",
           "lat": 36.1407517,
           "lon": -5.345374
         }
       ],
-      "headlines": [],
+      "headlines": [
+        "All out attack On Watchpoint: Gibraltar",
+        "Talon assault on Gibraltar, is Overwatch lost?"
+      ],
       "sources": [
         {
           "text": "Overwatch Undivided",
@@ -21017,47 +21086,47 @@
       "heroFilterPlaces": [
         {
           "locationName": "",
-          "country": "Juno,",
-          "reasoning": ""
+          "country": "Juno, Lúcio, D.va,",
+          "reasoning": "Attempt to get a welcome party set up before the bombardment"
         },
         {
           "locationName": "",
-          "country": "D.va, Lúcio, Zarya, Reinhardt, Echo, Winston, Cassidy, Genji,",
-          "reasoning": ""
+          "country": "Ana,",
+          "reasoning": "Rejoins Overwatch trying to"
         },
         {
           "locationName": "",
-          "country": "Baptiste, Ana, Mercy, Mei, Orisa, Pharah, Bastion, Jetpack Cat,",
-          "reasoning": ""
+          "country": "Zarya, Reinhardt, Echo, Mercy, Mei, Bastion, Jetpack Cat, Cassidy, Genji,",
+          "reasoning": "Caught in the middle of fire all across the Watchpoint"
         },
         {
           "locationName": "",
           "country": "Sojourn, Tracer,",
-          "reasoning": ""
+          "reasoning": "Come back from an IJC meeting and decide on evacuation"
+        },
+        {
+          "locationName": "",
+          "country": "Baptiste, Pharah, Orisa,",
+          "reasoning": "Repel off Talon troops to keep Bapsite safe"
         }
       ],
       "factionFilterPlaces": [
         {
           "locationName": "",
           "country": "Overwatch,",
-          "reasoning": ""
+          "reasoning": "Loses Gibraltar at the Hands of Talon"
         },
         {
           "locationName": "",
           "country": "Talon Empire,",
-          "reasoning": ""
+          "reasoning": "Sucessfully takes over Gibraltar in the aftermath"
         }
       ],
       "npcFilterPlaces": [
         {
           "locationName": "",
-          "country": "Athena,",
-          "reasoning": ""
-        },
-        {
-          "locationName": "",
           "country": "Efi,",
-          "reasoning": ""
+          "reasoning": "Aided in covering Baptiste"
         }
       ]
     },
@@ -21065,14 +21134,16 @@
       "name": "From the Ashes",
       "locationType": "earth",
       "cityDisplayName": "Watchpoint: Gibraltar",
-      "description": "<br>",
+      "description": "Winston had been the last to join the evacuation ship, having to stay behind to destroy the command center before he left. Leaving Gibraltar risked giving Talon access to years worth of Overwatch's data and endangering even more people, but the only way to ensure that did not happen was a full system termination, that included shutting down Athena, effectively killing her. In her last words she thanked Winston, going down knowing her sacrifice would keep the Agents safe. As he boarded the ship, he warned that not everyone was accounted for, as Genji and Echo were still fighting near the comms tower, and Brigitte had arrived with the new recruits in the middle of the battle. Overwatch had suffered many major blows that day, but they would not leave agents behind if they could avoid it, so a small scouting party was sent to look for the remaining agents while the rest defended the drop-ship from Talon.\n\nEarlier that day, Brigitte had been sent to Chengdu on a separate ship to retrieve the Ye siblings, getting to know them better and telling them about the upcoming party they had ready. But while Wuyang was excited to meet everyone and become a part of Overwatch, Anran couldn't help but feel uneasy. Her whole life, she had been responsible for her brother's safety and while he was able to fend off the Chengdu attack, Overwatch was something else entirely. She was the one who convinced their parents to let him join, so that responsibility of being the older sibling loomed on her even more now. When the recruits arrived that night, Gibraltar was already set ablaze. Brigitte wanted to retreat and find somewhere safe since the recruits had not even gone through basic training yet, but the siblings, or at least Anran, were ready to stand next to Brigitte in battle.  As they landed, Brigitte got the message to find and rescue Echo and Genji, and while she told the siblings to stick nearby, Anran forced her way through the enemy ranks, burning down a path to the missing agents. \n\nIn the middle of the struggle, Wuyang got shot in the arm, forcing the agents to retreat, enraging Anran and causing her to push further in against the Talon troops, staying behind, caught up in the battle while the rest retreated. The scouting party met up with the missing agents but Wuyang told them how Anran was still out there fighting, so the team split up in two with Juno tending to Wuyang while Pharah, D.va, Echo, Brigitte and Genji cleared a path back to the drop-ship. Anran had overextended, fighting off Talon troops all by herself, buying the rest time to escape but endangering herself as troops continued to swarm, but it wouldn't be long before Sojourn, Reinhardt and Zarya found her shielding her long enough to rejoin the rest of the agents at the drop-ship. Once everyone was in, the drop-ship took off, leaving Gibraltar behind. Anran reflected on her hothead approach, and how being out of position caused problems for everyone else. Being the older sister and the star of the Fire College, she was used to calling the shots and taking most of the weight, but now in Overwatch she needed to learn how to learn on a team. Overwatch may have lost a lot that day, but everyone managed to make it out alive, and if they were to rise from the ashes, they would stand together, and win together.",
       "image": "",
       "lat": 36.1407517,
       "lon": -5.345374,
       "eraName": "The Reign of Talon",
       "yearStart": 2080,
       "yearEnd": null,
-      "headlines": [],
+      "headlines": [
+        "ICJ confirms every Overwatch agent made it out of Gibraltar alive"
+      ],
       "sources": [
         {
           "text": "From the Ashes",
@@ -21091,7 +21162,7 @@
         {
           "locationName": "Watchpoint: Gibraltar",
           "country": "Gibraltar",
-          "reasoning": "",
+          "reasoning": "Overwatch abandons Gibraltar after securing every agent into the evacuation ship",
           "lat": 36.1407517,
           "lon": -5.345374
         }
@@ -21099,48 +21170,53 @@
       "heroFilterPlaces": [
         {
           "locationName": "",
-          "country": "Anran, Wuyang,",
+          "country": "Anran, Wuyang, Brigitte,",
           "reasoning": ""
         },
         {
           "locationName": "",
-          "country": "Brigitte, Ana,",
+          "country": "Echo, Genji, D.va, Juno, Pharah,",
+          "reasoning": "Aid in escorting Wuyang into the ship"
+        },
+        {
+          "locationName": "",
+          "country": "Winston,",
+          "reasoning": "Destroys the command center Taking Athena with it"
+        },
+        {
+          "locationName": "",
+          "country": "Sojourn, Reinhardt, Zarya,",
           "reasoning": ""
         },
         {
           "locationName": "",
-          "country": "Winston, Tracer, Mei, Reinhardt, Mercy, Genji, Echo, Cassidy, Pharah, Baptiste, Zarya, D.va, Sojourn, Bastion, Juno, Orisa, Jetpack Cat",
-          "reasoning": ""
+          "country": "Tracer, Orisa, Cassidy, Lúcio, Mei, Mercy, Jetpack Cat, Baptiste, Ana, Bastion,",
+          "reasoning": "Leave Gibraltar in the Dropship"
         }
       ],
       "factionFilterPlaces": [
         {
           "locationName": "",
           "country": "Overwatch, Talon Empire",
-          "reasoning": ""
-        },
-        {
-          "locationName": "",
-          "country": "IJC,",
-          "reasoning": ""
+          "reasoning": "Talon takes over Gibraltar Forcing Overwatch to leave"
         }
       ],
       "npcFilterPlaces": [
         {
           "locationName": "",
           "country": "Efi,",
-          "reasoning": ""
+          "reasoning": "Leaves Gibraltar in the dropship"
         },
         {
           "locationName": "",
-          "country": "Osai,",
-          "reasoning": ""
+          "country": "Athena,",
+          "reasoning": "Lost forever during shut down"
         }
       ]
     },
     {
       "name": "Shelter",
-      "description": "No description available.",
+      "description": "The Drop-ship remained silent for a while as everyone processed what had happened. Having lost Gibraltar, Overwatch was without a base of operations and with an entire army hunting them down, Sojourn knew morale was low, but they had no time to waste. The first priorities now were to find a place to take sanctuary in and figure out what Talon was up to after such a bold, unprecedented attack. Luckily for them, they already had an answer to both, as the Lindholms had been calling Brigitte all night trying to make sure she was okay, and a city as fortified as Gothenburg made the Ironclad Workshop an ideal place to stay, if the Lindholms allowed it. \n\nOn the other hand, while she had mentioned it to some agents before, Ana was not able to give more details about her arrival. Her information pointed to Doomfist having been killed at the hands of the Gladiator Vendetta, Marzia Bartalotti. The name was enough to send some of the older agents into the past, as the ghost of Antonio continued to haunt over a decade after his death. Blackwatch intel on Antonio did not know he had a daughter, likely due to how much he pushed Marzia away from the business, but regardless, this revelation meant Talon's new leader had a personal score to settle with Overwatch and the attack on Gibraltar made it clear she would stop at nothing to see them go down.\n\nThe team would set course to Gothenburg, where they were warmly welcomed by both Torbjörn and Ingrid, although they really questioned Brigitte's habit of picking up cats even while away from home. As everyone got situated, however, Vivian received news from the IJC. The UN was aware of the Talon attack, and they wanted to set the record straight as soon as possible. They decided not to prosecute any agents for the recall or their actions during the Null Sector Invasion, but they also determined that reinstating Overwatch to its former position would require too extensive funding, resources and oversight, which they sorely lacked in the aftermath of the Invasion. As such, they decided it would be best to shut Overwatch down again. Osei tried her best to advocate for Vivians case, but in the end, all she managed was to buy them more time. In the wake of Talon's attack in Gibraltar and intel of military escalation going on in Italy, Overwatch was given permission to intervene only under absolute certainty that Talon was involved, otherwise they were in the process of getting decommissioned once more, so if they planned to save the world, they needed to do it fast.",
       "locationType": "earth",
       "lat": 57.7072326,
       "lon": 11.9670171,
@@ -21153,7 +21229,7 @@
         {
           "locationName": "Gothenburg, Sweden",
           "country": "Sweden",
-          "reasoning": ""
+          "reasoning": "Overwatch retrieves to the Ironclad Workshop"
         }
       ],
       "headlines": [],
@@ -21166,47 +21242,52 @@
       "heroFilterPlaces": [
         {
           "locationName": "",
-          "country": "Brigitte, Torbjörn, Jetpack Cat,",
-          "reasoning": ""
+          "country": "Sojourn,",
+          "reasoning": "Recieves news of the IJC about Overwatch's shutdown"
         },
         {
           "locationName": "",
-          "country": "Winston, Sojourn, Cassidy,",
-          "reasoning": ""
+          "country": "Ana,",
+          "reasoning": "Provides intel on Talon's new leader"
+        },
+        {
+          "locationName": "",
+          "country": "Brigitte, Torbjörn, Jetpack Cat,",
+          "reasoning": "Agree to take Overwatch into the Ironclad Workshop but quesition Brigitte about the cat"
         },
         {
           "locationName": "The Modern Overwatch Strike Team",
-          "country": "Mei, Genji, Mercy, Reinhardt, Pharah, Bastion,",
-          "reasoning": ""
-        },
-        {
-          "locationName": "",
-          "country": "Juno, Wuyang,",
-          "reasoning": ""
-        },
-        {
-          "locationName": "",
-          "country": "Tracer, Zarya, Orisa, Lúcio, Baptiste, Echo, Anran,",
-          "reasoning": ""
+          "country": "Tracer, Zarya, Orisa, Lúcio, Baptiste, Echo, Anran, Juno, Wuyang, Mei, Genji, Mercy, Reinhardt, Pharah, Bastion, Cassidy, Winston,",
+          "reasoning": "Get situated in Gothenbug"
         }
       ],
       "factionFilterPlaces": [
         {
           "locationName": "",
           "country": "Overwatch, Ironclad Guild,",
-          "reasoning": ""
+          "reasoning": "Overwatch is taken in by the Lindholms"
+        },
+        {
+          "locationName": "",
+          "country": "IJC,",
+          "reasoning": "Dedices to shut Overwatch down but allows them to fight Talon in the mean time"
         }
       ],
       "npcFilterPlaces": [
         {
           "locationName": "",
           "country": "Ingrid,",
-          "reasoning": ""
+          "reasoning": "Prepares the house for Overwatch to stay in"
         },
         {
           "locationName": "",
           "country": "Efi,",
-          "reasoning": ""
+          "reasoning": "Gets situated in Gothenburg"
+        },
+        {
+          "locationName": "",
+          "country": "Osai,",
+          "reasoning": "Buys Sojourn time but fails to convince the IJC"
         }
       ]
     },
